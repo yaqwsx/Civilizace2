@@ -1,28 +1,152 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Tailwind CSS Skeleton</title>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
-  <meta name="author" content="">
-
-  <link rel="stylesheet" href="{% static "css/styles.min.css" %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Tailwind CSS Skeleton{% endblock %}</title>
+    <link rel="stylesheet" href="{% static "css/styles.min.css" %}">
+    <script src="{% static "js/Chart.bundle.min.js" %}"></script>
 </head>
 
-<body class="bg-grey-lightest font-serif leading-normal tracking-normal">
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
-<div class="container mx-auto">
-  <section class="flex items-center justify-center h-screen">
-    <h1 class="text-5xl">Django + Tailwind = ❤️</h1>
-  </section>
+    <nav id="header" class="bg-white fixed w-full z-10 top-0 shadow">
+        <div class="w-full container mx-auto flex flex-wrap items-center mt-0 pt-3 pb-3 md:pb-0">
 
-</div>
+            <!-- Caption -->
+            <div class="w-1/2 pl-2 md:pl-0">
+                <a class="text-gray-900 text-base xl:text-xl no-underline hover:no-underline font-bold" href="#">
+                    <i class="fas fa-city text-orange-600 pr-3"></i> Příběh civilizace
+                </a>
+            </div>
+            <!-- /Caption -->
 
+            <!-- User Menu -->
+            <div class="w-1/2 pr-0">
+                <div class="flex relative inline-block float-right">
+                    {% block userMenu %} {% endblock %}
+                </div>
+            </div>
+            <!-- /User Menu -->
+
+
+            <div class="w-full flex-grow lg:flex lg:items-center lg:w-auto hidden lg:block mt-2 lg:mt-0 bg-white z-20"
+                id="nav-content">
+                <ul class="list-reset lg:flex flex-1 items-center px-4 md:px-0">
+                    {% block nav %} {% endblock %}
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <!--Container-->
+	<div class="container w-full mx-auto pt-20">
+        <div class="w-full px-4 md:px-0 md:mt-8 mb-16 text-gray-800 leading-normal">
+            {% block content %} {% endblock %}
+        </div>
+    </div>
+    <!--/Container-->
+
+    <footer class="bg-white border-t border-gray-400 shadow">
+        <div class="container max-w-md mx-auto flex py-8">
+
+            <div class="w-full mx-auto flex flex-wrap">
+                <div class="flex w-full md:w-1/2 ">
+                    <div class="px-8">
+                        <h3 class="font-bold font-bold text-gray-900">About</h3>
+                        <p class="py-4 text-gray-600 text-sm">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas vel mi ut felis tempus
+                            commodo nec id
+                            erat. Suspendisse consectetur dapibus velit ut lacinia.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex w-full md:w-1/2">
+                    <div class="px-8">
+                        <h3 class="font-bold font-bold text-gray-900">Social</h3>
+                        <ul class="list-reset items-center text-sm pt-3">
+                            <li>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-900 hover:text-underline py-1"
+                                    href="#">Add social link</a>
+                            </li>
+                            <li>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-900 hover:text-underline py-1"
+                                    href="#">Add social link</a>
+                            </li>
+                            <li>
+                                <a class="inline-block text-gray-600 no-underline hover:text-gray-900 hover:text-underline py-1"
+                                    href="#">Add social link</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </footer>
+
+    <script>
+        /*Toggle dropdown list*/
+        /*https://gist.github.com/slavapas/593e8e50cf4cc16ac972afcbad4f70c8*/
+
+        var userMenuDiv = document.getElementById("userMenu");
+        var userMenu = document.getElementById("userButton");
+
+        var navMenuDiv = document.getElementById("nav-content");
+        var navMenu = document.getElementById("nav-toggle");
+
+        document.onclick = check;
+
+        function check(e) {
+            var target = (e && e.target) || (event && event.srcElement);
+
+            //User Menu
+            if (!checkParent(target, userMenuDiv)) {
+                // click NOT on the menu
+                if (checkParent(target, userMenu)) {
+                    // click on the link
+                    if (userMenuDiv.classList.contains("invisible")) {
+                        userMenuDiv.classList.remove("invisible");
+                    } else { userMenuDiv.classList.add("invisible"); }
+                } else {
+                    // click both outside link and outside menu, hide menu
+                    userMenuDiv.classList.add("invisible");
+                }
+            }
+
+            //Nav Menu
+            if (!checkParent(target, navMenuDiv)) {
+                // click NOT on the menu
+                if (checkParent(target, navMenu)) {
+                    // click on the link
+                    if (navMenuDiv.classList.contains("hidden")) {
+                        navMenuDiv.classList.remove("hidden");
+                    } else { navMenuDiv.classList.add("hidden"); }
+                } else {
+                    // click both outside link and outside menu, hide menu
+                    navMenuDiv.classList.add("hidden");
+                }
+            }
+
+        }
+
+        function checkParent(t, elm) {
+            while (t.parentNode) {
+                if (t == elm) { return true; }
+                t = t.parentNode;
+            }
+            return false;
+        }
+
+
+    </script>
 
 </body>
 
