@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'guardian',
     'game.apps.GameConfig',
     'tailwind',
     'theme.apps.ThemeConfig',
-    'ground.apps.GroundConfig'
+    'ground.apps.GroundConfig',
+    'crispy_forms'
 ]
 
 MIDDLEWARE = [
@@ -103,9 +105,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # this is default
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 
 # Internationalization
@@ -128,3 +134,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 TAILWIND_APP_NAME = 'theme'
+CRISPY_TEMPLATE_PACK = 'tailwind'
