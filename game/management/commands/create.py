@@ -1,7 +1,18 @@
+# https://stackoverflow.com/questions/22250352/programmatically-create-a-django-group-with-permissions
+
 from django.core.management import BaseCommand
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group, Permission
 from guardian.shortcuts import assign_perm
 from game import models
+
+GROUPS_PERMISSIONS = {
+    'ATeam': {
+        models.Team: ['play', 'stat']
+    },
+    'BTeam': {
+        models.Team: ['play', 'stat']
+    },
+}
 
 TEAMS = {
     "Červení": {
@@ -22,6 +33,8 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
+    help = "usage: create [groups|users|state]+"
+
     @staticmethod
     def create_or_get_user(username, email, password, superuser=False):
         try:
@@ -34,8 +47,20 @@ class Command(BaseCommand):
                 return User.objects.create_user(username=username, email=email,
                     password=password)
 
-    help = "Create test users"
+    def add_arguments(self, parser):
+        parser.add_argument('what', nargs='+', type=str)
+
+
     def handle(self, *args, **options):
+        for what in options["what"]:
+            if what == "groups":
+                self.createGroups()
+            if what == "users":
+                self.createUsers()
+            if what == "state":
+                self.createState()
+
+    def createUsers(self):
         # Create team users
         for teamName, teamParams in TEAMS.items():
             team = models.Team(name=teamName)
@@ -62,3 +87,29 @@ class Command(BaseCommand):
                             password="password")
             user.groups.add(bteamGroup)
 
+    def createGroups(self):
+        for group_name in GROUPS_PERMISSIONS:
+            group, created = Group.objects.get_or_create(name=group_name)
+            for model_cls in GROUPS_PERMISSIONS[group_name]:
+                for perm_index, perm_name in \
+                        enumerate(GROUPS_PERMISSIONS[group_name][model_cls]):
+
+                    # Generate permission name as Django would generate it
+                    codename = perm_name + "_" + model_cls._meta.model_name
+                    try:
+                        # Find permission object and add to group
+                        perm = Permission.objects.get(codename=codename)
+                        group.permissions.add(perm)
+                        self.stdout.write("Adding "
+                                          + codename
+                                          + " to group "
+                                          + group.__str__())
+                    except Permission.DoesNotExist:
+                        self.stdout.write(codename + " not found")
+
+    def createState(self):
+        s = models.State.objects.createInitial()
+        if s is None:
+            print("Cannot create initialState")
+        else:
+            print("Initial state created: {}".format(s))
