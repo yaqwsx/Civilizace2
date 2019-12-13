@@ -58,6 +58,8 @@ class ImmutableModel(TrackedModel):
                 continue
             attr = getattr(self, field.name)
             if isinstance(field, models.fields.related.ForeignKey):
+                if attr is None:
+                    continue
                 if not isinstance(attr, TrackedModel):
                     attr.save()
                     continue

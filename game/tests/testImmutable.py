@@ -1,34 +1,12 @@
 from django.test import TestCase
 from django.db import models
-from game.models.immutable import ImmutableModel
-from game.models.managers import DefaultSelectOrPrefetchManager
-from game.models import Team, Action, State, WorldState, TeamState, WealthTeamState, PopulationTeamState
-
+from game.models import Team, State, ActionMove
 
 class ImmutableTest(TestCase):
     def setUp(self):
-        teamStates = []
         for i in range(2):
-            team = Team(name="Team {}".format(i + 1))
-            team.save()
-            wealth = WealthTeamState(data={})
-            wealth.save()
-            population = PopulationTeamState(data={})
-            population.save()
-            teamState = TeamState(team=team, wealth=wealth, population=population)
-            teamState.save()
-            teamStates.append(teamState)
-
-        world = WorldState(data={})
-        world.save()
-        action = Action(name="A")
-        action.save()
-        state = State(action=action, worldState=world)
-        state.save()
-        state.teamStates.all()
-
-        state.teamStates.set(teamStates)
-        state.teamStates.all()
+            Team.objects.create(name="Team {}".format(i + 1))
+        s = State.objects.createInitial()
 
     def test_initialValid(self):
         s = State.objects.all()[0]
@@ -36,7 +14,7 @@ class ImmutableTest(TestCase):
         self.assertEqual(s.id, 1)
         # Action
         self.assertEqual(s.action.id, 1)
-        self.assertEqual(s.action.name, "A")
+        self.assertEqual(s.action.move, ActionMove.createInitial)
         # World state
         self.assertEqual(s.worldState.id, 1)
         self.assertEqual(s.worldState.data, {})
@@ -59,13 +37,13 @@ class ImmutableTest(TestCase):
 
     def test_changeAction(self):
         s = State.objects.all()[0]
-        s.action.name = "B"
+        s.action.move = ActionMove.increasePopulation
         s.save()
         # State
         self.assertNotEqual(s.id, 1)
         # Action
         self.assertNotEqual(s.action.id, 1)
-        self.assertEqual(s.action.name, "B")
+        self.assertEqual(s.action.move, ActionMove.increasePopulation)
         # The other items should stay intact
         # World state
         self.assertEqual(s.worldState.id, 1)
@@ -95,7 +73,7 @@ class ImmutableTest(TestCase):
         self.assertNotEqual(s.id, 1)
         # Action
         self.assertEqual(s.action.id, 1)
-        self.assertEqual(s.action.name, "A")
+        self.assertEqual(s.action.move, ActionMove.createInitial)
         # The other items should stay intact
         # World state
         self.assertEqual(s.worldState.id, 1)

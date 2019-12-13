@@ -31,7 +31,7 @@
                     {% if user %}
                         <div class="relative text-sm">
                             <button id="userButton" class="flex items-center focus:outline-none mr-3">
-                                <span class="hidden md:inline-block">
+                                <span class="md:inline-block">
                                     Příhlášen jako {{user.username}}
                                         {% if user.lastname %}
                                             ({{user.firstname}} {{user.lastname}})
@@ -49,7 +49,7 @@
                                 class="bg-white rounded shadow-md mt-2 absolute mt-12 top-0 right-0 min-w-full overflow-auto z-30 invisible">
                                 <ul class="list-reset">
                                     <li><a href="{% url 'logout' %}"
-                                            class="px-4 py-2 block text-gray-900 hover:bg-gray-400 no-underline hover:no-underline">Logout</a>
+                                            class="px-4 py-2 block text-gray-900 hover:bg-gray-400 no-underline hover:no-underline">Odhlásit se</a>
                                     </li>
                                 </ul>
                             </div>
