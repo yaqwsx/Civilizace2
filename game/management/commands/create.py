@@ -1,9 +1,10 @@
 # https://stackoverflow.com/questions/22250352/programmatically-create-a-django-group-with-permissions
 
 from django.core.management import BaseCommand
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import Group, Permission
 from guardian.shortcuts import assign_perm
 from game import models
+from game.models import User
 
 GROUPS_PERMISSIONS = {
     'ATeam': {

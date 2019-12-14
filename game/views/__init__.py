@@ -1,1 +1,3 @@
-from .dashboard import DashboardView, DemoView
+from .dashboard import DashboardIndexView, DashboardStatView, DemoView
+from .index import IndexView
+from .action import ActionIndexView

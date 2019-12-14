@@ -7,7 +7,7 @@ class StateManager(PrefetchManager):
         # ManyToMany Field needs to prefetched in order to make immutable models
         # to work intuitively (otherwise the recursive saving does not work as
         # you can get different handles to models)
-        super(StateManager, self).__init__(prefetch_related=('teamStates',), select_related=('action',))
+        super(StateManager, self).__init__(prefetch_related=("teamStates",), select_related=("action",))
 
     def createInitial(self):
         teamStates = [game.models.TeamState.objects.createInitial(team=team)
@@ -17,6 +17,9 @@ class StateManager(PrefetchManager):
         state = self.create(action=action, worldState=worldState)
         state.teamStates.set(teamStates)
         return state
+
+    def getNewest(self):
+        return self.latest("action__created", "pk")
 
 
 class WorldStateManager(models.Manager):
