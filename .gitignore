@@ -108,3 +108,6 @@ civiEnv
 
 # VsCode
 .vscode
+
+# Ignore local settings
+civilizace/settingsLocal.py
