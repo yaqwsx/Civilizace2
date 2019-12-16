@@ -31,7 +31,6 @@ pandocfilters==1.4.2
 parso==0.5.1
 pexpect==4.7.0
 pickleshare==0.7.5
-pkg-resources==0.0.0
 prometheus-client==0.7.1
 prompt-toolkit==3.0.2
 psycopg2==2.8.4
