@@ -12,6 +12,10 @@ Herní systém pro druhý ročník Civilizace
   `python3 manage.py migrate`
 - nakrm databázi výchozími daty: v adresáři projektu zavolej `python manage.py
   create groups users state` nebo `python3 manage.py create groups users state`
+- aktualizuj frontendové závislosti: `python manage.py tailwind install` nebo
+  `python3manage.py tailwind install`
+- zkompiluj frontendové knihovny: `python manage.py tailwind build` nebo
+  `python3 manage.py tailwind build`
 - spusť vývojový server: v adresáři projektu zavolej `python manage.py
   runserver` nebo `python3 manage.py runserver`
 - otevři v prohlížeči [http://localhost:8000](http://localhost:8000)
