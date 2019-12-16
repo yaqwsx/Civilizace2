@@ -137,3 +137,8 @@ STATIC_URL = '/static/'
 
 TAILWIND_APP_NAME = 'theme'
 CRISPY_TEMPLATE_PACK = 'tailwind'
+
+try:
+   from .settingsLocal import *
+except ImportError:
+   pass
