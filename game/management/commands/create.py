@@ -17,24 +17,33 @@ GROUPS_PERMISSIONS = {
 
 TEAMS = {
     "Červení": {
-        "members": ["franta", "pavel"]
+        "members": ["franta", "pavel"],
+        "keyword": "JABLKO"
     },
     "Modří": {
-        "members": ["eliska", "magda"]
+        "members": ["eliska", "magda"],
+        "keyword": "HRUSKA"
     },
     "Zelení": {
-        "members": ["pepa", "vlada"]
+        "members": ["pepa", "vlada"],
+        "keyword": "MANDARINKA"
     }
 }
 
 ATEAM = ["maara", "honza", "abbe", "jupi", "efka"]
 BTEAM = ["kaja", "domca"]
 
+KEYWORDS = [
+    # keyword, description, category, arg1, arg2
+    ("PETRZEL", "Zvyš populaci", models.KeywordCategory.move,
+        models.ActionMove.increasePopulation, None),
+]
+
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    help = "usage: create [groups|users|state]+"
+    help = "usage: create [groups|users|state|keywords]+"
 
     @staticmethod
     def create_or_get_user(username, email, password, superuser=False):
@@ -60,6 +69,8 @@ class Command(BaseCommand):
                 self.createUsers()
             if what == "state":
                 self.createState()
+            if what == "keywords":
+                self.createKeywords()
 
     def createUsers(self):
         # Create team users
@@ -114,3 +125,28 @@ class Command(BaseCommand):
             print("Cannot create initialState")
         else:
             print("Initial state created: {}".format(s))
+
+    def createOrUpdateKeyword(self, keyword):
+        try:
+            k = models.Keyword.objects.get(word=keyword[0])
+            k.word = keyword[0]
+            k.description = keyword[1]
+            k.category = keyword[2]
+            k.argument1 = keyword[3]
+            k.argument2 = keyword[4]
+            k.save()
+        except models.Keyword.DoesNotExist:
+            models.Keyword.objects.create(word=keyword[0], description=keyword[1],
+                category=keyword[2], argument1=keyword[3], argument2=keyword[4])
+
+    def createKeywords(self):
+        for keyword in KEYWORDS:
+            self.createOrUpdateKeyword(keyword)
+        for teamname, param in TEAMS.items():
+            team = models.Team.objects.get(name=teamname)
+            self.createOrUpdateKeyword((
+                param["keyword"],
+                "Play team " + teamname,
+                models.KeywordCategory.team,
+                team.id,
+                None ))
