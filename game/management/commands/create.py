@@ -35,8 +35,8 @@ BTEAM = ["kaja", "domca"]
 
 KEYWORDS = [
     # keyword, description, category, arg1, arg2
-    ("PETRZEL", "Zvyš populaci", models.KeywordCategory.move,
-        models.ActionMove.increasePopulation, None),
+    ("PETRZEL", "Zvyš počítadlo", models.KeywordCategory.move,
+        models.ActionMove.sanboxIncreaseCounter, None),
 ]
 
 class Command(BaseCommand):
@@ -75,14 +75,21 @@ class Command(BaseCommand):
     def createUsers(self):
         # Create team users
         for teamName, teamParams in TEAMS.items():
-            team = models.Team(name=teamName)
-            team.save()
+            try:
+                # There can be more than one team with the name - do not use get
+                team = models.Team.objects.all().filter(name=teamName).first()
+                if not team:
+                    raise RuntimeError()
+            except:
+                team = models.Team.objects.create(name=teamName)
+                print("Creating team: " + str(team))
             for username in teamParams["members"]:
                 user = Command.create_or_get_user(
                             username=username,
                             email=username + "@hrac.cz",
                             password="password")
-                assign_perm("stat_team", user, team)
+                perm = Permission.objects.get(codename="stat_team")
+                assign_perm(perm, user, team)
         ateamGroup = Group.objects.get(name='ATeam')
         for username in ATEAM:
             user = Command.create_or_get_user(
