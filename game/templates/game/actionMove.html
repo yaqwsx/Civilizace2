@@ -1,0 +1,18 @@
+{% extends "game/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %} Příběh civilizace - Zadat akci {% endblock %}
+
+{% block content %}
+    <h1>{{action.label}} pro tým {{team.name}}</h1>
+    <p>Vyplňte zbývající parametry:</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button
+            class="w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+            type="submit">
+            Provést tah
+        </button>
+    </form>
+{% endblock %}

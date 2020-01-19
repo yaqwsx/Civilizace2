@@ -1,0 +1,42 @@
+{% extends "game/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %} Příběh civilizace - Potvrdit akci akci {% endblock %}
+
+{% block content %}
+<h1>{{action.label}} pro tým {{team.name}}</h1>
+
+{% if moveValid %}
+    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
+        <p class="w-full font-bold">Výsledek akce</p>
+        <p class="w-full">{{message}}</p>
+    </div>
+{% else %}
+<div class="bg-orange-100 border-t-4 border-orange-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
+    <p class="w-full font-bold">Akci nelze provést</p>
+    <p class="w-full">{{message}}</p>
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="hidden">
+        {{ form|crispy }}
+    </div>
+    <div class="flex flex-wrap w-full">
+        <button
+            class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded
+                   {% if moveValid %} bg-green-500 hover:bg-green-400 {% else %} bg-gray-500 cursor-not-allowed{% endif %}"
+            type="submit"
+            {% if moveValid is False %} disabled {% endif %}
+            formaction="{% url "actionCommit" team.id action.value %}">
+            Provést akci
+        </button>
+        <button
+            class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+            type="submit">
+            Zrušit
+        </button>
+    </div>
+</form>
+{% endblock %}

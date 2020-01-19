@@ -1,4 +1,4 @@
 from .common import PrefetchManager
 from .stateManagers import (
-    StateManager, WorldStateManager, TeamStateManager, WealthTeamStateManager,
+    StateManager, WorldStateManager, TeamStateManager, SandboxTeamStateManager,
     PopulationTeamStateManager, ActionManager )

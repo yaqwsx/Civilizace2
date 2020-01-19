@@ -11,6 +11,12 @@ class State(ImmutableModel):
 
     objects = game.managers.StateManager()
 
+    def teamState(self, teamId):
+        for ts in self.teamStates.all():
+            if ts.team.id == teamId:
+                return ts
+        return None
+
     def __str__(self):
         return json.dumps(self._dict)
 
@@ -24,18 +30,18 @@ class WorldState(ImmutableModel):
 
 class TeamState(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
-    wealth = models.ForeignKey("WealthTeamState", on_delete=models.PROTECT)
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
+    sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
 
     objects = game.managers.TeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
 
-class WealthTeamState(ImmutableModel):
+class SandboxTeamState(ImmutableModel):
     data = JSONField()
 
-    objects = game.managers.WealthTeamStateManager()
+    objects = game.managers.SandboxTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)

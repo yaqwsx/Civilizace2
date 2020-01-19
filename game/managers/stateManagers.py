@@ -29,14 +29,16 @@ class WorldStateManager(models.Manager):
 
 class TeamStateManager(models.Manager):
     def createInitial(self, team):
-        wealth = game.models.WealthTeamState.objects.createInitial()
+        sandbox = game.models.SandboxTeamState.objects.createInitial()
         population = game.models.PopulationTeamState.objects.createInitial()
-        return self.create(team=team, wealth=wealth, population=population)
+        return self.create(team=team, sandbox=sandbox, population=population)
 
 
-class WealthTeamStateManager(models.Manager):
+class SandboxTeamStateManager(models.Manager):
     def createInitial(self):
-        return self.create(data={})
+        return self.create(data={
+            "counter": 0
+        })
 
 
 class PopulationTeamStateManager(models.Manager):
@@ -46,4 +48,4 @@ class PopulationTeamStateManager(models.Manager):
 
 class ActionManager(models.Manager):
     def createInitial(self):
-        return self.create(move=game.models.ActionMove.createInitial)
+        return self.create(move=game.models.ActionMove.createInitial, arguments={})

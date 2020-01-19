@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from guardian.shortcuts import get_objects_for_user
 
+
 class Team(models.Model):
     name = models.CharField("Name", max_length=100, null=True)
 

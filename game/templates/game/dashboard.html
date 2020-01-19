@@ -1,5 +1,7 @@
 {% extends "game/base.html" %}
 
+{% load cards %}
+
 {% block title %} Příběh civilizace - Dashboard {% endblock %}
 
 {% block nav %}
@@ -62,5 +64,7 @@
 {% endblock %}
 
 {% block content %}
-Content
+<div class="flex flex-wrap">
+    {% card "Počítadlo" %} {{teamState.sandbox.data.counter}}  {% endcard %}
+</div>
 {% endblock %}
