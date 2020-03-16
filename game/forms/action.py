@@ -1,10 +1,13 @@
 from django import forms
-from .fields import EmptyEnumChoiceField, TeamChoiceField
+from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
 from game.models import ActionMove
+from game.models.keywords import KeywordType
 
 class MoveInitialForm(forms.Form):
-    action = EmptyEnumChoiceField(ActionMove, label="Akce")
-    team = TeamChoiceField(label="Tým")
+    action = captures(KeywordType.move,
+        EmptyEnumChoiceField(ActionMove, label="Akce"))
+    team = captures(KeywordType.team,
+        TeamChoiceField(label="Tým"))
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 
 # Base form for building actions - every other move building form has to inherit

@@ -1,5 +1,5 @@
 {% extends "game/base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags qrScanner %}
 
 {% block title %} Příběh civilizace - Zadat akci {% endblock %}
 
@@ -13,4 +13,8 @@
             Začít tah
         </button>
     </form>
+{% endblock %}
+
+{% block afterContainer %}
+    {% qrScanner %}
 {% endblock %}

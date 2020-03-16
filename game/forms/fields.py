@@ -2,6 +2,10 @@ from django import forms
 from game.models import Team
 from django_enumfield.forms.fields import EnumChoiceField
 
+def captures(what, field):
+    field.widget.attrs.update({"data-valueType": what})
+    return field
+
 class TeamChoiceField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
         super(TeamChoiceField, self).__init__(

@@ -13,11 +13,11 @@
         {% endif %}
 
         {% if field|is_checkboxselectmultiple %}
-            {% include 'bootstrap/layout/checkboxselectmultiple.html' %}
+            {% include 'tailwind/layout/checkboxselectmultiple.html' %}
         {% endif %}
 
         {% if field|is_radioselect %}
-            {% include 'bootstrap/layout/radioselect.html' %}
+            {% include 'tailwind/layout/radioselect.html' %}
         {% endif %}
 
         {% if not field|is_checkboxselectmultiple and not field|is_radioselect %}
@@ -27,10 +27,10 @@
                         {% crispy_field field %}
                         {{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
                     </label>
-                    {% include 'bootstrap/layout/help_text_and_errors.html' %}
+                    {% include 'tailwind/layout/help_text_and_errors.html' %}
                 {% else %}
                     {% crispy_field field %}
-                    {% include 'bootstrap/layout/help_text_and_errors.html' %}
+                    {% include 'tailwind/layout/help_text_and_errors.html' %}
                 {% endif %}
             </div>
         {% endif %}

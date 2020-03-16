@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, Permission
 from guardian.shortcuts import assign_perm
 from game import models
 from game.models import User
+from game.models.keywords import KeywordType, Keyword
 
 GROUPS_PERMISSIONS = {
     'ATeam': {
@@ -34,9 +35,9 @@ ATEAM = ["maara", "honza", "abbe", "jupi", "efka"]
 BTEAM = ["kaja", "domca"]
 
 KEYWORDS = [
-    # keyword, description, category, arg1, arg2
-    ("PETRZEL", "Zvyš počítadlo", models.KeywordCategory.move,
-        models.ActionMove.sanboxIncreaseCounter, None),
+    # keyword, description, category, value
+    ("PETRZEL", "Zvyš počítadlo", KeywordType.move,
+        models.ActionMove.sanboxIncreaseCounter)
 ]
 
 class Command(BaseCommand):
@@ -135,16 +136,15 @@ class Command(BaseCommand):
 
     def createOrUpdateKeyword(self, keyword):
         try:
-            k = models.Keyword.objects.get(word=keyword[0])
+            k = Keyword.objects.get(word=keyword[0])
             k.word = keyword[0]
             k.description = keyword[1]
-            k.category = keyword[2]
-            k.argument1 = keyword[3]
-            k.argument2 = keyword[4]
+            k.valueType = keyword[2]
+            k.value = keyword[3]
             k.save()
-        except models.Keyword.DoesNotExist:
-            models.Keyword.objects.create(word=keyword[0], description=keyword[1],
-                category=keyword[2], argument1=keyword[3], argument2=keyword[4])
+        except Keyword.DoesNotExist:
+            Keyword.objects.create(word=keyword[0], description=keyword[1],
+                valueType=keyword[2], value=keyword[3])
 
     def createKeywords(self):
         for keyword in KEYWORDS:
@@ -154,6 +154,5 @@ class Command(BaseCommand):
             self.createOrUpdateKeyword((
                 param["keyword"],
                 "Play team " + teamname,
-                models.KeywordCategory.team,
-                team.id,
-                None ))
+                KeywordType.team,
+                team.id))

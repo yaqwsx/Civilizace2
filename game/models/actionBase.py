@@ -49,14 +49,3 @@ class Action(ImmutableModel):
 
     def __str__(self):
         return json.dumps(self._dict)
-
-class KeywordCategory(enum.Enum):
-    team = 0
-    move = 1
-
-class Keyword(models.Model):
-    word = models.CharField("Game Word", max_length=30)
-    description = models.CharField(max_length=150)
-    category = enum.EnumField(KeywordCategory)
-    argument1 = models.IntegerField(null=True)
-    argument2 = models.IntegerField(null=True)

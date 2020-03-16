@@ -1,0 +1,141 @@
+<div class="fixed w-full bottom-0">
+    <div id="qrScanner" class="w-full bg-black hidden">
+        <video id="cameraPreview" class="w-full bg-black">
+        </video>
+        <div id="qrScannerInfo"
+            class="bg-green-500 w-full z-10 absolute text-center"
+            style="bottom: 100px;">
+
+            <div id="qrScannerDesc" class="text-xl text-white m-2"></div>
+            <div id="qrScannerKeyword" class="text-sm text-white m-2"></div>
+            <button
+                id="qrScannerApply"
+                onclick="applyWord()"
+                class="w-full text-white font-bold py-2 px-4 rounded bg-purple-500">
+                Použít
+            </button>
+        </div>
+
+    </div>
+    <button id="qrScannerButton" onclick="toggleScanner()"
+        class="absolute w-full bottom-0 right-0 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded">
+        Skenovat
+    </button>
+</div>
+
+<script type="text/javascript" src="/static/js/instascan.min.js"></script>
+<script>
+    var keywords = {
+        {% for keyword in keywords %} "{{keyword.word}}": ["{{keyword.valueType}}", {{ keyword.value }}, "{{ keyword.description }}"],
+        {% endfor %}
+    };
+    var qrScanner = document.getElementById("qrScanner");
+    var cameraPreview = document.getElementById("cameraPreview");
+    var scanner = null;
+    var camera = null;
+    var currentKeyword = null;
+
+    function toggleScanner() {
+        if (qrScanner.classList.contains("hidden")) {
+            startScanner();
+        } else {
+            stopScanner();
+        }
+    }
+
+    async function startScanner() {
+        if (scanner == null) {
+            await initScanner();
+        }
+        currentKeyword = null;
+        showKeyword(currentKeyword);
+        document.getElementById("qrScannerButton").innerText = "Zavřít skener";
+        qrScanner.classList.remove("hidden");
+        scanner.start(camera);
+        document.getElementById("qrScannerApply").disabled = true;
+    }
+
+    function stopScanner() {
+        qrScanner.classList.add("hidden");
+        if (scanner == null) {
+            return;
+        }
+        scanner.stop();
+        document.getElementById("qrScannerButton").innerText = "Skenovat";
+    }
+
+    function assignToElement(element, typeValue) {
+        if (element.tagName == "INPUT" || element.tagName == "SELECT") {
+            if (element.dataset.valuetype != typeValue[0]) {
+                return false;
+            }
+            element.value = typeValue[1];
+            return true;
+        }
+        return false;
+    }
+
+    function applyWord() {
+        var typeValue = keywords[currentKeyword];
+
+        // Try to assign it to active element
+        if (assignToElement(document.activeElement, typeValue)) {
+            stopScanner();
+            return;
+        }
+        for (form of document.getElementsByTagName("form")) {
+            for (element of form.elements) {
+                if (assignToElement(element, typeValue)) {
+                    stopScanner();
+                    return;
+                }
+            }
+        }
+        alert("Nepodařilo se přiřadit hodnotu '" + typeValue[1] +
+            "' typu '" + typeValue[0] + "'");
+    }
+
+    function showKeyword(keyword) {
+        if (!keyword) {
+            document.getElementById("qrScannerDesc").innerText = "";
+            document.getElementById("qrScannerKeyword").innerText = "";
+            document.getElementById("qrScannerApply").disabled = true;
+            document.getElementById("qrScannerApply").classList.add("hidden");
+            return;
+        }
+        var typeValue = keywords[keyword];
+        document.getElementById("qrScannerDesc").innerText = typeValue[2];
+        document.getElementById("qrScannerKeyword").innerText = keyword;
+        document.getElementById("qrScannerApply").disabled = false;
+        document.getElementById("qrScannerApply").classList.remove("hidden");
+    }
+
+    async function initScanner() {
+        scanner = new Instascan.Scanner({ video: cameraPreview, mirror: false });
+        scanner.addListener('scan', function (content) {
+            if (!(content in keywords)) {
+                alert("Naskenován neznámý kód '" + constent + "'");
+                return;
+            }
+
+            currentKeyword = content;
+            var typeValue = keywords[content];
+            showKeyword(currentKeyword);
+        });
+        await Instascan.Camera.getCameras().then(function (cameras) {
+            if (cameras.length > 0) {
+                for (c of cameras) {
+                    if (c.name.indexOf('back') != -1) {
+                        camera = c;
+                    }
+                }
+            } else {
+                console.error('No cameras found.');
+            }
+        }).catch(function (e) {
+            console.error(e);
+        });
+    }
+
+
+</script>
