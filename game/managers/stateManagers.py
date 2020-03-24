@@ -1,6 +1,7 @@
 from .common import PrefetchManager
 import game.models
 from django.db import models
+from game import parameters
 
 class StateManager(PrefetchManager):
     def __init__(self):
@@ -13,7 +14,7 @@ class StateManager(PrefetchManager):
         teamStates = [game.models.TeamState.objects.createInitial(team=team)
             for team in game.models.Team.objects.all()]
         worldState = game.models.WorldState.objects.createInitial()
-        action = game.models.Action.objects.createInitial()
+        action = game.models.ActionStep.objects.createInitial()
         state = self.create(action=action, worldState=worldState)
         state.teamStates.set(teamStates)
         return state
@@ -43,9 +44,21 @@ class SandboxTeamStateManager(models.Manager):
 
 class PopulationTeamStateManager(models.Manager):
     def createInitial(self):
-        return self.create(data={})
+        return self.create(
+            work=parameters.INITIAL_POPULATION,
+            population=parameters.INITIAL_POPULATION
+        )
 
 
 class ActionManager(models.Manager):
     def createInitial(self):
         return self.create(move=game.models.ActionMove.createInitial, arguments={})
+
+class ActionStepManager(models.Manager):
+    def createInitial(self):
+        return self.create(
+            author = None,
+            phase=game.models.ActionPhase.commit,
+            action=game.models.Action.objects.createInitial(),
+            workConsumed=0)
+

@@ -24,7 +24,7 @@ class SandboxIncreaseCounterMove(Action):
         self.arguments["amount"] = value
 
     def sandbox(self, state):
-        return state.teamState(self.team.id).sandbox
+        return self.teamState(state).sandbox
 
     def build(data):
         action = SandboxIncreaseCounterMove(team=data["team"], move=data["action"], arguments={})
@@ -35,7 +35,7 @@ class SandboxIncreaseCounterMove(Action):
         # Just an example here
         return super.sane() and self.amount < 10000000
 
-    def effect(self, state):
+    def commit(self, state):
         val = self.sandbox(state).data["counter"] + self.amount
         if val >= 0:
             message = "Změní počítadlo na: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(val)
@@ -44,3 +44,28 @@ class SandboxIncreaseCounterMove(Action):
 
     def applyTo(self, state):
         self.sandbox(state).data["counter"] += self.amount
+
+class StartRoundMove(Action):
+    class Meta:
+        proxy = True
+    class CiviMeta:
+        move = ActionMove.startNewRound
+        form = forms.StartRoundForm
+
+    def build(data):
+        action = StartRoundMove(team=data["team"], move=data["action"], arguments={})
+        return action
+
+    def commit(self, state):
+        populationState = self.teamState(state).population
+        populationState.startNewRound()
+        message = """
+            Začne nové kolo. Tým bude mít:
+            <ul>
+                <li>{pop} obyvatel</li>
+                <li>{work} práce</li>
+            <ul>
+        """.format(pop=populationState.population, work=populationState.work)
+        return True, message
+
+

@@ -5,7 +5,7 @@ import game.managers
 import json
 
 class State(ImmutableModel):
-    action = models.ForeignKey("Action", on_delete=models.PROTECT)
+    action = models.ForeignKey("ActionStep", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
 
@@ -47,9 +47,14 @@ class SandboxTeamState(ImmutableModel):
         return json.dumps(self._dict)
 
 class PopulationTeamState(ImmutableModel):
-    data = JSONField()
+    population = models.IntegerField("population")
+    work = models.IntegerField("work")
 
     objects = game.managers.PopulationTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
+
+    def startNewRound(self):
+        self.work = self.work // 2
+        self.work += self.population

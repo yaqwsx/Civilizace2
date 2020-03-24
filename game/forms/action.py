@@ -29,3 +29,6 @@ class CreateInitialForm(MoveForm):
 
 class SanboxIncreaseCounterForm(MoveForm):
     amount = forms.IntegerField(label="Změna počítadla o:")
+
+class StartRoundForm(MoveForm):
+    pass

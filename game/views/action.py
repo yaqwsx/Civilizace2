@@ -57,13 +57,12 @@ class ActionMoveView(View):
         form = models.Action.formFor(moveId)(data=request.POST.copy()) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = models.Action.build(form.cleaned_data)
+            step = models.ActionStep.initiateAction(request.user, action)
             state = models.State.objects.getNewest()
-            moveValid, message = action.effect(state)
-            # Try to apply the action to see any errors
-            action.applyTo(state)
+            moveValid, message = step.applyTo(state)
 
             form.data["canceled"] = True
-            return render(request, "game/actionCommit.html", {
+            return render(request, "game/actionConfirm.html", {
                 "request": request,
                 "form": form,
                 "team": get_object_or_404(models.Team, pk=teamId),
@@ -81,7 +80,7 @@ class ActionMoveView(View):
             "messages": messages.get_messages(request)
         })
 
-class ActionCommitView(View):
+class ActionConfirmView(View):
     @method_decorator(login_required)
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
@@ -89,11 +88,12 @@ class ActionCommitView(View):
         form = models.Action.formFor(moveId)(data=request.POST)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = models.Action.build(form.cleaned_data)
+            step = models.ActionStep.initiateAction(request.user, action)
             state = models.State.objects.getNewest()
-            moveValid, message = action.effect(state)
+            moveValid, message = step.applyTo(state)
             if not moveValid:
                 form.data["canceled"] = True
-                return render(request, "game/actionCommit.html", {
+                return render(request, "game/actionConfirm.html", {
                     "request": request,
                     "form": form,
                     "team": get_object_or_404(models.Team, pk=teamId),
@@ -102,7 +102,6 @@ class ActionCommitView(View):
                     "message": message,
                     "messages": messages.get_messages(request)
                 })
-            action.applyTo(state)
             state.save()
             messages.success(request, "Akce provedena")
             return redirect('actionIndex')
