@@ -3,6 +3,15 @@ from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
 from game.models import ActionMove
 from game.models.keywords import KeywordType
 
+class DiceThrowForm(forms.Form):
+    dice = forms.ChoiceField(label="Použitá kostka")
+    throwCount = forms.IntegerField(label="Počet hodů kostkou", initial=0)
+    dotsCount = forms.IntegerField(label="Počet hozených puntíků:", initial=0)
+
+    def __init__(self, allowedDices, *args, **kwargs):
+        super(DiceThrowForm, self).__init__(*args, **kwargs)
+        self.fields["dice"].choices = [(x.value, x.label) for x in allowedDices]
+
 class MoveInitialForm(forms.Form):
     action = captures(KeywordType.move,
         EmptyEnumChoiceField(ActionMove, label="Akce"))

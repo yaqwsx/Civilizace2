@@ -4,7 +4,7 @@
 {% block title %} Příběh civilizace - Potvrdit akci akci {% endblock %}
 
 {% block content %}
-<h1>{{action.label}} pro tým {{team.name}}</h1>
+<h1>{{action.move.label}} pro tým {{team.name}}</h1>
 
 {% if moveValid %}
     <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
@@ -29,8 +29,13 @@
                    {% if moveValid %} bg-green-500 hover:bg-green-400 {% else %} bg-gray-500 cursor-not-allowed{% endif %}"
             type="submit"
             {% if moveValid is False %} disabled {% endif %}
-            formaction="{% url "actionConfirm" team.id action.value %}">
-            Provést akci
+            formaction="{% url "actionConfirm" team.id action.move.value %}">
+
+            {% if action.requiresDice %}
+                Začít akci a přejít na házení kostkou
+            {% else %}
+                Provést akci
+            {% endif %}
         </button>
         <button
             class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"

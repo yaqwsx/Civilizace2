@@ -9,5 +9,6 @@ urlpatterns = [
     path("action/", ActionIndexView.as_view(), name="actionIndex"),
     path("action/team/<int:teamId>/makemove/<int:moveId>", ActionMoveView.as_view(), name="actionMove"),
     path("action/team/<int:teamId>/commitmove/<int:moveId>", ActionConfirmView.as_view(), name="actionConfirm"),
+    path("action/throwdice/<int:actionId>", ActionDiceThrow.as_view(), name="actionDiceThrow"),
     path("demo", DemoView.as_view(), name="demo")
 ]

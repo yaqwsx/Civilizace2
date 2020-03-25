@@ -43,14 +43,40 @@ class ActionStep(ImmutableModel):
         reason. The message can use HTML tags to further format it.
         """
         if self.phase == ActionPhase.initiate:
-            return self.action.initiate(state)
+            res, message = self.action.initiate(state)
+            if res:
+                self.initiate(state)
+            return res, message
         if self.phase == ActionPhase.commit:
-            return self.action.commit(state)
+            res, message = self.action.commit(state)
+            if res:
+                self.commit(state)
+            return res, message
         if self.phase == ActionPhase.abandon:
-            return self.action.abandon(state)
+            res, message = self.action.abandon(state)
+            if res:
+                self.abandon(state)
+            return res, message
         if self.phase == ActionPhase.cancel:
-            return self.action.cancel(state)
+            res, message = self.action.cancel(state)
+            if res:
+                self.cancel(state)
+            return res, message
         raise ValueError("Invalid action phase specified")
+
+    def initiate(self, state):
+        pass
+
+    def commit(self, state):
+        assert state.teamState(self.action.team.id).population.work >= self.workConsumed
+        state.teamState(self.action.team.id).population.work -= self.workConsumed
+
+    def abandon(self, state):
+        assert state.teamState(self.action.team.id).population.work >= self.workConsumed
+        state.teamState(self.action.team.id).population.work -= self.workConsumed
+
+    def cancel(self, state):
+        pass
 
     @staticmethod
     def initiateAction(author, action):
@@ -63,6 +89,22 @@ class ActionStep(ImmutableModel):
                 action=action, workConsumed=0)
         return ActionStep(author=author, phase=ActionPhase.commit,
                 action=action, workConsumed=0)
+
+    @staticmethod
+    def cancelAction(author, action):
+        return ActionStep(author=author, phase=ActionPhase.cancel,
+                action=action, workConsumed=0)
+
+    @staticmethod
+    def commitAction(author, action, workConsumed):
+        return ActionStep(author=author, phase=ActionPhase.commit,
+                action=action, workConsumed=workConsumed)
+
+    @staticmethod
+    def abandonAction(author, action, workConsumed):
+        return ActionStep(author=author, phase=ActionPhase.abandon,
+                action=action, workConsumed=workConsumed)
+
 
 class ActionMove(enum.Enum):
     createInitial = 0
@@ -185,3 +227,19 @@ class Action(ImmutableModel):
 
     def __str__(self):
         return json.dumps(self._dict)
+
+    def diceThrowMessage(self):
+        message = "Pro splnění akce je třeba hodit jedno z následujícího:<ul>"
+        for dice, dots in self.dotsRequired().items():
+            message += "<li><b>{}</b>: alespoň {}</li>".format(dice.label, dots)
+        message += "</ul>"
+        return message
+
+    def description(self):
+        return "{} pro tým {}".format(self.move.label, self.team.name)
+
+    def cancelMessage(self):
+        return "Akce \"{}\" byla zrušena.".format(self.description())
+
+    def abandonMessage(self):
+        return "Akce \"{}\" nebyla dokončena.".format(self.description())

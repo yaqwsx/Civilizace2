@@ -6,7 +6,8 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse
 from game import models
-from game.forms import MoveInitialForm
+from game.forms import MoveInitialForm, DiceThrowForm
+from game import parameters
 
 class ActionIndexView(View):
     @method_decorator(login_required)
@@ -66,7 +67,7 @@ class ActionMoveView(View):
                 "request": request,
                 "form": form,
                 "team": get_object_or_404(models.Team, pk=teamId),
-                "action": models.ActionMove(moveId),
+                "action": action,
                 "moveValid": moveValid,
                 "message": message,
                 "messages": messages.get_messages(request)
@@ -97,12 +98,84 @@ class ActionConfirmView(View):
                     "request": request,
                     "form": form,
                     "team": get_object_or_404(models.Team, pk=teamId),
-                    "action": models.ActionMove(moveId),
+                    "action": action,
                     "moveValid": moveValid,
                     "message": message,
                     "messages": messages.get_messages(request)
                 })
+            action.save()
+            step.save()
             state.save()
-            messages.success(request, "Akce provedena")
+            if action.requiresDice():
+                messages.success(request, "Akce \"{}\" započata".format(action.description()))
+                return redirect('actionDiceThrow', actionId=action.id)
+            messages.success(request, "Akce \"{}\" provedena".format(action.description()))
             return redirect('actionIndex')
         return HttpResponse(status=422)
+
+class ActionDiceThrow(View):
+    @method_decorator(login_required)
+    def get(self, request, actionId):
+        if not request.user.isOrg():
+            raise PermissionDenied("Cannot view the page")
+        action = get_object_or_404(models.Action, pk=actionId).resolve()
+        state = models.State.objects.getNewest()
+        teamState = state.teamState(action.team.id)
+        if self.isFinished(action):
+            messages.error("Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
+            return redirect('actionIndex')
+        form = DiceThrowForm(action.dotsRequired().keys())
+        return render(request, "game/actionDiceThrow.html", {
+            "request": request,
+            "form": form,
+            "team": action.team,
+            "action": action,
+            "messages": messages.get_messages(request),
+            "maxThrows": teamState.population.work // parameters.DICE_THROW_PRICE
+        })
+
+    @method_decorator(login_required)
+    def post(self, request, actionId):
+        if not request.user.isOrg():
+            raise PermissionDenied("Cannot view the page")
+        action = get_object_or_404(models.Action, pk=actionId).resolve()
+        if self.isFinished(action):
+            messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
+            return redirect('actionIndex')
+        form = DiceThrowForm(action.dotsRequired().keys(), data=request.POST)
+        if not form.is_valid(): # Should be always unless someone plays with API directly
+            print(form.errors)
+            return HttpResponse(status=422)
+        state = models.State.objects.getNewest()
+        teamState = state.teamState(action.team.id)
+        maxThrowTries = teamState.population.work // parameters.DICE_THROW_PRICE
+        if form.cleaned_data["throwCount"] > maxThrowTries:
+            messages.error(request, """
+                Zadali jste více hodů než na kolik má tým nárok. Tým mohl hodit
+                maximálně <b>{}x</b>, hodil však <b>{}x</b>. Pokud to není chyba,
+                je možné, že tým házel zároveň i na jiném stanovišti a tam
+                spotřeboval práci. V tom případě dokončete akci znovu -- jen
+                zadejte maximální počet hodů.""".format(maxThrowTries, form.cleaned_data["throwCount"]))
+            return redirect('actionDiceThrow', actionId=action.id)
+        if "cancel" in request.POST:
+            step = models.ActionStep.cancelAction(request.user, action)
+        else:
+            requiredDots = action.dotsRequired()[int(form.cleaned_data["dice"])]
+            workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
+            if form.cleaned_data["dotsCount"] >= requiredDots:
+                step = models.ActionStep.commitAction(request.user, action, workConsumed)
+            else:
+                step = models.ActionStep.abandonAction(request.user, action, workConsumed)
+            moveValid, message = step.applyTo(state)
+            if not moveValid:
+                messages.error(message)
+                return redirect('actionDiceThrow', actionId=action.id)
+            action.save()
+            step.save()
+            state.save()
+            if message and len(message) > 0:
+                messages.info(request, message)
+            return redirect('actionIndex')
+
+    def isFinished(self, action):
+        return action.actionstep_set.all().exclude(phase=models.ActionPhase.initiate).exists()
