@@ -242,4 +242,4 @@ class Action(ImmutableModel):
         return "Akce \"{}\" byla zrušena.".format(self.description())
 
     def abandonMessage(self):
-        return "Akce \"{}\" nebyla dokončena.".format(self.description())
+        return "Akce \"{}\" byla uzavřena neúspěchem. Týmu se nepovedlo hodit dostatek".format(self.description())

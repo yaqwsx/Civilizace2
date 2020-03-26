@@ -8,12 +8,38 @@ from django.http import HttpResponse
 from game import models
 from game.forms import MoveInitialForm, DiceThrowForm
 from game import parameters
+from django.db.models import Count, Q
 
-class ActionIndexView(View):
+class ActionView(View):
+    def unfinishedActionBy(self, user):
+        """
+        Return one of the unfinished actions by the current user, None otherwise
+        """
+        unfinished = models.Action.objects \
+            .filter(actionstep__author=user) \
+            .annotate(
+                initcount=Count('actionstep',
+                    filter=Q(actionstep__phase=models.ActionPhase.initiate))) \
+            .annotate(allcount=Count('actionstep')) \
+            .filter(initcount=1, allcount=1)[:1]
+        if unfinished:
+            return unfinished[0].resolve()
+        return None
+
+    def unfinishedMessage(self, action):
+        return "Akce \"{}\" nebyla dokončena. Dokončete ji prosím. Teprve poté budete moci zadávat nové akce".format(
+            action.description())
+
+
+class ActionIndexView(ActionView):
     @method_decorator(login_required)
     def get(self, request):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
+        unfinishedAction = self.unfinishedActionBy(request.user)
+        if unfinishedAction:
+            messages.warning(request, self.unfinishedMessage(unfinishedAction))
+            return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         form = MoveInitialForm()
         return render(request, "game/actionIndex.html", {
             "request": request,
@@ -37,11 +63,15 @@ class ActionIndexView(View):
         })
 
 
-class ActionMoveView(View):
+class ActionMoveView(ActionView):
     @method_decorator(login_required)
     def get(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
+        unfinishedAction = self.unfinishedActionBy(request.user)
+        if unfinishedAction:
+            messages.warning(request, self.unfinishedMessage(unfinishedAction))
+            return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         form = models.Action.formFor(moveId)(teamId, moveId)
         return render(request, "game/actionMove.html", {
             "request": request,
@@ -81,7 +111,7 @@ class ActionMoveView(View):
             "messages": messages.get_messages(request)
         })
 
-class ActionConfirmView(View):
+class ActionConfirmView(ActionView):
     @method_decorator(login_required)
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
@@ -113,7 +143,7 @@ class ActionConfirmView(View):
             return redirect('actionIndex')
         return HttpResponse(status=422)
 
-class ActionDiceThrow(View):
+class ActionDiceThrow(ActionView):
     @method_decorator(login_required)
     def get(self, request, actionId):
         if not request.user.isOrg():
@@ -159,13 +189,16 @@ class ActionDiceThrow(View):
             return redirect('actionDiceThrow', actionId=action.id)
         if "cancel" in request.POST:
             step = models.ActionStep.cancelAction(request.user, action)
+            channel = messages.warning
         else:
             requiredDots = action.dotsRequired()[int(form.cleaned_data["dice"])]
             workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
             if form.cleaned_data["dotsCount"] >= requiredDots:
                 step = models.ActionStep.commitAction(request.user, action, workConsumed)
+                channel = messages.success
             else:
                 step = models.ActionStep.abandonAction(request.user, action, workConsumed)
+                channel = messages.warning
             moveValid, message = step.applyTo(state)
             if not moveValid:
                 messages.error(message)
@@ -174,7 +207,7 @@ class ActionDiceThrow(View):
             step.save()
             state.save()
             if message and len(message) > 0:
-                messages.info(request, message)
+                channel(request, message)
             return redirect('actionIndex')
 
     def isFinished(self, action):

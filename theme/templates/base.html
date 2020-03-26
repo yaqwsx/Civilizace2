@@ -86,7 +86,7 @@
             {% if messages %}
                 {% for message in messages %}
                 <div class="{{ message.tags }} border-t-4 rounded-b px-4 py-3 shadow-md my-4">
-                    <p class="w-full">{{message}}</p>
+                    <p class="w-full">{{message|safe}}</p>
                 </div>
                 {% endfor %}
             {% endif %}
