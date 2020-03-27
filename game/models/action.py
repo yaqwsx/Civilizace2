@@ -19,7 +19,7 @@ class SandboxIncreaseCounterMove(Action):
         return True
 
     def dotsRequired(self):
-        return { Dice.tech: 15 }
+        return { Dice.tech: 15, Dice.political: 24 }
 
     # Just to ease accessing the arguments
     @property
@@ -32,6 +32,7 @@ class SandboxIncreaseCounterMove(Action):
     def sandbox(self, state):
         return self.teamState(state).sandbox
 
+    @staticmethod
     def build(data):
         action = SandboxIncreaseCounterMove(team=data["team"], move=data["action"], arguments={})
         action.amount = data["amount"]

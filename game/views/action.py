@@ -152,7 +152,7 @@ class ActionDiceThrow(ActionView):
         state = models.State.objects.getNewest()
         teamState = state.teamState(action.team.id)
         if self.isFinished(action):
-            messages.error("Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
+            messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
         form = DiceThrowForm(action.dotsRequired().keys())
         return render(request, "game/actionDiceThrow.html", {
