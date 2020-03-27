@@ -11,15 +11,18 @@
     <p class="w-full">Tým může provést nejvýše {{ maxThrows }} hodů kostkou</p>
 </div>
 
-<form method="post">
+<form method="post" onkeydown="return onKeyPress(event);">
+    <!-- Prevent implicit submission of the form -->
+    <button type="submit" disabled style="display: none" aria-hidden="true"></button>
     {% csrf_token %}
-        {{ form|crispy }}
+    {{ form|crispy }}
 
     <hr class="w-full black my-2" >
 
     <div class="flex flex-wrap w-full my-5">
-        <input id="dots" type="number" value="0"
-            class="w-full md:w-1/2 text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700">
+        <input id="dots" type="number" value=""
+            class="w-full md:w-1/2 text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700"
+            autofocus>
          <button
             class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
             onclick="onDiceThrow()"
@@ -33,7 +36,16 @@
             function onDiceThrow() {
                 throwInput.value = parseInt(throwInput.value) + 1;
                 dotsInput.value = parseInt(dotsInput.value) + parseInt(currentDotsInput.value);
-                currentDotsInput.value = 0;
+                currentDotsInput.value = "";
+                currentDotsInput.focus();
+            }
+
+            function onKeyPress(event) {
+                if ( event.key != 'Enter' ) {
+                    return true;
+                }
+                onDiceThrow();
+                return true;
             }
         </script>
     </div>
