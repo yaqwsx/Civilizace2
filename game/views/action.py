@@ -149,12 +149,15 @@ class ActionDiceThrow(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         action = get_object_or_404(models.Action, pk=actionId).resolve()
-        state = models.State.objects.getNewest()
-        teamState = state.teamState(action.team.id)
         if self.isFinished(action):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
         form = DiceThrowForm(action.dotsRequired().keys())
+        return self.renderForm(request, action, form)
+
+    def renderForm(self, request, action, form):
+        state = models.State.objects.getNewest()
+        teamState = state.teamState(action.team.id)
         return render(request, "game/actionDiceThrow.html", {
             "request": request,
             "form": form,
@@ -173,9 +176,8 @@ class ActionDiceThrow(ActionView):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
         form = DiceThrowForm(action.dotsRequired().keys(), data=request.POST)
-        if not form.is_valid(): # Should be always unless someone plays with API directly
-            print(form.errors)
-            return HttpResponse(status=422)
+        if not form.is_valid():
+            return self.renderForm(request, action, form)
         state = models.State.objects.getNewest()
         teamState = state.teamState(action.team.id)
         maxThrowTries = teamState.population.work // parameters.DICE_THROW_PRICE
@@ -186,6 +188,9 @@ class ActionDiceThrow(ActionView):
                 je možné, že tým házel zároveň i na jiném stanovišti a tam
                 spotřeboval práci. V tom případě dokončete akci znovu -- jen
                 zadejte maximální počet hodů.""".format(maxThrowTries, form.cleaned_data["throwCount"]))
+            return redirect('actionDiceThrow', actionId=action.id)
+        if form.cleaned_data["throwCount"] == 0 and form.cleaned_data["dotsCount"] != 0:
+            messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
             return redirect('actionDiceThrow', actionId=action.id)
         if "cancel" in request.POST:
             step = models.ActionStep.cancelAction(request.user, action)

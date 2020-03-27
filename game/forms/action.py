@@ -2,11 +2,14 @@ from django import forms
 from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
 from game.models import ActionMove
 from game.models.keywords import KeywordType
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class DiceThrowForm(forms.Form):
     dice = forms.ChoiceField(label="Použitá kostka")
-    throwCount = forms.IntegerField(label="Počet hodů kostkou", initial=0)
-    dotsCount = forms.IntegerField(label="Počet hozených puntíků:", initial=0)
+    throwCount = forms.IntegerField(label="Počet hodů kostkou", initial=0,
+        validators=[MinValueValidator(0)])
+    dotsCount = forms.IntegerField(label="Počet hozených puntíků:", initial=0,
+        validators=[MinValueValidator(0)])
 
     def __init__(self, allowedDices, *args, **kwargs):
         super(DiceThrowForm, self).__init__(*args, **kwargs)
