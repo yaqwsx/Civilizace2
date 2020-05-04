@@ -1,0 +1,8 @@
+tileZeroX 100
+tileZeroY 0
+tileOffsetX 200
+tileOffsetY 0
+lineOffsetX -100
+lineOffsetY 150
+pathToTiles ./tiles
+mapIndex 0

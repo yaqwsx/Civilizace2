@@ -111,3 +111,9 @@ civiEnv
 
 # Ignore local settings
 civilizace/settingsLocal.py
+.idea/civ2020.iml
+.idea/deployment.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
