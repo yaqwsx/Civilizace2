@@ -13,6 +13,7 @@ class EntitiesModel(models.Model):
     class Manager(models.Manager):
         def create(self):
             dieLes = DieModel(tag="die-les", label="Lesní")
+            dieLes.save()
             parent = super(EntitiesModel.Manager, self)
 
             # diePoust = DieModel(tag="die-poust", label="Pouštní")

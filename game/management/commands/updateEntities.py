@@ -13,8 +13,7 @@ class Command(BaseCommand):
             for line in warnings[1:]:
                 print("  " + line)
 
-        entities = models.EntitiesModel()
+        entities = models.EntitiesModel.objects.create()
         print("entities = " + str(entities))
         print("entities.dieLes = " + str(entities.dieLes))
-        entities.save()
 
