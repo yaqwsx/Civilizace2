@@ -1,24 +1,20 @@
 from django.core.management import BaseCommand
 from game.models.state import State, GenerationWorldState
+import game.data as data
+import game.models as models
+import json
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        print("Hello Django")
-        print("Arguments: " + str(options))
+        updater = data.Update()
+        warnings = updater.download()
+        if len(warnings):
+            print(warnings[0])
+            for line in warnings[1:]:
+                print("  " + line)
 
-        state = State.objects.getNewest()
-        generation = state.worldState.generation
+        entities = models.EntitiesModel()
+        print("entities = " + str(entities))
+        print("entities.dieLes = " + str(entities.dieLes))
+        entities.save()
 
-        generation.startNextGeneration()
-        print("World generation increased")
-        print("Current generation = " + str(generation))
-        print(str(state.id))
-        generation.save()
-        state.save()
-        print("Current generation = " + str(generation))
-
-        print("Generation update saved, loading from DB")
-        state = State.objects.getNewest()
-        generation = state.worldState.generation
-        print("Current generation DB = " + str(generation))
-        print(str(state.id))

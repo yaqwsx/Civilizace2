@@ -1,47 +1,30 @@
-from gspread import authorize as gspread_authorize
-from oauth2client.service_account import ServiceAccountCredentials
-import json
+from django.db import models
 
-def download(keyFilePath):
-    scope = ['https://spreadsheets.google.com/feeds',
-             'https://www.googleapis.com/auth/drive']
+class DieModel(models.Model):
+    label = models.CharField(max_length=100)
+    tag = models.CharField(max_length=20)
 
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(keyFilePath, scope)
-    gc = gspread_authorize(credentials)
+    def __init__(self, *args, **kwargs ):
+        super(DieModel, self).__init__(*args, **kwargs)
+        self.tag = kwargs["tag"]
+        self.label = kwargs["label"]
 
-    wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1EcBVbrpLp3_ypbYTMWM9Cw1EGQq8ST44zQcV9KA-B_A/edit?usp=sharing")
+class EntitiesModel(models.Model):
+    class Manager(models.Manager):
+        def create(self):
+            dieLes = DieModel(tag="die-les", label="Lesní")
+            parent = super(EntitiesModel.Manager, self)
 
-    sheetMap = {
-        "tech": 1,
-        "mat": 2,
-        "proc": 3,
+            # diePoust = DieModel(tag="die-poust", label="Pouštní")
+            # diePlan = DieModel(tag="die-plane", label="Planinná")
+            # dieHory = DieModel(tag="die-hory", label="Horská")
+            # return parent.create(dieLes=dieLes, diePoust=diePoust, diePlan=diePlan, dieHory=dieHory)
 
-    }
+            return parent.create(dieLes=dieLes)
 
-    result = {}
-    for key, value in sheetMap.items():
-        entitiesSheet = wks.get_worksheet(value)
-        sheet = entitiesSheet.get_all_values()
-        result[key] = sheet
+    objects = Manager()
+    dieLes = models.ForeignKey(DieModel, on_delete=models.CASCADE, related_name="les")
 
-    return result
-
-def parseRaw(raw):
-    return {}
-
-def validate(data):
-    return []
-
-if __name__ == "__main__":
-    raw = download("game /google-sheet-key.json")
-    data = parseRaw(raw)
-    warnings = validate(data)
-
-    print(json.dumps(raw, sort_keys=True, indent=4))
-    if len(warnings) == 0:
-        None
-        # save into data.json
-        # popup
-    else:
-        None
-        # popup warnings
+    # diePoust = models.ForeignKey(DieModel, on_delete=models.CASCADE, related_name="poust")
+    # diePlan = models.ForeignKey(DieModel, on_delete=models.CASCADE, related_name="plan")
+    # dieHory = models.ForeignKey(DieModel, on_delete=models.CASCADE, related_name="hory")
