@@ -20,7 +20,7 @@ class StateManager(PrefetchManager):
         return state
 
     def getNewest(self):
-        return self.latest("action__created", "pk")
+        return self.latest("pk")
 
 
 class WorldStateManager(models.Manager):
