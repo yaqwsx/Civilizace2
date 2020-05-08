@@ -22,6 +22,7 @@ class State(ImmutableModel):
 
 class WorldState(ImmutableModel):
     data = JSONField()
+    generation = models.ForeignKey("GenerationWorldState", on_delete=models.PROTECT)
 
     objects = game.managers.WorldStateManager()
 
@@ -58,3 +59,13 @@ class PopulationTeamState(ImmutableModel):
     def startNewRound(self):
         self.work = self.work // 2
         self.work += self.population
+
+class GenerationWorldState(ImmutableModel):
+    generation = models.IntegerField("generation")
+    objects = game.managers.GenerationWorldStateManager()
+
+    def __str__(self):
+        return json.dumps(self._dict)
+
+    def startNextGeneration(self):
+        self.generation += 1

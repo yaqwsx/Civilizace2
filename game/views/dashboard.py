@@ -25,12 +25,14 @@ class DashboardStatView(View):
         team = get_object_or_404(Team, pk=teamId)
         state = State.objects.getNewest()
         teamState = state.teamState(teamId)
+        worldState = state.worldState
         return render(request, 'game/dashboard.html', {
             "request": request,
             "team": team,
             "teams": Team.objects.all(),
             "state": state,
             "teamState": teamState,
+            "worldState": worldState,
             "messages": messages.get_messages(request)
         })
 

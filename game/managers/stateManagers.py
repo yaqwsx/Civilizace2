@@ -25,7 +25,8 @@ class StateManager(PrefetchManager):
 
 class WorldStateManager(models.Manager):
     def createInitial(self):
-        return self.create(data={})
+        generation = game.models.GenerationWorldState.objects.createInitial()
+        return self.create(generation = generation)
 
 
 class TeamStateManager(models.Manager):
@@ -41,6 +42,11 @@ class SandboxTeamStateManager(models.Manager):
             "counter": 0
         })
 
+class GenerationWorldStateManager(models.Manager):
+    def createInitial(self):
+        return self.create(
+            generation=0
+        )
 
 class PopulationTeamStateManager(models.Manager):
     def createInitial(self):
