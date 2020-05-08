@@ -36,6 +36,13 @@ class DashboardStatView(View):
             "messages": messages.get_messages(request)
         })
 
+class DashboardMessageView(View):
+    @method_decorator(login_required)
+    def get(self, request, teamId):
+        user = request.user
+        if user.isPlayer() and user.team().id != teamId:
+            raise PermissionDenied("Cannot view the page")
+
 class DemoView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'demo.html')

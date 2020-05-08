@@ -9,6 +9,15 @@
     <title>{% block title %}Tailwind CSS Skeleton{% endblock %}</title>
     <link rel="stylesheet" href="{% static "css/styles.min.css" %}">
     <script src="{% static "js/Chart.bundle.min.js" %}"></script>
+    <script src="{% static "js/flatpickr.min.js" %}"></script>
+    <script src="{% static "js/flatpickr.cs.js" %}"></script>
+    <link rel="stylesheet" href="{% static "css/flatpickr.min.css" %}">
+    <script>
+        function auto_grow(element) {
+            element.style.height = "10px";
+            element.style.height = (element.scrollHeight)+"px";
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100 font-sans leading-normal tracking-normal flex flex-col min-h-screen">
@@ -156,6 +165,17 @@
             }
             return false;
         }
+
+        flatpickr(".datetime", {
+            enableTime: true,
+            dateFormat: "H:i d.m.Y",
+            locale: "cs"
+        });
+
+        flatpickr(".date", {
+            dateFormat: "d.m.Y",
+            locale: "cs"
+        });
 
 
     </script>

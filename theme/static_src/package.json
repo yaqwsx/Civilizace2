@@ -27,7 +27,8 @@
     "watch": "^1.0.2"
   },
   "dependencies": {
-    "chart.js": "^2.9.3"
+    "chart.js": "^2.9.3",
+    "flatpickr": "^4.6.3"
   },
   "copyFiles": [
     {
@@ -41,6 +42,18 @@
     {
       "from": "node_modules/@fortawesome/fontawesome-free/webfonts/*",
       "to": "../static/webfonts"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/flatpickr.min.js",
+      "to": "../static/js/flatpickr.min.js"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/l10n/cs.js",
+      "to": "../static/js/flatpickr.cs.js"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/flatpickr.min.css",
+      "to": "../static/css/flatpickr.min.css"
     }
   ]
 }

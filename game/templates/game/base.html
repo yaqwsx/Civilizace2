@@ -18,6 +18,13 @@
                 </a>
             </li>
             <li class="mr-6 my-2 md:my-0">
+                <a href="{% url 'messageBoardIndex' %}"
+                class="block py-1 md:py-3 pl-1 align-middle no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
+                {% if 'messageBoard' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
+                    <i class="fas fa-sticky-note fa-fw mr-3 text-orange-600"></i><span class="pb-1 md:pb-0 text-sm">Vývěska</span>
+                </a>
+            </li>
+            <li class="mr-6 my-2 md:my-0">
                 <a href="/admin"
                 class="block py-1 md:py-3 pl-1 align-middle no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
                         text-gray-500 border-gray-500">

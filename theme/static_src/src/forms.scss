@@ -13,3 +13,20 @@
 .select:focus {
     @apply outline-none bg-white border-gray-500;
 }
+
+.field textarea {
+    @apply bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight;
+    min-height: 50px;
+}
+
+.field textarea:focus {
+    @apply outline-none bg-white border-purple-500;
+}
+
+.checkboxinput {
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    appearance: checkbox !important;
+    width: 1rem !important;
+    height: 1rem !important;
+}
