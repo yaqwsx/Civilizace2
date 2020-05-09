@@ -1,11 +1,12 @@
 from django import forms
 import datetime
+from django.utils import timezone
 from theme.widgets import FlatpickerDateTime
 
 class MessageForm(forms.Form):
     appearDateTime = forms.DateTimeField(label="Zobrazit zprávu od",
         input_formats=["%H:%M %d. %m. %Y", "%H:%M %d.%m.%Y"],
-        initial=datetime.datetime.now(),
+        initial=timezone.now(),
         widget=FlatpickerDateTime()
     )
     content = forms.CharField(label="Obsah zprávy",

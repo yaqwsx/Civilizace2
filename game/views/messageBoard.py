@@ -28,7 +28,6 @@ class IndexView(View):
             raise PermissionDenied("Cannot view the page")
         boardMessages = Message.objects.all() \
             .prefetch_related("messagestatus_set").order_by('-appearDateTime')
-        print(boardMessages[0].messagestatus_set)
         return render(request, "game/messageBoardIndex.html", {
             "request": request,
             "boardMessages": boardMessages,
@@ -141,12 +140,13 @@ class DeleteMessageView(View):
 
 class DismissMessageView(View):
     @method_decorator(login_required)
-    def get(self, request, messageId, next):
+    def get(self, request, messageId):
+        next = request.GET.get('next', '/')
         if not request.user.isPlayer():
             messages.warning(request, "Organizátor nemůže účastníkům skrývat zprávy")
             return redirect(next)
         try:
-            status = MessageStatus.objects.get(message=messageId, team=user.team().pk)
+            status = MessageStatus.objects.get(message=messageId, team=request.user.team().pk)
         except MessageStatus.DoesNotExist:
             messages.error(request, "Organizátor nemůže účastníkům skrývat zprávy")
             return redirect(next)

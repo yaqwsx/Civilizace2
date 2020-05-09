@@ -1,0 +1,45 @@
+{% extends "game/dashboardBase.html" %}
+
+{% load cards %}
+
+{% block title %} Příběh civilizace - Dashboard {% endblock %}
+
+{% block content %}
+
+{% if boardMessages %}
+    <h2 class="text-xl my-1">Nové zprávy</h2>
+
+    {% for message in boardMessages %}
+        <div class="w-full my-2">
+            <div class="bg-white border-orange-400 border-2 rounded shadow p-4">
+                <div class="flex flex-row items-center">
+                    <div class="flex-grow text-left md:w-full">
+                        <p class="font-bold text-xs uppercase text-gray-600 mb-2">
+                            {{message.appearDateTime}}</p>
+                        <p>
+                            {{message.content}}
+                        </p>
+                    </div>
+                    <div class="flex-none text-left">
+                        {%if not user.isOrg %}<a href="{%url "messageBoardDismiss" messageId=message.id %}?next={{ request.get_full_path|urlencode }}">{% endif %}
+                            <button class="text-white rounded p-4 {%if user.isOrg %} bg-gray-500 {% else %} bg-purple-500 {% endif %}">
+                                Skrýt
+                            </button>
+                        {%if not user.isOrg %}</a>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+ <h2 class="text-xl my-1 mt-3">Stav týmu</h2>
+<div class="flex flex-wrap">
+    {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
+    {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
+    {% card "World generation" %} {{worldState.generation.generation}}  {% endcard %}
+</div>
+<div class="flex flex-wrap">
+    {% card "Počítadlo" %} {{teamState.sandbox.data.counter}}  {% endcard %}
+</div>
+{% endblock %}

@@ -31,24 +31,26 @@
 
     <ul class="w-full list-reset lg:flex flex-1 items-center px-4 md:px-0">
         <li class="mr-6 my-2 md:my-0">
-            <a href="#"
-                class="block py-1 md:py-3 pl-1 align-middle text-orange-600 no-underline hover:text-gray-900 border-b-2 border-orange-600 hover:border-orange-600">
+            <a href="{% url 'dashboardStat' teamId=team.id%}"
+                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
+                    {% if 'dashboardStat' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
                 <i class="fas fa-home fa-fw mr-3 text-orange-600"></i><span class="pb-1 md:pb-0 text-sm">Home</span>
             </a>
         </li>
-        <li class="mr-6 my-2 md:my-0">
+        {% comment %} <li class="mr-6 my-2 md:my-0">
             <a href="#"
                 class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
                 <i class="fas fa-tasks fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Tasks</span>
             </a>
-        </li>
+        </li> {% endcomment %}
         <li class="mr-6 my-2 md:my-0">
-            <a href="#"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-purple-500">
-                <i class="fa fa-envelope fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Messages</span>
+            <a href="{% url 'dashboardMessages' teamId=team.id%}"
+                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-purple-500
+                    {% if 'dashboardMessages' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
+                <i class="fa fa-envelope fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Zprávy</span>
             </a>
         </li>
-        <li class="mr-6 my-2 md:my-0">
+        {% comment %} <li class="mr-6 my-2 md:my-0">
             <a href="#"
                 class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-green-500">
                 <i class="fas fa-chart-area fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Analytics</span>
@@ -59,17 +61,6 @@
                 class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-red-500">
                 <i class="fa fa-wallet fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Payments</span>
             </a>
-        </li>
+        </li> {% endcomment %}
     </ul>
-{% endblock %}
-
-{% block content %}
-<div class="flex flex-wrap">
-    {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
-    {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
-    {% card "World generation" %} {{worldState.generation.generation}}  {% endcard %}
-</div>
-<div class="flex flex-wrap">
-    {% card "Počítadlo" %} {{teamState.sandbox.data.counter}}  {% endcard %}
-</div>
 {% endblock %}

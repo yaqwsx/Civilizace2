@@ -6,6 +6,9 @@ class Message(models.Model):
     appearDateTime = models.DateTimeField("Time of appearance the message")
     content = models.TextField("Message content")
 
+    def allowedTeams(self):
+        return self.messagestatus_set.filter(visible=True)
+
 class MessageStatus(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)

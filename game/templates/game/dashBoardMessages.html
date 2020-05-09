@@ -1,0 +1,26 @@
+{% extends "game/dashboardBase.html" %}
+
+{% load cards %}
+
+{% block title %} Příběh civilizace - Dashboard: Zprávy{% endblock %}
+
+{% block content %}
+<h1>Přehled zpráv</h1>
+
+{% for message in boardMessages %}
+    <div class="w-full my-2">
+        <div class="bg-white border rounded shadow p-4">
+            <div class="flex flex-row items-center">
+                <div class="flex-1 text-left md:w-full">
+                    <p class="font-bold text-xs uppercase text-gray-600 mb-2">
+                        {{message.appearDateTime}}</p>
+                    <p>
+                        {{message.content}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+{% endblock %}
