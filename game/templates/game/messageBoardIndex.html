@@ -20,7 +20,7 @@
         </p>
         <p>
             Vidí ji:
-            {% for messageStatus in message.messagestatus_set.all %}
+            {% for messageStatus in message.allowedTeams %}
                 {{messageStatus.team.name}}
                 {% if not forloop.last %}
                     ,
