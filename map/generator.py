@@ -157,11 +157,25 @@ try:
             errors.append("Nelze nacist soubor " + key + ".png")
 
     #============================
+    def fromAlpha(a):
+        val = 0
+        for c in a:
+            val *= 26
+            i = ord(c) - 64
+            if i > 26: i -= 32
+            val += i
+        return val
+    def toAlpha(number):
+        ret = chr( (number%26) + 65)
+        if number >= 26:
+            ret = chr((number//26) + 64) + ret
+        return ret
+
     # Calculate size
     maxX = 0
     maxY = 0
-    prefX = int(pref.x.get())
-    prefY = int(pref.y.get())
+    prefX = fromAlpha(pref.x.get()) - 1 # Align to sheet indices
+    prefY = int(pref.y.get()) - 1 # Align to sheet indices
     prefW = int(pref.w.get())
     prefH = int(pref.h.get())
 
@@ -193,12 +207,6 @@ try:
     print("Creating image " + str(maxX) + "x" + str(maxY))
     result = Image.new("RGBA", (maxX, maxY))
 
-    def toAlpha(number):
-        ret = chr( (number%26) + 65)
-        if number >= 26:
-            ret = chr((number//26) + 64) + ret
-        return ret
-
     font = ImageFont.truetype("Verdana.ttf",26)
     d = ImageDraw.Draw(result)
 
@@ -228,7 +236,7 @@ try:
 
             tile = tiles[tileName]
             result.paste(tile, (X,Y), mask)
-            if pref.indices.get(): d.text((X + mask.size[0]//2 - 20, Y + mask.size[1]//2 - 14), toAlpha(i) + str(j), font=font, fill=(0, 0, 0))
+            if pref.indices.get(): d.text((X + mask.size[0]//2 - 20, Y + mask.size[1]//2 - 14), toAlpha(i) + str(j+1), font=font, fill=(0, 0, 0))
 
 
 
