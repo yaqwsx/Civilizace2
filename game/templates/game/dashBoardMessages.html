@@ -15,7 +15,7 @@
                     <p class="font-bold text-xs uppercase text-gray-600 mb-2">
                         {{message.appearDateTime}}</p>
                     <p>
-                        {{message.content}}
+                        {{ message.content | safe}}
                     </p>
                 </div>
             </div>
