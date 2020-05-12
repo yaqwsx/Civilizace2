@@ -5,7 +5,7 @@ from .resource import ResourceModel
 from .entities import EntityModel, GameDataModel
 
 class TechModel(EntityModel):
-    culture = models.IntegerField(validators=[MinValueValidator(0)])
+    culture = models.IntegerField(validators=[MinValueValidator(0)], default=0)
     flavour = models.TextField()
     task = models.TextField()
     notes = models.TextField()

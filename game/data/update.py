@@ -54,6 +54,7 @@ class Update():
                 print("Entities updated")
         else:
             warnings.insert(0, "Data obsahují chybu; entity nebyly aktualizovány")
+            self.update() # restore previous entity tables
         return warnings
 
     def update(self, raw=None):

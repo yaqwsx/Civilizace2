@@ -7,11 +7,11 @@ lineOffsetY 150
 pathToTiles ./tiles
 mapIndex 0
 #
-# tileZeroX 306
-# tileZeroY 0
-# tileOffsetX 307
-# tileOffsetY 0
-# lineOffsetX -154
-# lineOffsetY 264
-# pathToTiles ../images/mapa
-# mapIndex 1
+tileZeroX 306
+tileZeroY 0
+tileOffsetX 307
+tileOffsetY 0
+lineOffsetX -154
+lineOffsetY 264
+pathToTiles ../images/mapa
+mapIndex 1

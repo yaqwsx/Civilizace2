@@ -237,6 +237,7 @@ try:
             tile = tiles[tileName]
             result.paste(tile, (X,Y), mask)
             if pref.indices.get(): d.text((X + mask.size[0]//2 - 20, Y + mask.size[1]//2 - 14), toAlpha(i) + str(j+1), font=font, fill=(0, 0, 0))
+            print("Added image " + str((j,i)) + ": " + tileName)
 
 
 
