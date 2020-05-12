@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entities import EntityModel, GameDataModel
+from .entity import EntityModel, GameDataModel
 
 class TechModel(EntityModel):
     culture = models.IntegerField(validators=[MinValueValidator(0)], default=0)

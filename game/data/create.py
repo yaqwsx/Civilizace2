@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .resource import ResourceModel
 from .tech import TechModel
-from .entities import EntityModel
+from .entity import EntityModel
 
 class CreateModel(EntityModel):
     flavour = models.TextField()

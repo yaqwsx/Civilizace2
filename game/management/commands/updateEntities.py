@@ -7,10 +7,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         updater = data.Update()
-        updater.DEBUG()
+        warnings = updater.download()
 
-
-        warnings = [] #updater.download()
         if len(warnings):
             print(warnings[0])
             for line in warnings[1:]:

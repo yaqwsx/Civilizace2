@@ -2,8 +2,9 @@ from gspread import authorize as gspread_authorize
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
-from .entities import EntityModel, GameDataModel, DieModel
+from .entity import EntityModel, GameDataModel, DieModel
 from .tech import TechModel
+from .parser import Parser
 
 class Update():
 
@@ -64,25 +65,16 @@ class Update():
 
         warnings = []
 
+        parser = Parser()
+        warnings.extend(parser.parse(raw))
+
         return warnings
 
     def DEBUG(self):
         print("Running DEBUG")
-        self._cleanup()
-        data = GameDataModel.objects.create()
-        techA = TechModel.objects.create(id="tech-A", label="Tech A", data=data)
-        techA.save()
-        data2 = GameDataModel.objects.create()
-        techB = TechModel.objects.create(id="tech-B", label="Tech B", data=data2)
-        techB.save()
-
-        datas = GameDataModel.objects.all()
-        for data in datas:
-            print("Data: " + str(data))
-            for tech in data.techmodel_set.all():
-                print("  Tech: " + str(tech))
-        print("DEBUG ended")
-
+        raw = self._download()
+        parser = Parser()
+        parser.parse()
 
 
 if __name__ == "__main__":
