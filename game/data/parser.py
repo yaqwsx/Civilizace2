@@ -1,3 +1,4 @@
+from game.data.vyroba import VyrobaModel, VyrobaInputModel
 from .entity import EntityModel, GameDataModel, DieModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TaskModel, TechModel, TechEdgeModel, TechEdgeInputModel
@@ -245,7 +246,102 @@ class Parser():
                     addInput(chunk.strip())
 
     def _addVyrobas(self):
-        pass
+        print("Parsing vyrobas")
+        myRaw = self.raw[self.SHEET_MAP["vyr"]]
+
+        for n, line in enumerate(myRaw[2:], start=2):
+            line = line[:10]
+            if line[1] == "":
+                continue
+            print("Parsing vyroba " + str(line))
+
+            id = line[1]
+            label = line[0]
+
+            flavour = line[9]
+
+            try:
+                chunks = line[2].split(":")
+                die = DieModel.objects.get(id=chunks[0])
+                dots = int(chunks[1])
+            except DieModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Neznámé ID kostky (" + line[2] + ")")
+                continue
+            except ValueError:
+                self._logWarning("Vyroba." + str(n) + ": Chyba v počtu bodů na kostce (" + line[2] + ")")
+                continue
+
+            try:
+                chunks = line[6].split(":")
+                res = ResourceModel.objects.get(id=chunks[0])
+                amount = int(chunks[1])
+            except ResourceModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Neznámé ID materiálu (" + line[6] + ")")
+                continue
+            except ValueError:
+                self._logWarning("Vyroba." + str(n) + ": Chyba v počtu získaných zdrojů (" + line[6] + ")")
+                continue
+
+            try:
+                tech = TechModel.objects.get(id=line[7])
+            except TechModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Neznámé ID technologie (" + line[7] + ")")
+                continue
+
+            try:
+                if line[8][:5] == "land-":
+                    build = None
+                else:
+                    build = TechModel.objects.get(id=line[8])
+            except TechModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Neznámé ID budovy (" + line[8] + ")")
+                continue
+
+            vyr = VyrobaModel.objects.create(id=id, label=label, flavour=flavour, tech=tech, build=build, result=res, amount=amount, die=die, dots=dots, data=self.data)
+            vyr.save()
+
+            def addInput(entry):
+                chunks = entry.split(":")
+
+                if len(chunks) < 2:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Nepodarilo se zpracovat vstup (" + entry + ")")
+                    return None
+
+                try:
+                    res = ResourceModel.objects.get(id=chunks[0])
+                except ResourceModel.DoesNotExist:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
+                    return None
+
+                try:
+                    amount = int(chunks[1])
+                except Exception:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
+                    return None
+
+                input = VyrobaInputModel.objects.create(parent=vyr, resource=res, amount=amount)
+                input.save()
+                return input
+
+            try:
+                prace = int(line[3])
+                if prace:
+                    addInput("res-prace:" + str(prace))
+            except ValueError:
+                pass
+
+            try:
+                obyvatel = int(line[4])
+                if obyvatel:
+                    addInput("res-obyvatel:" + str(obyvatel))
+            except ValueError:
+                pass
+
+            if line[5] != "" and line[5] != "-":
+                chunks = line[5].split(",")
+                for chunk in chunks:
+                    addInput(chunk.strip())
+
 
     def parse(self, rawData):
         # clear all entities
