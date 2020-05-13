@@ -7,6 +7,7 @@ from game.data.update import Update, UpdateError
 
 class Command(BaseCommand):
     help = "Update entities"
+    defaultFile = "game/data/entities.json"
 
     def add_arguments(self, parser):
         parser.add_argument("--sourceFile", type=str, help="Instead of downloading, read entities from file")
@@ -27,9 +28,10 @@ class Command(BaseCommand):
         try:
             updater.update()
             print("Update done")
-            if cacheFile:
-                updater.saveToFile(cacheFile)
-                print("Saved to cache file {}".format(cacheFile))
+            if not cacheFile:
+                cacheFile = self.defaultFile
+            updater.saveToFile(cacheFile)
+            print("Saved to cache file {}".format(cacheFile))
         except UpdateError as e:
             print("There were some warnings during processing:")
             print(e.warnings[0])

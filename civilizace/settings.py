@@ -39,10 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'guardian',
+
     'game.apps.GameConfig',
     'tailwind',
     'theme.apps.ThemeConfig',
     'ground.apps.GroundConfig',
+    'service.apps.ServiceConfig',
+
     'crispy_forms'
 ]
 

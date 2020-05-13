@@ -50,11 +50,11 @@ class Update():
         for die in dice:
             die.delete()
 
-    def fileAsSource(self, filename="game/data/entities.json"):
+    def fileAsSource(self, filename):
         with open(filename, "r") as jsonFile:
             self.raw = json.load(jsonFile)
 
-    def saveToFile(self, filename="game/data/entities.json"):
+    def saveToFile(self, filename):
         with open(filename, "w") as jsonFile:
             json.dump(self.raw, jsonFile, indent=4)
 
