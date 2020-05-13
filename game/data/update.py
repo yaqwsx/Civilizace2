@@ -2,12 +2,18 @@ from gspread import authorize as gspread_authorize
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
+from django.db import transaction
+
 from .entity import EntityModel, GameDataModel, DieModel
 from .tech import TechModel
 from .parser import Parser
 
-class Update():
+class UpdateError(RuntimeError):
+    def __init__(self, message, warnings):
+        super().__init__(message)
+        self.warnings = warnings
 
+class Update():
     def _download(self):
         scope = ['https://spreadsheets.google.com/feeds',
                  'https://www.googleapis.com/auth/drive']
@@ -44,31 +50,28 @@ class Update():
         for die in dice:
             die.delete()
 
-    def download(self):
-        raw = self._download()
+    def fileAsSource(self, filename="game/data/entities.json"):
+        with open(filename, "r") as jsonFile:
+            self.raw = json.load(jsonFile)
 
-        warnings = self.update(raw=raw)
+    def saveToFile(self, filename="game/data/entities.json"):
+        with open(filename, "w") as jsonFile:
+            json.dump(self.raw, jsonFile, indent=4)
 
-        if not len(warnings):
-            with open("game/data/entities.json", "w") as jsonFile:
-                json.dump(raw, jsonFile, indent=4)
-                print("Entities updated")
-        else:
-            warnings.insert(0, "Data obsahují chybu; entity nebyly aktualizovány")
-            self.update() # restore previous entity tables
-        return warnings
+    def googleAsSource(self):
+        self.raw = self._download()
 
-    def update(self, raw=None):
-        if not raw:
-            with open("game/data/entities.json", "r") as jsonFile:
-                raw = json.load(jsonFile)
-
+    @transaction.atomic
+    def update(self):
+        if self.raw is None:
+            raise RuntimeError("No source was specified for updater")
         warnings = []
 
         parser = Parser()
-        warnings.extend(parser.parse(raw))
+        warnings.extend(parser.parse(self.raw))
 
-        return warnings
+        if len(warnings) > 0:
+            raise UpdateError("Update error", warnings)
 
     def DEBUG(self):
         print("Running DEBUG")
@@ -79,8 +82,13 @@ class Update():
 
 if __name__ == "__main__":
     updater = Update()
-    warnings = updater.download()
-    if len(warnings):
-        print(warnings[0])
-        for line in warnings[1:]:
+    updater.googleAsSource()
+    try:
+        updater.update()
+        print("Update done")
+        updater.saveToFile()
+        print("Saved to file")
+    except UpdateError as e:
+        print(e.warnings[0])
+        for line in e.warnings[1:]:
             print("  " + line)
