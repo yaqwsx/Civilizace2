@@ -13,7 +13,7 @@ class CreateModel(EntityModel):
     result = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     resultCount = models.IntegerField(validators=[MinValueValidator(0)])
 
-class CreateInputModel(EntityModel):
+class CreateInputModel(models.Model):
     parent = models.ForeignKey(CreateModel, on_delete=models.CASCADE)
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     count = models.IntegerField(validators=[MinValueValidator(0)])

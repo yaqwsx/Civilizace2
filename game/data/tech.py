@@ -2,19 +2,26 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entity import EntityModel, GameDataModel
+from .entity import EntityModel, GameDataModel, DieModel
+
+class TaskModel(EntityModel):
+    text = models.TextField()
 
 class TechModel(EntityModel):
     culture = models.IntegerField(validators=[MinValueValidator(0)], default=0)
     flavour = models.TextField()
-    task = models.TextField()
+    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)
     notes = models.TextField()
+    image = models.TextField()
 
 class TechEdgeModel(EntityModel):
-    srcTech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="src")
-    dstTech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="dst")
+    src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="src")
+    dst = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="dst")
+    die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
+    dots = models.IntegerField()
 
-class TechEdgeInputModel(EntityModel):
+class TechEdgeInputModel(models.Model):
     parent = models.ForeignKey(TechEdgeModel, on_delete=models.CASCADE)
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
-    count = models.IntegerField(validators=[MinValueValidator(0)])
+    amount = models.IntegerField(validators=[MinValueValidator(0)])
+
