@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
+
+set -e
 
 . .env/bin/activate
 
