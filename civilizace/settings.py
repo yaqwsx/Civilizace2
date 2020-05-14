@@ -137,6 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '_static'
 
 TAILWIND_APP_NAME = 'theme'
 CRISPY_TEMPLATE_PACK = 'tailwind'
