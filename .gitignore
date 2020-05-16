@@ -123,3 +123,4 @@ images/*
 # Ignore static files
 
 _static/
+_build/
