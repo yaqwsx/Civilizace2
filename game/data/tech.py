@@ -13,6 +13,7 @@ class TechModel(EntityModel):
     task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)
     notes = models.TextField()
     image = models.TextField()
+    nodeTag = models.TextField()
 
 class TechEdgeModel(EntityModel):
     src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")

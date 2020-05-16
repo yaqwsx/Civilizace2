@@ -139,18 +139,19 @@ class Parser():
         myRaw = self.raw[self.SHEET_MAP["tech"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            line = line[:7]
+            line = line[:8]
             if line[1] == "":
                 continue
             print("Parsing tech " + str(line))
-            if len(line) < 7:
-                self._logWarning("Tech." + str(n) +": Málo parametrů (" + str(len(line)) + "/7)")
+            if len(line) < 8:
+                self._logWarning("Tech." + str(n) +": Málo parametrů (" + str(len(line)) + "/8)")
                 continue
             label = line[0]
             id = line[1]
             flavour = line[5]
             notes = line[4]
             image = line[3]
+            nodeTag = line[7]
 
             try:
                 culture = int(line[6])
@@ -164,7 +165,7 @@ class Parser():
                 self._logWarning("Tech." + str(n) + ": Nezname ID ukolu (" + str(line[2]) + ")")
                 continue
 
-            tech = TechModel.objects.create(id=id, label=label, task=task, image=image, notes=notes, flavour=flavour, culture=culture, data=self.data)
+            tech = TechModel.objects.create(id=id, label=label, task=task, image=image, notes=notes, flavour=flavour, culture=culture, nodeTag=nodeTag, data=self.data)
             tech.save()
 
     def _addEdges(self):
@@ -273,7 +274,7 @@ class Parser():
 
             try:
                 chunks = line[6].split(":")
-                res = ResourceModel.objects.get(id=chunks[0])
+                output = ResourceModel.objects.get(id=chunks[0])
                 amount = int(chunks[1])
             except ResourceModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID materiálu (" + line[6] + ")")
@@ -297,7 +298,7 @@ class Parser():
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID budovy (" + line[8] + ")")
                 continue
 
-            vyr = VyrobaModel.objects.create(id=id, label=label, flavour=flavour, tech=tech, build=build, result=res, amount=amount, die=die, dots=dots, data=self.data)
+            vyr = VyrobaModel.objects.create(id=id, label=label, flavour=flavour, tech=tech, build=build, output=output, amount=amount, die=die, dots=dots, data=self.data)
             vyr.save()
 
             def addInput(entry):
