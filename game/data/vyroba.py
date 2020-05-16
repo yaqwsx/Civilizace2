@@ -9,7 +9,7 @@ class VyrobaModel(EntityModel):
     flavour = models.TextField()
     tech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="tech")
     build = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="build", null=True)
-    result = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
+    output = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     amount = models.IntegerField(validators=[MinValueValidator(0)])
     die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
     dots = models.IntegerField()
