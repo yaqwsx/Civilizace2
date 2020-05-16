@@ -8,7 +8,6 @@ Herní systém pro druhý ročník Civilizace
 - nainstalovat závislosti: v adresáři projektu zavolej `pip install -r
   requirements.txt` nebo `pip3 install -r requirements.txt` (záleží, jaký alias
   máš pro Python 3)
-- **Docčasně je třeba zavolat i:** `pip install --force --no-deps git+https://github.com/divio/django-classy-tags@master`
 - zmigruj databázi: v adresáři projektu zavolej `python manage.py migrate` nebo
   `python3 manage.py migrate`
 - nakrm databázi výchozími daty: v adresáři projektu zavolej `python manage.py

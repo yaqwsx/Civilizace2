@@ -15,13 +15,13 @@ class TechModel(EntityModel):
     image = models.TextField()
 
 class TechEdgeModel(EntityModel):
-    src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="src")
-    dst = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="dst")
+    src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")
+    dst = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocked_by")
     die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
     dots = models.IntegerField()
 
 class TechEdgeInputModel(models.Model):
-    parent = models.ForeignKey(TechEdgeModel, on_delete=models.CASCADE)
+    parent = models.ForeignKey(TechEdgeModel, on_delete=models.CASCADE, related_name="resources")
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     amount = models.IntegerField(validators=[MinValueValidator(0)])
 

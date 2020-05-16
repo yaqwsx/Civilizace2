@@ -119,3 +119,8 @@ civilizace/settingsLocal.py
 .idea/vcs.xml
 .idea/workspace.xml
 images/*
+
+# Ignore static files
+
+_static/
+_build/

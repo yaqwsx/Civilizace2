@@ -7,8 +7,8 @@ from .entity import EntityModel, DieModel
 
 class VyrobaModel(EntityModel):
     flavour = models.TextField()
-    tech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="tech")
-    build = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="build", null=True)
+    tech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlock_vyrobas")
+    build = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="building_vyrobas", null=True)
     output = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     amount = models.IntegerField(validators=[MinValueValidator(0)])
     die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
