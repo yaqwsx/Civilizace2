@@ -4,7 +4,7 @@ from .fields import JSONField
 from game.managers import ActionManager, ActionStepManager
 import json
 from django_enumfield import enum
-from django.contrib.auth.models import User
+
 
 class Dice(enum.Enum):
     tech = 0
@@ -110,11 +110,14 @@ class ActionMove(enum.Enum):
     createInitial = 0
     sanboxIncreaseCounter = 1
     startNewRound = 2
+    nextTurn = 3
+    nextGeneration = 4
 
     __labels__ = {
         createInitial: "Vytvořit nový stav",
         sanboxIncreaseCounter: "Zvýšit counter",
-        startNewRound: "Začít kolo"
+        startNewRound: "Začít kolo",
+        nextTurn: "Next turn"
     }
 
 class Action(ImmutableModel):
@@ -195,7 +198,6 @@ class Action(ImmutableModel):
         raise NotImplementedError("This action does not require a dice throw - no initiate step is avialable")
 
     def resolve(self):
-        import game.models.action # Required to load all subclasses
         for actionClass in  Action.__subclasses__():
             if actionClass.CiviMeta.move == self.move:
                 return actionClass.objects.get(pk=self.pk)
@@ -211,7 +213,6 @@ class Action(ImmutableModel):
         """
         Take an associated form data and build the action
         """
-        import game.models.action # Required to load all subclasses
         move = data["action"]
         for actionClass in  Action.__subclasses__():
             if actionClass.CiviMeta.move == move:
@@ -219,7 +220,6 @@ class Action(ImmutableModel):
         return None
 
     def formFor(move):
-        import game.models.action # Required to load all subclasses
         for actionClass in  Action.__subclasses__():
             if actionClass.CiviMeta.move == move:
                 return actionClass.CiviMeta.form

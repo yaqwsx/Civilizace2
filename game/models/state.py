@@ -21,32 +21,56 @@ class State(ImmutableModel):
         return json.dumps(self._dict)
 
 class WorldState(ImmutableModel):
+    class WorldStateManager(models.Manager):
+        def createInitial(self):
+            generation = game.models.state.GenerationWorldState.objects.createInitial()
+            return self.create(generation=generation)
+    objects = WorldStateManager()
+
     data = JSONField()
     generation = models.ForeignKey("GenerationWorldState", on_delete=models.PROTECT)
 
-    objects = game.managers.WorldStateManager()
+    def __str__(self):
+        return json.dumps(self._dict)
+
+class GenerationWorldState(ImmutableModel):
+    class GenerationWorldStateManager(models.Manager):
+        def createInitial(self):
+            return self.create(
+                generation=0
+            )
+
+    generation = models.IntegerField("generation")
+    objects = GenerationWorldStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
 
+    def nextGeneration(self):
+        self.generation += 1
+
+
 class TeamState(ImmutableModel):
+    class TeamStateManager(models.Manager):
+        def createInitial(self, team):
+            sandbox = game.models.SandboxTeamState.objects.createInitial()
+            population = game.models.PopulationTeamState.objects.createInitial()
+            return self.create(team=team, sandbox=sandbox, population=population, turn=0)
+    objects = TeamStateManager()
+
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
+    turn = models.IntegerField()
 
-    objects = game.managers.TeamStateManager()
-
-    def __str__(self):
-        return json.dumps(self._dict)
-
-class SandboxTeamState(ImmutableModel):
-    data = JSONField()
-
-    objects = game.managers.SandboxTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
 
+    def nextTurn(self):
+        self.turn += 1
+
+# =================================================
 class PopulationTeamState(ImmutableModel):
     population = models.IntegerField("population")
     work = models.IntegerField("work")
@@ -60,12 +84,11 @@ class PopulationTeamState(ImmutableModel):
         self.work = self.work // 2
         self.work += self.population
 
-class GenerationWorldState(ImmutableModel):
-    generation = models.IntegerField("generation")
-    objects = game.managers.GenerationWorldStateManager()
+class SandboxTeamState(ImmutableModel):
+    data = JSONField()
+
+    objects = game.managers.SandboxTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
 
-    def startNextGeneration(self):
-        self.generation += 1

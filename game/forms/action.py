@@ -44,3 +44,9 @@ class SanboxIncreaseCounterForm(MoveForm):
 
 class StartRoundForm(MoveForm):
     pass
+
+class NextTurnForm(MoveForm):
+    pass
+
+class EmptyMoveForm(MoveForm):
+    pass

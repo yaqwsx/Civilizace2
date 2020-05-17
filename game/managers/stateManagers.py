@@ -22,31 +22,11 @@ class StateManager(PrefetchManager):
     def getNewest(self):
         return self.latest("pk")
 
-
-class WorldStateManager(models.Manager):
-    def createInitial(self):
-        generation = game.models.GenerationWorldState.objects.createInitial()
-        return self.create(generation = generation)
-
-
-class TeamStateManager(models.Manager):
-    def createInitial(self, team):
-        sandbox = game.models.SandboxTeamState.objects.createInitial()
-        population = game.models.PopulationTeamState.objects.createInitial()
-        return self.create(team=team, sandbox=sandbox, population=population)
-
-
 class SandboxTeamStateManager(models.Manager):
     def createInitial(self):
         return self.create(data={
             "counter": 0
         })
-
-class GenerationWorldStateManager(models.Manager):
-    def createInitial(self):
-        return self.create(
-            generation=0
-        )
 
 class PopulationTeamStateManager(models.Manager):
     def createInitial(self):
