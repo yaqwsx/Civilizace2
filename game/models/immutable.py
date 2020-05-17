@@ -41,7 +41,7 @@ class ImmutableModel(TrackedModel):
         abstract = True
 
     @staticmethod
-    def saveIfDirty(model):
+    def saveAndIfDirty(model):
         pk = model.pk
         model.save()
         return pk != model.pk
@@ -53,6 +53,7 @@ class ImmutableModel(TrackedModel):
             return
 
         relationToUpdate = {}
+        relativesDirty = False
         for field in self._meta.get_fields():
             if not hasattr(self, field.name):
                 continue
@@ -63,24 +64,22 @@ class ImmutableModel(TrackedModel):
                 if not isinstance(attr, TrackedModel):
                     attr.save()
                     continue
-                if ImmutableModel.saveIfDirty(attr):
+                if ImmutableModel.saveAndIfDirty(attr):
                     setattr(self, field.name, attr)
             if isinstance(field, models.fields.related.ManyToManyField):
                 if not issubclass(attr.model, TrackedModel):
                     continue
-                relativesDirty = False
                 newRelatives = []
                 for relative in attr.all():
-                    if ImmutableModel.saveIfDirty(relative):
+                    if ImmutableModel.saveAndIfDirty(relative):
                         relativesDirty = True
                     newRelatives.append(relative)
-                if relativesDirty:
-                    relationToUpdate[field] = newRelatives
-        if self.dirty or bool(relationToUpdate):
+                relationToUpdate[field] = newRelatives
+        if self.dirty or relativesDirty:
             self.pk = None
-        super(ImmutableModel, self).save(*args, **kwargs)
-        for field, value in relationToUpdate.items():
-            attr = getattr(self, field.name)
-            attr.set(value, clear=True)
+            super(ImmutableModel, self).save(*args, **kwargs)
+            for field, value in relationToUpdate.items():
+                attr = getattr(self, field.name)
+                attr.set(value, clear=True)
 
 

@@ -7,3 +7,4 @@ from game.data.resource import ResourceTypeModel, ResourceModel
 from game.data.vyroba import VyrobaModel, VyrobaInputModel
 
 from .actions import *
+from .action import *
