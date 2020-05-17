@@ -72,7 +72,9 @@ class ActionMoveView(ActionView):
         if unfinishedAction:
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
-        form = models.Action.formFor(moveId)(teamId, moveId)
+        formClass = models.Action.formFor(moveId)
+        assert formClass != None, "Cannot find class for moveId=" + str(moveId)
+        form = formClass(teamId, moveId)
         return render(request, "game/actionMove.html", {
             "request": request,
             "form": form,

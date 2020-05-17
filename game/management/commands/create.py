@@ -6,6 +6,7 @@ from guardian.shortcuts import assign_perm
 from game import models
 from game.models import User
 from game.models.keywords import KeywordType, Keyword
+import game.management.commands.updateEntities as updateEntities
 
 GROUPS_PERMISSIONS = {
     'ATeam': {
@@ -64,6 +65,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for what in options["what"]:
+            if what == "update":
+                updateEntities.Command().handle(sourceFile="game/data/entities.json")
             if what == "groups":
                 self.createGroups()
             if what == "users":

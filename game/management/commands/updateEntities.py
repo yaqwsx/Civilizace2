@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         sourceFile = kwargs["sourceFile"]
-        cacheFile = kwargs["cacheFile"]
+        cacheFile = kwargs.get("cacheFile")
 
         updater = Update()
         if sourceFile:

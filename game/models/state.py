@@ -53,22 +53,45 @@ class GenerationWorldState(ImmutableModel):
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
         def createInitial(self, team):
-            sandbox = game.models.SandboxTeamState.objects.createInitial()
-            population = game.models.PopulationTeamState.objects.createInitial()
-            return self.create(team=team, sandbox=sandbox, population=population, turn=0)
+            sandbox = SandboxTeamState.objects.createInitial()
+            population = PopulationTeamState.objects.createInitial()
+            storage = StorageState.objects.createInitial()
+            return self.create(team=team, sandbox=sandbox, population=population, turn=0, storage=storage)
     objects = TeamStateManager()
 
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
     turn = models.IntegerField()
-
+    storage = models.ForeignKey("StorageState", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
 
     def nextTurn(self):
         self.turn += 1
+
+class StorageItem(ImmutableModel):
+    resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
+    amount = models.IntegerField()
+
+class StorageState(ImmutableModel):
+    class StorageStateManager(models.Manager):
+        def createInitial(self):
+            initialResources = [("res-obyvatel", 100), ("res-prace", 100)]
+            items = []
+            for id, amount in initialResources:
+                print("id: " + str(id))
+                items.append(StorageItem.objects.create(
+                    resource=game.data.ResourceModel.objects.get(id=id),
+                    amount=amount
+                ))
+            result = self.create()
+            result.items.set(items)
+            return result
+    objects = StorageStateManager()
+
+    items = models.ManyToManyField("StorageItem")
 
 # =================================================
 class PopulationTeamState(ImmutableModel):
