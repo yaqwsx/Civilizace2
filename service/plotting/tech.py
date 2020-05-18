@@ -168,6 +168,9 @@ class TechBuilder:
         """Get absolute file path for given tech label"""
         return os.path.join(self.buildDirectory, tech.id + ".pdf")
 
+    def fullGraphFile(self):
+        return os.path.join(self.buildDirectory, "fullGraph.pdf")
+
     def generateFullGraph(self):
         try:
             dotFile = os.path.join(self.buildDirectory, "fullGraph.dot")
