@@ -9,7 +9,7 @@ from game.models.keywords import KeywordType, Keyword
 from game.models.users import User, Team
 from game.models.state import State
 
-import game.management.commands.updateEntities as updateEntities
+from game.data.update import Update, UpdateError
 
 GROUPS_PERMISSIONS = {
     'ATeam': {
@@ -69,7 +69,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for what in options["what"]:
             if what == "entities":
-                updateEntities.Command().handle(sourceFile="game/data/entities.json")
+                self.createEntities()
             if what == "groups":
                 self.createGroups()
             if what == "users":
@@ -162,3 +162,8 @@ class Command(BaseCommand):
                 "Play team " + teamname,
                 KeywordType.team,
                 team.id))
+
+    def createEntities(self):
+        updater = Update()
+        updater.fileAsSource("game/data/entities.json")
+        updater.update()
