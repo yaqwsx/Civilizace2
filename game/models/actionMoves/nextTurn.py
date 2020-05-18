@@ -1,13 +1,17 @@
-from game import forms
-from game.models import Action, ActionMove
+from game.forms.action import MoveForm
+from game.models.actionMovesList import ActionMove
+from game.models.actionBase import Action
 
+
+class NextTurnForm(MoveForm):
+    pass
 
 class NextTurn(Action):
     class Meta:
         proxy = True
     class CiviMeta:
         move = ActionMove.nextTurn
-        form = forms.NextTurnForm
+        form = NextTurnForm
 
     def build(data):
         action = NextTurn(team=data["team"], move=data["action"], arguments={})

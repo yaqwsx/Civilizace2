@@ -6,4 +6,4 @@ copy NUL ground\migrations\__init__.py
 del db.sqlite3
 python manage.py makemigrations
 python manage.py migrate
-python manage.py create groups users state
+python manage.py create entities groups users state

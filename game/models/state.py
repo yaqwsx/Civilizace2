@@ -1,15 +1,40 @@
 from django.db import models
 from .fields import JSONField
 from .immutable import ImmutableModel
+
 import game.managers
 import json
+
+from game.managers import PrefetchManager
+from game.models.actionBase import ActionStep
+from game.models.users import Team
+from game import parameters
+
+class StateManager(PrefetchManager):
+    def __init__(self):
+        # ManyToMany Field needs to prefetched in order to make immutable models
+        # to work intuitively (otherwise the recursive saving does not work as
+        # you can get different handles to models)
+        super(StateManager, self).__init__(prefetch_related=("teamStates",), select_related=("action",))
+
+    def createInitial(self):
+        teamStates = [TeamState.objects.createInitial(team=team)
+            for team in Team.objects.all()]
+        worldState = WorldState.objects.createInitial()
+        action = ActionStep.objects.createInitial()
+        state = self.create(action=action, worldState=worldState)
+        state.teamStates.set(teamStates)
+        return state
+
+    def getNewest(self):
+        return self.latest("pk")
 
 class State(ImmutableModel):
     action = models.ForeignKey("ActionStep", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
 
-    objects = game.managers.StateManager()
+    objects = StateManager()
 
     def teamState(self, teamId):
         for ts in self.teamStates.all():
@@ -19,6 +44,7 @@ class State(ImmutableModel):
 
     def __str__(self):
         return json.dumps(self._dict)
+
 
 class WorldState(ImmutableModel):
     class WorldStateManager(models.Manager):
@@ -48,7 +74,6 @@ class GenerationWorldState(ImmutableModel):
 
     def nextGeneration(self):
         self.generation += 1
-
 
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
@@ -94,11 +119,20 @@ class StorageState(ImmutableModel):
     items = models.ManyToManyField("StorageItem")
 
 # =================================================
+
+class PopulationTeamStateManager(models.Manager):
+    def createInitial(self):
+        return self.create(
+            work=parameters.INITIAL_POPULATION,
+            population=parameters.INITIAL_POPULATION
+        )
+
+
 class PopulationTeamState(ImmutableModel):
     population = models.IntegerField("population")
     work = models.IntegerField("work")
 
-    objects = game.managers.PopulationTeamStateManager()
+    objects = PopulationTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -107,10 +141,17 @@ class PopulationTeamState(ImmutableModel):
         self.work = self.work // 2
         self.work += self.population
 
+
+class SandboxTeamStateManager(models.Manager):
+    def createInitial(self):
+        return self.create(data={
+            "counter": 0
+        })
+
 class SandboxTeamState(ImmutableModel):
     data = JSONField()
 
-    objects = game.managers.SandboxTeamStateManager()
+    objects = SandboxTeamStateManager()
 
     def __str__(self):
         return json.dumps(self._dict)

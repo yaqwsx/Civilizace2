@@ -1,5 +1,5 @@
 from django import forms
-from game.models import Team
+from game.models.users import Team
 from django_enumfield.forms.fields import EnumChoiceField
 
 def captures(what, field):

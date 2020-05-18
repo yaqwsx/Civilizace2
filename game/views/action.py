@@ -5,21 +5,30 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse
-from game import models
-from game.forms import MoveInitialForm, DiceThrowForm
-from game import parameters
 from django.db.models import Count, Q
+
+from game import models
+from game.models.actionMoves import *
+from game.models.actionMovesList import ActionMove
+from game.models.actionBase import Action, ActionStep, ActionPhase
+from game.models.users import User, Team
+from game.models.state import State
+
+from game.forms.action import MoveInitialForm, DiceThrowForm
+
+from game import parameters
+
 
 class ActionView(View):
     def unfinishedActionBy(self, user):
         """
         Return one of the unfinished actions by the current user, None otherwise
         """
-        unfinished = models.Action.objects \
+        unfinished = Action.objects \
             .filter(actionstep__author=user) \
             .annotate(
                 initcount=Count('actionstep',
-                    filter=Q(actionstep__phase=models.ActionPhase.initiate))) \
+                    filter=Q(actionstep__phase=ActionPhase.initiate))) \
             .annotate(allcount=Count('actionstep')) \
             .filter(initcount=1, allcount=1)[:1]
         if unfinished:
@@ -72,14 +81,14 @@ class ActionMoveView(ActionView):
         if unfinishedAction:
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
-        formClass = models.Action.formFor(moveId)
+        formClass = formForActionMove(moveId)
         assert formClass != None, "Cannot find class for moveId=" + str(moveId)
         form = formClass(teamId, moveId)
         return render(request, "game/actionMove.html", {
             "request": request,
             "form": form,
-            "team": get_object_or_404(models.Team, pk=teamId),
-            "action": models.ActionMove(moveId),
+            "team": get_object_or_404(Team, pk=teamId),
+            "action": ActionMove(moveId),
             "messages": messages.get_messages(request)
         })
 
@@ -87,18 +96,18 @@ class ActionMoveView(ActionView):
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        form = models.Action.formFor(moveId)(data=request.POST.copy()) # copy, so we can change the cancelled field
+        form = formForActionMove(moveId)(data=request.POST.copy()) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
-            action = models.Action.build(form.cleaned_data)
-            step = models.ActionStep.initiateAction(request.user, action)
-            state = models.State.objects.getNewest()
+            action = buildActionMove(form.cleaned_data)
+            step = ActionStep.initiateAction(request.user, action)
+            state = State.objects.getNewest()
             moveValid, message = step.applyTo(state)
 
             form.data["canceled"] = True
             return render(request, "game/actionConfirm.html", {
                 "request": request,
                 "form": form,
-                "team": get_object_or_404(models.Team, pk=teamId),
+                "team": get_object_or_404(Team, pk=teamId),
                 "action": action,
                 "moveValid": moveValid,
                 "message": message,
@@ -108,8 +117,8 @@ class ActionMoveView(ActionView):
         return render(request, "game/actionMove.html", {
             "request": request,
             "form": form,
-            "team": get_object_or_404(models.Team, pk=teamId),
-            "action": models.ActionMove(moveId),
+            "team": get_object_or_404(Team, pk=teamId),
+            "action": ActionMove(moveId),
             "messages": messages.get_messages(request)
         })
 
@@ -118,18 +127,18 @@ class ActionConfirmView(ActionView):
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        form = models.Action.formFor(moveId)(data=request.POST)
+        form = formForActionMove(moveId)(data=request.POST)
         if form.is_valid(): # Should be always unless someone plays with API directly
-            action = models.Action.build(form.cleaned_data)
-            step = models.ActionStep.initiateAction(request.user, action)
-            state = models.State.objects.getNewest()
+            action = buildActionMove(form.cleaned_data)
+            step = ActionStep.initiateAction(request.user, action)
+            state = State.objects.getNewest()
             moveValid, message = step.applyTo(state)
             if not moveValid:
                 form.data["canceled"] = True
                 return render(request, "game/actionConfirm.html", {
                     "request": request,
                     "form": form,
-                    "team": get_object_or_404(models.Team, pk=teamId),
+                    "team": get_object_or_404(Team, pk=teamId),
                     "action": action,
                     "moveValid": moveValid,
                     "message": message,
@@ -150,7 +159,7 @@ class ActionDiceThrow(ActionView):
     def get(self, request, actionId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        action = get_object_or_404(models.Action, pk=actionId).resolve()
+        action = get_object_or_404(Action, pk=actionId).resolve()
         if self.isFinished(action):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
@@ -158,7 +167,7 @@ class ActionDiceThrow(ActionView):
         return self.renderForm(request, action, form)
 
     def renderForm(self, request, action, form):
-        state = models.State.objects.getNewest()
+        state = State.objects.getNewest()
         teamState = state.teamState(action.team.id)
         return render(request, "game/actionDiceThrow.html", {
             "request": request,
@@ -173,14 +182,14 @@ class ActionDiceThrow(ActionView):
     def post(self, request, actionId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        action = get_object_or_404(models.Action, pk=actionId).resolve()
+        action = get_object_or_404(Action, pk=actionId).resolve()
         if self.isFinished(action):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
         form = DiceThrowForm(action.dotsRequired().keys(), data=request.POST)
         if not form.is_valid():
             return self.renderForm(request, action, form)
-        state = models.State.objects.getNewest()
+        state = State.objects.getNewest()
         teamState = state.teamState(action.team.id)
         maxThrowTries = teamState.population.work // parameters.DICE_THROW_PRICE
         if form.cleaned_data["throwCount"] > maxThrowTries:
@@ -195,16 +204,16 @@ class ActionDiceThrow(ActionView):
             messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
             return redirect('actionDiceThrow', actionId=action.id)
         if "cancel" in request.POST:
-            step = models.ActionStep.cancelAction(request.user, action)
+            step = ActionStep.cancelAction(request.user, action)
             channel = messages.warning
         else:
             requiredDots = action.dotsRequired()[int(form.cleaned_data["dice"])]
             workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
             if form.cleaned_data["dotsCount"] >= requiredDots:
-                step = models.ActionStep.commitAction(request.user, action, workConsumed)
+                step = ActionStep.commitAction(request.user, action, workConsumed)
                 channel = messages.success
             else:
-                step = models.ActionStep.abandonAction(request.user, action, workConsumed)
+                step = ActionStep.abandonAction(request.user, action, workConsumed)
                 channel = messages.warning
             moveValid, message = step.applyTo(state)
             if not moveValid:
@@ -218,4 +227,4 @@ class ActionDiceThrow(ActionView):
             return redirect('actionIndex')
 
     def isFinished(self, action):
-        return action.actionstep_set.all().exclude(phase=models.ActionPhase.initiate).exists()
+        return action.actionstep_set.all().exclude(phase=ActionPhase.initiate).exists()
