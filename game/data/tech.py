@@ -21,8 +21,14 @@ class TechEdgeModel(EntityModel):
     die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
     dots = models.IntegerField()
 
+    def costText(self):
+        resources = [f"{self.dots}x {self.die.label} kostka"]
+        resources += [f"{r.amount}x {r.resource.label}" for r in self.resources.all()]
+        return ", ".join(resources)
+
 class TechEdgeInputModel(models.Model):
     parent = models.ForeignKey(TechEdgeModel, on_delete=models.CASCADE, related_name="resources")
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)
     amount = models.IntegerField(validators=[MinValueValidator(0)])
+
 

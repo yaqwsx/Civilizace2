@@ -351,10 +351,14 @@ class Parser():
 
         # TODO: This is a hack to overcome UnicodeEncodeError: 'charmap' codec can't encode character '\u011b' in position 515: character maps to <undefined>
         # TODO: Fix and remove
-        import sys, codecs
-        print("sys.stdout.encoding: " + str(sys.stdout.encoding))
-        sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer, 'strict')
-        sys.stderr = codecs.getwriter('utf8')(sys.stderr.buffer, 'strict')
+        # Wrapped in try/except block as virtual terminals do not support encoding
+        try:
+            import sys, codecs
+            print("sys.stdout.encoding: " + str(sys.stdout.encoding))
+            sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer, 'strict')
+            sys.stderr = codecs.getwriter('utf8')(sys.stderr.buffer, 'strict')
+        except:
+            pass
 
         self.warnings = []
 
