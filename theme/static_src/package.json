@@ -1,1 +1,71 @@
-{"name":"django_tailwind","description":"","scripts":{"build":"npm run build-css && npm run build-js","build-js":"copy-files-from-to","build-css":"npm run build-clean && npm run build-postcss && npm run build-cleancss","build-postcss":"postcss --config . --map false --output ../static/css/styles.min.css ./src/styles.scss","build-cleancss":"cleancss -o ../static/css/styles.min.css ../static/css/styles.min.css","build-clean":"rimraf ../css","start":"watch 'npm run build-postcss' ./src","update:packages":"node wipe-dependencies.js && rm -rf node_modules && npm update --save-dev && npm update --save"},"keywords":[],"author":"","license":"MIT","devDependencies":{"@fortawesome/fontawesome-free":"*","autoprefixer":"*","clean-css-cli":"*","copy-files-from-to":"*","node-sass":"*","postcss-cli":"*","postcss-import":"*","postcss-scss":"*","rimraf":"*","tailwindcss":"*","watch":"*"},"dependencies":{"chart.js":"*","d3":"*","d3plus":"*","dagre-d3":"*","flatpickr":"*"},"copyFiles":[{"from":"node_modules/chart.js/dist/Chart.bundle.min.js","to":"../static/js/Chart.bundle.min.js"},{"from":"node_modules/@fortawesome/fontawesome-free/svgs/**","to":"../static/svgs"},{"from":"node_modules/@fortawesome/fontawesome-free/webfonts/*","to":"../static/webfonts"},{"from":"node_modules/flatpickr/dist/flatpickr.min.js","to":"../static/js/flatpickr.min.js"},{"from":"node_modules/flatpickr/dist/l10n/cs.js","to":"../static/js/flatpickr.cs.js"},{"from":"node_modules/flatpickr/dist/flatpickr.min.css","to":"../static/css/flatpickr.min.css"},{"from":"node_modules/dagre-d3/dist/*","to":"../static/js/"},{"from":"node_modules/d3/*.js","to":"../static/js/"}]}
+{
+  "name": "django_tailwind",
+  "description": "",
+  "scripts": {
+    "build": "npm run build-css && npm run build-js",
+    "build-js": "copy-files-from-to",
+    "build-css": "npm run build-clean && npm run build-postcss && npm run build-cleancss",
+    "build-postcss": "postcss --config . --map false --output ../static/css/styles.min.css ./src/styles.scss",
+    "build-cleancss": "cleancss -o ../static/css/styles.min.css ../static/css/styles.min.css",
+    "build-clean": "rimraf ../css",
+    "start": "watch 'npm run build-postcss' ./src",
+    "update:packages": "node wipe-dependencies.js && rm -rf node_modules && npm update --save-dev && npm update --save"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "*",
+    "autoprefixer": "*",
+    "clean-css-cli": "*",
+    "copy-files-from-to": "*",
+    "node-sass": "*",
+    "postcss-cli": "*",
+    "postcss-import": "*",
+    "postcss-scss": "*",
+    "rimraf": "*",
+    "tailwindcss": "*",
+    "watch": "*"
+  },
+  "dependencies": {
+    "chart.js": "*",
+    "d3": "*",
+    "d3plus": "*",
+    "dagre-d3": "*",
+    "flatpickr": "*"
+  },
+  "copyFiles": [
+    {
+      "from": "node_modules/chart.js/dist/Chart.bundle.min.js",
+      "to": "../static/js/Chart.bundle.min.js"
+    },
+    {
+      "from": "node_modules/@fortawesome/fontawesome-free/svgs/**",
+      "to": "../static/svgs"
+    },
+    {
+      "from": "node_modules/@fortawesome/fontawesome-free/webfonts/*",
+      "to": "../static/webfonts"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/flatpickr.min.js",
+      "to": "../static/js/flatpickr.min.js"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/l10n/cs.js",
+      "to": "../static/js/flatpickr.cs.js"
+    },
+    {
+      "from": "node_modules/flatpickr/dist/flatpickr.min.css",
+      "to": "../static/css/flatpickr.min.css"
+    },
+    {
+      "from": "node_modules/dagre-d3/dist/*",
+      "to": "../static/js/"
+    },
+    {
+      "from": "node_modules/d3/dist/*.js",
+      "to": "../static/js/"
+    }
+  ]
+}
