@@ -31,8 +31,8 @@ class Parser():
                 continue
             label = line[0]
             id = line[1]
-            die = DieModel.objects.create(id=id, label=label, data=self.data)
-            die.save()
+            die, _ = DieModel.objects.update_or_create(id=id, defaults={
+                "label": label, "data": self.data})
 
     def _addTasks(self):
         print("Parsing tasks")
@@ -46,8 +46,8 @@ class Parser():
             label = line[0]
             id = line[1]
             text = line[2]
-            task = TaskModel.objects.create(id=id, label=label, text=text, data=self.data)
-            task.save()
+            task, _ = TaskModel.objects.update_or_create(id=id, defaults={
+                "label": label, "text": text, "data": self.data })
 
     def _addResourceTypes(self):
         print("Parsing resource types")
@@ -61,30 +61,30 @@ class Parser():
             label = line[0]
             id = line[1]
             color = line[2]
-            type = ResourceTypeModel.objects.create(id=id, label=label, color=color, data=self.data)
-            type.save()
+            type, _ = ResourceTypeModel.objects.update_or_create(id=id, defaults={
+                "label": label, "color": color, "data": self.data})
 
             for i in range(2,7):
-                mat = ResourceModel.objects.create(
+                mat, _ = ResourceModel.objects.update_or_create(
                     id="mat-"+id[5:]+"-"+str(i),
-                    label=label+" "+str(i),
-                    type=type,
-                    icon="images/placeholder.png",
-                    level=i,
-                    isProduction=False,
-                    data=self.data
-                )
-                mat.save()
-                prod = ResourceModel.objects.create(
+                    defaults={
+                        "label": label+" "+str(i),
+                        "type": type,
+                        "icon": "images/placeholder.png",
+                        "level": i,
+                        "isProduction": False,
+                        "data": self.data
+                    })
+                prod, _ = ResourceModel.objects.update_or_create(
                     id="prod-"+id[5:]+"-"+str(i),
-                    label="Produkce: "+label+" "+str(i),
-                    type=type,
-                    icon="images/placeholder.png",
-                    level=i,
-                    isProduction=True,
-                    data=self.data
-                )
-                prod.save()
+                    defaults={
+                        "label": "Produkce: "+label+" "+str(i),
+                        "type": type,
+                        "icon": "images/placeholder.png",
+                        "level": i,
+                        "isProduction": True,
+                        "data": self.data
+                    })
 
     def _addResources(self):
         print("Parsing resources")
@@ -101,8 +101,8 @@ class Parser():
             typeRaw = line[2]
             icon = line[3]
             if typeRaw == "-":
-                res = ResourceModel.objects.create(id=id, label=label, type=None, level=1, icon=icon, data=self.data)
-                res.save()
+                res, _ = ResourceModel.objects.update_or_create(id=id, defaults={
+                    "label": label, "type": None, "level": 1, "icon": icon, "data": self.data})
             else:
                 chunks = typeRaw.split("-")
                 if len(chunks) < 2:
@@ -121,18 +121,16 @@ class Parser():
                     self._logWarning("Zdroje." + str(n) +": Neznamy typ " + chunks[0])
                     continue
 
-                mat = ResourceModel.objects.create(
-                    id=id, label=label, type=typeRef,
-                    level=level, icon=icon, data=self.data)
-                mat.save()
+                mat, _ = ResourceModel.objects.update_or_create(id=id, defaults={
+                    "label": label, "type": typeRef,
+                    "level": level, "icon": icon, "data": self.data})
 
                 prodId = "prod" + id[3:]
                 prodLabel = "Produkce: " + label
-                prod = ResourceModel.objects.create(
-                    id=prodId, label=prodLabel, type=typeRef,
-                    level=level, icon=icon, isProduction=True,
-                    data=self.data)
-                prod.save()
+                prod, _ = ResourceModel.objects.update_or_create(id=prodId, defaults={
+                    "label": prodLabel, "type": typeRef,
+                    "level": level, "icon": icon, "isProduction": True,
+                    "data": self.data})
 
     def _addTechs(self):
         print("Parsing techs")
@@ -165,8 +163,9 @@ class Parser():
                 self._logWarning("Tech." + str(n) + ": Nezname ID ukolu (" + str(line[2]) + ")")
                 continue
 
-            tech = TechModel.objects.create(id=id, label=label, task=task, image=image, notes=notes, flavour=flavour, culture=culture, nodeTag=nodeTag, data=self.data)
-            tech.save()
+            tech, _ = TechModel.objects.update_or_create(id=id, defaults={
+                "label": label, "task": task, "image": image, "notes": notes,
+                "flavour": flavour, "culture": culture, "nodeTag": nodeTag, "data": self.data})
 
     def _addEdges(self):
         print("Parsing edges")
@@ -201,8 +200,8 @@ class Parser():
                 self._logWarning("Edge." + str(n) +": Nepodarilo se zpracovat udaje o kostce (" + line[4] + ")")
                 continue
 
-            edge = TechEdgeModel.objects.create(id=id, label=label, src=src, dst=dst, die=die, dots=dots, data=self.data)
-            edge.save()
+            edge, _ = TechEdgeModel.objects.update_or_create(id=id, defaults={
+                "label": label, "src": src, "dst": dst, "die": die, "dots": dots, "data": self.data})
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -223,8 +222,9 @@ class Parser():
                     self._logWarning("Edge." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input = TechEdgeInputModel.objects.create(parent=edge, resource=res, amount=amount)
-                input.save()
+                input, _ = TechEdgeInputModel.objects.update_or_create(
+                    parent=edge, resource=res,
+                    defaults={"amount": amount})
                 return input
 
             try:
@@ -298,8 +298,9 @@ class Parser():
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID budovy (" + line[8] + ")")
                 continue
 
-            vyr = VyrobaModel.objects.create(id=id, label=label, flavour=flavour, tech=tech, build=build, output=output, amount=amount, die=die, dots=dots, data=self.data)
-            vyr.save()
+            vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
+                "label": label, "flavour": flavour, "tech": tech, "build": build,
+                "output": output, "amount": amount, "die": die, "dots": dots, "data": self.data})
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -320,8 +321,9 @@ class Parser():
                     self._logWarning("Vyroba." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input = VyrobaInputModel.objects.create(parent=vyr, resource=res, amount=amount)
-                input.save()
+                input, _ = VyrobaInputModel.objects.update_or_create(
+                    parent=vyr, resource=res,
+                    defaults={"amount": amount})
                 return input
 
             try:
@@ -356,10 +358,9 @@ class Parser():
 
         self.warnings = []
 
-        for data in GameDataModel.objects.all():
-            data.delete()
-
-        # create data entity
+        # create a fresh data entity - we will erase items with old game data
+        # tag later
+        oldData = GameDataModel.objects.all().first()
         self.data = GameDataModel.objects.create()
         self.raw = rawData
 
@@ -371,6 +372,12 @@ class Parser():
         self._addTechs()
         self._addEdges()
         self._addVyrobas()
+
+        # Delete items which weren't updated - the ones with old game data
+        for model in EntityModel.__subclasses__():
+            model.objects.filter(data=oldData.id).delete()
+        oldData.delete()
+
 
         warnings = self.warnings
         self.warnings = None
