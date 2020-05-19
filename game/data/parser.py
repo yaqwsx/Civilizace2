@@ -374,9 +374,10 @@ class Parser():
         self._addVyrobas()
 
         # Delete items which weren't updated - the ones with old game data
-        for model in EntityModel.__subclasses__():
-            model.objects.filter(data=oldData.id).delete()
-        oldData.delete()
+        if oldData:
+            for model in EntityModel.__subclasses__():
+                model.objects.filter(data=oldData.id).delete()
+            oldData.delete()
 
 
         warnings = self.warnings
