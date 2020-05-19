@@ -62,6 +62,10 @@
       "to": "../static/js/"
     },
     {
+      "from": "node_modules/d3/*.js",
+      "to": "../static/js/"
+    },
+    {
       "from": "node_modules/d3/dist/*",
       "to": "../static/js/"
     }
