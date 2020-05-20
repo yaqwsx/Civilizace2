@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Náhled technologického stromu{% endblock %}
+
+{% block content %}
+
+<script src="/static/js/d3.min.js"></script>
+<script src="/static/js/dagre-d3.min.js"></script>
+
+<style>
+.node rect {
+  padding: 0;
+  background: none;
+  border: none;
+  fill: white;
+  stroke: black;
+}
+
+.edgePath path {
+  stroke: #333;
+  fill: #333;
+  stroke-width: 1.5px;
+}
+</style>
+
+<h1>Náhled výrob</h1>
+
+{% if missing %}
+    <div class="w-full px-4 md:px-0 md:mt-4 text-gray-800 leading-normal">
+        <div class="warning border-t-4 rounded-b px-4 py-3 shadow-md my-4">
+            <p class="w-full">Následující zdroje nejsou použity a byly skryty: {{missing}}</p>
+        </div>
+    </div>
+{% endif %}
+
+
+<svg id="graph" class="w-full h-screen border-2">
+    <g/>
+</svg>
+
+<script>
+    var g = new dagreD3.graphlib.Graph().setGraph({})
+        .setGraph({rankdir: 'LR', edgesep: 10, ranksep: 500, nodesep: 20});
+
+    {% for resource in resources %}
+        var div = document.createElement("div");
+        var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
+        html += '<h3 class="text-lg border-b">' + "{{resource.label}}" + '</h3>';
+        html += '<p>' + "{{resource.flavour}}" + '</p>';
+        html += '</div>';
+        div.innerHTML = html;
+        g.setNode( "{{resource.id}}", { label: div });
+    {% endfor %}
+
+    {% for vyroba in vyrobas %}
+        var div = document.createElement("div");
+        var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
+        html += '<h3 class="text-lg border-b">' + "{{vyroba.label}}" + '</h3>';
+        html += '<p>' + "{{vyroba.flavour}}" + '</p>';
+
+            html += '<b>Vstupy:</b>'
+            html += '<ul class="list-disc">';
+            html += '<li>{{vyroba.dots}}x {{vyroba.die.label}}';
+            {% for input in vyroba.inputs.all %}
+                html += '<li>{{input.amount}}x {{input.resource.label}}</li>';
+            {% endfor %}
+            html += '</ul>';
+
+        html += '</div>';
+        div.innerHTML = html;
+        g.setNode( "{{vyroba.id}}", { label: div, style: "fill: #afa" });
+
+        {% for input in vyroba.inputs.all %}
+            g.setEdge( "{{input.resource.id}}", "{{vyroba.id}}", { label: "", curve: d3.curveBasis  });
+        {% endfor %}
+        g.setEdge( "{{vyroba.id}}", "{{vyroba.output.id}}", { label: "{{vyroba.amount}}x", curve: d3.curveBasis  });
+    {% endfor %}
+
+    const POINT_RADIUS = 0;
+    function renderNode(parent, bbox, node) {
+        parent.selectAll('rect, circle').remove();
+        parent.insert('circle', ':first-child')
+            .attr('cx', -bbox.width / 2)
+            .attr('cy', 0)
+            .attr('r', POINT_RADIUS)
+            .attr('class', 'port in');
+
+        parent.insert('circle', ':last-child')
+            .attr('cx', bbox.width / 2)
+            .attr('cy', 0)
+            .attr('r', POINT_RADIUS)
+            .attr('class', 'port out');
+
+        parent.insert('rect', ':first-child')
+            .attr('x', -bbox.width / 2)
+            .attr('y', -bbox.height / 2)
+            .attr('width', bbox.width)
+            .attr('height', bbox.height)
+            .attr('style', node.style);
+
+        node.intersect = (point) => {
+            const w = node.width / 2;
+            return { x: node.x + (point.x < node.x ? -w : w), y: node.y };
+        };
+        return parent;
+    }
+
+    var svg = d3.select("#graph");
+    var inner = svg.select("g");
+
+    // Set up zoom support
+    var zoom = d3.zoom().on("zoom", function() {
+        inner.attr("transform", d3.event.transform);
+        });
+    svg.call(zoom);
+
+    // Create the renderer
+    var render = new dagreD3.render();
+    render.shapes().rect = renderNode;
+
+    // Run the renderer. This is what draws the final graph.
+    render(inner, g);
+
+
+    // Highlight edges
+    var nodes = svg.selectAll(".node");
+    var path = svg.selectAll("path");
+    console.log(nodes);
+
+    var defaultStrokeWidth;
+    var defaultStrokeColor;
+    nodes.on('mouseover', function(d) {
+        defaultStrokeColor = path.style('stroke');
+        defaultStrokeWidth = path.style('stroke-width');
+
+        var related = new Set();
+        path.style('stroke-width', function(l) {
+            if (d === l.v || d === l.w) {
+                related.add(l.v);
+                related.add(l.w);
+                return 2;
+            }
+            else
+                return defaultStrokeWidth;
+        });
+        path.style('stroke', function(l) {
+            if (d === l.v || d === l.w)
+                return "red";
+            else
+                return defaultStrokeColor;
+        });
+
+        nodes.each(function(l) {
+            if (related.has(l))
+                this.getElementsByTagName('rect')[0].style.stroke = "red";
+            else
+                this.getElementsByTagName('rect')[0].style.stroke = defaultStrokeColor;
+        });
+    });
+
+    // Set the stroke width back to normal when mouse leaves the node.
+    nodes.on('mouseout', function() {
+        path.style('stroke-width', defaultStrokeWidth);
+        path.style('stroke', defaultStrokeColor);
+        nodes.each(function(l) {
+            this.getElementsByTagName('rect')[0].style.stroke = defaultStrokeColor;
+        });
+    });
+
+    // Center the graph
+    var initialScale = 1;
+    svg.call(zoom.transform, d3.zoomIdentity.translate((svg.node().getBBox().width - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+</script>
+
+{% endblock %}
