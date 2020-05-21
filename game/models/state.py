@@ -1,8 +1,12 @@
 from django.db import models
+from django_enumfield import enum
+
 from .fields import JSONField
 from .immutable import ImmutableModel
 import game.managers
 import json
+
+from .translations import Translations
 
 class State(ImmutableModel):
     action = models.ForeignKey("ActionStep", on_delete=models.PROTECT)
@@ -92,6 +96,24 @@ class StorageState(ImmutableModel):
     objects = StorageStateManager()
 
     items = models.ManyToManyField("StorageItem")
+
+class TechStateEnum(enum.Enum):
+    unknown = 0
+    visible = 1
+    researching = 2
+    known = 3
+
+    __labels__ = {
+        unknown: Translations.TECH_UNKNOWN,
+        visible: Translations.TEHC_VIDIBLE,
+        researching: Translations.TECH_RESEARCHING,
+        known: Translations.TECH_KNOWN
+    }
+
+
+class TechItem(ImmutableModel):
+    tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
+    # state = models.ForeignKey("TechStateEnum")
 
 # =================================================
 class PopulationTeamState(ImmutableModel):
