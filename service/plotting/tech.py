@@ -120,6 +120,9 @@ def techNode(file, tech):
 
     file.write(r"""
     \documentclass{standalone}
+    \usepackage[czech]{babel}
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
     \usepackage{amsmath}
     \usepackage{txfonts}
     \usepackage{mdframed}
@@ -156,17 +159,27 @@ class TechBuilder:
         Path(self.buildDirectory).mkdir(parents=True, exist_ok=True)
 
     def generateTechLabels(self):
-        for tech in TechModel.objects.all():
-            texSrc = os.path.join(self.buildDirectory, tech.id + ".tex")
-            with open(texSrc, "w") as f:
-                techNode(f, tech)
-            buildCmd = ["texfot", "pdflatex", "-halt-on-error",
-                "--output-directory", self.buildDirectory, texSrc]
-            subprocess.run(buildCmd, capture_output=True, check=True)
+        try:
+            for tech in TechModel.objects.all():
+                texSrc = os.path.join(self.buildDirectory, tech.id + ".tex")
+                with open(texSrc, "w") as f:
+                    techNode(f, tech)
+                buildCmd = ["texfot", "pdflatex", "-halt-on-error",
+                    "--output-directory", self.buildDirectory, texSrc]
+                subprocess.run(buildCmd, capture_output=True, check=True)
+        except subprocess.CalledProcessError as e:
+            cmd = " ".join(e.cmd)
+            sys.stderr.write(f"Command '{cmd}' failed:\n")
+            sys.stderr.write(e.stdout.decode("utf8"))
+            sys.stderr.write(e.stderr.decode("utf8"))
+            raise
 
     def labelFor(self, tech):
         """Get absolute file path for given tech label"""
         return os.path.join(self.buildDirectory, tech.id + ".pdf")
+
+    def fullGraphFile(self):
+        return os.path.join(self.buildDirectory, "fullGraph.pdf")
 
     def generateFullGraph(self):
         try:

@@ -1,8 +1,18 @@
+import tempfile
+import io
+from django.http import FileResponse
 from django.shortcuts import render
 from django.views import View
+from django.db.models import Q
+
+
 from game.data.update import Update, UpdateError
 
-# Create your views here.
+from game.data.tech import TechModel, TechEdgeModel
+from game.data.resource import ResourceModel
+from game.data.vyroba import VyrobaModel
+
+from service.plotting import tech
 
 class ValidateEntities(View):
     def get(self, request):
@@ -28,4 +38,35 @@ class ValidateEntities(View):
         })
 
 
+class DownloadTechTree(View):
+    def get(self, request):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            builder = tech.TechBuilder(tmpdirname)
+            builder.generateTechLabels()
+            builder.generateFullGraph()
+            with open(builder.fullGraphFile(), "rb") as f:
+                graphPdf = io.BytesIO(f.read())
+                graphPdf.seek(0)
+                return FileResponse(graphPdf, filename='techstrom.pdf')
 
+
+class ViewTechTree(View):
+    def get(self, request):
+        return render(request, "service/viewTechtree.html", {
+            "request": request,
+            "nodes": TechModel.objects.all(),
+            "edges": TechEdgeModel.objects.all()
+        })
+
+class ViewVyrobas(View):
+    def get(self, request):
+        missing = ResourceModel.objects \
+                .filter(input_to_vyrobas__isnull=True, output_of_vyroba__isnull=True)
+        missingList = ", ".join([x.label for x in missing])
+        return render(request, "service/viewVyrobas.html", {
+            "request": request,
+            "resources": ResourceModel.objects \
+                .filter(Q(input_to_vyrobas__isnull=False) | Q(output_of_vyroba__isnull=False)),
+            "vyrobas": VyrobaModel.objects.all(),
+            "missing": missingList
+        })

@@ -3,4 +3,4 @@
 rm db.sqlite3
 python3 manage.py makemigrations
 python3 manage.py migrate
-python3 manage.py create groups users state keywords
+python3 manage.py create entities groups users state keywords

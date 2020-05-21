@@ -1,6 +1,6 @@
 from django import forms
 from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
-from game.models import ActionMove
+from game.models.actionMovesList import ActionMove
 from game.models.keywords import KeywordType
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -35,18 +35,3 @@ class MoveForm(MoveInitialForm):
                 }, *args, **kwargs)
         for fieldName in ["action", "team"]:
             self.fields[fieldName].widget = forms.HiddenInput()
-
-class CreateInitialForm(MoveForm):
-    pass
-
-class SanboxIncreaseCounterForm(MoveForm):
-    amount = forms.IntegerField(label="Změna počítadla o:")
-
-class StartRoundForm(MoveForm):
-    pass
-
-class NextTurnForm(MoveForm):
-    pass
-
-class EmptyMoveForm(MoveForm):
-    pass

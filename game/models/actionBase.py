@@ -1,10 +1,11 @@
-from django.db import models
-from .immutable import ImmutableModel
-from .fields import JSONField
-from game.managers import ActionManager, ActionStepManager
 import json
+
+from django.db import models
 from django_enumfield import enum
 
+from .immutable import ImmutableModel
+from .fields import JSONField
+from game.models.actionMovesList import ActionMove
 
 class Dice(enum.Enum):
     tech = 0
@@ -20,6 +21,14 @@ class ActionPhase(enum.Enum):
     commit = 1
     abandon = 2
     cancel = 3
+
+class ActionStepManager(models.Manager):
+    def createInitial(self):
+        return self.create(
+            author = None,
+            phase=ActionPhase.commit,
+            action=Action.objects.createInitial(),
+            workConsumed=0)
 
 # There are several scenarios for creating an action:
 # - the action is created and immediately committed.
@@ -105,20 +114,9 @@ class ActionStep(ImmutableModel):
         return ActionStep(author=author, phase=ActionPhase.abandon,
                 action=action, workConsumed=workConsumed)
 
-
-class ActionMove(enum.Enum):
-    createInitial = 0
-    sanboxIncreaseCounter = 1
-    startNewRound = 2
-    nextTurn = 3
-    nextGeneration = 4
-
-    __labels__ = {
-        createInitial: "Vytvořit nový stav",
-        sanboxIncreaseCounter: "Zvýšit counter",
-        startNewRound: "Začít kolo",
-        nextTurn: "Next turn"
-    }
+class ActionManager(models.Manager):
+    def createInitial(self):
+        return self.create(move=ActionMove.createInitial, arguments={})
 
 class Action(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
@@ -208,22 +206,6 @@ class Action(ImmutableModel):
         Check if the action is sane and can be safely applied
         """
         return move is not None and team is not None
-
-    def build(data):
-        """
-        Take an associated form data and build the action
-        """
-        move = data["action"]
-        for actionClass in  Action.__subclasses__():
-            if actionClass.CiviMeta.move == move:
-                return actionClass.build(data=data)
-        return None
-
-    def formFor(move):
-        for actionClass in  Action.__subclasses__():
-            if actionClass.CiviMeta.move == move:
-                return actionClass.CiviMeta.form
-        return None
 
     def __str__(self):
         return json.dumps(self._dict)

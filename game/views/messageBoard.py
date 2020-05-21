@@ -1,6 +1,3 @@
-from game.models.messageBoard import Message, MessageStatus
-from game.forms.messageBoard import MessageForm, TeamVisibilityForm
-from game import models
 from django.views import View
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -9,8 +6,13 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.forms import formset_factory
 
+from game.models.messageBoard import Message, MessageStatus
+from game.models.users import Team
+
+from game.forms.messageBoard import MessageForm, TeamVisibilityForm
+
 def messageVisibilityForm(message=None, data=None):
-    teams = models.Team.objects.all()
+    teams = Team.objects.all()
     TeamVisibilityFormset = formset_factory(TeamVisibilityForm, extra=len(teams))
     form = TeamVisibilityFormset(data) if data else TeamVisibilityFormset()
     for i, team in enumerate(teams):
@@ -61,7 +63,7 @@ class NewMessageView(View):
                 author = request.user)
             for visibility in visibilityForm.cleaned_data:
                 status = MessageStatus.objects.create(
-                    team = models.Team.objects.get(pk=visibility["team"]),
+                    team = Team.objects.get(pk=visibility["team"]),
                     message = message,
                     visible = visibility["visible"]
                 )

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Náhled technologického stromu{% endblock %}
+
+{% block content %}
+
+<script src="/static/js/d3.min.js"></script>
+<script src="/static/js/dagre-d3.min.js"></script>
+
+<style>
+.node rect {
+  padding: 0;
+  background: none;
+  border: none;
+  fill: white;
+  stroke: black;
+}
+
+.edgePath path {
+  stroke: #333;
+  fill: #333;
+  stroke-width: 1.5px;
+}
+</style>
+
+<h1>Náhled technologického stromu</h1>
+
+
+<svg id="graph" class="w-full h-screen">
+    <g/>
+</svg>
+
+<script>
+    var g = new dagreD3.graphlib.Graph().setGraph({});
+
+    {% for tech in nodes %}
+        var div = document.createElement("div");
+        var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
+        html += '<h3 class="text-lg border-b">' + "{{tech.label}}" + '</h3>';
+        html += '<p>' + "{{tech.flavour}}" + '</p>';
+        {% if tech.unlock_vyrobas.all %}
+            html += '<b>Odemyká výroby:</b>'
+            html += '<ul class="list-disc">';
+            {% for vyroba in tech.unlock_vyrobas.all %}
+                html += '<li>' + "{{vyroba.label}}" + '</li>';
+            {% endfor %}
+            html += '</ul>';
+        {% endif %}
+        html += '</div>';
+        div.innerHTML = html;
+        g.setNode( "{{tech.id}}", { label: div });
+    {% endfor %}
+
+    {% for edge in edges %}
+        g.setEdge( "{{edge.src.id}}", "{{edge.dst.id}}", { label: "{{edge.costText}}" });
+    {% endfor %}
+
+    var svg = d3.select("#graph");
+    var inner = svg.select("g");
+
+    // Set up zoom support
+    var zoom = d3.zoom().on("zoom", function() {
+        inner.attr("transform", d3.event.transform);
+        });
+    svg.call(zoom);
+
+    // Create the renderer
+    var render = new dagreD3.render();
+
+    // Run the renderer. This is what draws the final graph.
+    render(inner, g);
+
+    // Center the graph
+    var initialScale = 1;
+    svg.call(zoom.transform, d3.zoomIdentity.translate((svg.node().getBBox().width - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+</script>
+
+{% endblock %}

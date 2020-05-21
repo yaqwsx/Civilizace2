@@ -5,7 +5,8 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.contrib import messages
-from game.models import Team, State
+from game.models.users import Team
+from game.models.state import State
 from game.models.messageBoard import Message
 
 

@@ -1,5 +1,5 @@
 from django.db import models
-from game.models import Team
+from game.models.users import Team
 
 class Message(models.Model):
     author = models.ForeignKey("User", on_delete=models.PROTECT)

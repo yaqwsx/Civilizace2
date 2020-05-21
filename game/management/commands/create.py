@@ -3,17 +3,20 @@
 from django.core.management import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from guardian.shortcuts import assign_perm
-from game import models
-from game.models import User
+
+from game.models.actionMovesList import ActionMove
 from game.models.keywords import KeywordType, Keyword
-import game.management.commands.updateEntities as updateEntities
+from game.models.users import User, Team
+from game.models.state import State
+
+from game.data.update import Update, UpdateError
 
 GROUPS_PERMISSIONS = {
     'ATeam': {
-        models.Team: ['play', 'stat']
+        Team: ['play', 'stat']
     },
     'BTeam': {
-        models.Team: ['play', 'stat']
+        Team: ['play', 'stat']
     },
 }
 
@@ -38,14 +41,14 @@ BTEAM = ["kaja", "domca"]
 KEYWORDS = [
     # keyword, description, category, value
     ("PETRZEL", "Zvyš počítadlo", KeywordType.move,
-        models.ActionMove.sanboxIncreaseCounter)
+        ActionMove.sanboxIncreaseCounter)
 ]
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    help = "usage: create [groups|users|state|keywords]+"
+    help = "usage: create [entities|groups|users|state|keywords]+"
 
     @staticmethod
     def create_or_get_user(username, email, password, superuser=False):
@@ -65,8 +68,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for what in options["what"]:
-            if what == "update":
-                updateEntities.Command().handle(sourceFile="game/data/entities.json")
+            if what == "entities":
+                self.createEntities()
             if what == "groups":
                 self.createGroups()
             if what == "users":
@@ -81,11 +84,11 @@ class Command(BaseCommand):
         for teamName, teamParams in TEAMS.items():
             try:
                 # There can be more than one team with the name - do not use get
-                team = models.Team.objects.all().filter(name=teamName).first()
+                team = Team.objects.all().filter(name=teamName).first()
                 if not team:
                     raise RuntimeError()
             except:
-                team = models.Team.objects.create(name=teamName)
+                team = Team.objects.create(name=teamName)
                 print("Creating team: " + str(team))
             for username in teamParams["members"]:
                 user = Command.create_or_get_user(
@@ -131,7 +134,7 @@ class Command(BaseCommand):
                         self.stdout.write(codename + " not found")
 
     def createState(self):
-        s = models.State.objects.createInitial()
+        s = State.objects.createInitial()
         if s is None:
             print("Cannot create initialState")
         else:
@@ -153,9 +156,14 @@ class Command(BaseCommand):
         for keyword in KEYWORDS:
             self.createOrUpdateKeyword(keyword)
         for teamname, param in TEAMS.items():
-            team = models.Team.objects.get(name=teamname)
+            team = Team.objects.get(name=teamname)
             self.createOrUpdateKeyword((
                 param["keyword"],
                 "Play team " + teamname,
                 KeywordType.team,
                 team.id))
+
+    def createEntities(self):
+        updater = Update()
+        updater.fileAsSource("game/data/entities.json")
+        updater.update()

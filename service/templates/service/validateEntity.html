@@ -28,6 +28,20 @@
         function startSpinner() {
             document.getElementById("submit").classList.add("spinner");
         }
+
+        var canDownload = true;
+        function downloadTechTree() {
+            if (!canDownload) {
+                return false;
+            }
+            document.getElementById("downloadTechTree").classList.add("spinner");
+            canDownload = false;
+            setTimeout(function() {
+                canDownload = true;
+                document.getElementById("downloadTechTree").classList.remove("spinner");
+            }, 60 * 1000);
+            return true;
+        }
     </script>
     <h1>Validace entit</h1>
     <form method="post" onsubmit="startSpinner(); return true;">
@@ -53,6 +67,19 @@
                     <p class="w-full">Validace úspěšná</p>
                 </div>
             </div>
+            <a href="{%url "viewTechTree" %}">
+                <button class="w-full my-1 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                    id="downloadTechTree">
+                Interaktivní náhled stromu
+            </button>
+            </a>
+            <a href="{%url "downloadTechTree" %}">
+                <button class="w-full my-1 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                    id="downloadTechTree"
+                    onclick="return downloadTechTree();">
+                Stáhnout PDF technologického stromu - to, co uvidí hráči (pozor, chvíli trvá)
+            </button>
+            </a>
         {% endif %}
     {% endif %}
 {% endblock %}
