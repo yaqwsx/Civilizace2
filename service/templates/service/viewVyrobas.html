@@ -43,13 +43,15 @@
         .setGraph({rankdir: 'LR', edgesep: 10, ranksep: 500, nodesep: 20});
 
     {% for resource in resources %}
-        var div = document.createElement("div");
-        var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
-        html += '<h3 class="text-lg border-b">' + "{{resource.label}}" + '</h3>';
-        html += '<p>' + "{{resource.flavour}}" + '</p>';
-        html += '</div>';
-        div.innerHTML = html;
-        g.setNode( "{{resource.id}}", { label: div });
+        {% if resource.id != "res-prace" and resource.id != "res-obyvatel" %}
+            var div = document.createElement("div");
+            var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
+            html += '<h3 class="text-lg border-b">' + "{{resource.label}}" + '</h3>';
+            html += '<p>' + "{{resource.flavour}}" + '</p>';
+            html += '</div>';
+            div.innerHTML = html;
+            g.setNode( "{{resource.id}}", { label: div });
+        {% endif %}
     {% endfor %}
 
     {% for vyroba in vyrobas %}
@@ -71,7 +73,9 @@
         g.setNode( "{{vyroba.id}}", { label: div, style: "fill: #afa" });
 
         {% for input in vyroba.inputs.all %}
-            g.setEdge( "{{input.resource.id}}", "{{vyroba.id}}", { label: "", curve: d3.curveBasis  });
+            {% if input.resource.id != "res-prace" and input.resource.id != "res-obyvatel" %}
+                g.setEdge( "{{input.resource.id}}", "{{vyroba.id}}", { label: "", curve: d3.curveBasis  });
+            {% endif %}
         {% endfor %}
         g.setEdge( "{{vyroba.id}}", "{{vyroba.output.id}}", { label: "{{vyroba.amount}}x", curve: d3.curveBasis  });
     {% endfor %}
@@ -151,8 +155,9 @@
         });
 
         nodes.each(function(l) {
-            if (related.has(l))
+            if (related.has(l)) {
                 this.getElementsByTagName('rect')[0].style.stroke = "red";
+            }
             else
                 this.getElementsByTagName('rect')[0].style.stroke = defaultStrokeColor;
         });
