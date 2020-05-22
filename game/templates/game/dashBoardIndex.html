@@ -33,12 +33,16 @@
     {% endfor %}
 {% endif %}
 
- <h2 class="text-xl my-1 mt-3">Stav týmu</h2>
+<h2 class="text-xl my-1 mt-3">Stav týmu</h2>
 <div class="flex flex-wrap">
     {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
     {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
     {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation.generation}}. generace  {% endcard %}
-    {% card "Storage" %} {{teamState.storage}} {% endcard %}
+    {% card "Zdroje" %} {{teamState.resources}} {% endcard %}
+    {% card "Technologie" %} {{teamState.techs}} {% endcard %}
+    {% card "Hrany" %} {{teamState.techs.getVisibleEdges}} {% endcard %}
+
+
 </div>
 <div class="flex flex-wrap">
     {% card "Počítadlo" %} {{teamState.sandbox.data.counter}}  {% endcard %}

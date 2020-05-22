@@ -2,7 +2,8 @@ import enum
 
 
 class Translations(enum.Enum):
+    # TODO: Proc se nedaji pouzit v enumech?
     TECH_UNKNOWN = "Neznámý"
-    TEHC_VIDIBLE = "Viditelný"
+    TECH_VIDIBLE = "Viditelný"
     TECH_RESEARCHING = "Zkoumá se"
-    TECH_KNOWN = "Vyzkoumaný"
+    TECH_OWNED = "Vyzkoumaný"
