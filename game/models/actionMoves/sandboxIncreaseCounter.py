@@ -59,5 +59,5 @@ class SandboxIncreaseCounterMove(Action):
     def abandon(self, state):
         return True, self.abandonMessage()
 
-    def cancel(elf, state):
+    def cancel(self, state):
         return True, self.cancelMessage()
