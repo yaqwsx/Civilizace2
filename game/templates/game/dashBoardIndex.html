@@ -39,8 +39,9 @@
     {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
     {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation.generation}}. generace  {% endcard %}
     {% card "Zdroje" %} {{teamState.resources}} {% endcard %}
-    {% card "Technologie" %} {{teamState.techs}} {% endcard %}
-    {% card "Hrany" %} {{teamState.techs.getVisibleEdges}} {% endcard %}
+    {% card "Zname techy" %} {{teamState.techs.getOwnedTechs}} {% endcard %}
+    {% card "Zkoumane techy" %} {{teamState.techs.getTechsUnderResearch}} {% endcard %}
+    {% card "Pouzitelne hrany" %} {{teamState.techs.getActionableEdges}} {% endcard %}
 
 
 </div>

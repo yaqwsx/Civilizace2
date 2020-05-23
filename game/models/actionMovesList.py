@@ -6,11 +6,13 @@ class ActionMove(enum.Enum):
     startNewRound = 2
     nextTurn = 3
     nextGeneration = 4
+    research = 5
 
     __labels__ = {
         createInitial: "Vytvořit nový stav",
         sanboxIncreaseCounter: "Zvýšit counter",
         startNewRound: "Začít kolo",
         nextTurn: "Next turn",
-        nextGeneration: "Next generation"
+        nextGeneration: "Next generation",
+        research: "Zkoumat"
     }

@@ -142,14 +142,10 @@ class ResourceStorage(ImmutableModel):
 
 
 class TechStatusEnum(enum.Enum):
-    UNKNOWN = 0
-    VISIBLE = 1
     RESEARCHING = 2
     OWNED = 3
 
     __labels__ = {
-        UNKNOWN: "Neznámý",
-        VISIBLE: "Viditelný",
         RESEARCHING: "Zkoumá se",
         OWNED: "Vyzkoumaný"
     }
@@ -158,6 +154,8 @@ class TechStatusEnum(enum.Enum):
 class TechStorageItem(ImmutableModel):
     tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
     status = enum.EnumField(TechStatusEnum)
+    def __str__(self):
+        return self.tech.label + (":❌" if self.status == TechStatusEnum.RESEARCHING else ":✅")
 
 
 class TechStorage(ImmutableModel):
@@ -203,24 +201,30 @@ class TechStorage(ImmutableModel):
         return newItem
 
     def getOwnedTechs(self):
-        result = []
-        for item in self.items.all():
-            if item.status == TechStatusEnum.OWNED:
-                result.append(item.tech)
+        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items.all()))
         return result
 
-    def getVisibleEdges(self):
-        owned = self.getOwnedTechs()
-        result = []
+    def getTechsUnderResearch(self):
+        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items.all()))
+        return list(set(result))
+
+    def getActionableEdges(self):
+        started = map(
+            lambda item: item.tech,
+            filter(
+                lambda tech: tech.status == TechStatusEnum.RESEARCHING or tech.status == TechStatusEnum.OWNED,
+                self.items.all()))
+
+        edges = set()
         for item in self.items.all():
             for edge in item.tech.unlocks_tech.all():
-                if edge.dst in owned:
+                if edge.dst in started:
                     pass
                 else:
-                    result.append(edge)
-        return result
-        # TODO: Jak v template udelat to, co se deje v commentu?
-        # return [edge.label for edge in result]
+                    edges.add(edge)
+
+        print("Actionable edges: " + str(list(edges)))
+        return list(edges)
 
 # =================================================
 

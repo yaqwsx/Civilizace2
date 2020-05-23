@@ -4,6 +4,7 @@ from .createInitial import CreateInitialMove
 from .nextTurn import NextTurn
 from .sandboxIncreaseCounter import SandboxIncreaseCounterMove
 from .startRound import StartRoundMove
+from .research import ResearchMove
 
 def buildActionMove(data):
     """
