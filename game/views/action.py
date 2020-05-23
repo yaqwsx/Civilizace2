@@ -81,9 +81,9 @@ class ActionMoveView(ActionView):
         if unfinishedAction:
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
+        state = State.objects.getNewest()
         formClass = formForActionMove(moveId)
-        assert formClass != None, "Cannot find class for moveId=" + str(moveId)
-        form = formClass(teamId, moveId)
+        form = formClass(teamId, moveId, state=state)
         return render(request, "game/actionMove.html", {
             "request": request,
             "form": form,
@@ -96,11 +96,11 @@ class ActionMoveView(ActionView):
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        form = formForActionMove(moveId)(data=request.POST.copy()) # copy, so we can change the cancelled field
+        state = State.objects.getNewest()
+        form = formForActionMove(moveId)(data=request.POST.copy(), state=state) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
             step = ActionStep.initiateAction(request.user, action)
-            state = State.objects.getNewest()
             moveValid, message = step.applyTo(state)
 
             form.data["canceled"] = True
@@ -127,11 +127,11 @@ class ActionConfirmView(ActionView):
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        form = formForActionMove(moveId)(data=request.POST)
+        state = State.objects.getNewest()
+        form = formForActionMove(moveId)(data=request.POST, state=state)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = buildActionMove(form.cleaned_data)
             step = ActionStep.initiateAction(request.user, action)
-            state = State.objects.getNewest()
             moveValid, message = step.applyTo(state)
             if not moveValid:
                 form.data["canceled"] = True
@@ -215,16 +215,16 @@ class ActionDiceThrow(ActionView):
             else:
                 step = ActionStep.abandonAction(request.user, action, workConsumed)
                 channel = messages.warning
-            moveValid, message = step.applyTo(state)
-            if not moveValid:
-                messages.error(message)
-                return redirect('actionDiceThrow', actionId=action.id)
-            action.save()
-            step.save()
-            state.save()
-            if message and len(message) > 0:
-                channel(request, message)
-            return redirect('actionIndex')
+        moveValid, message = step.applyTo(state)
+        if not moveValid:
+            messages.error(message)
+            return redirect('actionDiceThrow', actionId=action.id)
+        action.save()
+        step.save()
+        state.save()
+        if message and len(message) > 0:
+            channel(request, message)
+        return redirect('actionIndex')
 
     def isFinished(self, action):
         return action.actionstep_set.all().exclude(phase=ActionPhase.initiate).exists()

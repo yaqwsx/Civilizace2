@@ -25,7 +25,7 @@ class MoveInitialForm(forms.Form):
 # Base form for building actions - every other move building form has to inherit
 # from this one
 class MoveForm(MoveInitialForm):
-    def __init__(self, team=None, action=None, data=None, *args, **kwargs):
+    def __init__(self, team=None, action=None, data=None, state=None, *args, **kwargs):
         if data:
             super(MoveForm, self).__init__(data)
         else:
