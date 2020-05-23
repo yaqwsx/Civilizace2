@@ -53,7 +53,8 @@
     <div class="flex flex-wrap w-full">
         <button
             class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400"
-            type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}">
+            type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
+            onclick="return throwInput.value != 0 || confirm('Opravdu tým vůbec neházel? Pokračovat?')">
             Odeslat hody kostkou
         </button>
         <button
