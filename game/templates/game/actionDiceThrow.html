@@ -31,6 +31,7 @@
         </button>
         <script>
             var currentDotsInput = document.getElementById("dots");
+            var diceInput = document.getElementById("{{form.dice.auto_id}}");
             var dotsInput = document.getElementById("{{form.dotsCount.auto_id}}");
             var throwInput = document.getElementById("{{form.throwCount.auto_id}}");
             function onDiceThrow() {
@@ -47,6 +48,17 @@
                 onDiceThrow();
                 return true;
             }
+
+            function shouldSubmit() {
+                if ( throwInput.value == 0 )
+                    return confirm('Opravdu tým vůbec neházel? Pokračovat?');
+                {% for dice, diceDotsRequirement in action.dotsRequired.items %}
+                    if (diceInput.value == {{dice.value}} && dotsInput >= {{diceDotsRequirement}}) {
+                        return true;
+                    }
+                {% endfor %}
+                return confirm('Opravdu tým nehodil dostatek? Pokračovat?');
+            }
         </script>
     </div>
 
@@ -54,7 +66,7 @@
         <button
             class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400"
             type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
-            onclick="return throwInput.value != 0 || confirm('Opravdu tým vůbec neházel? Pokračovat?')">
+            onclick="return shouldSubmit()">
             Odeslat hody kostkou
         </button>
         <button
