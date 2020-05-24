@@ -6,10 +6,13 @@ from game.models.actionBase import Action, Dice
 
 class ResearchForm(MoveForm):
     techId = forms.IntegerField(label="ID technologie:")
-    techSelect = forms.ChoiceField(label="Vyber tech", choices=[
+    techSelect = forms.ChoiceField(label="Vyber tech")
+
+    def __init__(self, team, state, *args, **kwargs):
+        super().__init__(team=team, state=state, *args, **kwargs)
+        self.fields["techSelect"].choices = [
             ("tech-les", "Lesnictvi"),
-            ("techbobule", "Bobule")
-    ])
+            ("techbobule", "Bobule")]
 
 class ResearchMove(Action):
     class Meta:
