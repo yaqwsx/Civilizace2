@@ -140,6 +140,9 @@ class ResourceStorage(ImmutableModel):
         result = ", ".join(list)
         return result
 
+    def spendWork(self, amount):
+        None
+
 
 class TechStatusEnum(enum.Enum):
     RESEARCHING = 2
@@ -209,16 +212,16 @@ class TechStorage(ImmutableModel):
         return list(set(result))
 
     def getActionableEdges(self):
-        started = map(
+        startedTechs = list(map(
             lambda item: item.tech,
             filter(
                 lambda tech: tech.status == TechStatusEnum.RESEARCHING or tech.status == TechStatusEnum.OWNED,
-                self.items.all()))
+                self.items.all())))
 
         edges = set()
         for item in self.items.all():
             for edge in item.tech.unlocks_tech.all():
-                if edge.dst in started:
+                if edge.dst in startedTechs:
                     pass
                 else:
                     edges.add(edge)

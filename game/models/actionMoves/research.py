@@ -5,14 +5,19 @@ from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action, Dice
 
 class ResearchForm(MoveForm):
-    techId = forms.IntegerField(label="ID technologie:")
     techSelect = forms.ChoiceField(label="Vyber tech")
 
     def __init__(self, team, state, *args, **kwargs):
         super().__init__(team=team, state=state, *args, **kwargs)
-        self.fields["techSelect"].choices = [
-            ("tech-les", "Lesnictvi"),
-            ("techbobule", "Bobule")]
+        techs = state.teamState(team).techs
+        researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
+        print("researching: " + str(researching))
+        edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
+        print("edges: " + str(edges))
+        choices = []
+        choices.extend(researching)
+        choices.extend(edges)
+        self.fields["techSelect"].choices = choices
 
 class ResearchMove(Action):
     class Meta:
@@ -28,19 +33,16 @@ class ResearchMove(Action):
 
     # Just to ease accessing the arguments
     @property
-    def techId(self):
-        return self.arguments["techId"]
-    @techId.setter
-    def techId(self, value):
-        self.arguments["techId"] = value
-
-    def sandbox(self, state):
-        return self.teamState(state).sandbox
+    def techSelect(self):
+        return self.arguments["techSelect"]
+    @techSelect.setter
+    def techSelect(self, value):
+        self.arguments["techselect"] = value
 
     @staticmethod
     def build(data):
         action = ResearchMove(team=data["team"], move=data["action"], arguments={})
-        action.techId = data["techId"]
+        action.techSelect = data["techSelect"]
         return action
 
     def sane(self):
