@@ -97,7 +97,7 @@ class ActionMoveView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        form = formForActionMove(moveId)(data=request.POST.copy(), state=state) # copy, so we can change the cancelled field
+        form = formForActionMove(moveId)(data=request.POST.copy(), state=state, team=teamId) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
             step = ActionStep.initiateAction(request.user, action)
@@ -128,7 +128,7 @@ class ActionConfirmView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        form = formForActionMove(moveId)(data=request.POST, state=state)
+        form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = buildActionMove(form.cleaned_data)
             step = ActionStep.initiateAction(request.user, action)

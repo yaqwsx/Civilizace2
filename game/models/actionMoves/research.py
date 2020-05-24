@@ -1,8 +1,11 @@
 from django import forms
 
+from game.data.tech import TechEdgeModel, TechModel
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action, Dice
+from game.models.state import TechStorageItem, TechStatusEnum
+
 
 class ResearchForm(MoveForm):
     techSelect = forms.ChoiceField(label="Vyber tech")
@@ -11,9 +14,7 @@ class ResearchForm(MoveForm):
         super().__init__(team=team, state=state, *args, **kwargs)
         techs = state.teamState(team).techs
         researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
-        print("researching: " + str(researching))
         edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
-        print("edges: " + str(edges))
         choices = []
         choices.extend(researching)
         choices.extend(edges)
@@ -29,43 +30,60 @@ class ResearchMove(Action):
         return True
 
     def dotsRequired(self):
-        return { Dice.tech: 15, Dice.political: 24 }
-
-    # Just to ease accessing the arguments
+        return {Dice.tech: 1}
+    
     @property
-    def techSelect(self):
-        return self.arguments["techSelect"]
-    @techSelect.setter
-    def techSelect(self, value):
-        self.arguments["techselect"] = value
+    def selectId(self):
+        return self.arguments["selectId"]
 
+    teamState = None
+    status = None
+    tech = None
+    edge = None
+    
     @staticmethod
     def build(data):
-        action = ResearchMove(team=data["team"], move=data["action"], arguments={})
-        action.techSelect = data["techSelect"]
+        action = ResearchMove(team=data["team"], move=data["action"], arguments={"selectId": data["techSelect"]})
         return action
 
     def sane(self):
-        # Just an example here
         return True
 
+    def preprocess(self, state):
+        self.teamState =  state.teamState(self.team.id)
+        
+        if self.selectId[:5] != "edge-":
+            self.tech = TechModel.objects.get(id=self.selectId)
+            assert self.tech is not None, "Failed to decode id " + self.selectId
+            self.status = self.teamState.techs.getStatus(self.tech)
+            
+            if self.status == TechStatusEnum.UNKNOWN:
+                raise "Illegal request: Cannot start researching tech " + self.selectId + " directly"
+            return
+        
+        self.edge = TechEdgeModel.objects.get(id=self.selectId)
+        self.tech = self.edge.dst
+        assert self.edge is not None, "Failed to decode id " + self.selectId
+        status = self.teamState.techs.getStatus(self.tech)
+        
+        return
+
     def initiate(self, state):
-        val = self.sandbox(state).data["counter"] + self.amount
-        if self.sandbox(state).data["counter"] >= 0:
-            message = "Změní počítadlo na: {}".format(val)
-            message += "<br>" + self.diceThrowMessage()
-            return True, message
-        return False, "Počítadlo by kleslo pod nulu ({})".format(val)
+        self.preprocess(state)
+        
+        if self.status == TechStatusEnum.OWNED:
+            return False, "Technologie " + self.tech.label + " už je vyzkoumaná"
+
+        if self.status == TechStatusEnum.RESEARCHING:
+            return True, "Vyzkoumali jste technologii " + self.tech.label + "; Dostanete spoooustu nalepek"
+
+        return True, "Zacinate zkoumat tech " + self.tech.label + "; Chcete se do toho pustit?"
 
     def commit(self, state):
-        self.sandbox(state).data["counter"] += self.amount
-        if self.sandbox(state).data["counter"] >= 0:
-            message = "Počítadlo změněno na: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(self.sandbox(state).data["counter"])
-            return True, message
-        return False, "Počítadlo by kleslo pod nulu ({})".format(self.sandbox(state).data["counter"])
+        return True, "Commmit was not that hard either"
 
     def abandon(self, state):
         return True, self.abandonMessage()
 
-    def cancel(elf, state):
+    def cancel(self, state):
         return True, self.cancelMessage()

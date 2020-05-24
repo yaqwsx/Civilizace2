@@ -205,7 +205,7 @@ class Action(ImmutableModel):
         """
         Check if the action is sane and can be safely applied
         """
-        return move is not None and team is not None
+        return self.move is not None and self.team is not None
 
     def __str__(self):
         return json.dumps(self._dict)

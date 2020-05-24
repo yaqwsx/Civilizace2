@@ -145,10 +145,12 @@ class ResourceStorage(ImmutableModel):
 
 
 class TechStatusEnum(enum.Enum):
+    UNKNOWN = 0 # used only for status check; Never stored in DB
     RESEARCHING = 2
     OWNED = 3
 
     __labels__ = {
+        UNKNOWN: "Neznámý",
         RESEARCHING: "Zkoumá se",
         OWNED: "Vyzkoumaný"
     }
@@ -183,6 +185,12 @@ class TechStorage(ImmutableModel):
         list = [x.tech.label + ": " + str(x.status) for x in self.items.all()]
         result = ", ".join(list)
         return result
+
+    def getStatus(self, tech):
+        try:
+            return self.items.get(tech=tech).status
+        except TechStorageItem.DoesNotExist:
+            return TechStatusEnum.UNKNOWN
 
     def setStatus(self, tech, status):
         previousItem = None
