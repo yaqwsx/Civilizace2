@@ -188,11 +188,12 @@ class TechStorage(ImmutableModel):
 
     def getStatus(self, tech):
         try:
-            return self.items.get(tech=tech).status
+            result = self.items.get(tech=tech).status
+            return result if result else TechStatusEnum.UNKNOWN
         except TechStorageItem.DoesNotExist:
             return TechStatusEnum.UNKNOWN
 
-    def setStatus(self, tech, status):
+    def setStatus(self, tech, status, enforce=False):
         previousItem = None
         try:
             previousItem = self.items.get(tech=tech)
@@ -213,13 +214,14 @@ class TechStorage(ImmutableModel):
 
     def getOwnedTechs(self):
         result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items.all()))
-        return result
+        return list(result)
 
     def getTechsUnderResearch(self):
         result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items.all()))
-        return list(set(result))
+        return list(result)
 
     def getActionableEdges(self):
+        ownedTechs = self.getOwnedTechs()
         startedTechs = list(map(
             lambda item: item.tech,
             filter(
@@ -230,9 +232,10 @@ class TechStorage(ImmutableModel):
         for item in self.items.all():
             for edge in item.tech.unlocks_tech.all():
                 if edge.dst in startedTechs:
-                    pass
-                else:
-                    edges.add(edge)
+                    continue
+                if edge.src not in ownedTechs:
+                    continue
+                edges.add(edge)
 
         print("Actionable edges: " + str(list(edges)))
         return list(edges)

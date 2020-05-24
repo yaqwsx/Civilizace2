@@ -64,8 +64,8 @@ class ResearchMove(Action):
         self.edge = TechEdgeModel.objects.get(id=self.selectId)
         self.tech = self.edge.dst
         assert self.edge is not None, "Failed to decode id " + self.selectId
-        status = self.teamState.techs.getStatus(self.tech)
-        
+        self.status = self.teamState.techs.getStatus(self.tech)
+
         return
 
     def initiate(self, state):
@@ -75,12 +75,21 @@ class ResearchMove(Action):
             return False, "Technologie " + self.tech.label + " už je vyzkoumaná"
 
         if self.status == TechStatusEnum.RESEARCHING:
+            self.teamState.techs.setStatus(self.tech, TechStatusEnum.OWNED)
+            print("state changed by initiate")
             return True, "Vyzkoumali jste technologii " + self.tech.label + "; Dostanete spoooustu nalepek"
 
         return True, "Zacinate zkoumat tech " + self.tech.label + "; Chcete se do toho pustit?"
 
     def commit(self, state):
-        return True, "Commmit was not that hard either"
+        print("Commit")
+        self.preprocess(state)
+
+        if self.status != TechStatusEnum.UNKNOWN:
+            return True, "Vyhledove se tenhle status nebude zobrazovat, protoze uz mate vyzkoumano"
+
+        self.teamState.techs.setStatus(self.tech, TechStatusEnum.RESEARCHING)
+        return True, "Zacali jste zkoumat tech " + self.tech.label + ". Hodne stesti"
 
     def abandon(self, state):
         return True, self.abandonMessage()
