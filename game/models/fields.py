@@ -7,7 +7,8 @@ from django.contrib.postgres.fields import (
     JSONField as DjangoJSONField,
     ArrayField as DjangoArrayField,
 )
-from django.db.models import Field
+from django.db.models import Field, Model
+from django.core import serializers
 
 
 class JSONField(DjangoJSONField):
@@ -58,3 +59,54 @@ if 'sqlite' in settings.DATABASES['default']['ENGINE']:
                 'size': self.size,
             })
             return name, path, args, kwargs
+
+class DbList(list):
+    def __init__(self, model_type):
+        self.model_type = model_type
+
+    def get(self, **kwargs):
+        print(type(self))
+        def eq(field, value):
+            if isinstance(field, Model):
+                return field.pk == value
+            return field == value
+        for item in self:
+            if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
+                return item
+        raise self.model_type.DoesNotExist()
+
+class ListField(Field):
+    def __init__(self, model_type, **kwargs):
+        self.model_type = model_type
+        return super().__init__(**kwargs)
+
+    def deconstruct(self):
+        """Need to create migrations properly."""
+        name, path, args, kwargs = super().deconstruct()
+        kwargs.update({
+            'model_type': self.model_type
+        })
+        return name, path, args, kwargs
+
+    def db_type(self, connection):
+            return 'text'
+
+    def from_db_value(self, value, expression, connection):
+        if value is not None:
+            return self.to_python(value)
+        return DbList(self.model_type)
+
+    def to_python(self, value):
+        items = DbList(self.model_type)
+        if value is not None:
+            for obj in serializers.deserialize("json", value):
+                items.append(self.model_type.objects.get(pk=obj.object.pk))
+        return items
+
+    def get_prep_value(self, value):
+        if value is not None:
+            for model in value:
+                model.save()
+            return serializers.serialize("json", value)
+        return None
+

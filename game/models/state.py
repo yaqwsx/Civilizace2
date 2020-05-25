@@ -2,7 +2,7 @@ from django.db import models
 from django_enumfield import enum
 
 from game.data import TechModel
-from .fields import JSONField
+from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
 import game.managers
@@ -127,16 +127,15 @@ class ResourceStorage(ImmutableModel):
                     resource=game.data.ResourceModel.objects.get(id=id),
                     amount=amount
                 ))
-            result = self.create()
-            result.items.set(items)
+            result = self.create(items=items)
             return result
 
     objects = ResourceStorageManager()
 
-    items = models.ManyToManyField("ResourceStorageItem")
+    items = ListField(model_type=ResourceStorageItem)
 
     def __str__(self):
-        list = [x.resource.label + ":" + str(x.amount) for x in self.items.all()]
+        list = [x.resource.label + ":" + str(x.amount) for x in self.items]
         result = ", ".join(list)
         return result
 
@@ -174,15 +173,14 @@ class TechStorage(ImmutableModel):
                     tech=game.data.TechModel.objects.get(id=id),
                     status=TechStatusEnum.OWNED
                 ))
-            result = self.create()
-            result.items.set(items)
+            result = self.create(items=items)
             return result
 
     objects = TechStorageManager()
-    items = models.ManyToManyField("TechStorageItem")
+    items = ListField(model_type=TechStorageItem)
 
     def __str__(self):
-        list = [x.tech.label + ": " + str(x.status) for x in self.items.all()]
+        list = [x.tech.label + ": " + str(x.status) for x in self.items]
         result = ", ".join(list)
         return result
 
@@ -207,17 +205,15 @@ class TechStorage(ImmutableModel):
                 return previousItem
             self.items.remove(previousItem)
 
-        newItem = TechStorageItem.objects.create(tech=tech, status=status)
-        newItem.save()
-        self.items.add(newItem)
-        return newItem
+        self.items.append(TechStorageItem(tech=tech, status=status))
+        return self.items[-1]
 
     def getOwnedTechs(self):
-        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items.all()))
+        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items))
         return list(result)
 
     def getTechsUnderResearch(self):
-        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items.all()))
+        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items))
         return list(result)
 
     def getActionableEdges(self):
@@ -226,10 +222,10 @@ class TechStorage(ImmutableModel):
             lambda item: item.tech,
             filter(
                 lambda tech: tech.status == TechStatusEnum.RESEARCHING or tech.status == TechStatusEnum.OWNED,
-                self.items.all())))
+                self.items)))
 
         edges = set()
-        for item in self.items.all():
+        for item in self.items:
             for edge in item.tech.unlocks_tech.all():
                 if edge.dst in startedTechs:
                     continue

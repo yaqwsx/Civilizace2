@@ -31,7 +31,7 @@ class ResearchMove(Action):
 
     def dotsRequired(self):
         return {Dice.tech: 1}
-    
+
     @property
     def selectId(self):
         return self.arguments["selectId"]
@@ -40,7 +40,7 @@ class ResearchMove(Action):
     status = None
     tech = None
     edge = None
-    
+
     @staticmethod
     def build(data):
         action = ResearchMove(team=data["team"], move=data["action"], arguments={"selectId": data["techSelect"]})
@@ -51,16 +51,16 @@ class ResearchMove(Action):
 
     def preprocess(self, state):
         self.teamState =  state.teamState(self.team.id)
-        
+
         if self.selectId[:5] != "edge-":
             self.tech = TechModel.objects.get(id=self.selectId)
             assert self.tech is not None, "Failed to decode id " + self.selectId
             self.status = self.teamState.techs.getStatus(self.tech)
-            
+
             if self.status == TechStatusEnum.UNKNOWN:
-                raise "Illegal request: Cannot start researching tech " + self.selectId + " directly"
+                raise Exception("Illegal request: Cannot start researching tech " + self.selectId + " directly")
             return
-        
+
         self.edge = TechEdgeModel.objects.get(id=self.selectId)
         self.tech = self.edge.dst
         assert self.edge is not None, "Failed to decode id " + self.selectId
@@ -70,7 +70,7 @@ class ResearchMove(Action):
 
     def initiate(self, state):
         self.preprocess(state)
-        
+
         if self.status == TechStatusEnum.OWNED:
             return False, "Technologie " + self.tech.label + " už je vyzkoumaná"
 

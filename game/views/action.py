@@ -97,6 +97,7 @@ class ActionMoveView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
+        print(state)
         form = formForActionMove(moveId)(data=request.POST.copy(), state=state, team=teamId) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
@@ -128,6 +129,7 @@ class ActionConfirmView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
+        print(state)
         form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = buildActionMove(form.cleaned_data)
@@ -152,6 +154,14 @@ class ActionConfirmView(ActionView):
                 return redirect('actionDiceThrow', actionId=action.id)
             messages.success(request, "Akce \"{}\" provedena".format(action.description()))
             return redirect('actionIndex')
+        print(form.errors)
+        return render(request, "game/actionMove.html", {
+            "request": request,
+            "form": form,
+            "team": get_object_or_404(Team, pk=teamId),
+            "action": ActionMove(moveId),
+            "messages": messages.get_messages(request)
+        })
         return HttpResponse(status=422)
 
 class ActionDiceThrow(ActionView):

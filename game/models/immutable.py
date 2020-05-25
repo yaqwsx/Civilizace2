@@ -10,7 +10,7 @@ class TrackedModel(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(TrackedModel, self).__init__(*args, **kwargs)
-        self.__initial = self._dict
+        self.__initial = deepcopy(self._dict)
 
     @property
     def diff(self):
@@ -29,12 +29,21 @@ class TrackedModel(models.Model):
 
     def save(self, *args, **kwargs):
         super(TrackedModel, self).save(*args, **kwargs)
-        self.__initial = self._dict
+        self.__initial = deepcopy(self._dict)
 
     @property
     def _dict(self):
-        return deepcopy(model_to_dict(self, fields=[field.name for field in
-                             self._meta.fields]))
+        d = model_to_dict(self, fields=[field.name for field in
+                             self._meta.fields])
+        # Rather hack for ListField
+        for key, value in d.items():
+            if not isinstance(value, list):
+                continue
+            d[key] = list([
+                model_to_dict(model, fields=[field.name for field in model._meta.fields])
+                for model in value if isinstance(model, models.Model)
+            ])
+        return d
 
 class ImmutableModel(TrackedModel):
     class Meta:
