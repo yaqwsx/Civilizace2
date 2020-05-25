@@ -53,10 +53,14 @@
                 if ( throwInput.value == 0 )
                     return confirm('Opravdu tým vůbec neházel? Pokračovat?');
                 {% for dice, diceDotsRequirement in action.dotsRequired.items %}
-                    if (diceInput.value == {{dice.value}} && dotsInput >= {{diceDotsRequirement}}) {
+                    if (diceInput.value == {{dice.value}} && dotsInput.value >= {{diceDotsRequirement}}) {
                         return true;
                     }
                 {% endfor %}
+                if (throwInput.value > {{maxThrows}}) {
+                    alert("Tým hodil vícerát, než mohl!");
+                    return false;
+                }
                 return confirm('Opravdu tým nehodil dostatek? Pokračovat?');
             }
         </script>
