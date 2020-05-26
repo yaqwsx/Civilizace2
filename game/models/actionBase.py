@@ -88,12 +88,12 @@ class ActionStep(ImmutableModel):
         pass
 
     @staticmethod
-    def initiateAction(author, action):
+    def initiateAction(author, action, state):
         """
         Return appropriate ActionStep for given action (either commit or
         initiate) for the action. The user is the organizer filling the form
         """
-        if action.requiresDice():
+        if action.requiresDice(state):
             return ActionStep(author=author, phase=ActionPhase.initiate,
                 action=action, workConsumed=0)
         return ActionStep(author=author, phase=ActionPhase.commit,
@@ -128,7 +128,7 @@ class Action(ImmutableModel):
     def teamState(self, state):
         return state.teamState(self.team.id)
 
-    def requiresDice(self):
+    def requiresDice(self, state):
         return False
 
     def dotsRequired(self):

@@ -97,11 +97,10 @@ class ActionMoveView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        print(state)
         form = formForActionMove(moveId)(data=request.POST.copy(), state=state, team=teamId) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
-            step = ActionStep.initiateAction(request.user, action)
+            step = ActionStep.initiateAction(request.user, action, state)
             moveValid, message = step.applyTo(state)
 
             form.data["canceled"] = True
@@ -129,11 +128,10 @@ class ActionConfirmView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        print(state)
         form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = buildActionMove(form.cleaned_data)
-            step = ActionStep.initiateAction(request.user, action)
+            step = ActionStep.initiateAction(request.user, action, state)
             moveValid, message = step.applyTo(state)
             if not moveValid:
                 form.data["canceled"] = True
@@ -149,7 +147,7 @@ class ActionConfirmView(ActionView):
             action.save()
             step.save()
             state.save()
-            if action.requiresDice():
+            if action.requiresDice(state):
                 messages.success(request, "Akce \"{}\" započata".format(action.description()))
                 return redirect('actionDiceThrow', actionId=action.id)
             messages.success(request, "Akce \"{}\" provedena".format(action.description()))

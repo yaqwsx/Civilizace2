@@ -14,7 +14,7 @@ class SandboxIncreaseCounterMove(Action):
         move = ActionMove.sanboxIncreaseCounter
         form = SanboxIncreaseCounterForm
 
-    def requiresDice(self):
+    def requiresDice(self, state):
         return True
 
     def dotsRequired(self):

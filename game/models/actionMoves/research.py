@@ -26,7 +26,7 @@ class ResearchMove(Action):
     class CiviMeta:
         move = ActionMove.research
         form = ResearchForm
-    def requiresDice(self):
+    def requiresDice(self, state):
         return True
 
     def dotsRequired(self):
