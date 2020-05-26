@@ -7,15 +7,6 @@ from .immutable import ImmutableModel
 from .fields import JSONField
 from game.models.actionMovesList import ActionMove
 
-class Dice(enum.Enum):
-    tech = 0
-    political = 1
-
-    __labels__ = {
-        tech: "Technologická kostka",
-        political: "Politická kostka"
-    }
-
 class ActionPhase(enum.Enum):
     initiate = 0
     commit = 1
@@ -131,7 +122,7 @@ class Action(ImmutableModel):
     def requiresDice(self, state):
         return False
 
-    def dotsRequired(self):
+    def dotsRequired(self, state):
         """
         Return dictionary of <dice type> -> number of dots required. The rules
         are treated as OR rules.
@@ -210,9 +201,9 @@ class Action(ImmutableModel):
     def __str__(self):
         return json.dumps(self._dict)
 
-    def diceThrowMessage(self):
+    def diceThrowMessage(self, state):
         message = "Pro splnění akce je třeba hodit jedno z následujícího:<ul>"
-        for dice, dots in self.dotsRequired().items():
+        for dice, dots in self.dotsRequired(state).items():
             message += "<li><b>{}</b>: alespoň {}</li>".format(dice.label, dots)
         message += "</ul>"
         return message

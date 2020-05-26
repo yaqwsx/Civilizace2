@@ -1,9 +1,10 @@
 from django import forms
 
 from game.data.tech import TechEdgeModel, TechModel
+from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
-from game.models.actionBase import Action, Dice
+from game.models.actionBase import Action
 from game.models.state import TechStorageItem, TechStatusEnum
 
 
@@ -29,8 +30,8 @@ class ResearchMove(Action):
     def requiresDice(self, state):
         return True
 
-    def dotsRequired(self):
-        return {Dice.tech: 1}
+    def dotsRequired(self, state):
+        return { DieModel.objects.get(id="die-any"): 1}
 
     @property
     def selectId(self):

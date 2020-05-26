@@ -2,7 +2,8 @@ from django import forms
 
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
-from game.models.actionBase import Action, Dice
+from game.models.actionBase import Action
+from game.data.entity import DieModel
 
 class SanboxIncreaseCounterForm(MoveForm):
     amount = forms.IntegerField(label="Změna počítadla o:")
@@ -17,8 +18,8 @@ class SandboxIncreaseCounterMove(Action):
     def requiresDice(self, state):
         return True
 
-    def dotsRequired(self):
-        return { Dice.tech: 15, Dice.political: 24 }
+    def dotsRequired(self, state):
+        return { DieModel.objects.get(id="die-plane"): 15, DieModel.objects.get(id="die-hory"): 24 }
 
     # Just to ease accessing the arguments
     @property
@@ -48,7 +49,7 @@ class SandboxIncreaseCounterMove(Action):
         val = self.sandbox(state).data["counter"] + self.amount
         if self.sandbox(state).data["counter"] >= 0:
             message = "Změní počítadlo na: {}".format(val)
-            message += "<br>" + self.diceThrowMessage()
+            message += "<br>" + self.diceThrowMessage(state)
             print("initiate: " + str((True, message)))
             return True, message
         message = "Počítadlo by kleslo pod nulu ({})".format(val)

@@ -171,17 +171,20 @@ class ActionDiceThrow(ActionView):
         if self.isFinished(action):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
-        form = DiceThrowForm(action.dotsRequired().keys())
+        state = State.objects.getNewest()
+        form = DiceThrowForm(action.dotsRequired(state).keys())
         return self.renderForm(request, action, form)
 
     def renderForm(self, request, action, form):
         state = State.objects.getNewest()
         teamState = state.teamState(action.team.id)
+        diceThrowMessage = action.diceThrowMessage(state)
         return render(request, "game/actionDiceThrow.html", {
             "request": request,
             "form": form,
             "team": action.team,
             "action": action,
+            "diceThrowMessage": diceThrowMessage,
             "messages": messages.get_messages(request),
             "maxThrows": teamState.population.work // parameters.DICE_THROW_PRICE
         })
@@ -194,7 +197,8 @@ class ActionDiceThrow(ActionView):
         if self.isFinished(action):
             messages.error(request, "Akce již byla dokončena. Nesnažíte se obnovit načtenou stránku?")
             return redirect('actionIndex')
-        form = DiceThrowForm(action.dotsRequired().keys(), data=request.POST)
+        state = State.objects.getNewest()
+        form = DiceThrowForm(action.dotsRequired(state).keys(), data=request.POST)
         if not form.is_valid():
             return self.renderForm(request, action, form)
         state = State.objects.getNewest()
@@ -215,7 +219,7 @@ class ActionDiceThrow(ActionView):
             step = ActionStep.cancelAction(request.user, action)
             channel = messages.warning
         else:
-            requiredDots = action.dotsRequired()[int(form.cleaned_data["dice"])]
+            requiredDots = action.dotsRequired(state)[int(form.cleaned_data["dice"])]
             workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
             if form.cleaned_data["dotsCount"] >= requiredDots:
                 step = ActionStep.commitAction(request.user, action, workConsumed)
