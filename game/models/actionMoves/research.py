@@ -31,7 +31,7 @@ class ResearchMove(Action):
         return True
 
     def dotsRequired(self, state):
-        return { DieModel.objects.get(id="die-any"): 1}
+        return { DieModel.objects.get(id="die-any"): 1 }
 
     @property
     def selectId(self):

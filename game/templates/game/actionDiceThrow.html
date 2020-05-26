@@ -52,8 +52,8 @@
             function shouldSubmit() {
                 if ( throwInput.value == 0 )
                     return confirm('Opravdu tým vůbec neházel? Pokračovat?');
-                {% for dice, diceDotsRequirement in action.dotsRequired.items %}
-                    if (diceInput.value == {{dice.value}} && dotsInput.value >= {{diceDotsRequirement}}) {
+                {% for dice, diceDotsRequirement in requiredDices.items %}
+                    if (diceInput.value == "{{dice.id}}" && dotsInput.value >= {{diceDotsRequirement}}) {
                         return true;
                     }
                 {% endfor %}

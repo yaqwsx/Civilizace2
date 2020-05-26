@@ -13,6 +13,7 @@ from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action, ActionStep, ActionPhase
 from game.models.users import User, Team
 from game.models.state import State
+from game.data.entity import DieModel
 
 from game.forms.action import MoveInitialForm, DiceThrowForm
 
@@ -185,6 +186,7 @@ class ActionDiceThrow(ActionView):
             "team": action.team,
             "action": action,
             "diceThrowMessage": diceThrowMessage,
+            "requiredDices": action.dotsRequired(state),
             "messages": messages.get_messages(request),
             "maxThrows": teamState.population.work // parameters.DICE_THROW_PRICE
         })
@@ -219,7 +221,8 @@ class ActionDiceThrow(ActionView):
             step = ActionStep.cancelAction(request.user, action)
             channel = messages.warning
         else:
-            requiredDots = action.dotsRequired(state)[int(form.cleaned_data["dice"])]
+            dice = DieModel.objects.get(id=form.cleaned_data["dice"])
+            requiredDots = action.dotsRequired(state)[dice]
             workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
             if form.cleaned_data["dotsCount"] >= requiredDots:
                 step = ActionStep.commitAction(request.user, action, workConsumed)

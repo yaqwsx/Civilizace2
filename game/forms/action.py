@@ -13,7 +13,7 @@ class DiceThrowForm(forms.Form):
 
     def __init__(self, allowedDices, *args, **kwargs):
         super(DiceThrowForm, self).__init__(*args, **kwargs)
-        self.fields["dice"].choices = [(x.id, x.label) for x in allowedDices]
+        self.fields["dice"].choices = [(x, x.label) for x in allowedDices]
 
 class MoveInitialForm(forms.Form):
     action = captures(KeywordType.move,
