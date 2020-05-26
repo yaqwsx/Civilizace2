@@ -65,10 +65,11 @@ class DbList(list):
         self.model_type = model_type
 
     def get(self, **kwargs):
-        print(type(self))
         def eq(field, value):
             if isinstance(field, Model):
-                return field.pk == value
+                field = field.pk
+            if isinstance(value, Model):
+                value = value.pk
             return field == value
         for item in self:
             if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
