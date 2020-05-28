@@ -12,6 +12,11 @@ class NextGenerationAction(Action):
         move = ActionMove.nextGeneration
         form = NextGenerationForm
 
+    @staticmethod
+    def relevantEntities(state, team):
+        return []
+
+
     def build(data):
         action = NextGenerationAction(team=data["team"], move=data["action"], arguments={})
         return action

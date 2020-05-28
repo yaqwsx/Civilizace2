@@ -11,9 +11,13 @@ from game.models.state import TechStorageItem, TechStatusEnum
 class ResearchForm(MoveForm):
     techSelect = forms.ChoiceField(label="Vyber tech")
 
-    def __init__(self, team, state, *args, **kwargs):
-        super().__init__(team=team, state=state, *args, **kwargs)
-        techs = state.teamState(team).techs
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Team ID is available under self.teamId
+        # State is available under self.state
+        # Entity ID is available under self.entityId
+
+        techs = self.state.teamState(self.teamId).techs
         researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
         edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
         choices = []
@@ -41,6 +45,13 @@ class ResearchMove(Action):
     def build(data):
         action = ResearchMove(team=data["team"], move=data["action"], arguments={"selectId": data["techSelect"]})
         return action
+
+    @staticmethod
+    def relevantEntities(state, team):
+        if team.id == 1:
+            return TechModel.objects.all()[:1]
+        return TechModel.objects.all()
+
 
     def sane(self):
         return True

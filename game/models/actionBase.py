@@ -118,6 +118,14 @@ class Action(ImmutableModel):
         """
         raise NotImplementedError("This action does not require a dice throw")
 
+    @staticmethod
+    def relevantEntities(state, team):
+        """
+        Return list of all relevant game entities for given team. This method is
+        a static one as no action of this type exist in the time of invocation.
+        """
+        raise NotImplementedError("Action base class - did you forget to implement relevantEntities?")
+
     def initiate(self, state):
         """
         Apply "initiate" step of this action to the state. Initiation can

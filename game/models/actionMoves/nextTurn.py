@@ -26,4 +26,8 @@ class NextTurn(Action):
         message = """Začalo kolo {turn}""".format(turn=team.turn)
         return True, message
 
+    @staticmethod
+    def relevantEntities(state, team):
+        return []
+
 

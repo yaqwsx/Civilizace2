@@ -13,6 +13,11 @@ class StartRoundMove(Action):
         move = ActionMove.startNewRound
         form = StartRoundForm
 
+    @staticmethod
+    def relevantEntities(state, team):
+        return []
+
+
     def build(data):
         action = StartRoundMove(team=data["team"], move=data["action"], arguments={})
         return action

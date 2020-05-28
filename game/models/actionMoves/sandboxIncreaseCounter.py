@@ -15,6 +15,11 @@ class SandboxIncreaseCounterMove(Action):
         move = ActionMove.sanboxIncreaseCounter
         form = SanboxIncreaseCounterForm
 
+    @staticmethod
+    def relevantEntities(state, team):
+        return []
+
+
     def requiresDice(self, state):
         return True
 

@@ -1,7 +1,8 @@
 from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.utils.http import urlencode
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse
@@ -50,7 +51,8 @@ class ActionIndexView(ActionView):
         if unfinishedAction:
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
-        form = MoveInitialForm()
+        state = State.objects.getNewest()
+        form = MoveInitialForm(state=state)
         return render(request, "game/actionIndex.html", {
             "request": request,
             "form": form,
@@ -61,11 +63,13 @@ class ActionIndexView(ActionView):
     def post(self, request):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        form = MoveInitialForm(request.POST)
+        state = State.objects.getNewest()
+        form = MoveInitialForm(data=request.POST, state=state)
         if form.is_valid():
-            return redirect('actionMove',
-                moveId=form.cleaned_data['action'].value,
-                teamId=form.cleaned_data['team'].id)
+            return redirect(reverse('actionMove', kwargs={
+                                    "moveId": form.cleaned_data['action'].value,
+                                    "teamId": form.cleaned_data['team'].id
+            }) + '?' + urlencode({"entity": form.cleaned_data['entity']}))
         return render(request, "game/actionIndex.html", {
             "request": request,
             "form": form,
@@ -84,7 +88,7 @@ class ActionMoveView(ActionView):
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         state = State.objects.getNewest()
         formClass = formForActionMove(moveId)
-        form = formClass(team=teamId, action=moveId, state=state)
+        form = formClass(team=teamId, action=moveId, entity=request.GET.get("entity"), state=state)
         return render(request, "game/actionMove.html", {
             "request": request,
             "form": form,
@@ -98,7 +102,8 @@ class ActionMoveView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        form = formForActionMove(moveId)(data=request.POST.copy(), state=state, team=teamId) # copy, so we can change the cancelled field
+        form = formForActionMove(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
+             state=state, team=teamId)
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
             requiresDice = action.requiresDice(state)

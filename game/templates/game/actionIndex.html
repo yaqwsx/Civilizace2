@@ -13,6 +13,119 @@
             Začít tah
         </button>
     </form>
+    <script>
+        var teamSelect = document.getElementById("{{form.team.auto_id}}");
+        var entitySelect = document.getElementById("{{form.entity.auto_id}}");
+        var actionSelect = document.getElementById("{{form.action.auto_id}}");
+
+        function unwrap(node) {
+            node.replaceWith(...node.childNodes);
+        }
+
+        function wrap(node, wrapper) {
+            var w = document.createElement(wrapper);
+            node.parentNode.insertBefore(w, node);
+            w.appendChild(node);
+        }
+
+        function showAllOptions(select) {
+            for (var i = 0; i < select.children.length; i++) {
+                var option = select.children[i];
+                if (option.tagName == "SPAN") {
+                    option.firstChild.selected = false;
+                    unwrap(option);
+                }
+                else {
+                    option.selected = false
+                }
+            }
+        }
+
+        function filterOptions(select, allowed) {
+            for (var i = 0; i < select.children.length; i++) {
+                var option = select.children[i];
+                if (option.tagName == "SPAN") {
+                    option.firstChild.selected = false;
+                    var hidden = !allowed.has(option.firstChild.value);
+                    if (hidden) {
+                        continue;
+                    }
+                    unwrap(option);
+                }
+                else {
+                    option.selected = false
+                    var hidden = !allowed.has(option.value);
+                    if (!hidden) {
+                        continue;
+                    }
+                    wrap(option, "span");
+                }
+            }
+        }
+
+        function filterEntities() {
+            if (!teamSelect.value) {
+                return;
+            }
+            var allowed;
+            if (actionSelect.value) {
+                var a = actionEntities[actionSelect.value];
+                var b = teamAllowedEntities[teamSelect.value];
+                allowed = new Set(
+                    [...a].filter(x => b.has(x)));
+            } else {
+                allowed = teamAllowedEntities[teamSelect.value];
+            }
+
+            allowed.add("");
+            filterOptions(entitySelect, allowed);
+            entitySelect.firstChild.selected = true;
+        }
+
+        teamSelect.onchange = function() {
+            console.log("Changed team!");
+            filterEntities();
+            showAllOptions(actionSelect);
+            actionSelect.firstChild.selected = true;
+        };
+
+        entitySelect.onchange = function() {
+            console.log("Changed entity!");
+            if (!teamSelect.value || !entitySelect.value) {
+                return;
+            }
+            action = actionForEntity[entitySelect.value]
+            var allowed = new Set([action]);
+            console.log(allowed);
+            filterOptions(actionSelect, allowed);
+            document.querySelector('#sel [value="' + action + '"]').selected = true;
+        };
+
+        actionSelect.onchange = function() {
+            console.log("Changed action!");
+            filterEntities();
+        };
+    </script>
+    <script>
+        var entities = [
+            {%for entity in form.allEntities %}
+                ["{{entity.id}}", "{{entity.label}}"],
+            {%endfor%}
+        ];
+        var teamAllowedEntities = {
+            {% for team, entities in form.teamAllowedEntities.items %}
+                {{team}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
+        };
+        var actionEntities = {
+            {% for action, entities in form.actionEntities.items %}
+                {{action.value}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
+        };
+
+        var actionForEntity = {
+            {% for entity, action in form.actionForEntity.items %}
+                "{{entity.id}}": "{{action.value}}",{% endfor %}
+        };
+    </script>
 {% endblock %}
 
 {% block afterContainer %}

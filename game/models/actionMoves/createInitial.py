@@ -11,3 +11,7 @@ class CreateInitialMove(Action):
     class CiviMeta:
         move = ActionMove.createInitial
         form = CreateInitialForm
+
+    @staticmethod
+    def relevantEntities(state, team):
+        return []
