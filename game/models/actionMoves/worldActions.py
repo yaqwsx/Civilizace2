@@ -16,6 +16,9 @@ class NextGenerationAction(Action):
         action = NextGenerationAction(team=data["team"], move=data["action"], arguments={})
         return action
 
+    def initiate(self, state):
+        return True, ""
+
     def commit(self, state):
         print("State: " + str(state))
         world = state.worldState

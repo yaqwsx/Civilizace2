@@ -21,10 +21,6 @@ class ActionStepManager(models.Manager):
             action=Action.objects.createInitial(),
             workConsumed=0)
 
-# There are several scenarios for creating an action:
-# - the action is created and immediately committed.
-# - the action is initiated and then it has to be either committed, abandoned or
-#   canceled
 class ActionStep(ImmutableModel):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     author = models.ForeignKey("User", on_delete=models.PROTECT, null=True)
@@ -79,16 +75,9 @@ class ActionStep(ImmutableModel):
         pass
 
     @staticmethod
-    def initiateAction(author, action, state):
-        """
-        Return appropriate ActionStep for given action (either commit or
-        initiate) for the action. The user is the organizer filling the form
-        """
-        if action.requiresDice(state):
-            return ActionStep(author=author, phase=ActionPhase.initiate,
-                action=action, workConsumed=0)
-        return ActionStep(author=author, phase=ActionPhase.commit,
-                action=action, workConsumed=0)
+    def initiateAction(author, action):
+        return ActionStep(author=author, phase=ActionPhase.initiate,
+            action=action, workConsumed=0)
 
     @staticmethod
     def cancelAction(author, action):

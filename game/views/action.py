@@ -101,8 +101,14 @@ class ActionMoveView(ActionView):
         form = formForActionMove(moveId)(data=request.POST.copy(), state=state, team=teamId) # copy, so we can change the cancelled field
         if form.is_valid() and not form.cleaned_data["canceled"]:
             action = buildActionMove(form.cleaned_data)
-            step = ActionStep.initiateAction(request.user, action, state)
-            moveValid, message = step.applyTo(state)
+            requiresDice = action.requiresDice(state)
+            initiateStep = ActionStep.initiateAction(request.user, action)
+            moveValid, message = initiateStep.applyTo(state)
+            if not requiresDice:
+                commitStep = ActionStep.commitAction(request.user, action, 0)
+                commitValid, commitMessage = commitStep.applyTo(state)
+                moveValid = moveValid and commitValid
+                message += "<br>" + commitMessage
 
             form.data["canceled"] = True
             return render(request, "game/actionConfirm.html", {
@@ -110,6 +116,7 @@ class ActionMoveView(ActionView):
                 "form": form,
                 "team": get_object_or_404(Team, pk=teamId),
                 "action": action,
+                "requiresDice": requiresDice,
                 "moveValid": moveValid,
                 "message": message,
                 "messages": messages.get_messages(request)
@@ -132,8 +139,14 @@ class ActionConfirmView(ActionView):
         form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
         if form.is_valid(): # Should be always unless someone plays with API directly
             action = buildActionMove(form.cleaned_data)
-            step = ActionStep.initiateAction(request.user, action, state)
-            moveValid, message = step.applyTo(state)
+            requiresDice = action.requiresDice(state)
+            initiateStep = ActionStep.initiateAction(request.user, action)
+            moveValid, message = initiateStep.applyTo(state)
+            if not requiresDice:
+                commitStep = ActionStep.commitAction(request.user, action, 0)
+                commitValid, commitMessage = commitStep.applyTo(state)
+                moveValid = moveValid and commitValid
+                message += "<br>" + commitMessage
             if not moveValid:
                 form.data["canceled"] = True
                 return render(request, "game/actionConfirm.html", {
@@ -146,21 +159,15 @@ class ActionConfirmView(ActionView):
                     "messages": messages.get_messages(request)
                 })
             action.save()
-            step.save()
+            initiateStep.save()
+            if not requiresDice:
+                commitStep.save()
             state.save()
-            if action.requiresDice(state):
+            if requiresDice:
                 messages.success(request, "Akce \"{}\" započata".format(action.description()))
                 return redirect('actionDiceThrow', actionId=action.id)
             messages.success(request, "Akce \"{}\" provedena".format(action.description()))
             return redirect('actionIndex')
-        print(form.errors)
-        return render(request, "game/actionMove.html", {
-            "request": request,
-            "form": form,
-            "team": get_object_or_404(Team, pk=teamId),
-            "action": ActionMove(moveId),
-            "messages": messages.get_messages(request)
-        })
         return HttpResponse(status=422)
 
 class ActionDiceThrow(ActionView):
