@@ -27,11 +27,6 @@ class ResearchMove(Action):
     class CiviMeta:
         move = ActionMove.research
         form = ResearchForm
-    def requiresDice(self, state):
-        return True
-
-    def dotsRequired(self, state):
-        return { DieModel.objects.get(id="die-any"): 1 }
 
     @property
     def selectId(self):
@@ -68,6 +63,14 @@ class ResearchMove(Action):
         self.status = self.teamState.techs.getStatus(self.tech)
 
         return
+
+    def requiresDice(self, state):
+        self.preprocess(state)
+        return self.status == TechStatusEnum.UNKNOWN
+
+    def dotsRequired(self, state):
+        self.preprocess(state)
+        return {self.edge.die:self.edge.dots}
 
     def initiate(self, state):
         self.preprocess(state)
