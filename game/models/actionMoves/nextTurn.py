@@ -17,6 +17,9 @@ class NextTurn(Action):
         action = NextTurn(team=data["team"], move=data["action"], arguments={})
         return action
 
+    def initiate(self, state):
+        return True, "Začíná kolo!"
+
     def commit(self, state):
         team = self.teamState(state)
         team.nextTurn()

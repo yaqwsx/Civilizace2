@@ -17,6 +17,9 @@ class StartRoundMove(Action):
         action = StartRoundMove(team=data["team"], move=data["action"], arguments={})
         return action
 
+    def initiate(self, state):
+        return True, "Začínám začínat nové kolo"
+
     def commit(self, state):
         populationState = self.teamState(state).population
         populationState.startNewRound()

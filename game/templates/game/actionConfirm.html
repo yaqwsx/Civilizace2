@@ -31,7 +31,7 @@
             {% if moveValid is False %} disabled {% endif %}
             formaction="{% url "actionConfirm" team.id action.move.value %}">
 
-            {% if action.requiresDice %}
+            {% if requiresDice %}
                 Začít akci a přejít na házení kostkou
             {% else %}
                 Provést akci
