@@ -8,7 +8,7 @@
 
 <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
     <p class="w-full">{{diceThrowMessage | safe}}</p>
-    <p class="w-full">Tým může provést nejvýše {{ maxThrows }} hodů kostkou</p>
+    <p class="w-full">Tým může házet <b>{{ maxThrows }}x</b></p>
 </div>
 
 <form method="post" onkeydown="return onKeyPress(event);">

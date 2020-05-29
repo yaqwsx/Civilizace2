@@ -98,6 +98,9 @@ class ActionManager(models.Manager):
     def createInitial(self):
         return self.create(move=ActionMove.createInitial, arguments={})
 
+class InvalidActionException(Exception):
+    pass
+
 class Action(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
     move = enum.EnumField(ActionMove)
@@ -199,9 +202,13 @@ class Action(ImmutableModel):
         return json.dumps(self._dict)
 
     def diceThrowMessage(self, state):
-        message = "Pro splnění akce je třeba hodit jedno z následujícího:<ul>"
+        required = self.dotsRequired(state)
+        message = ""
+        if len(required) - 1:
+            message += "Pro splnění akce je třeba hodit jedno z následujícího:<ul>"
+
         for dice, dots in self.dotsRequired(state).items():
-            message += "<li><b>{}</b>: alespoň {}</li>".format(dice.label, dots)
+            message += "<li><b>{}</b>: {} bodů</li>".format(dice.label, dots)
         message += "</ul>"
         return message
 

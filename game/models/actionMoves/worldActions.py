@@ -28,6 +28,6 @@ class NextGenerationAction(Action):
         print("State: " + str(state))
         world = state.worldState
         print("world: " + str(world))
-        world.generation.nextGeneration()
-        message = """Začala generace {gen}""".format(gen=world.generation.generation)
+        world.generation += 1
+        message = """Začala generace {gen}""".format(gen=world.generation)
         return True, message

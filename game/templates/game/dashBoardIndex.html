@@ -37,7 +37,7 @@
 <div class="flex flex-wrap">
     {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
     {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
-    {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation.generation}}. generace  {% endcard %}
+    {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation}}. generace  {% endcard %}
     {% card "Zdroje" %} {{teamState.resources}} {% endcard %}
     {% card "Zname techy" %} {{teamState.techs.getOwnedTechs}} {% endcard %}
     {% card "Zkoumane techy" %} {{teamState.techs.getTechsUnderResearch}} {% endcard %}

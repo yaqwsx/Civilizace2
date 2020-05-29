@@ -9,7 +9,7 @@ from game.models.state import TechStorageItem, TechStatusEnum
 
 
 class ResearchForm(MoveForm):
-    techSelect = forms.ChoiceField(label="Vyber tech")
+    techSelect = forms.ChoiceField(label="Vyber výzkum")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,12 +18,28 @@ class ResearchForm(MoveForm):
         # Entity ID is available under self.entityId
 
         techs = self.state.teamState(self.teamId).techs
-        researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
-        edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
+        src = TechModel.objects.get(id=self.entityId)
+
         choices = []
-        choices.extend(researching)
-        choices.extend(edges)
+        for edge in src.unlocks_tech.all():
+            dst = edge.dst
+            if techs.getStatus(dst) == TechStatusEnum.OWNED:
+                continue
+            if techs.getStatus(dst) == TechStatusEnum.RESEARCHING:
+                choices.append((edge.id, ">> " + edge.label))
+            if techs.getStatus(dst) == TechStatusEnum.UNKNOWN:
+                choices.append((edge.id, edge.label))
+
+        if not len(choices):
+            choices = [("none-id", "Tady už není co zkoumat")]
         self.fields["techSelect"].choices = choices
+
+        # researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
+        # edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
+        # choices = []
+        # choices.extend(researching)
+        # choices.extend(edges)
+        # self.fields["techSelect"].choices = choices
 
 class ResearchMove(Action):
     class Meta:
@@ -48,9 +64,12 @@ class ResearchMove(Action):
 
     @staticmethod
     def relevantEntities(state, team):
-        if team.id == 1:
-            return TechModel.objects.all()[:1]
-        return TechModel.objects.all()
+        techs = state.teamState(team.id).techs
+
+        results = []
+        results.extend(techs.getOwnedTechs())
+
+        return results
 
 
     def sane(self):

@@ -11,7 +11,7 @@ class DiceThrowForm(forms.Form):
     dice = forms.ChoiceField(label="Použitá kostka")
     throwCount = forms.IntegerField(label="Počet hodů kostkou", initial=0,
         validators=[MinValueValidator(0)])
-    dotsCount = forms.IntegerField(label="Počet hozených puntíků:", initial=0,
+    dotsCount = forms.IntegerField(label="Počet hozených bodů:", initial=0,
         validators=[MinValueValidator(0)])
 
     def __init__(self, allowedDices, *args, **kwargs):

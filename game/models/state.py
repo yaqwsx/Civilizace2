@@ -1,7 +1,7 @@
 from django.db import models
 from django_enumfield import enum
 
-from game.data import TechModel
+from game.data import TechModel, ResourceModel
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -56,33 +56,16 @@ class State(ImmutableModel):
 class WorldState(ImmutableModel):
     class WorldStateManager(models.Manager):
         def createInitial(self):
-            generation = game.models.state.GenerationWorldState.objects.createInitial()
+            generation = 0
             return self.create(generation=generation)
 
     objects = WorldStateManager()
 
     data = JSONField()
-    generation = models.ForeignKey("GenerationWorldState", on_delete=models.PROTECT)
+    generation = models.IntegerField()
 
     def __str__(self):
         return json.dumps(self._dict)
-
-
-class GenerationWorldState(ImmutableModel):
-    class GenerationWorldStateManager(models.Manager):
-        def createInitial(self):
-            return self.create(
-                generation=0
-            )
-
-    generation = models.IntegerField("generation")
-    objects = GenerationWorldStateManager()
-
-    def __str__(self):
-        return json.dumps(self._dict)
-
-    def nextGeneration(self):
-        self.generation += 1
 
 
 class TeamState(ImmutableModel):
@@ -142,6 +125,26 @@ class ResourceStorage(ImmutableModel):
     def spendWork(self, amount):
         None
 
+    def getAmount(self, resource):
+        if isinstance(resource, str):
+            resource = ResourceModel.objects.get(id=resource)
+        try:
+            item = self.items.get(resource=resource)
+            return item.amount
+        except ResourceStorageItem.DoesNotExist:
+            return 0
+
+    def setAmount(self, resource, amount):
+        if isinstance(resource, str):
+            resource = ResourceModel.objects.get(id=resource)
+
+        item = None
+        try:
+            item = self.items.get(resource=resource)
+        except ResourceStorageItem.DoesNotExist:
+            itemtem = ResourceStorageItem(resource=resource, amount=amount)
+
+        item.amount = amount
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
