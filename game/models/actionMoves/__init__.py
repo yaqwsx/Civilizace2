@@ -5,6 +5,7 @@ from .nextTurn import NextTurn
 from .sandboxIncreaseCounter import SandboxIncreaseCounterMove
 from .startRound import StartRoundMove
 from .research import ResearchMove
+from .vyroba import VyrobaMove
 
 def buildActionMove(data):
     """

@@ -4,7 +4,7 @@ from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
-from game.models.actionBase import Action
+from game.models.actionBase import Action, InvalidActionException
 from game.models.state import TechStorageItem, TechStatusEnum
 
 
@@ -31,15 +31,8 @@ class ResearchForm(MoveForm):
                 choices.append((edge.id, edge.label))
 
         if not len(choices):
-            choices = [("none-id", "Tady už není co zkoumat")]
+            raise InvalidActionException("Tady už není co zkoumat (" + src.label + ")")
         self.fields["techSelect"].choices = choices
-
-        # researching = [(tech.id, ">> " + tech.label) for tech in techs.getTechsUnderResearch()]
-        # edges = [(edge.id, edge.label) for edge in techs.getActionableEdges()]
-        # choices = []
-        # choices.extend(researching)
-        # choices.extend(edges)
-        # self.fields["techSelect"].choices = choices
 
 class ResearchMove(Action):
     class Meta:
@@ -126,7 +119,9 @@ class ResearchMove(Action):
         return True, "Zacali jste zkoumat tech " + self.tech.label + ". Hodne stesti"
 
     def abandon(self, state):
+        # TODO: Implement
         return True, self.abandonMessage()
 
     def cancel(self, state):
+        # TODO: Implement
         return True, self.cancelMessage()

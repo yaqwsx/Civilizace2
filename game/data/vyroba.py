@@ -19,3 +19,6 @@ class VyrobaInputModel(models.Model):
     parent = models.ForeignKey(VyrobaModel, on_delete=models.CASCADE, related_name="inputs")
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE, related_name="input_to_vyrobas")
     amount = models.IntegerField(validators=[MinValueValidator(0)])
+
+    def __str__(self):
+        return self.resource.id + ":" + str(self.amount)

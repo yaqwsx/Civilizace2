@@ -11,7 +11,7 @@ import json
 from .translations import Translations
 
 from game.managers import PrefetchManager
-from game.models.actionBase import ActionStep
+from game.models.actionBase import ActionStep, InvalidActionException
 from game.models.users import Team
 from game import parameters
 
@@ -100,6 +100,9 @@ class ResourceStorageItem(ImmutableModel):
 
 
 class ResourceStorage(ImmutableModel):
+    class NotEnoughResourcesException(InvalidActionException):
+        pass
+
     class ResourceStorageManager(models.Manager):
         def createInitial(self):
             initialResources = [("res-obyvatel", 100), ("res-prace", 100)]
@@ -123,7 +126,7 @@ class ResourceStorage(ImmutableModel):
         return result
 
     def spendWork(self, amount):
-        None
+        self.payResources({ResourceModel.objects.get(id="res-prsace"): amount})
 
     def getAmount(self, resource):
         if isinstance(resource, str):
@@ -145,6 +148,36 @@ class ResourceStorage(ImmutableModel):
             itemtem = ResourceStorageItem(resource=resource, amount=amount)
 
         item.amount = amount
+
+    def hasResources(self, resources):
+        for resource, amount in resources.items():
+            if resource.id[:4] == "mat-":
+                continue
+            if self.getAmount(resource) < amount:
+                print("Not enough resource: " + str(resource))
+                return False
+        return True
+
+    def payResources(self, resources):
+        """Subtract resources from storage.
+
+        Returns a dict of resources not tracked by storage"""
+        if not self.hasResources(resources):
+            raise ResourceStorage.NotEnoughResourcesException("Insufficient resources")
+        result = {}
+        for resource, amount in resources.items():
+            if resource.id[:4] == "mat-":
+                result[resource] = amount
+            else:
+                self.setAmount(resource, self.getAmount(resource) - amount)
+        print("Team has to pay: " + str(result))
+        return result
+
+    @staticmethod
+    def asHtml(resources, separator=", "):
+        return separator.join([
+            key.id + " " + str(value) + "x"
+            for key, value in resources.items()])
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
@@ -238,6 +271,15 @@ class TechStorage(ImmutableModel):
 
         print("Actionable edges: " + str(list(edges)))
         return list(edges)
+
+    def getVyrobas(self):
+        results = []
+
+        for tech in self.getOwnedTechs():
+            results.extend(tech.unlock_vyrobas.all())
+
+        print("Dostupne vyroby: " + str(results))
+        return results
 
 # =================================================
 
