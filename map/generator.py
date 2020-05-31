@@ -204,7 +204,6 @@ try:
     maxX += mask.size[0]
     maxY += mask.size[1]
 
-    print("Creating image " + str(maxX) + "x" + str(maxY))
     result = Image.new("RGBA", (maxX, maxY))
 
     font = ImageFont.truetype("Verdana.ttf",26)
@@ -234,12 +233,13 @@ try:
             if tileName == "":
                 continue
 
-            tile = tiles[tileName]
+            tile = mask
+            try:
+                tile = tiles[tileName]
+            except KeyError:
+                print("Unknown tileName: " + str(tileName))
             result.paste(tile, (X,Y), mask)
             if pref.indices.get(): d.text((X + mask.size[0]//2 - 20, Y + mask.size[1]//2 - 14), toAlpha(i) + str(j+1), font=font, fill=(0, 0, 0))
-            print("Added image " + str((j,i)) + ": " + tileName)
-
-
 
     if pref.show.get():
         result.show()
