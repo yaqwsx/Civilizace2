@@ -9,6 +9,7 @@ class ActionMove(enum.Enum):
     nextGeneration = 4
     research = 5
     vyroba = 7
+    sandbox = 99
 
     __labels__ = {
         createInitial: "Vytvořit nový stav",
@@ -18,5 +19,6 @@ class ActionMove(enum.Enum):
         nextTurn: "Next turn",
         nextGeneration: "Next generation",
         research: "Zkoumat",
-        vyroba: "Výroba"
+        vyroba: "Výroba",
+        sandbox: "SANDBOX"
     }

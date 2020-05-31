@@ -118,6 +118,13 @@ class ResourceStorage(ImmutableModel):
 
     objects = ResourceStorageManager()
 
+    @staticmethod
+    def asHtml(resources, separator=", "):
+        return separator.join([
+            str(value) + "x " + key.id
+            for key, value in resources.items()])
+
+
     items = ListField(model_type=ResourceStorageItem)
 
     def __str__(self):
@@ -145,7 +152,9 @@ class ResourceStorage(ImmutableModel):
         try:
             item = self.items.get(resource=resource)
         except ResourceStorageItem.DoesNotExist:
-            itemtem = ResourceStorageItem(resource=resource, amount=amount)
+            item = ResourceStorageItem(resource=resource, amount=amount)
+            self.items.append(item)
+            print("Adding new resource " + resource.id)
 
         item.amount = amount
 
@@ -173,11 +182,23 @@ class ResourceStorage(ImmutableModel):
         print("Team has to pay: " + str(result))
         return result
 
-    @staticmethod
-    def asHtml(resources, separator=", "):
-        return separator.join([
-            key.id + " " + str(value) + "x"
-            for key, value in resources.items()])
+    def receiveResources(self, resources):
+        """Add resources to storage.
+
+        Returns a dict of resources not tracked by storage"""
+        result = {}
+        for resource, amount in resources.items():
+            if resource.id[:4] == "mat-":
+                result[resource] = amount
+            else:
+                targetAmount = self.getAmount(resource) + amount
+                self.setAmount(resource, targetAmount)
+                print("targetAmount: " + str(targetAmount))
+                print("amount: " + str(amount))
+                print("self.getAmount(" + resource.id + "): " + str(self.getAmount(resource)))
+        print("Team will receive: " + str(result))
+        return result
+
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB

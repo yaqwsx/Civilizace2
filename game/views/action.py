@@ -88,6 +88,7 @@ class ActionMoveView(ActionView):
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         state = State.objects.getNewest()
         formClass = formForActionMove(moveId)
+        print("formClass: " + str(formClass))
         form = formClass(team=teamId, action=moveId, entity=request.GET.get("entity"), state=state)
         return render(request, "game/actionMove.html", {
             "request": request,

@@ -6,6 +6,7 @@ from game.data.vyroba import VyrobaModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
 from game.models.actionMovesList import ActionMove
+from game.models.state import ResourceStorage
 
 
 class VyrobaForm(MoveForm):
@@ -56,7 +57,7 @@ class VyrobaMove(Action):
         self.unitCost = list(self.vyroba.inputs.all())
         self.cost = {input.resource: input.amount*self.volume for input in self.unitCost}
         self.die = self.vyroba.die
-        self.dots = math.ceil((self.vyroba.dots+1)/2)
+        self.dots = math.ceil((self.vyroba.dots*self.volume+1)/2)
 
     def requiresDice(self, state):
         return True
@@ -79,11 +80,34 @@ class VyrobaMove(Action):
 
     def commit(self, state):
         self.preprocess(state)
+        resources = {self.vyroba.output: self.vyroba.amount}
+        materials = self.teamState.resources.receiveResources(resources)
+        message = "Tým získal " + ResourceStorage.asHtml(resources) + "<br>" \
+                  "<b>Vydej " + ResourceStorage.asHtml(materials) + "</b>"
+        print("Vyroba commit message: " + message)
+        return True, message
 
     def abandon(self, state):
-        # TODO: Implement
+        self.preprocess(state)
+
+        productions = filter(
+            lambda resource, amount:
+                resource.id[:5] == "prod-"
+                or resource.id == "res-obyvatel",
+            self.cost.items()
+        )
+
+        message = self.abandonMessage()
+        message += "<br>"
+        message += "Tým nedostane zpátky žádné materiály"
         return True, self.abandonMessage()
 
     def cancel(self, state):
-        # TODO: Implement
-        return True, self.cancelMessage()
+        self.preprocess(state)
+        materials = self.teamState.resources.receiveResources(self.cost)
+
+        message = self.cancelMessage()
+        message += "<br>"
+        message += "Vraťte týmu materiály: " + ResourceStorage.asHtml(materials)
+
+        return True, message
