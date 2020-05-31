@@ -19,8 +19,15 @@
 .edgePath path {
   stroke: #333;
   fill: #333;
-  stroke-width: 1.5px;
+  stroke-width: 3px;
 }
+
+{% for die in dies %}
+.{{die.id}} path {
+  stroke: #{{die.color}};
+  fill: #{{die.color}};
+}
+{% endfor %}
 </style>
 
 <h1>Náhled technologického stromu</h1>
@@ -52,7 +59,7 @@
     {% endfor %}
 
     {% for edge in edges %}
-        g.setEdge( "{{edge.src.id}}", "{{edge.dst.id}}", { label: "{{edge.costText}}" });
+        g.setEdge( "{{edge.src.id}}", "{{edge.dst.id}}", { label: "{{edge.costText}}", class: "{{edge.die.id}}" });
     {% endfor %}
 
     var svg = d3.select("#graph");
