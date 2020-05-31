@@ -140,6 +140,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '_static'
 
 TAILWIND_APP_NAME = 'theme'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap', 'uni_form', 'bootstrap3', 'bootstrap4', 'tailwind', )
 CRISPY_TEMPLATE_PACK = 'tailwind'
 
 try:

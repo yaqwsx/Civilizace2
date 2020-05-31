@@ -7,6 +7,9 @@ from game.models.keywords import KeywordType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from game.models.users import Team
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
+
 class DiceThrowForm(forms.Form):
     dice = forms.ChoiceField(label="Použitá kostka")
     throwCount = forms.IntegerField(label="Počet hodů kostkou", initial=0,
@@ -35,6 +38,9 @@ class MoveInitialForm(forms.Form):
         else:
             super().__init__(**kwargs)
 
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+
         teams = Team.objects.all()
         self.allEntities = set()
         self.teamAllowedEntities = {team.id: set() for team in teams}
@@ -49,6 +55,13 @@ class MoveInitialForm(forms.Form):
                 for entity in entities:
                     self.actionForEntity[entity] = action.CiviMeta.move
         self.fields["entity"].choices = [('', '-----------')] + [(entity.id, entity.label) for entity in self.allEntities]
+
+        self.commonLayout = Layout(
+            Field('team'),
+            Field('action'),
+            Field('entity'),
+            Field('canceled')
+        )
 
 
 # Base form for building actions - every other move building form has to inherit

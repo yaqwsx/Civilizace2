@@ -1,5 +1,4 @@
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset
+from crispy_forms.layout import Layout, Fieldset, HTML
 
 from django import forms
 
@@ -13,17 +12,13 @@ class SandboxForm(MoveForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
         self.helper.layout = Layout(
+            self.commonLayout, # Don't forget to add fields of the base form
             Fieldset(
-                'first arg is the legend of the fieldset',
-                'like_website',
-                'favorite_number',
-                'favorite_color',
-                'favorite_food',
-                'notes'
-            )
+                'Toto je popisek skupiny',
+                'jabkaSelect',
+            ),
+            HTML("""A tady je prostě libovolné HTML, např. čára: <hr class="border-2 border-black my-2">""")
         )
 
 class SandboxMove(Action):

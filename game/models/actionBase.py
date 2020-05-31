@@ -142,7 +142,7 @@ class Action(ImmutableModel):
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
         """
-        raise NotImplementedError("This action does not require a dice throw - no initiate step is avialable")
+        raise NotImplementedError("Action base class - did you forget to implement initiate?")
 
     def commit(self, state):
         """
@@ -170,7 +170,7 @@ class Action(ImmutableModel):
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
         """
-        raise NotImplementedError("This action does not require a dice throw - no abandon step is avialable")
+        raise NotImplementedError("Action base class - did you forget to implement abandon?")
 
     def cancel(self, state):
         """
@@ -184,7 +184,7 @@ class Action(ImmutableModel):
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
         """
-        raise NotImplementedError("This action does not require a dice throw - no initiate step is avialable")
+        raise NotImplementedError("Action base class - did you forget to implement cancel?")
 
     def resolve(self):
         for actionClass in  Action.__subclasses__():
