@@ -10,7 +10,7 @@ from game.models.actionMovesList import ActionMove
 
 class SandboxForm(MoveForm):
     jabkaSelect = forms.IntegerField(label="Počet jablek")
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

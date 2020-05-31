@@ -11,7 +11,7 @@ from django.db.models import Count, Q
 from game import models
 from game.models.actionMoves import *
 from game.models.actionMovesList import ActionMove
-from game.models.actionBase import Action, ActionStep, ActionPhase
+from game.models.actionBase import Action, ActionStep, ActionPhase, InvalidActionException
 from game.models.users import User, Team
 from game.models.state import State
 from game.data.entity import DieModel
@@ -86,17 +86,20 @@ class ActionMoveView(ActionView):
         if unfinishedAction:
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
-        state = State.objects.getNewest()
-        formClass = formForActionMove(moveId)
-        print("formClass: " + str(formClass))
-        form = formClass(team=teamId, action=moveId, entity=request.GET.get("entity"), state=state)
-        return render(request, "game/actionMove.html", {
-            "request": request,
-            "form": form,
-            "team": get_object_or_404(Team, pk=teamId),
-            "action": ActionMove(moveId),
-            "messages": messages.get_messages(request)
-        })
+        try:
+            state = State.objects.getNewest()
+            formClass = formForActionMove(moveId)
+            form = formClass(team=teamId, action=moveId, entity=request.GET.get("entity"), state=state)
+            return render(request, "game/actionMove.html", {
+                "request": request,
+                "form": form,
+                "team": get_object_or_404(Team, pk=teamId),
+                "action": ActionMove(moveId),
+                "messages": messages.get_messages(request)
+            })
+        except InvalidActionException as e:
+            messages.error(request, str(e))
+            return redirect("actionIndex")
 
     @method_decorator(login_required)
     def post(self, request, teamId, moveId):
@@ -105,28 +108,31 @@ class ActionMoveView(ActionView):
         state = State.objects.getNewest()
         form = formForActionMove(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
              state=state, team=teamId)
-        if form.is_valid() and not form.cleaned_data["canceled"]:
-            action = buildActionMove(form.cleaned_data)
-            requiresDice = action.requiresDice(state)
-            initiateStep = ActionStep.initiateAction(request.user, action)
-            moveValid, message = initiateStep.applyTo(state)
-            if not requiresDice:
-                commitStep = ActionStep.commitAction(request.user, action, 0)
-                commitValid, commitMessage = commitStep.applyTo(state)
-                moveValid = moveValid and commitValid
-                message += "<br>" + commitMessage
+        try:
+            if form.is_valid() and not form.cleaned_data["canceled"]:
+                action = buildActionMove(form.cleaned_data)
+                requiresDice = action.requiresDice(state)
+                initiateStep = ActionStep.initiateAction(request.user, action)
+                moveValid, message = initiateStep.applyTo(state)
+                if moveValid and  not requiresDice:
+                    commitStep = ActionStep.commitAction(request.user, action, 0)
+                    commitValid, commitMessage = commitStep.applyTo(state)
+                    moveValid = moveValid and commitValid
+                    message += "<br>" + commitMessage
 
-            form.data["canceled"] = True
-            return render(request, "game/actionConfirm.html", {
-                "request": request,
-                "form": form,
-                "team": get_object_or_404(Team, pk=teamId),
-                "action": action,
-                "requiresDice": requiresDice,
-                "moveValid": moveValid,
-                "message": message,
-                "messages": messages.get_messages(request)
-            })
+                form.data["canceled"] = True
+                return render(request, "game/actionConfirm.html", {
+                    "request": request,
+                    "form": form,
+                    "team": get_object_or_404(Team, pk=teamId),
+                    "action": action,
+                    "requiresDice": requiresDice,
+                    "moveValid": moveValid,
+                    "message": message,
+                    "messages": messages.get_messages(request)
+                })
+        except InvalidActionException as e:
+            messages.error(request, str(e))
         form.data["canceled"] = False
         return render(request, "game/actionMove.html", {
             "request": request,
@@ -141,39 +147,42 @@ class ActionConfirmView(ActionView):
     def post(self, request, teamId, moveId):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
-        state = State.objects.getNewest()
-        form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
-        if form.is_valid(): # Should be always unless someone plays with API directly
-            action = buildActionMove(form.cleaned_data)
-            requiresDice = action.requiresDice(state)
-            initiateStep = ActionStep.initiateAction(request.user, action)
-            moveValid, message = initiateStep.applyTo(state)
-            if not requiresDice:
-                commitStep = ActionStep.commitAction(request.user, action, 0)
-                commitValid, commitMessage = commitStep.applyTo(state)
-                moveValid = moveValid and commitValid
-                message += "<br>" + commitMessage
-            if not moveValid:
-                form.data["canceled"] = True
-                return render(request, "game/actionConfirm.html", {
-                    "request": request,
-                    "form": form,
-                    "team": get_object_or_404(Team, pk=teamId),
-                    "action": action,
-                    "moveValid": moveValid,
-                    "message": message,
-                    "messages": messages.get_messages(request)
-                })
-            action.save()
-            initiateStep.save()
-            if not requiresDice:
-                commitStep.save()
-            state.save()
-            if requiresDice:
-                messages.success(request, "Akce \"{}\" započata".format(action.description()))
-                return redirect('actionDiceThrow', actionId=action.id)
-            messages.success(request, "Akce \"{}\" provedena".format(action.description()))
-            return redirect('actionIndex')
+        try:
+            state = State.objects.getNewest()
+            form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
+            if form.is_valid(): # Should be always unless someone plays with API directly
+                action = buildActionMove(form.cleaned_data)
+                requiresDice = action.requiresDice(state)
+                initiateStep = ActionStep.initiateAction(request.user, action)
+                moveValid, message = initiateStep.applyTo(state)
+                if moveValid and not requiresDice:
+                    commitStep = ActionStep.commitAction(request.user, action, 0)
+                    commitValid, commitMessage = commitStep.applyTo(state)
+                    moveValid = moveValid and commitValid
+                    message += "<br>" + commitMessage
+                if not moveValid:
+                    form.data["canceled"] = True
+                    return render(request, "game/actionConfirm.html", {
+                        "request": request,
+                        "form": form,
+                        "team": get_object_or_404(Team, pk=teamId),
+                        "action": action,
+                        "moveValid": moveValid,
+                        "message": message,
+                        "messages": messages.get_messages(request)
+                    })
+                action.save()
+                initiateStep.save()
+                if not requiresDice:
+                    commitStep.save()
+                state.save()
+                if requiresDice:
+                    messages.success(request, "Akce \"{}\" započata".format(action.description()))
+                    return redirect('actionDiceThrow', actionId=action.id)
+                messages.success(request, "Akce \"{}\" provedena".format(action.description()))
+                return redirect('actionIndex')
+        except InvalidActionException as e:
+            messages.error(request, str(e))
         return HttpResponse(status=422)
 
 class ActionDiceThrow(ActionView):
@@ -216,43 +225,47 @@ class ActionDiceThrow(ActionView):
         form = DiceThrowForm(action.dotsRequired(state).keys(), data=request.POST)
         if not form.is_valid():
             return self.renderForm(request, action, form)
-        state = State.objects.getNewest()
-        teamState = state.teamState(action.team.id)
-        maxThrowTries = teamState.population.work // parameters.DICE_THROW_PRICE
-        if form.cleaned_data["throwCount"] > maxThrowTries:
-            messages.error(request, """
-                Zadali jste více hodů než na kolik má tým nárok. Tým mohl hodit
-                maximálně <b>{}x</b>, hodil však <b>{}x</b>. Pokud to není chyba,
-                je možné, že tým házel zároveň i na jiném stanovišti a tam
-                spotřeboval práci. V tom případě dokončete akci znovu -- jen
-                zadejte maximální počet hodů.""".format(maxThrowTries, form.cleaned_data["throwCount"]))
-            return redirect('actionDiceThrow', actionId=action.id)
-        if form.cleaned_data["throwCount"] == 0 and form.cleaned_data["dotsCount"] != 0:
-            messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
-            return redirect('actionDiceThrow', actionId=action.id)
-        if "cancel" in request.POST:
-            step = ActionStep.cancelAction(request.user, action)
-            channel = messages.warning
-        else:
-            dice = DieModel.objects.get(id=form.cleaned_data["dice"])
-            requiredDots = action.dotsRequired(state)[dice]
-            workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
-            if form.cleaned_data["dotsCount"] >= requiredDots:
-                step = ActionStep.commitAction(request.user, action, workConsumed)
-                channel = messages.success
-            else:
-                step = ActionStep.abandonAction(request.user, action, workConsumed)
+        try:
+            state = State.objects.getNewest()
+            teamState = state.teamState(action.team.id)
+            maxThrowTries = teamState.population.work // parameters.DICE_THROW_PRICE
+            if form.cleaned_data["throwCount"] > maxThrowTries:
+                messages.error(request, """
+                    Zadali jste více hodů než na kolik má tým nárok. Tým mohl hodit
+                    maximálně <b>{}x</b>, hodil však <b>{}x</b>. Pokud to není chyba,
+                    je možné, že tým házel zároveň i na jiném stanovišti a tam
+                    spotřeboval práci. V tom případě dokončete akci znovu -- jen
+                    zadejte maximální počet hodů.""".format(maxThrowTries, form.cleaned_data["throwCount"]))
+                return redirect('actionDiceThrow', actionId=action.id)
+            if form.cleaned_data["throwCount"] == 0 and form.cleaned_data["dotsCount"] != 0:
+                messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
+                return redirect('actionDiceThrow', actionId=action.id)
+            if "cancel" in request.POST:
+                step = ActionStep.cancelAction(request.user, action)
                 channel = messages.warning
-        moveValid, message = step.applyTo(state)
-        if not moveValid:
-            messages.error(message)
+            else:
+                dice = DieModel.objects.get(id=form.cleaned_data["dice"])
+                requiredDots = action.dotsRequired(state)[dice]
+                workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
+                if form.cleaned_data["dotsCount"] >= requiredDots:
+                    step = ActionStep.commitAction(request.user, action, workConsumed)
+                    channel = messages.success
+                else:
+                    step = ActionStep.abandonAction(request.user, action, workConsumed)
+                    channel = messages.warning
+            moveValid, message = step.applyTo(state)
+            if not moveValid:
+                messages.error(message)
+                return redirect('actionDiceThrow', actionId=action.id)
+            action.save()
+            step.save()
+            state.save()
+            if message and len(message) > 0:
+                channel(request, message)
+            return redirect('actionIndex')
+        except InvalidActionException as e:
+            messages.error(request, str(e))
             return redirect('actionDiceThrow', actionId=action.id)
-        action.save()
-        step.save()
-        state.save()
-        if message and len(message) > 0:
-            channel(request, message)
-        return redirect('actionIndex')
 
     def isFinished(self, action):
         return action.actionstep_set.all().exclude(phase=ActionPhase.initiate).exists()

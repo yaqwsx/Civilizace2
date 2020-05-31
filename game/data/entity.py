@@ -15,4 +15,13 @@ class EntityModel(models.Model):
         return self.id
 
 class DieModel(EntityModel):
-    pass
+    def color(self):
+        """ Return color for the die in hex code string """
+        colors = {
+            "die-plane": "2884c9", # Blue
+            "die-hory": "949494", # Gray
+            "die-poust": "e3b510", # Orange
+            "die-les": "4e9c00", # Green
+            "die-any": "000000" # Black
+        }
+        return colors[self.id]

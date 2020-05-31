@@ -8,6 +8,7 @@ from django.db.models import Q
 
 from game.data.update import Update, UpdateError
 
+from game.data.entity import DieModel
 from game.data.tech import TechModel, TechEdgeModel
 from game.data.resource import ResourceModel
 from game.data.vyroba import VyrobaModel
@@ -55,7 +56,8 @@ class ViewTechTree(View):
         return render(request, "service/viewTechtree.html", {
             "request": request,
             "nodes": TechModel.objects.all(),
-            "edges": TechEdgeModel.objects.all()
+            "edges": TechEdgeModel.objects.all(),
+            "dies": DieModel.objects.all()
         })
 
 class ViewVyrobas(View):

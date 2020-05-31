@@ -32,6 +32,12 @@ class NextTurn(Action):
         return action
 
     def initiate(self, state):
+        unfinished = self.team.unfinishedAction()
+        print(unfinished)
+        if unfinished:
+            org = unfinished.actionstep_set.all()[0].author
+            message = f"Nelze začít kolo, nedoházeli jste kostkou u organizátora {org.username}"
+            return False, message
         return True, "Začíná kolo!"
 
     def commit(self, state):
