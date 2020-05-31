@@ -12,7 +12,7 @@ class EntityModel(models.Model):
         abstract = True
 
     def __str__(self):
-        return self.i
+        return self.id
 
 class DieModel(EntityModel):
     def color(self):

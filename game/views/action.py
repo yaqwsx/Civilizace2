@@ -114,7 +114,7 @@ class ActionMoveView(ActionView):
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionStep.initiateAction(request.user, action)
                 moveValid, message = initiateStep.applyTo(state)
-                if not requiresDice:
+                if moveValid and  not requiresDice:
                     commitStep = ActionStep.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
                     moveValid = moveValid and commitValid
@@ -155,7 +155,7 @@ class ActionConfirmView(ActionView):
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionStep.initiateAction(request.user, action)
                 moveValid, message = initiateStep.applyTo(state)
-                if not requiresDice:
+                if moveValid and not requiresDice:
                     commitStep = ActionStep.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
                     moveValid = moveValid and commitValid
