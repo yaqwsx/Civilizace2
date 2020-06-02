@@ -15,6 +15,10 @@
         [
             "Produkce",
             "prod-*"
+        ],
+        [
+            "Achievementy",
+            "ach-*"
         ]
     ],
     [
@@ -433,7 +437,7 @@
             "edge-lovci",
             "tech-les",
             "tech-lovci",
-            "die-les:10",
+            "die-plane:10",
             "10",
             "0",
             "-",
@@ -448,7 +452,7 @@
             "die-les:5",
             "10",
             "0",
-            "mat-drevo:6",
+            "mat-drevo:5",
             "1",
             "1"
         ],
@@ -457,7 +461,7 @@
             "edge-lovci-build",
             "tech-lovci",
             "build-lovci",
-            "die-les:5",
+            "die-any:5",
             "5",
             "0",
             "mat-stavivo-2:2",
@@ -1103,13 +1107,25 @@
             "placeholder.png"
         ],
         [
-            "Olej",
-            "mat-olej",
+            "Ryba",
+            "mat-ryba",
+            "jidlo-4",
+            "placeholder.png"
+        ],
+        [
+            "Dobytek",
+            "mat-dobytek",
+            "jidlo-4",
+            "placeholder.png"
+        ],
+        [
+            "Ko\u0159en\u00ed",
+            "mat-koreni",
             "jidlo-5",
             "placeholder.png"
         ],
         [
-            "Cukrovinky",
+            "Cukrovinka",
             "mat-cukr",
             "jidlo-6",
             "placeholder.png"
@@ -1127,7 +1143,7 @@
             "placeholder.png"
         ],
         [
-            "Ryb\u00ed tuk",
+            "Tuk",
             "mat-tuk",
             "palivo-4",
             "placeholder.png"
@@ -1139,27 +1155,63 @@
             "placeholder.png"
         ],
         [
+            "Nafta",
+            "mat-nafta",
+            "palivo-6",
+            "placeholder.png"
+        ],
+        [
             "J\u00edl",
             "mat-jil",
             "stavivo-2",
             "placeholder.png"
         ],
         [
-            "Tr\u00e1my",
+            "K\u00e1men",
+            "mat-kamen",
+            "stavivo-3",
+            "placeholder.png"
+        ],
+        [
+            "Tr\u00e1m",
             "mat-tram",
             "stavivo-4",
             "placeholder.png"
         ],
         [
-            "Cihly",
+            "Cihla",
             "mat-cihla",
             "stavivo-5",
             "placeholder.png"
         ],
         [
+            "\u0160rouby",
+            "mat-sroub",
+            "stavivo-6",
+            "placeholder.png"
+        ],
+        [
+            "Malta",
+            "mat-malta",
+            "stavivo-6",
+            "placeholder.png"
+        ],
+        [
             "Kosti",
-            "mat-kosti",
+            "mat-kost",
             "nastroj-2",
+            "placeholder.png"
+        ],
+        [
+            "Lano",
+            "mat-lano",
+            "nastroj-3",
+            "placeholder.png"
+        ],
+        [
+            "Bronz",
+            "mat-bronz",
+            "nastroj-4",
             "placeholder.png"
         ],
         [
@@ -1167,6 +1219,54 @@
             "mat-nerost",
             "nastroj-5",
             "placeholder.png"
+        ],
+        [
+            "\u017delezo",
+            "mat-zelezo",
+            "nastroj-6",
+            "placeholder.png"
+        ],
+        [
+            "K\u016f\u017ee",
+            "mat-kuze",
+            "luxus-2",
+            "placeholder.png"
+        ],
+        [
+            "Textil",
+            "mat-textil",
+            "luxus-3",
+            "placeholder.png"
+        ],
+        [
+            "Alkohol",
+            "mat-alkohol",
+            "luxus-3",
+            "placeholder.png"
+        ],
+        [
+            "L\u00e9\u010divo",
+            "mat-lek",
+            "luxus-4",
+            "placeholder.png"
+        ],
+        [
+            "Keramika",
+            "mat-keramika",
+            "luxus-5",
+            "placeholder.png"
+        ],
+        [
+            "Sklo/\u0160perky",
+            "mat-sklo",
+            "luxus-6",
+            "placeholder.png"
+        ],
+        [
+            "Jablko",
+            "res-jablko",
+            "-",
+            ""
         ]
     ],
     [
@@ -8022,6 +8122,29 @@
             "Nazev",
             "ID",
             "obrazek"
+        ]
+    ],
+    [
+        [
+            "N\u00e1zev",
+            "ID",
+            "implementace",
+            "ikona",
+            "zpr\u00e1va pro orga"
+        ],
+        [
+            "Velk\u00e9 po\u010d\u00edtadlo",
+            "ach-pocitadlo",
+            "greatCounter",
+            "zat\u00edm \u017e\u00e1dn\u00e1",
+            "Popl\u00e1cej je po z\u00e1dech, \u017ee jsou fakt dob\u0159\u00ed"
+        ],
+        [
+            "U\u0159ezan\u00e9 prsty",
+            "arch-prsty",
+            "fingers",
+            "zat\u00edm \u017e\u00e1dn\u00e1",
+            "T\u00fdm to sice vyzkoumal, ale po\u0159ezal se u toho. Post\u0159\u00edkej je pytl\u00edkem um\u011bl\u00e9 krve."
         ]
     ]
 ]

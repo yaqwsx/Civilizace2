@@ -25,3 +25,12 @@ class DieModel(EntityModel):
             "die-any": "000000" # Black
         }
         return colors[self.id]
+
+class AchievementModel(EntityModel):
+    implementation = models.CharField(max_length=50)
+    icon = models.CharField(max_length=50)
+    orgMessage = models.CharField(max_length=2028)
+
+    def achieved(self, state, team):
+        from game import achievements
+        return getattr(achievements, self.implementation)(state, team)

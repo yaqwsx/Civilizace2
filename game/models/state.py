@@ -2,6 +2,7 @@ from django.db import models
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel
+from game.data.entity import AchievementModel
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -44,6 +45,8 @@ class State(ImmutableModel):
     objects = StateManager()
 
     def teamState(self, teamId):
+        if isinstance(teamId, Team):
+            teamId = teamId.id
         for ts in self.teamStates.all():
             if ts.team.id == teamId:
                 return ts
@@ -75,8 +78,9 @@ class TeamState(ImmutableModel):
             population = PopulationTeamState.objects.createInitial()
             resources = ResourceStorage.objects.createInitial()
             techs = TechStorage.objects.createInitial()
+            achievements = TeamAchievements.objects.createInitial()
             return self.create(team=team, sandbox=sandbox, population=population, turn=0, resources=resources,
-                               techs=techs)
+                               techs=techs, achievements=achievements)
 
     objects = TeamStateManager()
 
@@ -86,6 +90,7 @@ class TeamState(ImmutableModel):
     turn = models.IntegerField()
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
+    achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -93,6 +98,24 @@ class TeamState(ImmutableModel):
     def nextTurn(self):
         self.turn += 1
 
+class TeamAchievements(ImmutableModel):
+    class TeamAchievementsManager(models.Manager):
+        def createInitial(self):
+            return self.create(list=[])
+
+    list = ListField(model_type=AchievementModel)
+    objects = TeamAchievementsManager()
+
+    def awardNewAchievements(self, state, team):
+        """ Checks if new achievements should be awarded, if so, return their list """
+        newAchievements = []
+        for achievement in AchievementModel.objects.all():
+            if self.list.has(id=achievement.id): # Skip already awarded achievements
+                continue
+            if achievement.achieved(state, team):
+                newAchievements.append(achievement)
+                self.list.append(achievement)
+        return newAchievements
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
@@ -133,7 +156,7 @@ class ResourceStorage(ImmutableModel):
         return result
 
     def spendWork(self, amount):
-        self.payResources({ResourceModel.objects.get(id="res-prsace"): amount})
+        self.payResources({ResourceModel.objects.get(id="res-prace"): amount})
 
     def getAmount(self, resource):
         if isinstance(resource, str):

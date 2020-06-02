@@ -76,6 +76,18 @@ class DbList(list):
                 return item
         raise self.model_type.DoesNotExist()
 
+    def has(self, **kwargs):
+        def eq(field, value):
+            if isinstance(field, Model):
+                field = field.pk
+            if isinstance(value, Model):
+                value = value.pk
+            return field == value
+        for item in self:
+            if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
+                return True
+        False
+
 class ListField(Field):
     def __init__(self, model_type, **kwargs):
         self.model_type = model_type

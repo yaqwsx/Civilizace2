@@ -1,5 +1,5 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel
-from .entity import EntityModel, GameDataModel, DieModel
+from .entity import EntityModel, GameDataModel, DieModel, AchievementModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TaskModel, TechModel, TechEdgeModel, TechEdgeInputModel
 
@@ -11,7 +11,8 @@ class Parser():
         "res": 3,
         "tech": 1,
         "edge": 2,
-        "vyr": 5
+        "vyr": 5,
+        "ach": 9
     }
 
     warnings = None
@@ -345,6 +346,16 @@ class Parser():
                 for chunk in chunks:
                     addInput(chunk.strip())
 
+    def _addAchievements(self):
+        print("Parsing achievements")
+        myRaw = self.raw[self.SHEET_MAP["ach"]]
+
+        for n, line in enumerate(myRaw[1:], start=1):
+            label, id, implementation, icon, orgMessage = line
+            AchievementModel.objects.update_or_create(id=id,
+                    defaults={"label": label, "implementation": implementation,
+                              "icon": icon, "orgMessage": orgMessage, "data": self.data})
+
 
     def parse(self, rawData):
         # clear all entities
@@ -376,6 +387,7 @@ class Parser():
         self._addTechs()
         self._addEdges()
         self._addVyrobas()
+        self._addAchievements()
 
         # Delete items which weren't updated - the ones with old game data
         if oldData:

@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from game.models.state import State, GenerationWorldState
+from game.models.state import State
 import game.data as data
 import json
 
