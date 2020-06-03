@@ -3,8 +3,9 @@ from .entity import EntityModel, GameDataModel, DieModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TaskModel, TechModel, TechEdgeModel, TechEdgeInputModel
 
+
 class Parser():
-    SHEET_MAP= {
+    SHEET_MAP = {
         "die": 7,
         "task": 6,
         "type": 4,
@@ -25,7 +26,6 @@ class Parser():
         myRaw = self.raw[self.SHEET_MAP["die"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            print("Parsing die " + str(line))
             if len(line) < 2:
                 self._logWarning("Kostky." + str(n) + ": Málo parametrů (" + len(line) + "/2)")
                 continue
@@ -39,7 +39,6 @@ class Parser():
         myRaw = self.raw[self.SHEET_MAP["task"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            print("Parsing task " + str(line))
             if len(line) < 3:
                 self._logWarning("Ukoly." + str(n) + ": Málo parametrů (" + len(line) + "/3)")
                 continue
@@ -47,16 +46,15 @@ class Parser():
             id = line[1]
             text = line[2]
             task, _ = TaskModel.objects.update_or_create(id=id, defaults={
-                "label": label, "text": text, "data": self.data })
+                "label": label, "text": text, "data": self.data})
 
     def _addResourceTypes(self):
         print("Parsing resource types")
         myRaw = self.raw[self.SHEET_MAP["type"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            print("Parsing type " + str(line))
             if len(line) < 3:
-                self._logWarning("Typy." + str(n) +": Málo parametrů (" + len(line) + "/3)")
+                self._logWarning("Typy." + str(n) + ": Málo parametrů (" + len(line) + "/3)")
                 continue
             label = line[0]
             id = line[1]
@@ -64,25 +62,23 @@ class Parser():
             type, _ = ResourceTypeModel.objects.update_or_create(id=id, defaults={
                 "label": label, "color": color, "data": self.data})
 
-            for i in range(2,7):
+            for i in range(2, 7):
                 mat, _ = ResourceModel.objects.update_or_create(
-                    id="mat-"+id[5:]+"-"+str(i),
+                    id="mat-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": label+" "+str(i),
+                        "label": label + " " + str(i),
                         "type": type,
                         "icon": "images/placeholder.png",
                         "level": i,
-                        "isProduction": False,
                         "data": self.data
                     })
                 prod, _ = ResourceModel.objects.update_or_create(
-                    id="prod-"+id[5:]+"-"+str(i),
+                    id="prod-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": "Produkce: "+label+" "+str(i),
+                        "label": "Produkce: " + label + " " + str(i),
                         "type": type,
                         "icon": "images/placeholder.png",
                         "level": i,
-                        "isProduction": True,
                         "data": self.data
                     })
 
@@ -91,9 +87,8 @@ class Parser():
         myRaw = self.raw[self.SHEET_MAP["res"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            print("Parsing resource " + str(line))
             if len(line) < 4:
-                self._logWarning(message = "Zdroje." + str(n) +": Málo parametrů (" + len(line) + "/4)")
+                self._logWarning(message="Zdroje." + str(n) + ": Málo parametrů (" + len(line) + "/4)")
                 continue
 
             label = line[0]
@@ -106,30 +101,35 @@ class Parser():
             else:
                 chunks = typeRaw.split("-")
                 if len(chunks) < 2:
-                    self._logWarning("Zdroje." + str(n) +": Typ neobsahuje level")
+                    self._logWarning("Zdroje." + str(n) + ": Typ neobsahuje level")
                     continue
                 try:
                     level = int(chunks[1])
                 except ValueError:
-                    self._logWarning("Zdroje." + str(n) +": Neznamy level " + chunks[1])
+                    self._logWarning("Zdroje." + str(n) + ": Neznamy level " + chunks[1])
                     continue
                 try:
                     type = chunks[0]
                     typeId = "type-" + type
-                    typeRef = ResourceTypeModel.objects.get(id="type-"+type)
-                except Exception: # TODO: Look up the correct error
-                    self._logWarning("Zdroje." + str(n) +": Neznamy typ " + chunks[0])
+                    typeRef = ResourceTypeModel.objects.get(id="type-" + type)
+                except Exception:  # TODO: Look up the correct error
+                    self._logWarning("Zdroje." + str(n) + ": Neznamy typ " + chunks[0])
                     continue
 
                 mat, _ = ResourceModel.objects.update_or_create(id=id, defaults={
-                    "label": label, "type": typeRef,
-                    "level": level, "icon": icon, "data": self.data})
+                    "label": label,
+                    "type": typeRef,
+                    "level": level,
+                    "icon": icon,
+                    "data": self.data})
 
                 prodId = "prod" + id[3:]
                 prodLabel = "Produkce: " + label
                 prod, _ = ResourceModel.objects.update_or_create(id=prodId, defaults={
-                    "label": prodLabel, "type": typeRef,
-                    "level": level, "icon": icon, "isProduction": True,
+                    "label": prodLabel,
+                    "type": typeRef,
+                    "level": level,
+                    "icon": icon,
                     "data": self.data})
 
     def _addTechs(self):
@@ -140,9 +140,8 @@ class Parser():
             line = line[:8]
             if line[1] == "":
                 continue
-            print("Parsing tech " + str(line))
             if len(line) < 8:
-                self._logWarning("Tech." + str(n) +": Málo parametrů (" + str(len(line)) + "/8)")
+                self._logWarning("Tech." + str(n) + ": Málo parametrů (" + str(len(line)) + "/8)")
                 continue
             label = line[0]
             id = line[1]
@@ -175,21 +174,20 @@ class Parser():
             line = line[:8]
             if line[1] == "":
                 continue
-            print("Parsing edge " + str(line))
             if len(line) < 8:
-                self._logWarning("Edge." + str(n) +": Málo parametrů (" + str(len(line)) + "/8)")
+                self._logWarning("Edge." + str(n) + ": Málo parametrů (" + str(len(line)) + "/8)")
                 continue
             label = line[0]
             id = line[1]
             try:
                 src = TechModel.objects.get(id=line[2])
             except TechModel.DoesNotExist:
-                self._logWarning("Edge." + str(n) +": Nezname zdrojove ID (" + line[2] + ")")
+                self._logWarning("Edge." + str(n) + ": Nezname zdrojove ID (" + line[2] + ")")
                 continue
             try:
                 dst = TechModel.objects.get(id=line[3])
             except TechModel.DoesNotExist:
-                self._logWarning("Edge." + str(n) +": Nezname cilove ID (" + line[3] + ")")
+                self._logWarning("Edge." + str(n) + ": Nezname cilove ID (" + line[3] + ")")
                 continue
 
             try:
@@ -197,7 +195,7 @@ class Parser():
                 die = DieModel.objects.get(id=chunks[0])
                 dots = int(chunks[1])
             except:
-                self._logWarning("Edge." + str(n) +": Nepodarilo se zpracovat udaje o kostce (" + line[4] + ")")
+                self._logWarning("Edge." + str(n) + ": Nepodarilo se zpracovat udaje o kostce (" + line[4] + ")")
                 continue
 
             edge, _ = TechEdgeModel.objects.update_or_create(id=id, defaults={
@@ -254,7 +252,6 @@ class Parser():
             line = line[:10]
             if line[1] == "":
                 continue
-            print("Parsing vyroba " + str(line))
 
             id = line[1]
             label = line[0]
@@ -345,7 +342,6 @@ class Parser():
                 for chunk in chunks:
                     addInput(chunk.strip())
 
-
     def parse(self, rawData):
         # clear all entities
 
@@ -382,7 +378,6 @@ class Parser():
             for model in EntityModel.__subclasses__():
                 model.objects.filter(data=oldData.id).delete()
             oldData.delete()
-
 
         warnings = self.warnings
         self.warnings = None

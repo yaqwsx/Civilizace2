@@ -1,7 +1,7 @@
 from django.db import models
 from django_enumfield import enum
 
-from game.data import TechModel, ResourceModel
+from game.data import TechModel, ResourceModel, ResourceTypeModel
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -73,10 +73,11 @@ class TeamState(ImmutableModel):
         def createInitial(self, team):
             sandbox = SandboxTeamState.objects.createInitial()
             population = PopulationTeamState.objects.createInitial()
-            resources = ResourceStorage.objects.createInitial()
-            techs = TechStorage.objects.createInitial()
+            resources = ResourceStorage.objects.createInitial(team)
+            techs = TechStorage.objects.createInitial(team)
+            distances = DistanceLogger.objects.createInitial(team)
             return self.create(team=team, sandbox=sandbox, population=population, turn=0, resources=resources,
-                               techs=techs)
+                               techs=techs, distances=distances)
 
     objects = TeamStateManager()
 
@@ -86,6 +87,7 @@ class TeamState(ImmutableModel):
     turn = models.IntegerField()
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
+    distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -93,6 +95,74 @@ class TeamState(ImmutableModel):
     def nextTurn(self):
         self.turn += 1
 
+
+class DistanceItemBuilds(ImmutableModel):
+    source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
+    target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
+    distance = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.source}<->{self.target}={self.distance}"
+
+class DistanceItemTeams(ImmutableModel):
+    team = models.ForeignKey("Team", on_delete=models.PROTECT)
+    distance = models.IntegerField()
+
+class DistanceLogger(ImmutableModel):
+    class DistanceLoggerManager(models.Manager):
+        def createInitial(self, team):
+            result = self.create(buildings=[], teams=[])
+            return result
+    objects = DistanceLoggerManager()
+
+    buildings = ListField(model_type=DistanceItemBuilds)
+    teams = ListField(model_type=DistanceItemTeams)
+
+    def hasBuildDistance(self, source, target):
+        try:
+            self.setBuildDistance(source, target)
+            return True
+        except ValueError:
+            return False
+
+    def getBuildDistance(self, source, target):
+        if isinstance(source, str):
+            source = TechModel.objects.get(id=source)
+        if isinstance(target, str):
+            target = TechModel.objects.get(id=target)
+        items = list(filter(
+            lambda item:
+                       (item.source == source and item.target == target)
+                       or (item.source == target and item.target == source),
+            self.buildings
+        ))
+        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
+        if not len(items):
+            raise ValueError(f"No distance mapping between {source}<->{target}")
+        return items[0].distance
+
+    def setBuildDistance(self, source, target, distance):
+        if isinstance(source, str):
+            source = TechModel.objects.get(id=source)
+        if isinstance(target, str):
+            target = TechModel.objects.get(id=target)
+        items = list(filter(
+            lambda item:
+                       (item.source == source and item.target == target)
+                       or (item.source == target and item.target == source),
+            self.buildings
+        ))
+        item = None
+        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
+        if not len(items):
+            item = DistanceItemBuilds(source=source, target=target, distance=distance)
+            self.buildings.append(item)
+        else:
+            item = items[0]
+        item.distance = distance
+
+    def __str__(self):
+        return f"Distances: {self.buildings}; {self.teams}"
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
@@ -104,8 +174,10 @@ class ResourceStorage(ImmutableModel):
         pass
 
     class ResourceStorageManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, team):
             initialResources = [("res-obyvatel", 100), ("res-prace", 100)]
+            if team.id == 1: # TODO: remove DEBUG initial entities
+                initialResources.extend([("prod-bobule",20), ("prod-drevo",20)])
             items = []
             for id, amount in initialResources:
                 print("id: " + str(id))
@@ -199,6 +271,21 @@ class ResourceStorage(ImmutableModel):
         print("Team will receive: " + str(result))
         return result
 
+    def getResourcesByType(self, resourceType=None, level=1, isProduction=True):
+        if not resourceType:
+            resourceType = ResourceTypeModel.objects.get(id="type-jidlo")
+
+        results = {}
+        print(f"Looking up {resourceType} level {level} in {self.items}")
+        for item in self.items:
+            resource = item.resource
+            if resource.type == resourceType and resource.level >= level and resource.isProduction == isProduction:
+                results[resource] = item.amount
+                print(f"  + Resource {resource} matches")
+            else:
+                print(f"  - Resource {resource} does not match")
+        return results
+
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
@@ -221,8 +308,11 @@ class TechStorageItem(ImmutableModel):
 
 class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):
-        def createInitial(self):
-            initialTechs = ["tech-base", "tech-les"]
+        def createInitial(self, team):
+            initialTechs = ["tech-base"]
+            # TODO: Remove DEBUG initialization entities
+            if team.id == 1:
+                initialTechs.extend(["tech-les", "build-centrum", "build-pila", "tech-lovci", "build-lovci"])
             items = []
             for id in initialTechs:
                 print("id: " + str(id))
@@ -230,6 +320,13 @@ class TechStorage(ImmutableModel):
                     tech=game.data.TechModel.objects.get(id=id),
                     status=TechStatusEnum.OWNED
                 ))
+
+            # for land in filter(lambda tech: tech.id[:5] == "land-", TechModel.objects.all()):
+            #     items.append(TechStorageItem.objects.create(
+            #         tech=land,
+            #         status=TechStatusEnum.OWNED
+            #     ))
+
             result = self.create(items=items)
             return result
 
