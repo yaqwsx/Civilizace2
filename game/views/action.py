@@ -20,6 +20,10 @@ from game.forms.action import MoveInitialForm, DiceThrowForm
 
 from game import parameters
 
+def awardAchievements(request, state, team):
+    for ach in state.teamState(team).achievements.awardNewAchievements(state, team):
+        messages.info(request, f"Tým {team.name} získal achievement <b>{ach.label}</b>!<br>{ach.orgMessage}")
+
 
 class ActionView(View):
     def unfinishedActionBy(self, user):
@@ -149,6 +153,7 @@ class ActionConfirmView(ActionView):
             raise PermissionDenied("Cannot view the page")
         try:
             state = State.objects.getNewest()
+            team = get_object_or_404(Team, pk=teamId)
             form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
             if form.is_valid(): # Should be always unless someone plays with API directly
                 action = buildActionMove(form.cleaned_data)
@@ -160,12 +165,13 @@ class ActionConfirmView(ActionView):
                     commitValid, commitMessage = commitStep.applyTo(state)
                     moveValid = moveValid and commitValid
                     message += "<br>" + commitMessage
+                    awardAchievements(request, state, team)
                 if not moveValid:
                     form.data["canceled"] = True
                     return render(request, "game/actionConfirm.html", {
                         "request": request,
                         "form": form,
-                        "team": get_object_or_404(Team, pk=teamId),
+                        "team": team,
                         "action": action,
                         "moveValid": moveValid,
                         "message": message,
@@ -225,6 +231,7 @@ class ActionDiceThrow(ActionView):
         form = DiceThrowForm(action.dotsRequired(state).keys(), data=request.POST)
         if not form.is_valid():
             return self.renderForm(request, action, form)
+        team = get_object_or_404(Team, pk=action.team.id)
         try:
             state = State.objects.getNewest()
             teamState = state.teamState(action.team.id)
@@ -257,6 +264,7 @@ class ActionDiceThrow(ActionView):
             if not moveValid:
                 messages.error(message)
                 return redirect('actionDiceThrow', actionId=action.id)
+            awardAchievements(request, state, team)
             action.save()
             step.save()
             state.save()

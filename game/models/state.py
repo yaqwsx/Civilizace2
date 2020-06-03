@@ -2,6 +2,7 @@ from django.db import models
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
+from game.data.entity import AchievementModel
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -44,6 +45,8 @@ class State(ImmutableModel):
     objects = StateManager()
 
     def teamState(self, teamId):
+        if isinstance(teamId, Team):
+            teamId = teamId.id
         for ts in self.teamStates.all():
             if ts.team.id == teamId:
                 return ts
@@ -76,8 +79,9 @@ class TeamState(ImmutableModel):
             resources = ResourceStorage.objects.createInitial(team)
             techs = TechStorage.objects.createInitial(team)
             distances = DistanceLogger.objects.createInitial(team)
+            achievements = TeamAchievements.objects.createInitial()
             return self.create(team=team, sandbox=sandbox, population=population, turn=0, resources=resources,
-                               techs=techs, distances=distances)
+                               techs=techs, distances=distances, achievements=achievements)
 
     objects = TeamStateManager()
 
@@ -88,6 +92,7 @@ class TeamState(ImmutableModel):
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
+    achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -95,6 +100,24 @@ class TeamState(ImmutableModel):
     def nextTurn(self):
         self.turn += 1
 
+class TeamAchievements(ImmutableModel):
+    class TeamAchievementsManager(models.Manager):
+        def createInitial(self):
+            return self.create(list=[])
+
+    list = ListField(model_type=AchievementModel)
+    objects = TeamAchievementsManager()
+
+    def awardNewAchievements(self, state, team):
+        """ Checks if new achievements should be awarded, if so, return their list """
+        newAchievements = []
+        for achievement in AchievementModel.objects.all():
+            if self.list.has(id=achievement.id): # Skip already awarded achievements
+                continue
+            if achievement.achieved(state, team):
+                newAchievements.append(achievement)
+                self.list.append(achievement)
+        return newAchievements
 
 class DistanceItemBuilds(ImmutableModel):
     source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
@@ -205,7 +228,7 @@ class ResourceStorage(ImmutableModel):
         return result
 
     def spendWork(self, amount):
-        self.payResources({ResourceModel.objects.get(id="res-prsace"): amount})
+        self.payResources({ResourceModel.objects.get(id="res-prace"): amount})
 
     def getAmount(self, resource):
         if isinstance(resource, str):
@@ -320,13 +343,6 @@ class TechStorage(ImmutableModel):
                     tech=game.data.TechModel.objects.get(id=id),
                     status=TechStatusEnum.OWNED
                 ))
-
-            # for land in filter(lambda tech: tech.id[:5] == "land-", TechModel.objects.all()):
-            #     items.append(TechStorageItem.objects.create(
-            #         tech=land,
-            #         status=TechStatusEnum.OWNED
-            #     ))
-
             result = self.create(items=items)
             return result
 
