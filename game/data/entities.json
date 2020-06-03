@@ -1,26 +1,5 @@
 [
-    [
-        [
-            "id-konvence:",
-            ""
-        ],
-        [
-            "Techy, budovy",
-            "tech-*"
-        ],
-        [
-            "Materialy",
-            "mat-*"
-        ],
-        [
-            "Produkce",
-            "prod-*"
-        ],
-        [
-            "Achievementy",
-            "ach-*"
-        ]
-    ],
+    [],
     [
         [
             "Nazev",
@@ -107,15 +86,15 @@
             "-"
         ],
         [
+            "Pastvina",
+            "build-pastvina",
+            "ukol-nic",
+            "-",
             "",
             "",
+            "0",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "Pastvina",
             ""
         ],
         [
@@ -1401,85 +1380,85 @@
             "1"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "TMP: Spot\u0159eba jidla 2",
+            "vyr-spotreba-jidla",
+            "die-les:0",
+            "0",
+            "0",
+            "prod-jidlo-2:1",
+            "prod-koreni:1",
+            "build-centrum",
+            "build-lovci",
             "",
             "1",
             "1"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "TMP: Produkce masa",
+            "vyr-carovani-masa",
+            "die-les:2",
+            "5",
+            "1",
+            "prod-dobytek:1",
+            "prod-maso:2",
+            "build-centrum",
+            "build-centrum",
             "",
             "1",
             "1"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "TMP: Produkce dobytka",
+            "vyr-carovani-dobytka",
+            "die-les:0",
+            "0",
+            "0",
+            "-",
+            "prod-dobytek:1",
+            "build-centrum",
+            "build-pila",
             "",
             "1",
             "1"
         ],
         [
+            "TMP: Produkce obili",
+            "vyr-carovani-obili",
+            "die-les:2",
+            "0",
+            "0",
+            "mat-trus:2, mat-stavivo-2:2",
+            "prod-dobytek:1",
+            "build-centrum",
+            "build-centrum",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "TMP: Mnozeni obyvatel",
+            "vyr-mnozeni",
+            "die-any:0",
+            "0",
+            "0",
+            "-",
+            "res-obyvatel:100",
+            "build-centrum",
+            "build-centrum",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "1",
+            "1"
+        ],
+        [
+            "TMP: Bastleni",
+            "vyr-bastleni",
+            "die-any:0",
+            "10",
+            "5",
+            "mat-drevo:2, prod-tram:2, prod-jidlo-2:4, prod-jidlo-4:2",
+            "prod-nerost:1",
+            "build-centrum",
+            "build-centrum",
             "",
             "1",
             "1"

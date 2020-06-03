@@ -1,6 +1,7 @@
 import math
 from django import forms
 from django.core.validators import MaxValueValidator, MinValueValidator
+from crispy_forms.layout import Layout, Fieldset, HTML
 
 from game.data.vyroba import VyrobaModel
 from game.forms.action import MoveForm
@@ -10,14 +11,59 @@ from game.models.state import ResourceStorage
 
 
 class VyrobaForm(MoveForm):
-    costLabel = forms.CharField(widget=forms.Textarea)
-    volumeSelect = forms.IntegerField(label="Počet jednotek", validators=[MinValueValidator(1), MaxValueValidator(5)])
+    volumeSelect = forms.IntegerField(label="Počet výrob", validators=[MinValueValidator(1)])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         vyroba = VyrobaModel.objects.get(id=self.entityId)
-        self.fields["costLabel"].initial = str(list(vyroba.inputs.all()))
+
+        costHtml = ResourceStorage.asHtml(vyroba.getInputs())
+        print("costHtml: " + str(costHtml))
+
+        layout = [
+            HTML(f"<b>Cena výroby</b>: {costHtml}<br>"),
+            HTML(f"<b>Výstup</b>: {ResourceStorage.asHtml(vyroba.getOutput())}<br>"),
+            'volumeSelect',
+            HTML('<hr class="border-2 border-black my-2">'),
+        ]
+        productions = {}
+        metaProductions = {}
+
+        for resource, amount in vyroba.getInputs().items():
+            if not resource.isProduction:
+                continue
+
+            if not resource.isGeneric:
+                # layout.append(HTML(f"Production {resource.id}<br>"))
+                productions[resource] = amount
+            else:
+                # layout.append(HTML(f"Generic production {resource.id}<br>"))
+                metaProductions[resource] = amount
+
+        subLayout = ['Vzdálenost vstupů']
+        for resource, amount in productions.items():
+            field = forms.IntegerField(label=f"{resource.label}")
+            id = f"dist-{resource.id}"
+            self.fields[id] = field
+            subLayout.append(id)
+        layout.append(Fieldset(*subLayout))
+
+        for metaResource, amount in metaProductions.items():
+            layout.append(HTML('<hr class="border-2 border-black my-2">'))
+            subLayout = [f"{metaResource.label}"]
+
+            for resource, amount in self.state.teamState(self.teamId).resources.getResourcesByType(metaResource).items():
+                subLayout.append(HTML(f"Option {resource.id}"))
+            layout.append(Fieldset(*subLayout))
+
+        self.helper.layout = Layout(
+            self.commonLayout, # Don't forget to add fields of the base form
+            *layout
+        )
+
+        print("[*layout]: " + str([*layout]))
+
 
 class VyrobaMove(Action):
     class Meta:
@@ -31,7 +77,7 @@ class VyrobaMove(Action):
         action = VyrobaMove(
             team=data["team"],
             move=data["action"],
-            arguments={
+                    arguments={
                 "entity": data["entity"],
                 "volume": data["volumeSelect"]
         })

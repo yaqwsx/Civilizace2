@@ -14,6 +14,13 @@ class VyrobaModel(EntityModel):
     die = models.ForeignKey(DieModel, on_delete=models.CASCADE)
     dots = models.IntegerField()
 
+    def getInputs(self):
+        results = {item.resource:item.amount for item in self.inputs.all()}
+        return results
+
+    def getOutput(self):
+        return {self.output:self.amount}
+
 
 class VyrobaInputModel(models.Model):
     parent = models.ForeignKey(VyrobaModel, on_delete=models.CASCADE, related_name="inputs")

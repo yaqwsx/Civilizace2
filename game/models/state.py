@@ -203,7 +203,6 @@ class ResourceStorage(ImmutableModel):
                 initialResources.extend([("prod-bobule",20), ("prod-drevo",20)])
             items = []
             for id, amount in initialResources:
-                print("id: " + str(id))
                 items.append(ResourceStorageItem.objects.create(
                     resource=game.data.ResourceModel.objects.get(id=id),
                     amount=amount
@@ -249,7 +248,6 @@ class ResourceStorage(ImmutableModel):
         except ResourceStorageItem.DoesNotExist:
             item = ResourceStorageItem(resource=resource, amount=amount)
             self.items.append(item)
-            print("Adding new resource " + resource.id)
 
         item.amount = amount
 
@@ -258,7 +256,6 @@ class ResourceStorage(ImmutableModel):
             if resource.id[:4] == "mat-":
                 continue
             if self.getAmount(resource) < amount:
-                print("Not enough resource: " + str(resource))
                 return False
         return True
 
@@ -274,7 +271,6 @@ class ResourceStorage(ImmutableModel):
                 result[resource] = amount
             else:
                 self.setAmount(resource, self.getAmount(resource) - amount)
-        print("Team has to pay: " + str(result))
         return result
 
     def receiveResources(self, resources):
@@ -288,25 +284,21 @@ class ResourceStorage(ImmutableModel):
             else:
                 targetAmount = self.getAmount(resource) + amount
                 self.setAmount(resource, targetAmount)
-                print("targetAmount: " + str(targetAmount))
-                print("amount: " + str(amount))
-                print("self.getAmount(" + resource.id + "): " + str(self.getAmount(resource)))
-        print("Team will receive: " + str(result))
         return result
 
-    def getResourcesByType(self, resourceType=None, level=1, isProduction=True):
-        if not resourceType:
-            resourceType = ResourceTypeModel.objects.get(id="type-jidlo")
+    def getResourcesByType(self, metaResource=None):
+        if not metaResource:
+            metaResource = ResourceModel.objects.get(id="prod-jidlo-2")
+        resourceType = metaResource.type
+        level = metaResource.level
+        isProduction = metaResource.isProduction
+
 
         results = {}
-        print(f"Looking up {resourceType} level {level} in {self.items}")
         for item in self.items:
             resource = item.resource
             if resource.type == resourceType and resource.level >= level and resource.isProduction == isProduction:
                 results[resource] = item.amount
-                print(f"  + Resource {resource} matches")
-            else:
-                print(f"  - Resource {resource} does not match")
         return results
 
 
@@ -338,7 +330,6 @@ class TechStorage(ImmutableModel):
                 initialTechs.extend(["tech-les", "build-centrum", "build-pila", "tech-lovci", "build-lovci"])
             items = []
             for id in initialTechs:
-                print("id: " + str(id))
                 items.append(TechStorageItem.objects.create(
                     tech=game.data.TechModel.objects.get(id=id),
                     status=TechStatusEnum.OWNED
@@ -403,7 +394,6 @@ class TechStorage(ImmutableModel):
                     continue
                 edges.add(edge)
 
-        print("Actionable edges: " + str(list(edges)))
         return list(edges)
 
     def getVyrobas(self):
@@ -412,7 +402,6 @@ class TechStorage(ImmutableModel):
         for tech in self.getOwnedTechs():
             results.extend(tech.unlock_vyrobas.all())
 
-        print("Dostupne vyroby: " + str(results))
         return results
 
 # =================================================
