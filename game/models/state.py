@@ -3,6 +3,7 @@ from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
 from game.data.entity import AchievementModel
+from game.parameters import INITIAL_POPULATION
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -119,9 +120,9 @@ class TeamAchievements(ImmutableModel):
                 self.list.append(achievement)
         return newAchievements
 
-class DistanceItemBuilds(ImmutableModel):
-    source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
-    target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
+class DistanceItemProductions(ImmutableModel):
+    source = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_source")
+    target = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_target")
     distance = models.IntegerField()
 
     def __str__(self):
@@ -134,58 +135,58 @@ class DistanceItemTeams(ImmutableModel):
 class DistanceLogger(ImmutableModel):
     class DistanceLoggerManager(models.Manager):
         def createInitial(self, team):
-            result = self.create(buildings=[], teams=[])
+            result = self.create(productions=[], teams=[])
             return result
     objects = DistanceLoggerManager()
 
-    buildings = ListField(model_type=DistanceItemBuilds)
+    productions = ListField(model_type=DistanceItemProductions)
     teams = ListField(model_type=DistanceItemTeams)
 
-    def hasBuildDistance(self, source, target):
+    def hasProductionDistance(self, source, target):
         try:
-            self.setBuildDistance(source, target)
+            self.getProductionDistance(source, target)
             return True
         except ValueError:
             return False
 
-    def getBuildDistance(self, source, target):
+    def getProductionDistance(self, source, target):
         if isinstance(source, str):
-            source = TechModel.objects.get(id=source)
+            source = ResourceModel.objects.get(id=source)
         if isinstance(target, str):
-            target = TechModel.objects.get(id=target)
+            target = ResourceModel.objects.get(id=target)
         items = list(filter(
             lambda item:
                        (item.source == source and item.target == target)
                        or (item.source == target and item.target == source),
-            self.buildings
+            self.productions
         ))
-        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
+        assert len(items) <= 1, f"There are multiple distance records for {source} <-> {target}"
         if not len(items):
-            raise ValueError(f"No distance mapping between {source}<->{target}")
+            raise ValueError(f"No distance mapping between {source} <-> {target}")
         return items[0].distance
 
-    def setBuildDistance(self, source, target, distance):
+    def setProductionDistance(self, source, target, distance):
         if isinstance(source, str):
-            source = TechModel.objects.get(id=source)
+            source = ResourceModel.objects.get(id=source)
         if isinstance(target, str):
-            target = TechModel.objects.get(id=target)
+            target = ResourceModel.objects.get(id=target)
         items = list(filter(
             lambda item:
                        (item.source == source and item.target == target)
                        or (item.source == target and item.target == source),
-            self.buildings
+            self.productions
         ))
         item = None
         assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
         if not len(items):
-            item = DistanceItemBuilds(source=source, target=target, distance=distance)
-            self.buildings.append(item)
+            item = DistanceItemProductions(source=source, target=target, distance=distance)
+            self.productions.append(item)
         else:
             item = items[0]
         item.distance = distance
 
     def __str__(self):
-        return f"Distances: {self.buildings}; {self.teams}"
+        return f"Distances: {self.productions}; {self.teams}"
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
@@ -198,9 +199,11 @@ class ResourceStorage(ImmutableModel):
 
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team):
-            initialResources = [("res-obyvatel", 100), ("res-prace", 100)]
+            initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION)]
+
             if team.id == 1: # TODO: remove DEBUG initial entities
-                initialResources.extend([("prod-bobule",20), ("prod-drevo",20)])
+                initialResources.extend([("prod-bobule",20), ("prod-drevo",20), ("prod-cukr",20)])
+
             items = []
             for id, amount in initialResources:
                 items.append(ResourceStorageItem.objects.create(
