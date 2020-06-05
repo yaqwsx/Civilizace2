@@ -12,7 +12,7 @@ class ResourceModel(EntityModel):
     level = models.IntegerField(validators=[MinValueValidator(2), MaxValueValidator(6)])
 
     @property
-    def isGeneric(self):
+    def isMeta(self):
         chunks = self.id.split("-")
         if chunks[0] not in ["mat", "prod"]: return False
         return len(chunks) > 2
