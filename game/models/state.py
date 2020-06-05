@@ -17,6 +17,41 @@ from game.models.actionBase import ActionStep, InvalidActionException
 from game.models.users import Team
 from game import parameters
 
+def removeFirstPart(text):
+    idx = text.find(".")
+    if idx == -1:
+        return ""
+    return text[idx + 1:]
+
+def eatUpdatePrefix(prefix, updateList):
+    """
+    Gets and update list (flatten JSON) and selects only keys with given prefix.
+    Removes the prefix from the items
+    """
+    return {
+        removeFirstPart(path): value
+        for path, value in updateList.items() if path.startswith(prefix)
+    }
+
+def eatUpdatePrefixAll(prefix, update):
+    return {
+        "add": eatUpdatePrefix(prefix, update["add"]),
+        "remove": eatUpdatePrefix(prefix, update["remove"]),
+        "change": eatUpdatePrefix(prefix, update["change"])
+    }
+
+def allowKeys(allowed, list):
+    """
+    If the list contains not allowed keys, exception is raised
+    """
+    for key in list.keys():
+        if key.split(".")[0] not in allowed:
+            raise InvalidActionException(f"Neplatná godMove akce, nedovolený klíč '{key}''")
+
+def extractTeamId(teamDescription):
+    startIdx = teamDescription.index("(")
+    endIdx = teamDescription.index(")")
+    return int(teamDescription[startIdx + 1:endIdx])
 
 class StateManager(PrefetchManager):
     def __init__(self):
@@ -56,6 +91,20 @@ class State(ImmutableModel):
     def __str__(self):
         return json.dumps(self._dict)
 
+    def toJson(self):
+        json =  {
+            "worldState": self.worldState.toJson(),
+        }
+        json.update({
+            f"{ts.team.name}({ts.team.id})" : ts.toJson() for ts in self.teamStates.all()
+        })
+        return json
+
+    def godUpdate(self, update):
+        self.worldState.godUpdate(eatUpdatePrefixAll("worldState", update))
+        for ts in self.teamStates.all():
+            # ToDo: Ignore the team name
+            ts.godUpdate(eatUpdatePrefixAll(f"{ts.team.name}({ts.team.id})", update))
 
 class WorldState(ImmutableModel):
     class WorldStateManager(models.Manager):
@@ -71,6 +120,17 @@ class WorldState(ImmutableModel):
     def __str__(self):
         return json.dumps(self._dict)
 
+    def toJson(self):
+        return {
+            "generation": self.generation
+        }
+
+    def godUpdate(self, update):
+        allowKeys(["generation"], update["change"])
+        allowKeys([], update["add"])
+        allowKeys([], update["remove"])
+        if "generation" in update["change"]:
+            self.generation = update["change"]["generation"]
 
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
@@ -101,6 +161,32 @@ class TeamState(ImmutableModel):
     def nextTurn(self):
         self.turn += 1
 
+    def toJson(self):
+        return {
+            "population": self.population.toJson(),
+            "sandbox": self.sandbox.toJson(),
+            "turn": self.turn,
+            "resources": self.resources.toJson(),
+            "techs": self.techs.toJson(),
+            "distances": self.distances.toJson(),
+            "achievements": self.achievements.toJson()
+        }
+
+    def godUpdate(self, update):
+        fields = ["population", "sandbox", "resources", "techs", "distances", "achievements"]
+        allowKeys(fields + ["turn"], update["change"])
+        allowKeys(fields, update["add"])
+        allowKeys(fields, update["remove"])
+        self.population.godUpdate(eatUpdatePrefixAll("population", update))
+        self.sandbox.godUpdate(eatUpdatePrefixAll("sandbox", update))
+        self.resources.godUpdate(eatUpdatePrefixAll("resources", update))
+        self.techs.godUpdate(eatUpdatePrefixAll("techs", update))
+        print("There", update)
+        self.achievements.godUpdate(eatUpdatePrefixAll("achievements", update))
+
+        if "turn" in update["change"]:
+            turn = update["change"]["turn"]
+
 class TeamAchievements(ImmutableModel):
     class TeamAchievementsManager(models.Manager):
         def createInitial(self):
@@ -119,6 +205,24 @@ class TeamAchievements(ImmutableModel):
                 newAchievements.append(achievement)
                 self.list.append(achievement)
         return newAchievements
+
+    def toJson(self):
+        return [ ach.id for ach in self.list ]
+
+    def godUpdate(self, update):
+        allowKeys([], update["change"])
+        for id in update["add"].get("", []):
+            try:
+                if self.list.has(id=id):
+                    continue
+                print("adding")
+                self.list.append(AchievementModel.objects.get(id=id))
+            except AchievementModel.DoesNotExist:
+                raise InvalidActionException(f"Unknown id '{id}'")
+        for id in update["remove"].get("", []):
+            if not self.list.has(id=id):
+                raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
+            self.list.remove(self.list.get(id=id))
 
 class DistanceItemProductions(ImmutableModel):
     source = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_source")
@@ -178,6 +282,66 @@ class DistanceLogger(ImmutableModel):
 
     def __str__(self):
         return f"Distances: {self.productions}; {self.teams}"
+
+    def toJson(self):
+        return {
+            "productions": {
+                f"{p.source.id} -> {p.target.id}": p.distance for p in self.productions
+            },
+            "teams": {
+                f"{t.team.name}({t.team.id})": t.distance for t in self.teams
+            }
+        }
+
+    def godUpdate(self, update):
+        allowKeys(["productions", "teams"], update["change"])
+        allowKeys(["productions", "teams"], update["add"])
+        allowKeys(["productions", "teams"], update["remove"])
+        self.godUpdateProductions(eatUpdatePrefixAll("productions", update))
+        self.godUpdateTeams(eatUpdatePrefixAll("teams", update))
+
+    def godUpdateProductions(self, update):
+        def extractResources(s):
+            x = s.split(s, "->")
+            return x[0].strip(), x[1].strip()
+        for desc, value in update["add"].items():
+            source, target = extractResources(desc)
+            if self.productions.has(source=source, target=target):
+                    raise InvalidActionException(f"Cannot add duplicite distance for '{desc}'")
+            self.productions.append(DistanceItemProductions(source=source, target=target, distance=value))
+
+        for desc, value in update["remove"].items():
+            source, target = extractResources(desc)
+            if not self.productions.has(source=source, target=target):
+                raise InvalidActionException(f"Cannot change '{desc}' which is not present in the list")
+            self.productions.get(source=source, target=target).distance = value
+
+        for desc, value in update["remove"].items():
+            source, target = extractResources(desc)
+            if not self.productions.has(source=source, target=target):
+                raise InvalidActionException(f"Cannot remove '{desc}' which is not present in the list")
+            self.productions.remove(self.productions.get(source=source, target=target))
+
+    def godUpdateTeams(self, update):
+        for desc, value in update["add"].items():
+            id = extractTeamId(desc)
+            if self.teams.has(team=id):
+                    raise InvalidActionException(f"Cannot add duplicite distance for team '{id}'")
+            self.temas.append(DistanceItemTeams(team=id, distance=value))
+
+        for desc, value in update["remove"].items():
+            id = extractTeamId(desc)
+            if not self.teams.has(team=id):
+                raise InvalidActionException(f"Cannot change '{id}' which is not present in the list")
+            self.teams.get(team=id).distance = value
+
+        for desc, value in update["remove"].items():
+            id = extractTeamId(desc)
+            if not self.teams.has(team=id):
+                raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
+            self.teams.remove(self.teams.get(team=id))
+
+
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
@@ -295,6 +459,28 @@ class ResourceStorage(ImmutableModel):
                 results[resource] = item.amount
         return results
 
+    def toJson(self):
+        return {
+            r.resource.id: r.amount for r in self.items
+        }
+
+    def godUpdate(self, update):
+        for resource, amount in update["add"].items():
+            if self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
+            self.items.append(ResourceStorageItem(resource=resource, amount=amount))
+
+        for resource, _ in update["remove"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
+            self.items.remove(self.items.get(resource=resource))
+
+        for resource, amount in update["change"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
+            self.items.get(resource=resource).amount = amount
+
+
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
@@ -306,6 +492,19 @@ class TechStatusEnum(enum.Enum):
         RESEARCHING: "Zkoumá se",
         OWNED: "Vyzkoumaný"
     }
+
+def parseTechStatus(s):
+    s = s.strip()
+    for option in [TechStatusEnum.UNKNOWN, TechStatusEnum.RESEARCHING, TechStatusEnum.OWNED]:
+        if s == option.label:
+            return option
+    s = s.upper()
+    if s == "UKNOWN":
+        return TechStatusEnum.UNKNOWN
+    if s == "RESEARCHING":
+        return TechStatusEnum.RESEARCHING
+    if s == "OWNED":
+        return TechStatusEnum.OWNED
 
 
 class TechStorageItem(ImmutableModel):
@@ -398,6 +597,27 @@ class TechStorage(ImmutableModel):
 
         return results
 
+    def toJson(self):
+        return {
+            t.tech.id: t.status.label for t in self.items
+        }
+
+    def godUpdate(self, update):
+        for tech, status in update["add"].items():
+            if self.items.has(tech=tech):
+                raise InvalidActionException(f"Cannot add '{tech}' which is already present in the list")
+            self.items.append(TechStorageItem(tech=tech, status=parseTechStatus(status)))
+
+        for tech, _ in update["remove"].items():
+            if not self.items.has(tech=tech):
+                raise InvalidActionException(f"Cannot remove '{tech}' which is not present in the list")
+            self.items.remove(self.items.get(tech=tech))
+
+        for tech, status in update["change"].items():
+            if not self.items.has(tech=tech):
+                raise InvalidActionException(f"Cannot change '{tech}' which is not present in the list")
+            self.items.get(tech=tech).status = parseTechStatus(status)
+
 # =================================================
 
 class PopulationTeamStateManager(models.Manager):
@@ -421,6 +641,20 @@ class PopulationTeamState(ImmutableModel):
         self.work = self.work // 2
         self.work += self.population
 
+    def toJson(self):
+        return {
+            "population": self.population,
+            "work": self.work
+        }
+
+    def godUpdate(self, update):
+        allowKeys(["population", "work"], update["change"])
+        allowKeys([], update["add"])
+        allowKeys([], update["remove"])
+        if "population" in update["change"]:
+            self.population = update["change"]["population"]
+        if "work" in update["change"]:
+            self.work = update["change"]["work"]
 
 class SandboxTeamStateManager(models.Manager):
     def createInitial(self):
@@ -436,3 +670,14 @@ class SandboxTeamState(ImmutableModel):
 
     def __str__(self):
         return json.dumps(self._dict)
+
+    def toJson(self):
+        return self.data
+
+    def godUpdate(self, update):
+        allowKeys(["counter"], update["change"])
+        allowKeys([], update["add"])
+        allowKeys([], update["remove"])
+        if "counter" in update["change"]:
+            self.data["counter"] = update["change"]["counter"]
+
