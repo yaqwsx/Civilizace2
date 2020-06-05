@@ -29,6 +29,8 @@ class VyrobaForm(MoveForm):
         ]
         productions = {}
         metaProductions = {}
+        build = vyroba.build
+        teamState = self.state.teamState(self.teamId)
 
         for resource, amount in vyroba.getInputs().items():
             if not resource.isProduction:
@@ -43,18 +45,23 @@ class VyrobaForm(MoveForm):
 
         subLayout = ['Vzdálenost vstupů']
         for resource, amount in productions.items():
-            field = forms.IntegerField(label=f"{resource.label}")
+            distance = teamState.distances.getProductionDistance(resource, build)
+            field = forms.IntegerField(label=f"{resource.label}", initial=distance)
             id = f"dist-{resource.id}"
             self.fields[id] = field
             subLayout.append(id)
         layout.append(Fieldset(*subLayout))
 
-        for metaResource, amount in metaProductions.items():
+        for metaResource, metaAmount in metaProductions.items():
             layout.append(HTML('<hr class="border-2 border-black my-2">'))
-            subLayout = [f"{metaResource.label}"]
+            subLayout = [f"{metaResource.label} ({metaAmount}x)"]
+            idPrefix = f"meta-{metaResource.id}-"
 
-            for resource, amount in self.state.teamState(self.teamId).resources.getResourcesByType(metaResource).items():
-                subLayout.append(HTML(f"Option {resource.id}"))
+            for resource, resAmount in self.state.teamState(self.teamId).resources.getResourcesByType(metaResource).items():
+                subLayout.append(HTML(f"Option {resource.id}<br>"))
+
+
+
             layout.append(Fieldset(*subLayout))
 
         self.helper.layout = Layout(

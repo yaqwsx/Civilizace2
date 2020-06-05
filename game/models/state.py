@@ -3,7 +3,7 @@ from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
 from game.data.entity import AchievementModel
-from game.parameters import INITIAL_POPULATION
+from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
 
@@ -122,11 +122,11 @@ class TeamAchievements(ImmutableModel):
 
 class DistanceItemProductions(ImmutableModel):
     source = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_source")
-    target = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_target")
+    target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
     distance = models.IntegerField()
 
     def __str__(self):
-        return f"{self.source}<->{self.target}={self.distance}"
+        return f"{self.source} -> {self.target}={self.distance}"
 
 class DistanceItemTeams(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
@@ -142,40 +142,31 @@ class DistanceLogger(ImmutableModel):
     productions = ListField(model_type=DistanceItemProductions)
     teams = ListField(model_type=DistanceItemTeams)
 
-    def hasProductionDistance(self, source, target):
-        try:
-            self.getProductionDistance(source, target)
-            return True
-        except ValueError:
-            return False
-
     def getProductionDistance(self, source, target):
         if isinstance(source, str):
             source = ResourceModel.objects.get(id=source)
         if isinstance(target, str):
-            target = ResourceModel.objects.get(id=target)
+            target = TechModel.objects.get(id=target)
         items = list(filter(
-            lambda item:
-                       (item.source == source and item.target == target)
-                       or (item.source == target and item.target == source),
+            lambda item: (item.source == source and item.target == target),
             self.productions
         ))
-        assert len(items) <= 1, f"There are multiple distance records for {source} <-> {target}"
+        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
         if not len(items):
-            raise ValueError(f"No distance mapping between {source} <-> {target}")
+            return MAX_DISTANCE
         return items[0].distance
 
     def setProductionDistance(self, source, target, distance):
         if isinstance(source, str):
             source = ResourceModel.objects.get(id=source)
         if isinstance(target, str):
-            target = ResourceModel.objects.get(id=target)
+            target = TechModel.objects.get(id=target)
+
         items = list(filter(
-            lambda item:
-                       (item.source == source and item.target == target)
-                       or (item.source == target and item.target == source),
+            lambda item: (item.source == source and item.target == target),
             self.productions
         ))
+
         item = None
         assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
         if not len(items):
