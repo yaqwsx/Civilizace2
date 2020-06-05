@@ -7,6 +7,7 @@ from .startRound import StartRoundMove
 from .research import ResearchMove
 from .vyroba import VyrobaMove
 from .sandbox import SandboxMove
+from .godmode import GodmodeForm
 
 def buildActionMove(data):
     """

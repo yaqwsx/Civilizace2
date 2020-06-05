@@ -9,6 +9,8 @@ class ActionMove(enum.Enum):
     nextGeneration = 4
     research = 5
     vyroba = 7
+
+    godmode = 42
     sandbox = 99
 
     __labels__ = {
@@ -20,5 +22,7 @@ class ActionMove(enum.Enum):
         nextGeneration: "Next generation",
         research: "Zkoumat",
         vyroba: "Výroba",
+
+        godmode: "Godmode",
         sandbox: "SANDBOX"
     }
