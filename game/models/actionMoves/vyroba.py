@@ -64,7 +64,7 @@ class VyrobaForm(MoveForm):
                 fieldData.append(data)
 
             if not len(fieldData):
-                raise ResourceStorage.NotEnoughResourcesException()
+                raise ResourceStorage.NotEnoughResourcesException(f"Nemáte skladem žádné produkce typu {metaResource}")
 
             print("metaAmount: " + str(metaAmount))
             print("fieldData: " + str(fieldData))
