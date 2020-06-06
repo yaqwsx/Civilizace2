@@ -51,10 +51,64 @@
     {% endcard %}
     {% card "Vzdalenosti" %} {{teamState.distances}} {% endcard %}
 
-
-
 </div>
 <div class="flex flex-wrap">
-    {% card "Počítadlo" %} {{teamState.sandbox.data.counter}}  {% endcard %}
+    {% card "Počítadlo - bez ikony" width="third" icon="" %} {{teamState.sandbox.data.counter}}  {% endcard %}
+</div>
+
+<div class="flex flex-wrap">
+    {% card "Fancy graf" width="half" %}
+        <canvas id="chartjs-7" class="chartjs" width="undefined" height="undefined"></canvas>
+        <script>
+            new Chart(document.getElementById("chartjs-7"), {
+                "type": "bar",
+                "data": {
+                    "labels": ["January", "February", "March", "April"],
+                    "datasets": [{
+                        "label": "Page Impressions",
+                        "data": [10, 20, 30, 40],
+                        "borderColor": "rgb(255, 99, 132)",
+                        "backgroundColor": "rgba(255, 99, 132, 0.2)"
+                    }, {
+                        "label": "Adsense Clicks",
+                        "data": [5, 15, 10, 30],
+                        "type": "line",
+                        "fill": false,
+                        "borderColor": "rgb(54, 162, 235)"
+                    }]
+                },
+                "options": {
+                    "scales": {
+                        "yAxes": [{
+                            "ticks": {
+                                "beginAtZero": true
+                            }
+                        }]
+                    }
+                }
+            });
+        </script>
+    {% endcard %}
+    {% card "Další fancy graf" width="half" %}
+        <canvas id="chartjs-0" class="chartjs" width="undefined" height="undefined"></canvas>
+        <script>
+            new Chart(document.getElementById("chartjs-0"), {
+                "type": "line",
+                "data": {
+                    "labels": ["January", "February", "March", "April", "May", "June", "July"],
+                    "datasets": [{
+                        "label": "Views",
+                        "data": [65, 59, 80, 81, 56, 55, 40],
+                        "fill": false,
+                        "borderColor": "rgb(75, 192, 192)",
+                        "lineTension": 0.1
+                    }]
+                },
+                "options": {}
+            });
+        </script>
+    {% endcard %}
+
 </div>
 {% endblock %}
+

@@ -11,7 +11,7 @@ class Card(InclusionTag):
     options = Options(
         Argument("name"),
         MultiKeywordArgument("params", required=False, default= {
-            "color": "green-600", "icon": "fa-wallet"}),
+            "color": "green-600", "icon": "fa-wallet", "width": "third"}),
         blocks=[('endcard', 'nodelist')],
     )
 
