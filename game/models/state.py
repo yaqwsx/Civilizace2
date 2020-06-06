@@ -468,7 +468,7 @@ class ResourceStorage(ImmutableModel):
         for resource, amount in update["add"].items():
             if self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(ResourceStorageItem(resource=resource, amount=amount))
+            self.items.append(ResourceStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
 
         for resource, _ in update["remove"].items():
             if not self.items.has(resource=resource):
