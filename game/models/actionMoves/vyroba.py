@@ -63,6 +63,9 @@ class VyrobaForm(MoveForm):
                 data = ((resource, f"{resource.label} ({resAmount}x)"), resAmount, distance)
                 fieldData.append(data)
 
+            if not len(fieldData):
+                raise ResourceStorage.NotEnoughResourcesException()
+
             print("metaAmount: " + str(metaAmount))
             print("fieldData: " + str(fieldData))
             choices = list(zip(*fieldData))[0]
