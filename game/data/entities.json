@@ -1245,7 +1245,13 @@
             "Jablko",
             "res-jablko",
             "-",
-            ""
+            "placeholder.png"
+        ],
+        [
+            "P\u0159epravn\u00ed kapacita",
+            "res-nosic",
+            "-",
+            "placeholder.png"
         ]
     ],
     [

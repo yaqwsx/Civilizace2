@@ -42,7 +42,13 @@
     {% card "Zname techy" %} {{teamState.techs.getOwnedTechs}} {% endcard %}
     {% card "Zkoumane techy" %} {{teamState.techs.getTechsUnderResearch}} {% endcard %}
     {% card "Vyroby" %} {{teamState.techs.getVyrobas}} {% endcard %}
-    {% card "Jidlo v zasobe" %} {{teamState.resources.getResourcesByType}} {% endcard %}
+    {% card "Jidlo v zasobe" %}
+        <ul class="text-left">
+        {% for r, a in teamState.resources.getResourcesByType.items %}
+            <li>{{r.htmlRepr | safe}}: {{a}}</li>
+        {% endfor %}
+        </ul>
+    {% endcard %}
     {% card "Vzdalenosti" %} {{teamState.distances}} {% endcard %}
 
 
