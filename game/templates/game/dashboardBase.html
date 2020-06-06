@@ -66,3 +66,25 @@
         </li> {% endcomment %}
     </ul>
 {% endblock %}
+
+{% block content %}
+<script>
+    sections = document.querySelectorAll(".section h2");
+    for ( var i = 0; i != sections.length; i++ ) {
+        sec = sections[i];
+        sec.id = "section-" + i;
+        parent = sec.parentNode;
+        for ( var j = 0; j != sections.length; j++ ) {
+            {% comment %} if ( i == j ) {
+                continue;
+            } {% endcomment %}
+            var link = document.createElement('a');
+            link.href = "#section-" + j;
+            link.classList.add("inline-block");
+            link.classList.add("my-2")
+            link.innerHTML = '<span class="text-gray-500 p-2 mx-1 border-b-2">' + sections[j].innerHTML + '</span>';
+            parent.append(link);
+        }
+    }
+</script>
+{% endblock %}
