@@ -1,4 +1,4 @@
-{% extends "game/base.html" %}
+{% extends "game/actionBase.html" %}
 {% load crispy_forms_tags qrScanner %}
 
 {% block title %} Příběh civilizace - Zadat akci {% endblock %}
@@ -126,6 +126,8 @@
                 "{{entity.id}}": "{{action.value}}",{% endfor %}
         };
     </script>
+
+{{ block.super }}
 {% endblock %}
 
 {% block afterContainer %}
