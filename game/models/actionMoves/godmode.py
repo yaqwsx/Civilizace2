@@ -15,7 +15,7 @@ class GodmodeForm(MoveForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['changes'].initial = {"add":[], "remove": [], "change": []}
+        self.fields['changes'].initial = json.dumps({"add":[], "remove": [], "change": []})
         self.helper.layout = Layout(
             self.commonLayout, # Don't forget to add fields of the base form
             Field('changes'),
