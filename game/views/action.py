@@ -56,7 +56,7 @@ class ActionIndexView(ActionView):
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         state = State.objects.getNewest()
-        form = MoveInitialForm(state=state)
+        form = MoveInitialForm(state=state, user=request.user)
         return render(request, "game/actionIndex.html", {
             "request": request,
             "form": form,
@@ -68,7 +68,7 @@ class ActionIndexView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        form = MoveInitialForm(data=request.POST, state=state)
+        form = MoveInitialForm(data=request.POST, state=state, user=request.user)
         if form.is_valid():
             return redirect(reverse('actionMove', kwargs={
                                     "moveId": form.cleaned_data['action'].value,
@@ -111,7 +111,7 @@ class ActionMoveView(ActionView):
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
         form = formForActionMove(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
-             state=state, team=teamId)
+             state=state, team=teamId, user=request.user)
         try:
             if form.is_valid() and not form.cleaned_data["canceled"]:
                 action = buildActionMove(form.cleaned_data)
@@ -154,7 +154,7 @@ class ActionConfirmView(ActionView):
         try:
             state = State.objects.getNewest()
             team = get_object_or_404(Team, pk=teamId)
-            form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId)
+            form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId, user=request.user)
             if form.is_valid(): # Should be always unless someone plays with API directly
                 action = buildActionMove(form.cleaned_data)
                 requiresDice = action.requiresDice(state)

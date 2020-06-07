@@ -30,15 +30,14 @@
 {% endfor %}
 </style>
 
-<h1>Náhled technologického stromu</h1>
-
-
 <svg id="graph" class="w-full h-screen">
     <g/>
 </svg>
 
 <script>
-    var g = new dagreD3.graphlib.Graph().setGraph({});
+    var g = new dagreD3.graphlib.Graph().setGraph({
+        rankdir: 'LR'
+    });
 
     {% for tech in nodes %}
         var div = document.createElement("div");
@@ -80,6 +79,8 @@
     // Center the graph
     var initialScale = 1;
     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.node().getBBox().width - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+
+    document.getElementById("content").classList.remove("container");
 </script>
 
 {% endblock %}

@@ -28,11 +28,12 @@ class MoveInitialForm(forms.Form):
     team = captures(KeywordType.team,
         TeamChoiceField(label="Tým"))
     action = captures(KeywordType.move,
-        EmptyEnumChoiceField(ActionMove, label="Akce"))
+        forms.ChoiceField(label="Akce"))
     entity = forms.ChoiceField(required=False, label="Entita")
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 
-    def __init__(self, data=None, state=None, **kwargs):
+    def __init__(self, user, data=None, state=None, **kwargs):
+        from game.models.actionMoves import allowedActionMoves
         if data:
             super().__init__(data)
         else:
@@ -55,6 +56,7 @@ class MoveInitialForm(forms.Form):
                 for entity in entities:
                     self.actionForEntity[entity] = action.CiviMeta.move
         self.fields["entity"].choices = [('', '-----------')] + [(entity.id, entity.label) for entity in self.allEntities]
+        self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActionMoves(user)]
 
         self.commonLayout = Layout(
             Field('team'),
@@ -67,18 +69,18 @@ class MoveInitialForm(forms.Form):
 # Base form for building actions - every other move building form has to inherit
 # from this one
 class MoveForm(MoveInitialForm):
-    def __init__(self, team=None, action=None, entity=None, data=None, state=None):
+    def __init__(self, user, team=None, action=None, entity=None, data=None, state=None):
         self.teamId = team
         self.state = state
         if data:
-            super(MoveForm, self).__init__(data, state=state)
+            super(MoveForm, self).__init__(data, user=user, state=state)
             self.entityId = data.get("entity")
         else:
             super(MoveForm, self).__init__(initial={
                     "action": action,
                     "team": team,
                     "entity": entity,
-                }, state=state)
+                }, state=state, user=user)
             self.entityId = entity
         for fieldName in ["action", "team", "entity"]:
             self.fields[fieldName].widget = forms.HiddenInput()

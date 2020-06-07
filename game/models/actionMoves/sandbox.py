@@ -35,6 +35,7 @@ class SandboxMove(Action):
     class CiviMeta:
         move = ActionMove.sandbox
         form = SandboxForm
+        allowed = ["super"]
 
     @staticmethod
     def build(data):

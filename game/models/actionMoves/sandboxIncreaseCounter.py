@@ -14,6 +14,7 @@ class SandboxIncreaseCounterMove(Action):
     class CiviMeta:
         move = ActionMove.sanboxIncreaseCounter
         form = SanboxIncreaseCounterForm
+        allowed = ["super", "org"]
 
     @staticmethod
     def relevantEntities(state, team):

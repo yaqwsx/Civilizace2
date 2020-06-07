@@ -22,6 +22,7 @@ class NextTurn(Action):
     class CiviMeta:
         move = ActionMove.nextTurn
         form = NextTurnForm
+        allowed = ["super", "org"]
 
     @staticmethod
     def relevantEntities(state, team):

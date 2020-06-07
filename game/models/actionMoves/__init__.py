@@ -26,3 +26,9 @@ def formForActionMove(move):
         if actionClass.CiviMeta.move == move:
             return actionClass.CiviMeta.form
     return None
+
+def allowedActionMoves(org):
+    from game.models.actionBase import Action
+    orgGroups = list([x.name for x in org.groups.all()])
+    return [c.CiviMeta.move for c in Action.__subclasses__()
+            if not set(c.CiviMeta.allowed).isdisjoint(orgGroups)]

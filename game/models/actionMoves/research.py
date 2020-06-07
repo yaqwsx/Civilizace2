@@ -40,6 +40,7 @@ class ResearchMove(Action):
     class CiviMeta:
         move = ActionMove.research
         form = ResearchForm
+        allowed = ["super", "org"]
 
     @property
     def selectId(self):

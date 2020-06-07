@@ -11,6 +11,7 @@ class CreateInitialMove(Action):
     class CiviMeta:
         move = ActionMove.createInitial
         form = CreateInitialForm
+        allowed = []
 
     @staticmethod
     def relevantEntities(state, team):
