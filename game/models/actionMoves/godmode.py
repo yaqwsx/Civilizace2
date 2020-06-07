@@ -28,6 +28,7 @@ class GodMove(Action):
     class CiviMeta:
         move = ActionMove.godmode
         form = GodmodeForm
+        allowed = ["super"]
 
     @staticmethod
     def build(data):

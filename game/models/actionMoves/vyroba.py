@@ -91,6 +91,7 @@ class VyrobaMove(Action):
     class CiviMeta:
         move = ActionMove.vyroba
         form = VyrobaForm
+        allowed = ["super", "org"]
 
     @staticmethod
     def build(data):
@@ -165,7 +166,7 @@ class VyrobaMove(Action):
         costs = {key: value[0] for key, value in productions.items()}
         self.cost.update(costs)
         self.distances = {key: value[1] for key, value in productions.items()}
-        
+
         self.arguments["team"] = None
 
     def requiresDice(self, state):

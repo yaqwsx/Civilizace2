@@ -7,8 +7,6 @@ class IndexView(View):
     @method_decorator(login_required)
     def get(self, request):
         # Redirect users based on their role:
-        if request.user.isATeam():
-            return redirect("dashboardIndex")
-        if request.user.isBTeam():
+        if request.user.isOrg():
             return redirect("dashboardIndex")
         return redirect("dashboardIndex")

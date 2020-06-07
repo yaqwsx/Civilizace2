@@ -11,6 +11,7 @@ class NextGenerationAction(Action):
     class CiviMeta:
         move = ActionMove.nextGeneration
         form = NextGenerationForm
+        allowed = ["super"]
 
     @staticmethod
     def relevantEntities(state, team):

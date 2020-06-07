@@ -12,6 +12,7 @@ class StartRoundMove(Action):
     class CiviMeta:
         move = ActionMove.startNewRound
         form = StartRoundForm
+        allowed = ["super", "org"]
 
     @staticmethod
     def relevantEntities(state, team):

@@ -11,14 +11,7 @@ from game.models.state import State
 
 from game.data.update import Update, UpdateError
 
-GROUPS_PERMISSIONS = {
-    'ATeam': {
-        Team: ['play', 'stat']
-    },
-    'BTeam': {
-        Team: ['play', 'stat']
-    },
-}
+GROUPS = ["super", "org"]
 
 TEAMS = {
     "Červení": {
@@ -35,8 +28,8 @@ TEAMS = {
     }
 }
 
-ATEAM = ["maara", "honza", "abbe", "jupi", "efka"]
-BTEAM = ["kaja", "domca"]
+SUPER_USERS = ["maara", "honza"]
+ORG = ["abbe", "jupi", "efka", "kaja", "domca"]
 
 KEYWORDS = [
     # keyword, description, category, value
@@ -97,41 +90,25 @@ class Command(BaseCommand):
                             password="password")
                 perm = Permission.objects.get(codename="stat_team")
                 assign_perm(perm, user, team)
-        ateamGroup = Group.objects.get(name='ATeam')
-        for username in ATEAM:
+        org = Group.objects.get(name='org')
+        for username in ORG:
             user = Command.create_or_get_user(
                             username=username,
-                            email=username + "@ateam.cz",
+                            email=username + "@org.cz",
                             password="password",
                             superuser=True)
-            user.groups.add(ateamGroup)
-        bteamGroup = Group.objects.get(name='BTeam')
-        for username in BTEAM:
+            user.groups.add(org)
+        superGroup = Group.objects.get(name='super')
+        for username in SUPER_USERS:
             user = Command.create_or_get_user(
                             username=username,
-                            email=username + "@bteam.cz",
+                            email=username + "@super.cz",
                             password="password")
-            user.groups.add(bteamGroup)
+            user.groups.add(superGroup)
 
     def createGroups(self):
-        for group_name in GROUPS_PERMISSIONS:
+        for group_name in GROUPS:
             group, created = Group.objects.get_or_create(name=group_name)
-            for model_cls in GROUPS_PERMISSIONS[group_name]:
-                for perm_index, perm_name in \
-                        enumerate(GROUPS_PERMISSIONS[group_name][model_cls]):
-
-                    # Generate permission name as Django would generate it
-                    codename = perm_name + "_" + model_cls._meta.model_name
-                    try:
-                        # Find permission object and add to group
-                        perm = Permission.objects.get(codename=codename)
-                        group.permissions.add(perm)
-                        self.stdout.write("Adding "
-                                          + codename
-                                          + " to group "
-                                          + group.__str__())
-                    except Permission.DoesNotExist:
-                        self.stdout.write(codename + " not found")
 
     def createState(self):
         s = State.objects.createInitial()

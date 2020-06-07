@@ -33,14 +33,17 @@ class User(AbstractUser):
     def team(self):
         return get_objects_for_user(self, "game.stat_team").first()
 
-    def isATeam(self):
-        return self.groups.filter(name__in=["ATeam"])
-
-    def isBTeam(self):
-        return self.groups.filter(name__in=["BTeam"])
-
     def isOrg(self):
-        return self.groups.filter(name__in=["ATeam", "BTeam"])
+        return self.groups.filter(name__in=["org", "super"])
+
+    def isSuperUser(self):
+        return self.groups.filter(name="super")
 
     def isPlayer(self):
         return not self.isOrg()
+
+    def isInGroup(self, groupName):
+        for group in self.groups.all():
+            if groupName in group:
+                return True
+        return False
