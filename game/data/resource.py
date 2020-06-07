@@ -22,3 +22,8 @@ class ResourceModel(EntityModel):
         chunks = self.id.split("-")
         return chunks[0] == "prod"
 
+    def htmlRepr(self):
+        if self.isProduction:
+            return f"<b>{self.label}</b>"
+        return self.label
+

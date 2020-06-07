@@ -7,60 +7,84 @@
 {% block nav %}
     {{ block.super }}
 
-    {% if user.isOrg %}
-        <ul class="w-full list-reset lg:flex flex-1 items-center px-4 md:px-0 border-gray-600 border-b-2 lg:border-none">
-        {% for t in teams %}
-            {% if t.id == team.id %}
-                <li class="mr-6 my-2 md:my-0">
-                    <a href="{% url 'dashboardStat' teamId=t.id %}"
-                        class="block py-1 md:py-3 pl-1 align-middle text-orange-600 no-underline hover:text-gray-900 border-b-2 border-orange-600 hover:border-orange-600">
-                        <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
-                    </a>
-                </li>
-            {% else %}
-                <li class="mr-6 my-2 md:my-0">
-                    <a href="{% url 'dashboardStat' teamId=t.id %}"
-                        class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
-                        <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
-                    </a>
-                </li>
-            {% endif %}
-        {% endfor %}
-        </ul>
-    {% endif %}
+    <ul class="w-full list-reset lg:flex flex-1 items-center px-4 md:px-0 border-gray-600 border-b-2 lg:border-none">
+    {% for t in teams %}
+        {% if t.id == targetTeam.id %}
+            <li class="mr-6 my-2 md:my-0">
+                <a href="{% url 'dashboardStat' teamId=t.id %}"
+                    class="block py-1 md:py-2 pl-1 align-middle text-orange-600 no-underline hover:text-gray-900 border-b-2 border-orange-600 hover:border-orange-600">
+                    <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="mr-6 my-2 md:my-0">
+                <a href="{% url 'dashboardStat' teamId=t.id %}"
+                    class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
+                    <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
+                </a>
+            </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
 
     <ul class="w-full list-reset lg:flex flex-1 items-center px-4 md:px-0">
         <li class="mr-6 my-2 md:my-0">
-            <a href="{% url 'dashboardStat' teamId=team.id%}"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
+            <a href="{% url 'dashboardStat' teamId=targetTeam.id%}"
+                class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
                     {% if 'dashboardStat' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
                 <i class="fas fa-home fa-fw mr-3 text-orange-600"></i><span class="pb-1 md:pb-0 text-sm">Home</span>
             </a>
         </li>
         {% comment %} <li class="mr-6 my-2 md:my-0">
             <a href="#"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
+                class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
                 <i class="fas fa-tasks fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Tasks</span>
             </a>
         </li> {% endcomment %}
-        <li class="mr-6 my-2 md:my-0">
-            <a href="{% url 'dashboardMessages' teamId=team.id%}"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-purple-500
-                    {% if 'dashboardMessages' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
-                <i class="fa fa-envelope fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Zprávy</span>
-            </a>
-        </li>
+
+        {% if targetTeam.id == myTeam.id %}
+            <li class="mr-6 my-2 md:my-0">
+                <a href="{% url 'dashboardMessages' teamId=targetTeam.id %}"
+                    class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-purple-500
+                        {% if 'dashboardMessages' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
+                    <i class="fa fa-envelope fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Zprávy</span>
+                </a>
+            </li>
+        {% endif %}
+
         {% comment %} <li class="mr-6 my-2 md:my-0">
             <a href="#"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-green-500">
+                class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-green-500">
                 <i class="fas fa-chart-area fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Analytics</span>
             </a>
         </li>
         <li class="mr-6 my-2 md:my-0">
             <a href="#"
-                class="block py-1 md:py-3 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-red-500">
+                class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-red-500">
                 <i class="fa fa-wallet fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Payments</span>
             </a>
         </li> {% endcomment %}
     </ul>
+{% endblock %}
+
+{% block content %}
+<script>
+    sections = document.querySelectorAll(".section h2");
+    for ( var i = 0; i != sections.length; i++ ) {
+        sec = sections[i];
+        sec.id = "section-" + i;
+        parent = sec.parentNode;
+        for ( var j = 0; j != sections.length; j++ ) {
+            {% comment %} if ( i == j ) {
+                continue;
+            } {% endcomment %}
+            var link = document.createElement('a');
+            link.href = "#section-" + j;
+            link.classList.add("inline-block");
+            link.classList.add("my-2")
+            link.innerHTML = '<span class="text-gray-500 p-2 mx-1 border-b-2">' + sections[j].innerHTML + '</span>';
+            parent.append(link);
+        }
+    }
+</script>
 {% endblock %}

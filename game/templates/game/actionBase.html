@@ -1,0 +1,59 @@
+{% extends "game/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<script>
+    function addSpinbox(input) {
+        input.classList.add("flex-1", "mx-3");
+        input.style = "min-width: 0; "
+        parent = input.parentNode;
+
+        minus = document.createElement("button");
+        minus.id = input.id + "-minus";
+        minus.innerHTML = "-";
+        minus.style = "min-width: 60px";
+        minus.classList.add("inline-block", "shadow", "text-center",
+            "bg-purple-500", "hover:bg-purple-400", "focus:shadow-outline",
+            "focus:outline-none", "text-white", "font-bold", "py-2", "px-4",
+            "rounded", "flex-none");
+
+        plus = document.createElement("buttom");
+        plus.id = input.id + "-plus";
+        plus.innerHTML = "+";
+        plus.style = "min-width: 60px";
+        plus.classList.add("inline-block", "shadow", "text-center",
+            "bg-purple-500", "hover:bg-purple-400", "focus:shadow-outline",
+            "focus:outline-none", "text-white", "font-bold", "py-2", "px-4",
+            "rounded", "flex-none");
+
+        parent.prepend(minus);
+        parent.append(plus);
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.matches('#' + input.id + "-minus")) return;
+            event.preventDefault();
+
+            if (input.value == null || input.value == "") {
+                input.value = "0"
+            }
+            input.value = parseInt(input.value) - 1;
+        }, false);
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.matches('#' + input.id + "-plus")) return;
+            event.preventDefault();
+            if (input.value == null || input.value == "") {
+                input.value = "0"
+            }
+            input.value = parseInt(input.value) + 1;
+        }, false);
+    }
+
+    var inputs = document.getElementsByTagName('input');
+    for(var i = 0; i < inputs.length; i++) {
+        if(inputs[i].type.toLowerCase() == 'number') {
+            addSpinbox(inputs[i]);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "game/dashboardBase.html" %}
+
+{% load cards %}
+
+{% block title %} Příběh civilizace - Dashboard {% endblock %}
+
+{% block content %}
+
+<h2 class="text-xl my-1 mt-3">Přehled týmu: {{ targetTeam.name }}</h2>
+<div class="flex flex-wrap">
+    {% card "Počet obyvatel" %} {{otherTeamState.population.population}}  {% endcard %}
+</div>
+
+{{ block.super }}
+{% endblock %}

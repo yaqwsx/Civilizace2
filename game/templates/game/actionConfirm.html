@@ -1,4 +1,4 @@
-{% extends "game/base.html" %}
+{% extends "game/actionBase.html" %}
 {% load crispy_forms_tags %}
 
 {% block title %} Příběh civilizace - Potvrdit akci akci {% endblock %}
@@ -44,4 +44,6 @@
         </button>
     </div>
 </form>
+
+{{ block.super }}
 {% endblock %}

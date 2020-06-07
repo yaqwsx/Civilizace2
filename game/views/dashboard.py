@@ -24,8 +24,10 @@ class DashboardStatView(View):
     def get(self, request, teamId):
         user = request.user
         if user.isPlayer() and user.team().id != teamId:
-            raise PermissionDenied("Cannot view the page")
+            return self.renderOtherTeam(request, user.team().id, teamId)
+        return self.renderMyTeam(request, teamId)
 
+    def renderMyTeam(self, request, teamId):
         team = get_object_or_404(Team, pk=teamId)
         state = State.objects.getNewest()
         teamState = state.teamState(teamId)
@@ -40,12 +42,32 @@ class DashboardStatView(View):
 
         return render(request, 'game/dashBoardIndex.html', {
             "request": request,
-            "team": team,
+            "myTeam": team,
+            "targetTeam": team,
             "teams": Team.objects.all(),
             "state": state,
             "teamState": teamState,
             "worldState": worldState,
             "boardMessages": boardMessages,
+            "messages": messages.get_messages(request)
+        })
+
+    def renderOtherTeam(self, request, myTeamId, otherTeamId):
+        myTeam = get_object_or_404(Team, pk=myTeamId)
+        otherTeam = get_object_or_404(Team, pk=otherTeamId)
+        state = State.objects.getNewest()
+        myTeamState = state.teamState(myTeamId)
+        otherTeamState = state.teamState(otherTeamId)
+        worldState = state.worldState
+        return render(request, 'game/dashBoardIndexOther.html', {
+            "request": request,
+            "myTeam": myTeam,
+            "targetTeam": otherTeam,
+            "teams": Team.objects.all(),
+            "state": state,
+            "myTeamState": myTeamState,
+            "otherTeamState": otherTeamState,
+            "worldState": worldState,
             "messages": messages.get_messages(request)
         })
 
@@ -63,7 +85,8 @@ class DashboardMessageView(View):
             .order_by('-appearDateTime')
         return render(request, 'game/dashBoardMessages.html', {
             "request": request,
-            "team": team,
+            "myTeam": team,
+            "targetTeam": team,
             "teams": Team.objects.all(),
             "boardMessages": boardMessages,
             "messages": messages.get_messages(request)

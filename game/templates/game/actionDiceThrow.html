@@ -1,4 +1,4 @@
-{% extends "game/base.html" %}
+{% extends "game/actionBase.html" %}
 {% load crispy_forms_tags %}
 
 {% block title %} Příběh civilizace - Házení kostkou {% endblock %}
@@ -20,9 +20,11 @@
     <hr class="w-full black my-2" >
 
     <div class="flex flex-wrap w-full my-5">
-        <input id="dots" type="number" value=""
-            class="w-full md:w-1/2 text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700"
-            autofocus>
+        <div class="flex w-full md:w-1/2">
+            <input id="dots" type="number" value=""
+                class="text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700"
+                autofocus>
+        </div>
          <button
             class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
             onclick="onDiceThrow()"
@@ -81,4 +83,6 @@
         </button>
     </div>
 </form>
+
+{{ block.super }}
 {% endblock %}
