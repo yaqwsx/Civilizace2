@@ -1,4 +1,4 @@
-from game.data.vyroba import VyrobaModel, VyrobaInputModel
+from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
 from .entity import EntityModel, GameDataModel, DieModel, AchievementModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TaskModel, TechModel, TechEdgeModel, TechEdgeInputModel
@@ -12,7 +12,8 @@ class Parser():
         "tech": 1,
         "edge": 2,
         "vyr": 5,
-        "ach": 9
+        "ach": 9,
+        "enh": 10
     }
 
     warnings = None
@@ -342,6 +343,71 @@ class Parser():
                 for chunk in chunks:
                     addInput(chunk.strip())
 
+    def _addEnhancements(self):
+        print("Parsing enhancements")
+        myRaw = self.raw[self.SHEET_MAP["enh"]]
+
+        for n, line in enumerate(myRaw[2:], start=2):
+            line = line[:10]
+            if line[1] == "":
+                continue
+
+            id = line[1]
+            label = line[0]
+
+            try:
+                vyroba = VyrobaModel.objects.get(id=line[2])
+            except VyrobaModel.DoesNotExist:
+                self._logWarning("Vylepšení ." + str(n) + ": Neznámé ID výroby (" + line[2] + ")")
+                continue
+
+            try:
+                tech = TechModel.objects.get(id=line[3])
+            except TechModel.DoesNotExist:
+                self._logWarning("Vylepšení ." + str(n) + ": Neznámé ID technologie (" + line[3] + ")")
+                continue
+
+            try:
+                amount = int(line[5])
+            except Exception:
+                self._logWarning("Vylepšení ." + str(n) + ".: Bonus musí být číslo (" + line[5] + ")")
+                return None
+
+            defaults = {"label": label, "tech": tech, "vyroba": vyroba, "amount": amount, "data": self.data}
+            enhancement, _ = EnhancementModel.objects.update_or_create(id=id, defaults=defaults)
+
+            def addInput(entry):
+                chunks = entry.split(":")
+
+                if len(chunks) < 2:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Nepodarilo se zpracovat vstup (" + entry + ")")
+                    return None
+
+                try:
+                    res = ResourceModel.objects.get(id=chunks[0])
+                except ResourceModel.DoesNotExist:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
+                    return None
+
+                try:
+                    amount = int(chunks[1])
+                except Exception:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
+                    return None
+
+                input, _ = EnhancementInputModel.objects.update_or_create(
+                    parent=enhancement, resource=res,
+                    defaults={"amount": amount})
+                return input
+
+            print("line: " + str(line))
+            if line[4] != "" and line[4] != "-":
+                chunks = line[4].split(",")
+                print("chunks: " + str(chunks))
+                for chunk in chunks:
+                    addInput(chunk.strip())
+
+
     def _addAchievements(self):
         print("Parsing achievements")
         myRaw = self.raw[self.SHEET_MAP["ach"]]
@@ -383,6 +449,7 @@ class Parser():
         self._addTechs()
         self._addEdges()
         self._addVyrobas()
+        self._addEnhancements()
         self._addAchievements()
 
         # Delete items which weren't updated - the ones with old game data

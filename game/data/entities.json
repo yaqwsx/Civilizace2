@@ -21,9 +21,9 @@
             "",
             "Za devatero horami byla jedna mal\u00e1 civilizace",
             "0",
-            "",
+            "banan",
             "-",
-            "Lesn\u00ed n\u00e1rody"
+            "Lesn\u00ed n\u00e1rody, Domestikace, Povrchov\u00e1 t\u011b\u017eba, Rybolov, P\u011bstov\u00e1n\u00ed, Podpovrchov\u00e1 t\u011b\u017eba"
         ],
         [
             "Vyu\u017eit\u00ed lesa",
@@ -33,7 +33,7 @@
             "Vzhuru do lesa",
             "Drevo se hodi",
             "0",
-            "",
+            "hruska",
             "Lesn\u00ed n\u00e1rody",
             "Loveck\u00e1 kultura, Pila"
         ],
@@ -45,7 +45,7 @@
             "",
             "",
             "0",
-            "",
+            "trolejbus",
             "-",
             "-"
         ],
@@ -57,7 +57,7 @@
             "",
             "",
             "0",
-            "",
+            "letadlo",
             "Pila",
             "-"
         ],
@@ -69,9 +69,9 @@
             "",
             "",
             "0",
-            "",
+            "kanarek",
             "Loveck\u00e1 kultura",
-            "Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor"
+            "Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor, Uhl\u00ed, L\u00e9\u010div\u00e9 byliny"
         ],
         [
             "Lovecky tabor",
@@ -81,7 +81,7 @@
             "",
             "",
             "0",
-            "",
+            "lachtan",
             "Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor",
             "-"
         ],
@@ -93,14 +93,950 @@
             "",
             "",
             "0",
+            "krychle",
+            "Domestikace",
+            "-"
+        ],
+        [
+            "Ta\u017en\u00e1 s\u00edla",
+            "tech-tazna",
+            "ukol-nic",
+            "-",
             "",
-            "Pastvina",
+            "",
+            "0",
+            "a",
+            "Domestikace",
+            "Chomout, St\u00e1jov\u00fd chov"
+        ],
+        [
+            "Domestikace ",
+            "tech-pastvina",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "b",
+            "-",
+            "Ta\u017en\u00e1 s\u00edla, J\u00edzda"
+        ],
+        [
+            "J\u00edzda",
+            "tech-jizda",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "c",
+            "Domestikace",
+            "T\u0159men"
+        ],
+        [
+            "Povrchov\u00e1 t\u011b\u017eba",
+            "tech-lom",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "d",
+            "-",
+            "Stavitelstv\u00ed, Lom"
+        ],
+        [
+            "Lom",
+            "build-lom",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "e",
+            "Povrchov\u00e1 t\u011b\u017eba",
+            "-"
+        ],
+        [
+            "Stavitelstv\u00ed",
+            "tech-stavitelstvi",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "f",
+            "Povrchov\u00e1 t\u011b\u017eba",
+            "Stavebn\u00ed hu\u0165, Matematika"
+        ],
+        [
+            "Stavebn\u00ed hu\u0165",
+            "build-stavhut",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "g",
+            "Stavitelstvi",
+            "-"
+        ],
+        [
+            "Matematika",
+            "tech-matematika",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "h",
+            "Stavitelstv\u00ed, Astronomie",
+            "Mechanika, Filozofie"
+        ],
+        [
+            "Mechanika",
+            "tech-mechanika",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "i",
+            "Matematika",
+            ""
+        ],
+        [
+            "L\u00e9\u010div\u00e9 byliny",
+            "tech-byliny",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "j",
+            "",
+            "Filozofie, L\u00e9ka\u0159stv\u00ed"
+        ],
+        [
+            "L\u00e9ka\u0159stv\u00ed",
+            "tech-lekarstvi",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "k",
+            "L\u00e9\u010div\u00e9 byliny",
+            "Iatrochemie"
+        ],
+        [
+            "Iatrochemie",
+            "tech-iatrochemie",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "l",
+            "L\u00e9ka\u0159stv\u00ed, Alchymie",
+            ""
+        ],
+        [
+            "Astronomie",
+            "tech-astronomie",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "m",
+            "",
+            "Matematika, Navigace"
+        ],
+        [
+            "Rybolov",
+            "tech-pristav",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "n",
+            "-",
+            "Plavba, P\u0159\u00edstav"
+        ],
+        [
+            "P\u0159\u00edstav",
+            "build-pristav",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "o",
+            "Plavba",
+            "-"
+        ],
+        [
+            "Plavba",
+            "tech-plavba",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "p",
+            "Rybolov",
+            "Mo\u0159eplavba, P\u0159\u00edstav"
+        ],
+        [
+            "P\u011bstov\u00e1n\u00ed",
+            "tech-pole",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "q",
+            "-",
+            "Textil, Astronomie, Pole"
+        ],
+        [
+            "Pole",
+            "build-pole",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "r",
+            "P\u011bstov\u00e1n\u00ed",
+            "-"
+        ],
+        [
+            "Textil",
+            "tech-textil",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "s",
+            "P\u011bstov\u00e1n\u00ed",
+            "Textiln\u00ed dilna"
+        ],
+        [
+            "Textiln\u00ed d\u00edlna",
+            "build-texdilna",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "t",
+            "Textil",
+            "-"
+        ],
+        [
+            "Keramika",
+            "tech-keramika",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "u",
+            "Povrchov\u00e1 t\u011b\u017eba",
+            "Stavitelstv\u00ed"
+        ],
+        [
+            "Mo\u0159eplavba",
+            "tech-moreplavba",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "v",
+            "Plavba",
+            "Dok"
+        ],
+        [
+            "Dok",
+            "build-dok",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "w",
+            "Mo\u0159eplavba",
+            "-"
+        ],
+        [
+            "Uhl\u00ed",
+            "tech-uhli",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "x",
+            "Loveck\u00e1 kultura",
+            "Redukce kov\u016f"
+        ],
+        [
+            "Redukce kov\u016f",
+            "tech-redukce",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "y",
+            "Uhl\u00ed",
+            "\u017delezo"
+        ],
+        [
+            "Hu\u0165",
+            "build-hut",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "z",
+            "Redukce kov\u016f",
+            "-"
+        ],
+        [
+            "\u017delezo",
+            "tech-zelezo",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "aa",
+            "Redukce kov\u016f",
+            "Vysok\u00e1 pec, N\u00fdtov\u00e1n\u00ed, Kov\u00e1rna"
+        ],
+        [
+            "Kov\u00e1rna",
+            "build-kovarna",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ab",
+            "\u017delezo",
+            "-"
+        ],
+        [
+            "Vysok\u00e1 pec",
+            "tech-vysokapec",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ac",
+            "\u017delezo",
+            ""
+        ],
+        [
+            "N\u00fdtov\u00e1n\u00ed",
+            "tech-nytovani",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ad",
+            "\u017delezo",
+            ""
+        ],
+        [
+            "Vyu\u017eit\u00ed pou\u0161t\u011b",
+            "tech-poust",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ae",
+            "",
+            ""
+        ],
+        [
+            "St\u00e1jov\u00fd chov",
+            "tech-staj",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "af",
+            "Ta\u017en\u00e1 s\u00edla",
+            ""
+        ],
+        [
+            "D\u00edlna s pec\u00ed",
+            "build-hrncir",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ag",
+            "Keramika",
+            "-"
+        ],
+        [
+            "Malta",
+            "tech-malta",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ah",
+            "Stavitelstv\u00ed",
+            ""
+        ],
+        [
+            "Navigace",
+            "tech-navigace",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ai",
+            "Astronomie",
+            ""
+        ],
+        [
+            "Alkoholick\u00e9 n\u00e1poje",
+            "tech-alkohol",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "aj",
+            "P\u011bstov\u00e1n\u00ed",
+            "Alchymie"
+        ],
+        [
+            "Alchymie",
+            "tech-alchymie",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ak",
+            "Alkoholick\u00e9 n\u00e1poje",
+            "Alchymistick\u00e1 d\u00edlna, Iatrochemie"
+        ],
+        [
+            "Alchymistick\u00e1 d\u00edlna",
+            "build-alchdilna",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "al",
+            "Alchymie",
+            "-"
+        ],
+        [
+            "Filozofie",
+            "tech-filozofie",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "am",
+            "L\u00e9\u010div\u00e9 byliny",
+            "Fyzika, Matematika"
+        ],
+        [
+            "Fyzika",
+            "tech-fyzika",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "an",
+            "Filozofie",
+            ""
+        ],
+        [
+            "Univerzita",
+            "build-univerzita",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ao",
+            "Filozofie",
+            "-"
+        ],
+        [
+            "POdpovrchov\u00e1 t\u011b\u017eba",
+            "tech-dul",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ap",
+            "",
+            "D\u016fl"
+        ],
+        [
+            "D\u016fl",
+            "build-dul",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "aq",
+            "POdpovrchov\u00e1 t\u011b\u017eba",
+            "-"
+        ],
+        [
+            "Hnojen\u00ed",
+            "tech-hnojeni",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ar",
+            "",
+            ""
+        ],
+        [
+            "Zavla\u017eov\u00e1n\u00ed",
+            "tech-zavlazovani",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "as",
+            "",
             ""
         ],
         [
             "",
             "",
+            "ukol-nic",
+            "-",
             "",
+            "",
+            "0",
+            "at",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "au",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "av",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "aw",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ax",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "ay",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "az",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -112,19 +1048,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -136,19 +1060,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -160,19 +1072,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -184,19 +1084,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -208,19 +1096,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -232,19 +1108,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -256,19 +1120,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -280,19 +1132,7 @@
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
+            "ukol-nic",
             "",
             "",
             "",
@@ -304,73 +1144,13 @@
         [
             "",
             "",
+            "ukol-nic",
             "",
             "",
             "",
             "",
             "",
             "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "D",
             ""
         ]
     ],
@@ -440,7 +1220,7 @@
             "edge-lovci-build",
             "tech-lovci",
             "build-lovci",
-            "die-any:5",
+            "die-any:0",
             "5",
             "0",
             "mat-stavivo-2:2",
@@ -460,23 +1240,563 @@
             "1"
         ],
         [
+            "Uhl\u00ed",
+            "edge-uhli",
+            "tech-lovci",
+            "tech-uhli",
+            "die-any:0",
             "",
             "",
-            "tech-boo",
-            "tech-boo",
             "",
-            "",
-            "",
-            "",
-            "0",
-            "0"
+            "1",
+            "1"
         ],
         [
+            "Redukce kovu",
+            "edge-redukce",
+            "tech-uhli",
+            "tech-redukce",
+            "die-any:0",
             "",
             "",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "Hu\u0165",
+            "edge-hu\u0165",
+            "tech-redukce",
+            "build-hut",
+            "die-any:0",
             "",
             "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "\u017delezo",
+            "edge-zelezo",
+            "tech-redukce",
+            "tech-zelezo",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Kov\u00e1rna",
+            "edge-kovarna",
+            "tech-zelezo",
+            "build-kovarna",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "N\u00fdtovan\u00ed",
+            "edge-nytovani",
+            "tech-zelezo",
+            "tech-nytovani",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Vysoka pec",
+            "edge-vysokapec",
+            "tech-zelezo",
+            "tech-vysokapec",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Domestikace",
+            "edge-domestikace",
+            "tech-base",
+            "tech-poust",
+            "die-poust:20",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Pastvina",
+            "edge-pastvina",
+            "tech-pastvina",
+            "build-pastvina",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Ta\u017en\u00e1 s\u00edla",
+            "edge-tazna",
+            "tech-pastvina",
+            "tech-tazna",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "J\u00edzda",
+            "edge-jizda",
+            "tech-pastvina",
+            "tech-jizda",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "St\u00e1jov\u00fd chov",
+            "edge-stajovy",
+            "tech-tazna",
+            "tech-staj",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Povrchov\u00e1 t\u011b\u017eba",
+            "edge-povrchova",
+            "tech-base",
+            "tech-lom",
+            "die-poust:20",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Lom",
+            "edge-lom",
+            "tech-lom",
+            "build-lom",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Keramika",
+            "edge-keramika",
+            "tech-lom",
+            "tech-keramika",
+            "die-any:0",
+            "",
+            "",
+            "mat-jil:1",
+            "1",
+            "1"
+        ],
+        [
+            "D\u00edlna s pec\u00ed",
+            "edge-hrncir",
+            "tech-keramika",
+            "build-hrncir",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Stavitelstv\u00ed",
+            "edge-stav-planina",
+            "tech-keramika",
+            "tech-stavitelstvi",
+            "die-any:0",
+            "",
+            "",
+            "mat-jil:1",
+            "1",
+            "1"
+        ],
+        [
+            "Matematika",
+            "edge-mat-planina",
+            "tech-stavitelstvi",
+            "tech-matematika",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Stavitelstv\u00ed",
+            "edge-stav-poust",
+            "tech-lom",
+            "tech-stavitelstvi",
+            "die-any:0",
+            "",
+            "",
+            "mat-kamen:1",
+            "1",
+            "1"
+        ],
+        [
+            "Stavebn\u00ed hu\u0165",
+            "edge-stavhut",
+            "tech-stavitelstvi",
+            "build-stavhut",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Malta",
+            "edge-malta",
+            "tech-stavitelstvi",
+            "tech-malta",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Mechanika",
+            "edge-mechanika",
+            "tech-matematika",
+            "tech-mechanika",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Rybolov",
+            "edge-rybolov",
+            "tech-base",
+            "tech-pristav",
+            "die-plane:20",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Plavba",
+            "edge-plavba",
+            "tech-pristav",
+            "tech-plavba",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "P\u0159\u00edstav",
+            "edge-pristav",
+            "tech-plavba",
+            "build-pristav",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Mo\u0159eplavba",
+            "edge-moreplavba",
+            "tech-plavba",
+            "tech-moreplavba",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Dok",
+            "edge-dok",
+            "tech-moreplavba",
+            "build-dok",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "P\u011bstov\u00e1n\u00ed",
+            "edge-pestovani",
+            "tech-base",
+            "tech-pole",
+            "die-plane:20",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Pole",
+            "edge-pole",
+            "tech-pole",
+            "build-pole",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Astronomie",
+            "edge-astronomie",
+            "tech-pole",
+            "tech-astronomie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Navigace",
+            "edge-navigace",
+            "tech-astronomie",
+            "tech-navigace",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Textil",
+            "edge-textil",
+            "tech-pole",
+            "tech-textil",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Textiln\u00ed d\u00edlna",
+            "edge-texdilna",
+            "tech-textil",
+            "build-texdilna",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Alkoholick\u00e9 n\u00e1poje",
+            "edge-alkohol",
+            "tech-pole",
+            "tech-alkohol",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Alchymie",
+            "edge-alchymie",
+            "tech-alkohol",
+            "tech-alchymie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Alchymistick\u00e1 d\u00edlna",
+            "edge-alchdilna",
+            "tech-alchymie",
+            "build-alchdilna",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Iatrochemie",
+            "edge-iatro-alchymie",
+            "tech-alchymie",
+            "tech-iatrochemie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Iatrochemie",
+            "edge-iatro-lekarstvi",
+            "tech-lekarstvi",
+            "tech-iatrochemie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "L\u00e9\u010div\u00e9 byliny",
+            "edge-byliny",
+            "tech-lovci",
+            "tech-byliny",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "L\u00e9ka\u0159stv\u00ed",
+            "edge-lekarstvi",
+            "tech-byliny",
+            "tech-lekarstvi",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Filozofie",
+            "edge-filozofie",
+            "tech-byliny",
+            "tech-filozofie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Fyzika",
+            "edge-fyzika",
+            "tech-filozofie",
+            "tech-fyzika",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Matematika",
+            "edge-mat-filozofie",
+            "tech-filozofie",
+            "tech-matematika",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Filozofie",
+            "edge-filozofie-mat",
+            "tech-matematika",
+            "tech-filozofie",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Univerzita",
+            "edge-univerzita",
+            "tech-filozofie",
+            "build-univerzita",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "Podpovrchov\u00e1 t\u011b\u017eba",
+            "edge-dolovani",
+            "tech-base",
+            "tech-dul",
+            "die-hory:20",
+            "",
+            "",
+            "",
+            "1",
+            "1"
+        ],
+        [
+            "D\u016fl",
+            "edge-dul",
+            "tech-dul",
+            "build-dul",
+            "die-any:0",
             "",
             "",
             "",
@@ -488,19 +1808,7 @@
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
+            "die-any:0",
             "",
             "",
             "",
@@ -512,19 +1820,7 @@
             "",
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
+            "die-any:0",
             "",
             "",
             "",
@@ -536,516 +1832,516 @@
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ],
         [
             "",
             "",
             "",
             "",
+            "die-any:0",
             "",
             "",
             "",
             "",
-            "1",
-            "1"
+            ""
         ]
     ],
     [
@@ -1182,20 +2478,20 @@
             "placeholder.png"
         ],
         [
+            "Nerosty",
+            "mat-nerost",
+            "nastroj-3",
+            "placeholder.png"
+        ],
+        [
             "Lano",
             "mat-lano",
-            "nastroj-3",
+            "nastroj-4",
             "placeholder.png"
         ],
         [
             "Bronz",
             "mat-bronz",
-            "nastroj-4",
-            "placeholder.png"
-        ],
-        [
-            "Nerosty",
-            "mat-nerost",
             "nastroj-5",
             "placeholder.png"
         ],
@@ -1224,19 +2520,19 @@
             "placeholder.png"
         ],
         [
-            "L\u00e9\u010divo",
-            "mat-lek",
+            "Keramika",
+            "mat-keramika",
             "luxus-4",
             "placeholder.png"
         ],
         [
-            "Keramika",
-            "mat-keramika",
+            "L\u00e9\u010divo",
+            "mat-lek",
             "luxus-5",
             "placeholder.png"
         ],
         [
-            "Sklo/\u0160perky",
+            "\u0160perky",
             "mat-sklo",
             "luxus-6",
             "placeholder.png"
@@ -1250,6 +2546,12 @@
         [
             "P\u0159epravn\u00ed kapacita",
             "res-nosic",
+            "-",
+            "placeholder.png"
+        ],
+        [
+            "Populace",
+            "res-populace",
             "-",
             "placeholder.png"
         ]
@@ -1299,6 +2601,8 @@
             "Budova",
             "Pohadka",
             "",
+            "",
+            "Poznamky",
             ""
         ],
         [
@@ -1313,7 +2617,9 @@
             "",
             "",
             "@ Existuje tech?",
-            "@ Existuje budova?"
+            "@ Existuje budova?",
+            "",
+            ""
         ],
         [
             "Sb\u011br bobul\u00ed",
@@ -1327,7 +2633,9 @@
             "land-bobule",
             "",
             "1",
-            "0"
+            "0",
+            "",
+            ""
         ],
         [
             "Sb\u011bra\u010di",
@@ -1341,7 +2649,9 @@
             "build-lovci",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "T\u011b\u017eba d\u0159eva",
@@ -1355,7 +2665,9 @@
             "land-drevo",
             "",
             "1",
-            "0"
+            "0",
+            "",
+            ""
         ],
         [
             "D\u0159evorubec",
@@ -1369,7 +2681,9 @@
             "build-pila",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "Zpracov\u00e1n\u00ed d\u0159eva",
@@ -1383,7 +2697,25 @@
             "build-centrum",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
+        ],
+        [
+            "Farm\u00e1\u0159",
+            "vyr-obili",
+            "die-plane:2",
+            "5",
+            "2",
+            "-",
+            "prod-obili:2",
+            "build-pole",
+            "build-pole",
+            "",
+            "1",
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Spot\u0159eba jidla 2",
@@ -1397,7 +2729,9 @@
             "build-lovci",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Produkce masa",
@@ -1411,7 +2745,9 @@
             "build-centrum",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Produkce dobytka",
@@ -1425,7 +2761,9 @@
             "build-pila",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Produkce obili",
@@ -1439,7 +2777,9 @@
             "build-centrum",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Mnozeni obyvatel",
@@ -1453,7 +2793,9 @@
             "build-centrum",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "TMP: Bastleni",
@@ -1467,735 +2809,841 @@
             "build-centrum",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
-            "",
+            "D\u0159ev\u011bn\u00e9 uhl\u00ed",
+            "vyr-druhli",
+            "die-les:0",
+            "10",
             "",
+            "mat-drevo:2",
+            "prod-drevo:2",
+            "tech-uhli",
+            "build-lovci",
             "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "vic dreva",
+            ""
         ],
         [
-            "",
+            "\u017delezn\u00e9 ingoty",
+            "vyr-zelezo",
+            "die-les:0",
+            "10",
             "",
+            "prod-nerost:1",
+            "prod-zelezo:2",
+            "tech-redukce",
+            "build-hut",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "zelezo",
+            ""
         ],
         [
-            "",
-            "",
-            "",
-            "",
+            "\u017delezn\u00e9 v\u00fdrobky",
+            "vyr-kovani",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-zelezo",
+            "build-kovarna",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "uhli, zelezo",
+            "\u0161rouby, \u0161perky, vic \u017eeleza?"
         ],
         [
-            "",
-            "",
+            "Vysok\u00e1 pec",
+            "vyr-vysokapec",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-vysokapec",
+            "build-hut",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "nerost",
+            "moc zeleza"
         ],
         [
+            "Dobytek",
+            "vyr-dobytek",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-pastvina",
+            "build-pastvina",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            "dobytek"
         ],
         [
-            "",
-            "",
-            "",
-            "",
+            "Dobytek ve staji",
+            "vyr-stajovy",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-staj",
+            "build-pastvina",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "obili",
+            "dobytek II"
         ],
         [
-            "",
-            "",
+            "Ta\u017en\u00e1 s\u00edla",
+            "vyr-tazna",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-tazna",
+            "build-pastvina",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "dobytek",
+            "transportni kapacita"
         ],
         [
+            "V\u016fz",
+            "vyr-tazna-vuz",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-tazna",
+            "build-pastvina",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "drevo, zelezo, dobytek",
+            "transport II"
         ],
         [
-            "",
-            "",
-            "",
-            "",
+            "Chomout",
+            "vyr-tazna-chomout",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-tazna",
+            "build-pastvina",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "drevo, zelezo, dobytek, kuze",
+            "transport III"
         ],
         [
-            "",
-            "",
+            "Hn\u016fj",
+            "vyr-stajovy",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-staj",
+            "build-pole",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            "vice obili"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
+            "T\u0159men",
+            "vyr-trmen",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-jizda",
+            "build-pastvina",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            "pohyblivost VJ, utok VJ"
         ],
         [
-            "",
-            "",
-            "",
+            "T\u011b\u017eba j\u00edlu",
+            "vyr-jil",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-lom",
+            "build-lom",
             "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            "jil"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "T\u011b\u017eba kamene",
+            "vyr-kamen",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-lom",
+            "build-lom",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            "kamen"
         ],
         [
-            "",
-            "",
-            "",
+            "T\u011b\u017eba nerostu",
+            "vyr-nerost-lom",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-lom",
+            "build-lom",
             "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            "malo nerostu"
         ],
         [
+            "Keramika",
+            "vyr-keramika",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-keramika",
+            "build-hrncir",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "jil, drevo/uhli",
+            "keramika"
         ],
         [
-            "",
-            "",
-            "",
-            "",
+            "Silnice",
+            "vyr-silnice",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-stavitelstvi",
+            "build-centrum",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
+            "Most",
+            "vyr-most",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-matematika",
+            "build-stavhut",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
+            "Malta",
+            "vyr-malta",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
+            "tech-malta",
+            "build-stavhut",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "drevo/uhli, nerost",
+            "malta"
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
-            "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
-            "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
-            "",
-            "",
-            "",
             "",
             "",
+            "die-les:0",
+            "10",
             "",
             "",
+            "res-prace:5",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2208,8 +3656,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2223,7 +3673,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2237,7 +3689,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2250,8 +3704,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2265,7 +3721,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2279,7 +3737,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2292,8 +3752,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2306,8 +3768,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2320,8 +3784,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2335,7 +3801,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2349,7 +3817,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2362,8 +3832,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2377,7 +3849,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2391,7 +3865,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2404,8 +3880,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2419,7 +3897,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2433,7 +3913,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2446,8 +3928,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2461,7 +3945,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2475,7 +3961,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2489,7 +3977,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2503,7 +3993,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2516,8 +4008,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2531,7 +4025,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2545,7 +4041,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2558,8 +4056,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2573,7 +4073,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2587,7 +4089,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2600,8 +4104,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2615,7 +4121,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2629,7 +4137,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -2642,8 +4152,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2656,8 +4168,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2670,8 +4184,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2684,8 +4200,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2698,8 +4216,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2712,8 +4232,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2726,8 +4248,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2740,8 +4264,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2754,8 +4280,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2768,8 +4296,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2782,8 +4312,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2796,8 +4328,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2810,8 +4344,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2824,8 +4360,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2838,8 +4376,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2852,8 +4392,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2866,8 +4408,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2880,8 +4424,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2894,8 +4440,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2908,8 +4456,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2922,8 +4472,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2936,8 +4488,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2950,8 +4504,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2964,8 +4520,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2978,8 +4536,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -2992,8 +4552,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3006,8 +4568,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3020,8 +4584,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3034,8 +4600,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3048,8 +4616,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3062,8 +4632,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3076,8 +4648,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3090,8 +4664,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3104,8 +4680,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3118,8 +4696,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3132,8 +4712,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3146,8 +4728,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3160,8 +4744,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3174,8 +4760,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3188,8 +4776,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3202,8 +4792,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3216,8 +4808,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3230,8 +4824,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3244,8 +4840,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3258,8 +4856,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3272,8 +4872,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3286,8 +4888,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3300,8 +4904,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3314,8 +4920,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3328,8 +4936,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3342,8 +4952,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3356,8 +4968,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3370,8 +4984,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3384,8 +5000,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3398,8 +5016,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3412,8 +5032,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3426,8 +5048,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3440,8 +5064,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3454,8 +5080,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3468,8 +5096,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3482,8 +5112,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3496,8 +5128,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3510,8 +5144,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3524,8 +5160,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3538,8 +5176,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3552,8 +5192,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3566,8 +5208,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3580,8 +5224,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3594,8 +5240,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3608,8 +5256,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3622,8 +5272,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3636,8 +5288,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3650,8 +5304,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3664,8 +5320,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3678,8 +5336,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3692,8 +5352,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3706,8 +5368,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3720,8 +5384,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3734,8 +5400,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3748,8 +5416,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3762,8 +5432,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3776,8 +5448,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3790,8 +5464,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3804,8 +5480,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3818,8 +5496,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3832,8 +5512,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3846,8 +5528,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3860,8 +5544,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3874,8 +5560,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3888,8 +5576,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3902,8 +5592,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3916,8 +5608,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3930,8 +5624,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3944,8 +5640,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3958,8 +5656,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3972,8 +5672,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -3986,8 +5688,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4000,8 +5704,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4014,8 +5720,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4028,8 +5736,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4042,8 +5752,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4056,8 +5768,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4070,8 +5784,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4084,8 +5800,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4098,8 +5816,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4112,8 +5832,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4126,8 +5848,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4140,8 +5864,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4154,8 +5880,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4168,8 +5896,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4182,8 +5912,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4196,8 +5928,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4210,8 +5944,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4224,8 +5960,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4238,8 +5976,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4252,8 +5992,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4266,8 +6008,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4280,8 +6024,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4294,8 +6040,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4308,8 +6056,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4322,8 +6072,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4336,8 +6088,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4350,8 +6104,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4364,8 +6120,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4378,8 +6136,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4392,8 +6152,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4406,8 +6168,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4420,8 +6184,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4434,8 +6200,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4448,8 +6216,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -4463,7 +6233,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4477,7 +6249,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4491,7 +6265,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4505,7 +6281,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4519,7 +6297,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4533,7 +6313,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4547,7 +6329,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4561,7 +6345,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4575,7 +6361,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4589,7 +6377,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4603,7 +6393,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4617,7 +6409,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4631,7 +6425,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4645,7 +6441,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4659,7 +6457,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4673,7 +6473,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4687,7 +6489,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4701,7 +6505,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4715,7 +6521,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4729,7 +6537,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4743,7 +6553,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4757,7 +6569,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4771,7 +6585,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4785,7 +6601,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4799,7 +6617,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4813,7 +6633,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4827,7 +6649,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4841,7 +6665,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4855,7 +6681,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4869,7 +6697,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4883,7 +6713,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4897,7 +6729,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4911,7 +6745,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4925,7 +6761,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4939,7 +6777,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4953,7 +6793,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4967,7 +6809,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4981,7 +6825,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -4995,7 +6841,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5009,7 +6857,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5023,7 +6873,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5037,7 +6889,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5051,7 +6905,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5065,7 +6921,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5079,7 +6937,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5093,7 +6953,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5107,7 +6969,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5121,7 +6985,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5135,7 +7001,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5149,7 +7017,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5163,7 +7033,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5177,7 +7049,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5191,7 +7065,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5205,7 +7081,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5219,7 +7097,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5233,7 +7113,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5247,7 +7129,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5261,7 +7145,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5275,7 +7161,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5289,7 +7177,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5303,7 +7193,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5317,7 +7209,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5331,7 +7225,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5345,7 +7241,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5359,7 +7257,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5373,7 +7273,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5387,7 +7289,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5401,7 +7305,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5415,7 +7321,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5429,7 +7337,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5443,7 +7353,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5457,7 +7369,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5471,7 +7385,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5485,7 +7401,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5499,7 +7417,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5513,7 +7433,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5527,7 +7449,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5541,7 +7465,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5555,7 +7481,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5569,7 +7497,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5583,7 +7513,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5597,7 +7529,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5611,7 +7545,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5625,7 +7561,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5639,7 +7577,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5653,7 +7593,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5667,7 +7609,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5681,7 +7625,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5695,7 +7641,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5709,7 +7657,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5723,7 +7673,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5737,7 +7689,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5751,7 +7705,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5765,7 +7721,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5779,7 +7737,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5793,7 +7753,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5807,7 +7769,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5821,7 +7785,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5835,7 +7801,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5849,7 +7817,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5863,7 +7833,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5877,7 +7849,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5891,7 +7865,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5905,7 +7881,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5919,7 +7897,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5933,7 +7913,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5947,7 +7929,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5961,7 +7945,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5975,7 +7961,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -5989,7 +7977,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6003,7 +7993,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6017,7 +8009,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6031,7 +8025,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6045,7 +8041,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6059,7 +8057,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6073,7 +8073,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6087,7 +8089,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6101,7 +8105,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6115,7 +8121,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6129,7 +8137,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6143,7 +8153,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6157,7 +8169,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6171,7 +8185,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6185,7 +8201,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6199,7 +8217,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6213,7 +8233,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6227,7 +8249,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6241,7 +8265,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6255,7 +8281,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ],
         [
             "",
@@ -6268,8 +8296,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6282,8 +8312,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6296,8 +8328,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6310,8 +8344,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6324,8 +8360,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6338,8 +8376,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6352,8 +8392,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6366,8 +8408,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6380,8 +8424,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6394,8 +8440,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6408,8 +8456,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6422,8 +8472,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6436,8 +8488,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6450,8 +8504,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6464,8 +8520,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6478,8 +8536,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6492,8 +8552,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6506,8 +8568,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6520,8 +8584,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6534,8 +8600,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6548,8 +8616,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6562,8 +8632,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6576,8 +8648,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6590,8 +8664,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6604,8 +8680,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6618,8 +8696,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6632,8 +8712,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6646,8 +8728,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6660,8 +8744,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6674,8 +8760,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6688,8 +8776,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6702,8 +8792,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6716,8 +8808,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6730,8 +8824,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6744,8 +8840,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6758,8 +8856,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6772,8 +8872,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6786,8 +8888,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6800,8 +8904,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6814,8 +8920,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6828,8 +8936,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6842,8 +8952,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6856,8 +8968,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6870,8 +8984,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6884,8 +9000,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6898,8 +9016,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6912,8 +9032,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6926,8 +9048,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6940,8 +9064,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6954,8 +9080,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6968,8 +9096,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6982,8 +9112,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -6996,8 +9128,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7010,8 +9144,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7024,8 +9160,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7038,8 +9176,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7052,8 +9192,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7066,8 +9208,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7080,8 +9224,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7094,8 +9240,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7108,8 +9256,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7122,8 +9272,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7136,8 +9288,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7150,8 +9304,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7164,8 +9320,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7178,8 +9336,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7192,8 +9352,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7206,8 +9368,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7220,8 +9384,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7234,8 +9400,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7248,8 +9416,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7262,8 +9432,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7276,8 +9448,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7290,8 +9464,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7304,8 +9480,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7318,8 +9496,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7332,8 +9512,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7346,8 +9528,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7360,8 +9544,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7374,8 +9560,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7388,8 +9576,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7402,8 +9592,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7416,8 +9608,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7430,8 +9624,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7444,8 +9640,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7458,8 +9656,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7472,8 +9672,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7486,8 +9688,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7500,8 +9704,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7514,8 +9720,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7528,8 +9736,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7542,8 +9752,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7556,8 +9768,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7570,8 +9784,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7584,8 +9800,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7598,8 +9816,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7612,8 +9832,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7626,8 +9848,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7640,8 +9864,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7654,8 +9880,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7668,8 +9896,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7682,8 +9912,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7696,8 +9928,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7710,8 +9944,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7724,8 +9960,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7738,8 +9976,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7752,8 +9992,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7766,8 +10008,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7780,8 +10024,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7794,8 +10040,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7808,8 +10056,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7822,8 +10072,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7836,8 +10088,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7850,8 +10104,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7864,8 +10120,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7878,8 +10136,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7892,8 +10152,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7906,8 +10168,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7920,8 +10184,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7934,8 +10200,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7948,8 +10216,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7962,8 +10232,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7976,8 +10248,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -7990,8 +10264,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -8004,8 +10280,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -8018,8 +10296,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -8032,8 +10312,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -8046,8 +10328,10 @@
             "",
             "",
             "",
+            "1",
             "1",
-            "1"
+            "",
+            ""
         ],
         [
             "",
@@ -8061,7 +10345,9 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            "",
+            ""
         ]
     ],
     [
@@ -8130,6 +10416,40 @@
             "fingers",
             "zat\u00edm \u017e\u00e1dn\u00e1",
             "T\u00fdm to sice vyzkoumal, ale po\u0159ezal se u toho. Post\u0159\u00edkej je pytl\u00edkem um\u011bl\u00e9 krve."
+        ]
+    ],
+    [
+        [
+            "N\u00e1zev",
+            "ID",
+            "V\u00fdroba",
+            "Tech",
+            "Cena",
+            "Bonus"
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "kolik jednotek nav\u00edc dostanou"
+        ],
+        [
+            "Hnojen\u00ed pole",
+            "enh-hnojeni-obili",
+            "vyr-obili",
+            "tech-hnojeni",
+            "prod-trus:1",
+            "1"
+        ],
+        [
+            "Zavla\u017eova\u00e1n\u00ed pole",
+            "enh-zavlazovani-obili",
+            "vyr-obili",
+            "tech-zavlazovani",
+            "mat-stavivo-3:4",
+            "1"
         ]
     ]
 ]
