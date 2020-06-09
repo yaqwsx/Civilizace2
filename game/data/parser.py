@@ -400,10 +400,8 @@ class Parser():
                     defaults={"amount": amount})
                 return input
 
-            print("line: " + str(line))
             if line[4] != "" and line[4] != "-":
                 chunks = line[4].split(",")
-                print("chunks: " + str(chunks))
                 for chunk in chunks:
                     addInput(chunk.strip())
 
