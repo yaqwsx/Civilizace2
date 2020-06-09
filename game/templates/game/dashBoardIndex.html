@@ -33,51 +33,88 @@
     {% endfor %}
 {% endif %}
 
-<div class="w-full section"><h2 class="text-xl">Souhrnné informace</h2></div>
+{% if user.isOrg %}
+    <div class="w-full section"><h2 class="text-xl">Debugovací informace</h2></div>
+    <div class="flex flex-wrap">
+        {% card "Zname techy" width="full" %}
+            <p class="text-left">
+                {% for t in teamState.techs.getOwnedTechs %}
+                    {{t.label | safe}},
+                {% endfor %}
+            </p>
+        {% endcard %}
 
+        {% card "Vyroby" width="full"%}
+            <p class="text-left">
+                {% for t in teamState.techs.getVyrobas %}
+                    {{t.label | safe}},
+                {% endfor %}
+            </p>
+        {% endcard %}
+    </div>
+{% endif %}
+
+<div class="w-full section"><h2 class="text-xl">Souhrnné informace</h2></div>
 <div class="flex flex-wrap">
-    {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
-    {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
-    {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation}}. generace  {% endcard %}
-    {% card "Zdroje" %} {{teamState.resources}} {% endcard %}
-    {% card "Zname techy" %} {{teamState.techs.getOwnedTechs}} {% endcard %}
-    {% card "Zkoumane techy" %} {{teamState.techs.getTechsUnderResearch}} {% endcard %}
-    {% card "Vyroby" %} {{teamState.techs.getVyrobas}} {% endcard %}
-    {% card "Jidlo v zasobe" %}
+    {% card "Populace" icon="fa-users" width="third" color="green-600"%}
+        86 / {{teamState.population.population}}<br>
+        <span class="text-sm text-gray-400">(nezaměstnaných/zaměstnaných)</span>
+    {% endcard %}
+
+    {% card "Dostupná práce" icon="fa-briefcase" width="third" color="green-600" %}
+        {{teamState.population.work}}
+    {% endcard %}
+
+    {% card "Kolo" icon="fa-calendar" width="third" color="green-600" %}
+        {{teamState.turn}}. kolo / {{worldState.generation}}. generace
+    {% endcard %}
+</div>
+
+<div class="w-full section"><h2 class="text-xl">Ekonomika</h2></div>
+<div class="flex flex-wrap">
+    {% card "Právě zkoumané techologie" icon="fa-cogs" width="third" color="green-600" %}
+        <ul class="text-left">
+            {% for r, a in teamState.techs.getTechsUnderResearch %}
+                <li>{{r.htmlRepr | safe}}: {{a}}</li>
+            {% empty %}
+                <span class="text-center">Právě nezkoumáte žádné technologie</span>
+            {% endfor %}
+        </ul>
+    {% endcard %}
+    {% card "Dostupné zdroje" icon="fa-warehouse" width="third" color="green-600" %}
         <ul class="text-left">
         {% for r, a in teamState.resources.getResourcesByType.items %}
-            <li>{{r.htmlRepr | safe}}: {{a}}</li>
+            <li>{{r.htmlRepr|safe}}: {{a}}</li>
         {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Vzdalenosti" %} {{teamState.distances}} {% endcard %}
-
+    {% card "Vzdálenosti" icon="fa-compass" width="third" color="green-600" %}
+        <ul class="text-left">
+            <li>Centrum &mdash; Pila: 58</li>
+            <li>Centrum &mdash; Přístav: 30</li>
+            <li>Centrum &mdash; Kasárna: 45</li>
+            <li>Univerzita &mdash; Hospoda: 1</li>
+        </ul>
+    {% endcard %}
 </div>
 
-<div class="w-full section"><h2 class="text-xl">Testovací informace</h2></div>
-
+<div class="w-full section"><h2 class="text-xl">Historie</h2></div>
 <div class="flex flex-wrap">
-    {% card "Počítadlo - bez ikony" width="third" icon="" %} {{teamState.sandbox.data.counter}}  {% endcard %}
-</div>
-
-<div class="w-full section"><h2 class="text-xl">Grafy</h2></div>
-
-<div class="flex flex-wrap">
-    {% card "Fancy graf" width="half" %}
+    {% card "Příprava civilizace" width="half" %}
         <canvas id="chartjs-7" class="chartjs" width="undefined" height="undefined"></canvas>
         <script>
             new Chart(document.getElementById("chartjs-7"), {
                 "type": "bar",
                 "data": {
-                    "labels": ["January", "February", "March", "April"],
+                    "labels": ["Prosinec", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen"],
                     "datasets": [{
-                        "label": "Page Impressions",
-                        "data": [10, 20, 30, 40],
+                        "label": "Aktivita příprav",
+                        "data": [10, 20, 20, 0, 0, 5, 100],
                         "borderColor": "rgb(255, 99, 132)",
                         "backgroundColor": "rgba(255, 99, 132, 0.2)"
                     }, {
-                        "label": "Adsense Clicks",
-                        "data": [5, 15, 10, 30],
+                        "label": "Úroveň stresu",
+                        "data": [5, 5, 5, 20, 0, 69, 112],
                         "type": "line",
                         "fill": false,
                         "borderColor": "rgb(54, 162, 235)"
@@ -95,16 +132,16 @@
             });
         </script>
     {% endcard %}
-    {% card "Další fancy graf" width="half" %}
+    {% card "Akce se blíží" width="half" %}
         <canvas id="chartjs-0" class="chartjs" width="undefined" height="undefined"></canvas>
         <script>
             new Chart(document.getElementById("chartjs-0"), {
                 "type": "line",
                 "data": {
-                    "labels": ["January", "February", "March", "April", "May", "June", "July"],
+                    "labels": ["úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek"],
                     "datasets": [{
-                        "label": "Views",
-                        "data": [65, 59, 80, 81, 56, 55, 40],
+                        "label": "Dnů do začátku akce",
+                        "data": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
                         "fill": false,
                         "borderColor": "rgb(75, 192, 192)",
                         "lineTension": 0.1
@@ -114,38 +151,6 @@
             });
         </script>
     {% endcard %}
-
-    {% card "Umíme dokonce i tabulky! (i přes celou šířku)" width="full" %}
-        <table class="w-full p-5 text-gray-700 text-left">
-            <thead>
-                <tr class="border-b-2">
-                    <th class="text-left text-blue-900">Name</th>
-                    <th class="text-left text-blue-900">Side</th>
-                    <th class="text-left text-blue-900">Role</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>Obi Wan Kenobi</td>
-                    <td>Light</td>
-                    <td>Jedi</td>
-                </tr>
-                <tr>
-                    <td>Greedo</td>
-                    <td>South</td>
-                    <td>Scumbag</td>
-                </tr>
-                <tr>
-                    <td>Darth Vader</td>
-                    <td>Dark</td>
-                    <td>Sith</td>
-                </tr>
-            </tbody>
-        </table>
-    {% endcard %}
-
 </div>
 
 {{ block.super }}
