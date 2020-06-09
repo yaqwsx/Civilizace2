@@ -130,7 +130,7 @@ class Parser():
                     "label": prodLabel,
                     "type": typeRef,
                     "level": level,
-                    "icon": icon,
+                    "icon": icon.replace("a.png", "b.png"),
                     "data": self.data})
 
     def _addTechs(self):

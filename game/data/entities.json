@@ -1,5 +1,15 @@
 [
-    [],
+    [
+        [
+            "a"
+        ],
+        [
+            "b"
+        ],
+        [
+            "c"
+        ]
+    ],
     [
         [
             "Nazev",
@@ -11,7 +21,8 @@
             "Kultura",
             "Keyword",
             "@ Odemceno ze",
-            "@ Odemyka"
+            "@ Odemyka",
+            "Stav"
         ],
         [
             "Z\u00e1klady civilizace",
@@ -23,10 +34,11 @@
             "0",
             "banan",
             "-",
-            "Lesn\u00ed n\u00e1rody, Domestikace, Povrchov\u00e1 t\u011b\u017eba, Rybolov, P\u011bstov\u00e1n\u00ed, Podpovrchov\u00e1 t\u011b\u017eba"
+            "Vyu\u017eit\u00ed lesa, Vyu\u017eit\u00ed pl\u00e1n\u00ed, Vyu\u017eit\u00ed pou\u0161t\u011b, Vyu\u017eit\u00ed hor",
+            ""
         ],
         [
-            "Vyu\u017eit\u00ed lesa",
+            "Lesn\u00ed n\u00e1rody",
             "tech-les",
             "ukol-nic",
             "-",
@@ -34,8 +46,35 @@
             "Drevo se hodi",
             "0",
             "hruska",
-            "Lesn\u00ed n\u00e1rody",
-            "Loveck\u00e1 kultura, Pila"
+            "Vyu\u017eit\u00ed lesa",
+            "Loveck\u00e1 kultura, Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor, Pila",
+            ""
+        ],
+        [
+            "Planinn\u00e9 n\u00e1rody",
+            "tech-plane",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "jogurt",
+            "Vyu\u017eit\u00ed pl\u00e1n\u00ed",
+            "Rybolov, P\u011bstov\u00e1n\u00ed",
+            ""
+        ],
+        [
+            "Horsk\u00e1 bohatstv\u00ed",
+            "tech-hory",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "emental",
+            "Vyu\u017eit\u00ed hor",
+            "Podpovrchov\u00e1 t\u011b\u017eba",
+            ""
         ],
         [
             "Centrum m\u011bsta",
@@ -47,7 +86,8 @@
             "0",
             "trolejbus",
             "-",
-            "-"
+            "-",
+            ""
         ],
         [
             "Pila",
@@ -59,19 +99,8 @@
             "0",
             "letadlo",
             "Pila",
-            "-"
-        ],
-        [
-            "Loveck\u00e1 kultura",
-            "tech-lovci",
-            "ukol-nic",
             "-",
-            "",
-            "",
-            "0",
-            "kanarek",
-            "Loveck\u00e1 kultura",
-            "Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor, Uhl\u00ed, L\u00e9\u010div\u00e9 byliny"
+            ""
         ],
         [
             "Lovecky tabor",
@@ -82,8 +111,9 @@
             "",
             "0",
             "lachtan",
-            "Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor",
-            "-"
+            "Loveck\u00e1 kultura, Provizorn\u00ed loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor",
+            "D\u0159ev\u011bn\u00e9 uhl\u00ed, L\u00e9\u010div\u00e9 byliny",
+            ""
         ],
         [
             "Pastvina",
@@ -95,7 +125,8 @@
             "0",
             "krychle",
             "Domestikace",
-            "-"
+            "-",
+            ""
         ],
         [
             "Ta\u017en\u00e1 s\u00edla",
@@ -107,7 +138,8 @@
             "0",
             "a",
             "Domestikace",
-            "Chomout, St\u00e1jov\u00fd chov"
+            "Chomout, St\u00e1jov\u00fd chov",
+            ""
         ],
         [
             "Domestikace ",
@@ -119,7 +151,8 @@
             "0",
             "b",
             "-",
-            "Ta\u017en\u00e1 s\u00edla, J\u00edzda"
+            "Ta\u017en\u00e1 s\u00edla, J\u00edzda",
+            ""
         ],
         [
             "J\u00edzda",
@@ -131,7 +164,8 @@
             "0",
             "c",
             "Domestikace",
-            "T\u0159men"
+            "T\u0159men",
+            ""
         ],
         [
             "Povrchov\u00e1 t\u011b\u017eba",
@@ -143,7 +177,8 @@
             "0",
             "d",
             "-",
-            "Stavitelstv\u00ed, Lom"
+            "Stavitelstv\u00ed, Lom",
+            ""
         ],
         [
             "Lom",
@@ -155,7 +190,8 @@
             "0",
             "e",
             "Povrchov\u00e1 t\u011b\u017eba",
-            "-"
+            "-",
+            ""
         ],
         [
             "Stavitelstv\u00ed",
@@ -167,7 +203,8 @@
             "0",
             "f",
             "Povrchov\u00e1 t\u011b\u017eba",
-            "Stavebn\u00ed hu\u0165, Matematika"
+            "Stavebn\u00ed hu\u0165, Matematika",
+            ""
         ],
         [
             "Stavebn\u00ed hu\u0165",
@@ -179,7 +216,8 @@
             "0",
             "g",
             "Stavitelstvi",
-            "-"
+            "-",
+            ""
         ],
         [
             "Matematika",
@@ -191,7 +229,8 @@
             "0",
             "h",
             "Stavitelstv\u00ed, Astronomie",
-            "Mechanika, Filozofie"
+            "Mechanika, Filozofie",
+            ""
         ],
         [
             "Mechanika",
@@ -203,6 +242,7 @@
             "0",
             "i",
             "Matematika",
+            "",
             ""
         ],
         [
@@ -215,7 +255,8 @@
             "0",
             "j",
             "",
-            "Filozofie, L\u00e9ka\u0159stv\u00ed"
+            "Filozofie, L\u00e9ka\u0159stv\u00ed",
+            ""
         ],
         [
             "L\u00e9ka\u0159stv\u00ed",
@@ -227,7 +268,8 @@
             "0",
             "k",
             "L\u00e9\u010div\u00e9 byliny",
-            "Iatrochemie"
+            "Iatrochemie",
+            ""
         ],
         [
             "Iatrochemie",
@@ -239,6 +281,7 @@
             "0",
             "l",
             "L\u00e9ka\u0159stv\u00ed, Alchymie",
+            "",
             ""
         ],
         [
@@ -251,19 +294,8 @@
             "0",
             "m",
             "",
-            "Matematika, Navigace"
-        ],
-        [
-            "Rybolov",
-            "tech-pristav",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "n",
-            "-",
-            "Plavba, P\u0159\u00edstav"
+            "Matematika, Navigace",
+            ""
         ],
         [
             "P\u0159\u00edstav",
@@ -275,7 +307,8 @@
             "0",
             "o",
             "Plavba",
-            "-"
+            "-",
+            ""
         ],
         [
             "Plavba",
@@ -287,7 +320,8 @@
             "0",
             "p",
             "Rybolov",
-            "Mo\u0159eplavba, P\u0159\u00edstav"
+            "Mo\u0159eplavba, P\u0159\u00edstav",
+            ""
         ],
         [
             "P\u011bstov\u00e1n\u00ed",
@@ -299,7 +333,8 @@
             "0",
             "q",
             "-",
-            "Textil, Astronomie, Pole"
+            "Textil, Astronomie, Pole",
+            ""
         ],
         [
             "Pole",
@@ -311,7 +346,8 @@
             "0",
             "r",
             "P\u011bstov\u00e1n\u00ed",
-            "-"
+            "-",
+            ""
         ],
         [
             "Textil",
@@ -323,7 +359,8 @@
             "0",
             "s",
             "P\u011bstov\u00e1n\u00ed",
-            "Textiln\u00ed dilna"
+            "Textiln\u00ed dilna",
+            ""
         ],
         [
             "Textiln\u00ed d\u00edlna",
@@ -335,7 +372,8 @@
             "0",
             "t",
             "Textil",
-            "-"
+            "-",
+            ""
         ],
         [
             "Keramika",
@@ -347,7 +385,8 @@
             "0",
             "u",
             "Povrchov\u00e1 t\u011b\u017eba",
-            "Stavitelstv\u00ed"
+            "Stavitelstv\u00ed",
+            ""
         ],
         [
             "Mo\u0159eplavba",
@@ -359,7 +398,8 @@
             "0",
             "v",
             "Plavba",
-            "Dok"
+            "Dok",
+            ""
         ],
         [
             "Dok",
@@ -371,11 +411,12 @@
             "0",
             "w",
             "Mo\u0159eplavba",
-            "-"
+            "-",
+            ""
         ],
         [
-            "Uhl\u00ed",
-            "tech-uhli",
+            "D\u0159ev\u011bn\u00e9 uhl\u00ed",
+            "tech-drevene-uhli",
             "ukol-nic",
             "-",
             "",
@@ -383,7 +424,8 @@
             "0",
             "x",
             "Loveck\u00e1 kultura",
-            "Redukce kov\u016f"
+            "Redukce kov\u016f",
+            ""
         ],
         [
             "Redukce kov\u016f",
@@ -395,7 +437,8 @@
             "0",
             "y",
             "Uhl\u00ed",
-            "\u017delezo"
+            "\u017delezo",
+            ""
         ],
         [
             "Hu\u0165",
@@ -407,7 +450,8 @@
             "0",
             "z",
             "Redukce kov\u016f",
-            "-"
+            "-",
+            ""
         ],
         [
             "\u017delezo",
@@ -419,7 +463,8 @@
             "0",
             "aa",
             "Redukce kov\u016f",
-            "Vysok\u00e1 pec, N\u00fdtov\u00e1n\u00ed, Kov\u00e1rna"
+            "Vysok\u00e1 pec, N\u00fdtov\u00e1n\u00ed, Kov\u00e1rna",
+            ""
         ],
         [
             "Kov\u00e1rna",
@@ -431,7 +476,8 @@
             "0",
             "ab",
             "\u017delezo",
-            "-"
+            "-",
+            ""
         ],
         [
             "Vysok\u00e1 pec",
@@ -443,6 +489,7 @@
             "0",
             "ac",
             "\u017delezo",
+            "",
             ""
         ],
         [
@@ -455,10 +502,11 @@
             "0",
             "ad",
             "\u017delezo",
+            "",
             ""
         ],
         [
-            "Vyu\u017eit\u00ed pou\u0161t\u011b",
+            "Pou\u0161tn\u00ed kmeny",
             "tech-poust",
             "ukol-nic",
             "-",
@@ -466,6 +514,7 @@
             "",
             "0",
             "ae",
+            "",
             "",
             ""
         ],
@@ -479,6 +528,7 @@
             "0",
             "af",
             "Ta\u017en\u00e1 s\u00edla",
+            "",
             ""
         ],
         [
@@ -491,7 +541,8 @@
             "0",
             "ag",
             "Keramika",
-            "-"
+            "-",
+            ""
         ],
         [
             "Malta",
@@ -503,6 +554,7 @@
             "0",
             "ah",
             "Stavitelstv\u00ed",
+            "",
             ""
         ],
         [
@@ -515,6 +567,7 @@
             "0",
             "ai",
             "Astronomie",
+            "",
             ""
         ],
         [
@@ -527,7 +580,8 @@
             "0",
             "aj",
             "P\u011bstov\u00e1n\u00ed",
-            "Alchymie"
+            "Alchymie",
+            ""
         ],
         [
             "Alchymie",
@@ -539,7 +593,8 @@
             "0",
             "ak",
             "Alkoholick\u00e9 n\u00e1poje",
-            "Alchymistick\u00e1 d\u00edlna, Iatrochemie"
+            "Alchymistick\u00e1 d\u00edlna, Iatrochemie",
+            ""
         ],
         [
             "Alchymistick\u00e1 d\u00edlna",
@@ -551,7 +606,8 @@
             "0",
             "al",
             "Alchymie",
-            "-"
+            "-",
+            ""
         ],
         [
             "Filozofie",
@@ -563,7 +619,8 @@
             "0",
             "am",
             "L\u00e9\u010div\u00e9 byliny",
-            "Fyzika, Matematika"
+            "Fyzika, Matematika",
+            ""
         ],
         [
             "Fyzika",
@@ -575,6 +632,7 @@
             "0",
             "an",
             "Filozofie",
+            "",
             ""
         ],
         [
@@ -587,7 +645,8 @@
             "0",
             "ao",
             "Filozofie",
-            "-"
+            "-",
+            ""
         ],
         [
             "POdpovrchov\u00e1 t\u011b\u017eba",
@@ -599,7 +658,8 @@
             "0",
             "ap",
             "",
-            "D\u016fl"
+            "D\u016fl",
+            ""
         ],
         [
             "D\u016fl",
@@ -611,7 +671,8 @@
             "0",
             "aq",
             "POdpovrchov\u00e1 t\u011b\u017eba",
-            "-"
+            "-",
+            ""
         ],
         [
             "Hnojen\u00ed",
@@ -622,6 +683,7 @@
             "",
             "0",
             "ar",
+            "",
             "",
             ""
         ],
@@ -635,6 +697,7 @@
             "0",
             "as",
             "",
+            "",
             ""
         ],
         [
@@ -646,6 +709,7 @@
             "",
             "0",
             "at",
+            "",
             "",
             ""
         ],
@@ -659,6 +723,7 @@
             "0",
             "au",
             "",
+            "",
             ""
         ],
         [
@@ -670,6 +735,7 @@
             "",
             "0",
             "av",
+            "",
             "",
             ""
         ],
@@ -683,6 +749,7 @@
             "0",
             "aw",
             "",
+            "",
             ""
         ],
         [
@@ -694,6 +761,7 @@
             "",
             "0",
             "ax",
+            "",
             "",
             ""
         ],
@@ -707,6 +775,7 @@
             "0",
             "ay",
             "",
+            "",
             ""
         ],
         [
@@ -719,17 +788,6 @@
             "0",
             "az",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -741,6 +799,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -755,17 +814,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -777,6 +825,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -791,17 +840,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -813,6 +851,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -827,17 +866,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -849,6 +877,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -863,17 +892,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -885,6 +903,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -899,17 +918,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -921,6 +929,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -935,17 +944,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -957,6 +955,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -971,17 +970,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -993,6 +981,7 @@
             "",
             "",
             "0",
+            "",
             "",
             "",
             ""
@@ -1007,17 +996,6 @@
             "0",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "-",
-            "",
-            "",
-            "0",
-            "",
             "",
             ""
         ],
@@ -1031,6 +1009,124 @@
             "0",
             "",
             "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "-",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "",
             ""
         ],
         [
@@ -1043,17 +1139,6 @@
             "",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "",
-            "",
-            "",
-            "",
-            "",
             "",
             ""
         ],
@@ -1062,17 +1147,6 @@
             "",
             "ukol-nic",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
             "",
             "",
             "",
@@ -1091,17 +1165,6 @@
             "",
             "",
             "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
-            "",
-            "",
-            "",
-            "",
-            "",
             "",
             ""
         ],
@@ -1110,17 +1173,6 @@
             "",
             "ukol-nic",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "ukol-nic",
             "",
             "",
             "",
@@ -1139,12 +1191,66 @@
             "",
             "",
             "",
+            "",
             ""
         ],
         [
             "",
             "",
             "ukol-nic",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "ukol-nic",
+            "",
             "",
             "",
             "",
@@ -1165,7 +1271,8 @@
             "",
             "",
             "@ Existuje Zdroj?",
-            "@ Existuje Cil?"
+            "@ Existuje Cil?",
+            "Stav"
         ],
         [
             "",
@@ -1177,55 +1284,138 @@
             "Obyv.",
             "Ostatni",
             "",
+            "",
             ""
         ],
         [
-            "Lesn\u00ed n\u00e1rody",
+            "Vyu\u017eit\u00ed lesa",
             "edge-les",
             "tech-base",
             "tech-les",
             "die-les:20",
-            "10",
+            "1",
             "5",
             "-",
             "1",
-            "1"
+            "1",
+            "T"
+        ],
+        [
+            "Vyu\u017eit\u00ed pl\u00e1n\u00ed",
+            "edge-plane",
+            "tech-base",
+            "tech-plane",
+            "die-plane:20",
+            "1",
+            "5",
+            "-",
+            "1",
+            "1",
+            "T"
+        ],
+        [
+            "Vyu\u017eit\u00ed pou\u0161t\u011b",
+            "edge-poust",
+            "tech-base",
+            "tech-poust",
+            "die-poust:20",
+            "",
+            "",
+            "",
+            "1",
+            "1",
+            "T"
+        ],
+        [
+            "Vyu\u017eit\u00ed hor",
+            "edge-hory",
+            "tech-base",
+            "tech-hory",
+            "die-hory:20",
+            "",
+            "",
+            "",
+            "1",
+            "1",
+            "T"
         ],
         [
             "Loveck\u00e1 kultura",
             "edge-lovci",
             "tech-les",
-            "tech-lovci",
-            "die-plane:10",
-            "10",
+            "build-lovci",
+            "die-les:0",
+            "1",
             "0",
             "-",
             "1",
-            "1"
+            "1",
+            "T"
         ],
         [
             "Provizorn\u00ed loveck\u00fd t\u00e1bor",
             "edge-lovci-drevo",
-            "tech-lovci",
+            "tech-les",
             "build-lovci",
             "die-les:5",
-            "10",
+            "1",
             "0",
             "mat-drevo:5",
             "1",
-            "1"
+            "1",
+            "T"
         ],
         [
             "Loveck\u00fd t\u00e1bor",
             "edge-lovci-build",
-            "tech-lovci",
+            "tech-les",
             "build-lovci",
             "die-any:0",
-            "5",
+            "1",
             "0",
             "mat-stavivo-2:2",
             "1",
-            "1"
+            "1",
+            "T"
+        ],
+        [
+            "D\u0159ev\u011bn\u00e9 uhl\u00ed",
+            "edge-uhli-drevene",
+            "build-lovci",
+            "tech-drevene-uhli",
+            "die-les:0",
+            "",
+            "",
+            "",
+            "1",
+            "1",
+            "T"
+        ],
+        [
+            "Redukce kovu",
+            "edge-redukce",
+            "tech-drevene-uhli",
+            "build-hut",
+            "die-les:0",
+            "",
+            "",
+            "",
+            "1",
+            "1",
+            "T"
+        ],
+        [
+            "Podpovrchov\u00e1 t\u011b\u017eba",
+            "edge-dolovani",
+            "tech-hory",
+            "tech-dul",
+            "die-hory:20",
+            "",
+            "",
+            "",
+            "1",
+            "1",
+            "T"
         ],
         [
             "Pila",
@@ -1233,59 +1423,25 @@
             "tech-les",
             "build-pila",
             "die-les:5",
-            "10",
+            "1",
             "0",
             "mat-drevo:2",
             "1",
-            "1"
-        ],
-        [
-            "Uhl\u00ed",
-            "edge-uhli",
-            "tech-lovci",
-            "tech-uhli",
-            "die-any:0",
-            "",
-            "",
-            "",
             "1",
-            "1"
-        ],
-        [
-            "Redukce kovu",
-            "edge-redukce",
-            "tech-uhli",
-            "tech-redukce",
-            "die-any:0",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "Hu\u0165",
-            "edge-hu\u0165",
-            "tech-redukce",
-            "build-hut",
-            "die-any:0",
-            "",
-            "",
-            "",
-            "1",
-            "1"
+            ""
         ],
         [
             "\u017delezo",
             "edge-zelezo",
-            "tech-redukce",
+            "build-hut",
             "tech-zelezo",
             "die-any:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Kov\u00e1rna",
@@ -1297,7 +1453,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "N\u00fdtovan\u00ed",
@@ -1309,7 +1466,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Vysoka pec",
@@ -1321,55 +1479,47 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Domestikace",
-            "edge-domestikace",
-            "tech-base",
-            "tech-poust",
-            "die-poust:20",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "Pastvina",
             "edge-pastvina",
-            "tech-pastvina",
+            "tech-poust",
             "build-pastvina",
-            "die-any:0",
+            "die-poust:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Ta\u017en\u00e1 s\u00edla",
             "edge-tazna",
-            "tech-pastvina",
+            "build-pastvina",
             "tech-tazna",
-            "die-any:0",
+            "die-poust:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "J\u00edzda",
             "edge-jizda",
-            "tech-pastvina",
+            "build-pastvina",
             "tech-jizda",
-            "die-any:0",
+            "die-poust:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "St\u00e1jov\u00fd chov",
@@ -1381,19 +1531,21 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Povrchov\u00e1 t\u011b\u017eba",
             "edge-povrchova",
-            "tech-base",
+            "tech-poust",
             "tech-lom",
-            "die-poust:20",
+            "die-poust:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Lom",
@@ -1405,7 +1557,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Keramika",
@@ -1417,7 +1570,8 @@
             "",
             "mat-jil:1",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "D\u00edlna s pec\u00ed",
@@ -1429,7 +1583,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Stavitelstv\u00ed",
@@ -1441,7 +1596,8 @@
             "",
             "mat-jil:1",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Matematika",
@@ -1453,7 +1609,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Stavitelstv\u00ed",
@@ -1465,7 +1622,8 @@
             "",
             "mat-kamen:1",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Stavebn\u00ed hu\u0165",
@@ -1477,7 +1635,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Malta",
@@ -1489,7 +1648,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Mechanika",
@@ -1501,43 +1661,34 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Rybolov",
             "edge-rybolov",
-            "tech-base",
-            "tech-pristav",
+            "tech-plane",
+            "build-pristav",
             "die-plane:20",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Plavba",
             "edge-plavba",
-            "tech-pristav",
-            "tech-plavba",
-            "die-any:0",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "P\u0159\u00edstav",
-            "edge-pristav",
-            "tech-plavba",
             "build-pristav",
+            "tech-plavba",
             "die-any:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Mo\u0159eplavba",
@@ -1549,7 +1700,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Dok",
@@ -1561,19 +1713,21 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "P\u011bstov\u00e1n\u00ed",
             "edge-pestovani",
-            "tech-base",
+            "tech-plane",
             "tech-pole",
             "die-plane:20",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Pole",
@@ -1585,7 +1739,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Astronomie",
@@ -1597,7 +1752,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Navigace",
@@ -1609,7 +1765,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Textil",
@@ -1621,7 +1778,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Textiln\u00ed d\u00edlna",
@@ -1633,7 +1791,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Alkoholick\u00e9 n\u00e1poje",
@@ -1645,7 +1804,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Alchymie",
@@ -1657,7 +1817,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Alchymistick\u00e1 d\u00edlna",
@@ -1669,7 +1830,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Iatrochemie",
@@ -1681,7 +1843,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Iatrochemie",
@@ -1693,43 +1856,47 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "L\u00e9\u010div\u00e9 byliny",
             "edge-byliny",
-            "tech-lovci",
+            "build-lovci",
             "tech-byliny",
-            "die-any:0",
+            "die-les:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "L\u00e9ka\u0159stv\u00ed",
             "edge-lekarstvi",
             "tech-byliny",
             "tech-lekarstvi",
-            "die-any:0",
+            "die-les:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Filozofie",
             "edge-filozofie",
             "tech-byliny",
             "tech-filozofie",
-            "die-any:0",
+            "die-les:0",
             "",
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Fyzika",
@@ -1741,7 +1908,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Matematika",
@@ -1753,7 +1921,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Filozofie",
@@ -1765,7 +1934,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "Univerzita",
@@ -1777,19 +1947,8 @@
             "",
             "",
             "1",
-            "1"
-        ],
-        [
-            "Podpovrchov\u00e1 t\u011b\u017eba",
-            "edge-dolovani",
-            "tech-base",
-            "tech-dul",
-            "die-hory:20",
-            "",
-            "",
-            "",
             "1",
-            "1"
+            ""
         ],
         [
             "D\u016fl",
@@ -1801,7 +1960,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "",
@@ -1813,7 +1973,8 @@
             "",
             "",
             "1",
-            "1"
+            "1",
+            ""
         ],
         [
             "",
@@ -1825,18 +1986,7 @@
             "",
             "",
             "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "die-any:0",
-            "",
-            "",
-            "",
-            "",
+            "1",
             ""
         ],
         [
@@ -1848,7 +1998,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1860,7 +2011,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1872,7 +2024,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1884,7 +2037,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1896,7 +2050,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1908,7 +2063,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1920,7 +2076,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1932,7 +2089,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1944,7 +2102,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1956,7 +2115,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1968,7 +2128,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1980,7 +2141,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -1992,7 +2154,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2004,7 +2167,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2016,7 +2180,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2028,7 +2193,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2040,7 +2206,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2052,7 +2219,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2064,7 +2232,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2076,7 +2245,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2088,7 +2258,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2100,7 +2271,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2112,7 +2284,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2124,7 +2297,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2136,7 +2310,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2148,7 +2323,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2160,7 +2336,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2172,7 +2349,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2184,7 +2362,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2196,7 +2375,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2208,7 +2388,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2220,7 +2401,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2232,7 +2414,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2244,7 +2427,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2256,7 +2440,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2268,7 +2453,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2280,7 +2466,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2292,7 +2479,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2304,7 +2492,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2316,7 +2505,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2328,7 +2518,8 @@
             "",
             "",
             "",
-            "",
+            "1",
+            "1",
             ""
         ],
         [
@@ -2340,7 +2531,21 @@
             "",
             "",
             "",
+            "1",
+            "1",
+            ""
+        ],
+        [
             "",
+            "",
+            "",
+            "",
+            "die-any:0",
+            "",
+            "",
+            "",
+            "1",
+            "1",
             ""
         ]
     ],
@@ -2349,211 +2554,260 @@
             "Nazev",
             "ID",
             "Typ",
-            "Ikona"
+            "Ikona",
+            ""
         ],
         [
             "Pr\u00e1ce",
             "res-prace",
             "-",
-            "placeholder.png"
+            "prace-a.png",
+            ""
         ],
         [
             "Obyvatel\u00e9",
             "res-obyvatel",
             "-",
-            "placeholder.png"
+            "obyvatel-a.png",
+            ""
         ],
         [
             "Bobule",
             "mat-bobule",
             "jidlo-2",
-            "placeholder.png"
+            "jidlo-bobule-2-a.png",
+            ""
         ],
         [
             "Obil\u00ed",
             "mat-obili",
             "jidlo-2",
-            "placeholder.png"
+            "jidlo-obili-2-a.png",
+            ""
         ],
         [
             "Maso",
             "mat-maso",
             "jidlo-3",
-            "placeholder.png"
+            "jidlo-maso-2-a.png",
+            ""
+        ],
+        [
+            "Ovoce",
+            "mat-ovoce",
+            "jidlo-3",
+            "jidlo-ovoce-3-a.png",
+            ""
         ],
         [
             "Ryba",
             "mat-ryba",
             "jidlo-4",
-            "placeholder.png"
+            "jidlo-ryba-4-a.png",
+            ""
         ],
         [
             "Dobytek",
             "mat-dobytek",
             "jidlo-4",
-            "placeholder.png"
+            "jidlo-dobytek-4-a.png",
+            ""
         ],
         [
             "Ko\u0159en\u00ed",
             "mat-koreni",
             "jidlo-5",
-            "placeholder.png"
+            "jidlo-korekni-5-a.png",
+            ""
         ],
         [
             "Cukrovinka",
             "mat-cukr",
             "jidlo-6",
-            "placeholder.png"
+            "jidlo-cukrovinky-6-a.png",
+            ""
         ],
         [
             "Trus",
             "mat-trus",
             "palivo-2",
-            "placeholder.png"
+            "palivo-trus-2-a.png",
+            ""
         ],
         [
             "D\u0159evo",
             "mat-drevo",
             "palivo-3",
-            "placeholder.png"
+            "palivo-drevo-3-a.png",
+            ""
         ],
         [
             "Tuk",
             "mat-tuk",
             "palivo-4",
-            "placeholder.png"
+            "palivo-tuk-4-a.png",
+            ""
         ],
         [
             "Uhl\u00ed",
             "mat-uhli",
             "palivo-5",
-            "placeholder.png"
+            "palivo-uhli-5-a.png",
+            ""
         ],
         [
             "Nafta",
             "mat-nafta",
             "palivo-6",
-            "placeholder.png"
+            "palivo-nafta-6-a.png",
+            ""
         ],
         [
             "J\u00edl",
             "mat-jil",
             "stavivo-2",
-            "placeholder.png"
+            "stavivo-jil-2-a.png",
+            ""
         ],
         [
             "K\u00e1men",
             "mat-kamen",
             "stavivo-3",
-            "placeholder.png"
+            "stavivo-kamen-3-a.png",
+            ""
         ],
         [
             "Tr\u00e1m",
             "mat-tram",
             "stavivo-4",
-            "placeholder.png"
+            "stavivo-tramy-4-a.png",
+            ""
         ],
         [
             "Cihla",
             "mat-cihla",
             "stavivo-5",
-            "placeholder.png"
+            "stavivo-cihly-5-a.png",
+            ""
         ],
         [
             "\u0160rouby",
             "mat-sroub",
             "stavivo-6",
-            "placeholder.png"
+            "",
+            ""
         ],
         [
             "Malta",
             "mat-malta",
             "stavivo-6",
-            "placeholder.png"
+            "stavivo-malta-6-a.png",
+            ""
         ],
         [
             "Kosti",
             "mat-kost",
             "nastroj-2",
-            "placeholder.png"
+            "nastroj-kosti-2-a.png",
+            ""
         ],
         [
             "Nerosty",
             "mat-nerost",
             "nastroj-3",
-            "placeholder.png"
+            "nastroj-nerosty-3-a.png",
+            ""
         ],
         [
             "Lano",
             "mat-lano",
             "nastroj-4",
-            "placeholder.png"
+            "nastroj-lano-3-a.png",
+            ""
         ],
         [
             "Bronz",
             "mat-bronz",
             "nastroj-5",
-            "placeholder.png"
+            "",
+            ""
         ],
         [
             "\u017delezo",
             "mat-zelezo",
             "nastroj-6",
-            "placeholder.png"
+            "",
+            ""
         ],
         [
             "K\u016f\u017ee",
             "mat-kuze",
             "luxus-2",
-            "placeholder.png"
+            "luxus-kuze-2-a.png",
+            ""
         ],
         [
             "Textil",
             "mat-textil",
             "luxus-3",
-            "placeholder.png"
+            "placeholder.png",
+            ""
         ],
         [
             "Alkohol",
             "mat-alkohol",
             "luxus-3",
-            "placeholder.png"
+            "luxus-alkohol-3-a.png",
+            ""
         ],
         [
             "Keramika",
             "mat-keramika",
             "luxus-4",
-            "placeholder.png"
+            "luxus-keramika-3-a.png",
+            ""
         ],
         [
             "L\u00e9\u010divo",
             "mat-lek",
             "luxus-5",
-            "placeholder.png"
+            "luxus-lecivo-4-a.png",
+            ""
         ],
         [
             "\u0160perky",
             "mat-sklo",
             "luxus-6",
-            "placeholder.png"
-        ],
-        [
-            "Jablko",
-            "res-jablko",
-            "-",
-            "placeholder.png"
+            "luxus-sperky-6-a.png",
+            ""
         ],
         [
             "P\u0159epravn\u00ed kapacita",
             "res-nosic",
             "-",
-            "placeholder.png"
+            "",
+            ""
         ],
         [
             "Populace",
             "res-populace",
             "-",
-            "placeholder.png"
+            "",
+            ""
+        ],
+        [
+            "Znalosti",
+            "res-vedomosti",
+            "-",
+            "papyrus-a.png",
+            "model je 0-papir"
+        ],
+        [
+            "V\u00fdzkum",
+            "res-vyzkumnik",
+            "-",
+            "",
+            ""
         ]
     ],
     [
@@ -2821,7 +3075,7 @@
             "",
             "mat-drevo:2",
             "prod-drevo:2",
-            "tech-uhli",
+            "tech-drevene-uhli",
             "build-lovci",
             "",
             "1",
@@ -2837,7 +3091,7 @@
             "",
             "prod-nerost:1",
             "prod-zelezo:2",
-            "tech-redukce",
+            "build-hut",
             "build-hut",
             "",
             "1",
@@ -10444,7 +10698,7 @@
             "1"
         ],
         [
-            "Zavla\u017eova\u00e1n\u00ed pole",
+            "Zavla\u017eov\u00e1n\u00ed pole",
             "enh-zavlazovani-obili",
             "vyr-obili",
             "tech-zavlazovani",
