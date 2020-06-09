@@ -14,22 +14,42 @@ from game.data.update import Update, UpdateError
 GROUPS = ["super", "org"]
 
 TEAMS = {
-    "Červení": {
-        "members": ["franta", "pavel"],
-        "keyword": "JABLKO"
+    "Černí": {
+        "username": "cerni",
+        "password": "papirovysacek",
     },
-    "Modří": {
-        "members": ["eliska", "magda"],
-        "keyword": "HRUSKA"
+    "Červení": {
+        "username": "cerveni",
+        "password": "citronovavoda"
+    },
+    "Oranžoví": {
+        "username": "oranzovi",
+        "password": "tupatuzka"
+    },
+    "Žlutí": {
+        "username": "zluti",
+        "password": "smutnakocka"
     },
     "Zelení": {
-        "members": ["pepa", "vlada"],
-        "keyword": "MANDARINKA"
+        "username": "zeleni",
+        "password": "dutybambus"
+    },
+    "Modří": {
+        "username": "modri",
+        "password": "chlupatymic"
+    },
+    "Fialoví": {
+        "username": "fialovi",
+        "password": "kamennesrdce"
+    },
+    "Růžoví": {
+        "username": "ruzovi",
+        "password": "zelenykun"
     }
 }
 
 SUPER_USERS = ["maara", "honza"]
-ORG = ["abbe", "jupi", "efka", "kaja", "domca"]
+ORG = []
 
 KEYWORDS = [
     # keyword, description, category, value
@@ -83,11 +103,10 @@ class Command(BaseCommand):
             except:
                 team = Team.objects.create(name=teamName)
                 print("Creating team: " + str(team))
-            for username in teamParams["members"]:
                 user = Command.create_or_get_user(
-                            username=username,
-                            email=username + "@hrac.cz",
-                            password="password")
+                            username=teamParams["username"],
+                            email=teamParams["username"] + "@hrac.cz",
+                            password=teamParams["password"])
                 perm = Permission.objects.get(codename="stat_team")
                 assign_perm(perm, user, team)
         org = Group.objects.get(name='org')
@@ -95,7 +114,7 @@ class Command(BaseCommand):
             user = Command.create_or_get_user(
                             username=username,
                             email=username + "@org.cz",
-                            password="password",
+                            password="koulelasekostka",
                             superuser=True)
             user.groups.add(org)
         superGroup = Group.objects.get(name='super')
@@ -103,7 +122,7 @@ class Command(BaseCommand):
             user = Command.create_or_get_user(
                             username=username,
                             email=username + "@super.cz",
-                            password="password")
+                            password="koulelasekostka")
             user.groups.add(superGroup)
 
     def createGroups(self):
@@ -132,11 +151,11 @@ class Command(BaseCommand):
     def createKeywords(self):
         for keyword in KEYWORDS:
             self.createOrUpdateKeyword(keyword)
-        for teamname, param in TEAMS.items():
-            team = Team.objects.get(name=teamname)
+        for teamName, t in TEAMS.items():
+            team = Team.objects.get(name=teamName)
             self.createOrUpdateKeyword((
-                param["keyword"],
-                "Play team " + teamname,
+                t["username"],
+                "Play team " + teamName,
                 KeywordType.team,
                 team.id))
 

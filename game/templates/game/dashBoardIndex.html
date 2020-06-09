@@ -83,7 +83,7 @@
     {% endcard %}
     {% card "Dostupné zdroje" icon="fa-warehouse" width="third" color="green-600" %}
         <ul class="text-left">
-        {% for r, a in teamState.resources.getResourcesByType.items %}
+        {% for r, a in teamState.resources.getFood.items %}
             <li>{{r.htmlRepr|safe}}: {{a}}</li>
         {% endfor %}
         </ul>
