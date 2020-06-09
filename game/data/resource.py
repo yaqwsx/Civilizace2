@@ -24,6 +24,6 @@ class ResourceModel(EntityModel):
 
     def htmlRepr(self):
         if self.isProduction:
-            return f"<b>{self.label}</b>"
+            return f'<b>{self.label.replace("Produkce: ","")}</b>'
         return self.label
 
