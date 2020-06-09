@@ -36,7 +36,11 @@
 <div class="w-full section"><h2 class="text-xl">Souhrnné informace</h2></div>
 
 <div class="flex flex-wrap">
-    {% card "Počet obyvatel" %} {{teamState.population.population}}  {% endcard %}
+    {% card "Populace" icon="fa-users widht=third color=green-600"%}
+        86 / {{teamState.population.population}}<br>
+        <span class="text-sm text-gray-400">(nezaměstnaných/zaměstnaných)</span>
+    {% endcard %}
+
     {% card "Dotupná práce" %} {{teamState.population.work}}  {% endcard %}
     {% card "Kolo" %} {{teamState.turn}}. kolo / {{worldState.generation}}. generace  {% endcard %}
     {% card "Zdroje" %} {{teamState.resources}} {% endcard %}

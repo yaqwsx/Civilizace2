@@ -7,7 +7,8 @@ set -e
 while :
 do
     date
-    git pull
+    git fetch
+    git reset --hard origin/master
     git clean -f
     pip install -r requirements.txt
     python manage.py tailwind install
