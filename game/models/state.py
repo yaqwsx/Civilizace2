@@ -355,9 +355,7 @@ class ResourceStorage(ImmutableModel):
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team):
             initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION)]
-
-            if team.id == 1: # TODO: remove DEBUG initial entities
-                initialResources.extend([("mat-ovoce",20), ("mat-alkohol",20)])
+            initialResources.extend([("mat-ovoce",20), ("mat-alkohol",20)])
 
             items = []
             for id, amount in initialResources:
