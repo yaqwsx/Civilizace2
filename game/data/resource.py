@@ -22,8 +22,16 @@ class ResourceModel(EntityModel):
         chunks = self.id.split("-")
         return chunks[0] == "prod"
 
+    @property
+    def plainLabel(self):
+        return self.label.replace("Produkce: ", "")
+
     def htmlRepr(self):
         if self.isProduction:
-            return f'<b>{self.label.replace("Produkce: ","")}</b>'
-        return self.label
+            name = f'<b>{self.plainLabel}</b>'
+        else:
+            name = self.label
+        if self.icon:
+            return f'<img class="inline-block" style="width: 30px; height: 30px" src="/static/icons/{self.icon}"><span class="text-gray-500">({name})</span>'
+        return self.name
 

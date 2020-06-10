@@ -79,6 +79,10 @@
     {
       "from": "node_modules/jsoneditor/dist/img/**",
       "to": "../static/css/img/"
+    },
+    {
+      "from": "img/**",
+      "to": "../static/img/"
     }
   ]
 }

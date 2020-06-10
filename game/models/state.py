@@ -520,7 +520,7 @@ class TechStorage(ImmutableModel):
             initialTechs = ["tech-base"]
             # TODO: Remove DEBUG initialization entities
             if team.id == 1:
-                initialTechs.extend(["tech-les", "build-centrum", "build-pila", "tech-lovci", "build-lovci"])
+                initialTechs.extend(["tech-base"])
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(
