@@ -9,10 +9,16 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--buildDir", type=str, default="_build",
             help="Build directory" )
+        parser.add_argument("--demo", action='store_true', help="Build only one building and one tech" )
 
     def handle(self, *args, **kwargs):
         buildDir = kwargs["buildDir"]
-        builder = tech.TechBuilder(buildDir)
+        builder = tech.TechBuilder(buildDir, "game/static/icons")
+        if kwargs.get("demo", False):
+            print("Running in demo mode, building tech-les, build-pila")
+            builder.generateTechLabel(TechModel.objects.get(id="tech-les"))
+            builder.generateTechLabel(TechModel.objects.get(id="build-pila"))
+            return
         print("Building labels...", end="")
         builder.generateTechLabels()
         print(" Done")
