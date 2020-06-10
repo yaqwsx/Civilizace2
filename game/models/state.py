@@ -517,10 +517,7 @@ class TechStorageItem(ImmutableModel):
 class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):
         def createInitial(self, team):
-            initialTechs = ["tech-base"]
-            # TODO: Remove DEBUG initialization entities
-            if team.id == 1:
-                initialTechs.extend(["tech-base"])
+            initialTechs = ["build-centrum"]
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(

@@ -38,6 +38,7 @@ class Parser():
     def _addTasks(self):
         print("Parsing tasks")
         myRaw = self.raw[self.SHEET_MAP["task"]]
+        count = 0
 
         for n, line in enumerate(myRaw[1:], start=1):
             if len(line) < 3:
@@ -48,6 +49,9 @@ class Parser():
             text = line[2]
             task, _ = TaskModel.objects.update_or_create(id=id, defaults={
                 "label": label, "text": text, "data": self.data})
+            count += 1
+
+        print(f"  added {count} tasks")
 
     def _addResourceTypes(self):
         print("Parsing resource types")
@@ -136,6 +140,7 @@ class Parser():
     def _addTechs(self):
         print("Parsing techs")
         myRaw = self.raw[self.SHEET_MAP["tech"]]
+        count = 0
 
         for n, line in enumerate(myRaw[1:], start=1):
             line = line[:8]
@@ -166,10 +171,13 @@ class Parser():
             tech, _ = TechModel.objects.update_or_create(id=id, defaults={
                 "label": label, "task": task, "image": image, "notes": notes,
                 "flavour": flavour, "culture": culture, "nodeTag": nodeTag, "data": self.data})
+            count += 1
+        print(f"   added {count} technologies")
 
     def _addEdges(self):
         print("Parsing edges")
         myRaw = self.raw[self.SHEET_MAP["edge"]]
+        count = 0
 
         for n, line in enumerate(myRaw[1:], start=1):
             line = line[:8]
@@ -201,6 +209,7 @@ class Parser():
 
             edge, _ = TechEdgeModel.objects.update_or_create(id=id, defaults={
                 "label": label, "src": src, "dst": dst, "die": die, "dots": dots, "data": self.data})
+            count += 1
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -244,6 +253,7 @@ class Parser():
                 chunks = line[7].split(",")
                 for chunk in chunks:
                     addInput(chunk.strip())
+        print(f"  added {count} tech edges")
 
     def _addVyrobas(self):
         print("Parsing vyrobas")
@@ -411,7 +421,7 @@ class Parser():
         myRaw = self.raw[self.SHEET_MAP["ach"]]
 
         for n, line in enumerate(myRaw[1:], start=1):
-            label, id, implementation, icon, orgMessage = line
+            label, id, implementation, icon, orgMessage = line[:5]
             AchievementModel.objects.update_or_create(id=id,
                     defaults={"label": label, "implementation": implementation,
                               "icon": icon, "orgMessage": orgMessage, "data": self.data})
