@@ -33,6 +33,7 @@
     </div>
 {% endif %}
 
+<button class= "w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" id="download" onclick="return downloadSVG()">Stáhnout SVG</button>
 
 <svg id="graph" class="w-full h-screen border-2">
     <g/>
@@ -41,6 +42,8 @@
 <script>
     var g = new dagreD3.graphlib.Graph().setGraph({})
         .setGraph({rankdir: 'LR', edgesep: 10, ranksep: 500, nodesep: 20});
+
+    var nodes = {};
 
     {% for resource in resources %}
         {% if resource.id != "res-prace" and resource.id != "res-obyvatel" %}
@@ -51,6 +54,7 @@
             html += '</div>';
             div.innerHTML = html;
             g.setNode( "{{resource.id}}", { label: div });
+            nodes["{{resource.id}}"] = 1;
         {% endif %}
     {% endfor %}
 
@@ -74,10 +78,19 @@
 
         {% for input in vyroba.inputs.all %}
             {% if input.resource.id != "res-prace" and input.resource.id != "res-obyvatel" %}
+                if ( !("{{input.resource.id}}" in nodes) ) {
+                    console.log(  "Y {{input.resource.id}}" );
+                }
                 g.setEdge( "{{input.resource.id}}", "{{vyroba.id}}", { label: "", curve: d3.curveBasis  });
             {% endif %}
         {% endfor %}
-        g.setEdge( "{{vyroba.id}}", "{{vyroba.output.id}}", { label: "{{vyroba.amount}}x", curve: d3.curveBasis  });
+        if ( !("{{vyroba.output.id}}" in nodes) ) {
+            console.log( "X {{vyroba.output.id}}, {{vyroba.id}}" );
+        }
+
+        {% if vyroba.output.id != "res-prace" and vyroba.output.id != "res-obyvatel" %}
+            g.setEdge( "{{vyroba.id}}", "{{vyroba.output.id}}", { label: "{{vyroba.amount}}x", curve: d3.curveBasis  });
+        {% endif %}
     {% endfor %}
 
     const POINT_RADIUS = 0;
@@ -175,6 +188,62 @@
     // Center the graph
     var initialScale = 1;
     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.node().getBBox().width - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+
+    document.getElementById("content").classList.remove("container");
+</script>
+
+
+<script>
+    function getFile(url, onComplete) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                console.log('success!', xhr);
+                onComplete(xhr.response);
+            } else {
+                console.log('The request failed!');
+            }
+            console.log(xhr.response);
+        };
+
+        // Create and send a GET request
+        // The first argument is the post type (GET, POST, PUT, DELETE, etc.)
+        // The second argument is the endpoint URL
+        xhr.open('GET', url);
+        xhr.send();
+    }
+
+    var mainStyle = "";
+    getFile("/static/css/styles.min.css", (data) => { mainStyle = data; });
+    var inlineStyle = `
+            .node rect {
+                padding: 0;
+                background: none;
+                border: none;
+                fill: white;
+                stroke: black;
+                }
+
+                .edgePath path {
+                stroke: #333;
+                fill: #333;
+                stroke-width: 1.5px;
+                }
+    `;
+
+    function downloadSVG() {
+        document.getElementById('graph').setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+        const svg = document.getElementById('graph').innerHTML;
+        var head = '<svg title="graph" version="1.1" xmlns="http://www.w3.org/2000/svg">';
+        var style = "<style>" + mainStyle + inlineStyle + "</style>";
+        var full_svg = head +  style + svg + "</svg>"
+        const blob = new Blob([full_svg], {type: "image/svg+xml"});
+        const element = document.createElement("a");
+        element.download = "w3c.svg";
+        element.href = window.URL.createObjectURL(blob);
+        element.click();
+        element.remove();
+    }
 </script>
 
 {% endblock %}
