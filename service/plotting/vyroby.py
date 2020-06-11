@@ -137,4 +137,15 @@ class VyrobaBuilder:
     def enhancementCard(self, file, enh):
         description = r"{\Large\textbf{" + enh.label + r"}}" + "\n\n"
         description += vyroba.flavour + "\n\n"
-        description += r"\textbf{Probíhá v: }" + vyroba.build.label + "\n\n"
+        description += r"\textbf{Zlepšuje v: }" + enh.vyroba.label + "\n\n"
+        description += r"\textbf{Přidává: }" + f"{enh.amount} $\\times$ {self.formatResource(vyroba.output)} \n\n"
+        description += r"\textbf{Vstupy: }"
+        resources = ["{}$\\times$ {}".format(r.amount, self.formatResource(r.resource)) for r in enh.inputs.all()]
+        description += ", ".join(resources) + "\n\n"
+
+        file.write(self.enhancementHeader())
+        file.write(r"""
+        \begin{document}
+            \EnhancementCard{""" + description + r"""}
+        \end{document})
+        """)

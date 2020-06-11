@@ -71,6 +71,16 @@
                 html += '<li>{{input.amount}}x {{input.resource.label}}</li>';
             {% endfor %}
             html += '</ul>';
+            html += '<b>Vylepšení: </b>'
+            {% for enh in vyroba.enhancers.all %}
+                html += '<li>{{enh.label}}:'
+                {% for input in enh.inputs.all %}
+                    html += '{{input.amount}}x {{input.resource.label}},';
+                {% endfor %}
+                html += " &rarr; {{enh.amount}}";
+                html += '</li>';
+            {% endfor %}
+
 
         html += '</div>';
         div.innerHTML = html;

@@ -5764,11 +5764,7 @@
             "",
             "prod-dobytek:1",
             "prod-kuze:4",
-<<<<<<< HEAD
-            "build-pastvina",
-=======
             "build-reznictvi",
->>>>>>> Update vyroba plotting
             "build-reznictvi",
             "",
             "1",
@@ -5800,11 +5796,7 @@
             "",
             "prod-dobytek:1",
             "prod-kost:2",
-<<<<<<< HEAD
-            "build-pastvina",
-=======
             "build-reznictvi",
->>>>>>> Update vyroba plotting
             "build-reznictvi",
             "",
             "1",
@@ -5820,11 +5812,7 @@
             "5",
             "mat-dobytek:2",
             "prod-trus:2",
-<<<<<<< HEAD
-            "build-pastvina",
-=======
             "tech-tazna",
->>>>>>> Update vyroba plotting
             "build-pastvina",
             "",
             "1",
@@ -7080,7 +7068,6 @@
             "",
             ""
         ],
-<<<<<<< HEAD
         [
             "",
             "",
@@ -7337,8 +7324,6 @@
             "",
             ""
         ],
-=======
->>>>>>> Update vyroba plotting
         [
             "",
             "",
@@ -7353,8 +7338,6 @@
             "1",
             "1",
             "",
-<<<<<<< HEAD
-=======
             ""
         ],
         [
@@ -7595,7 +7578,6 @@
             "1",
             "1",
             "",
->>>>>>> Update vyroba plotting
             ""
         ],
         [
@@ -8134,206 +8116,10 @@
             "",
             "",
             "res-prace:5",
-<<<<<<< HEAD
-=======
             "",
             "",
->>>>>>> Update vyroba plotting
             "",
-            "",
-<<<<<<< HEAD
-=======
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
->>>>>>> Update vyroba plotting
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
             "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
             "1",
             "",
             ""
@@ -9303,14 +9089,11 @@
             "",
             "die-any:0",
             "10",
-<<<<<<< HEAD
             "",
             "",
             "res-prace:5",
             "",
             "",
-=======
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1",
@@ -9319,14 +9102,11 @@
         ],
         [
             "",
-<<<<<<< HEAD
             "",
             "die-any:0",
             "10",
             "",
             "",
-=======
->>>>>>> Update vyroba plotting
             "res-prace:5",
             "",
             "",
@@ -10027,75 +9807,11 @@
         [
             "",
             "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
-            "",
-            ""
-        ],
-        [
-            "",
-            "",
-            "die-any:0",
-            "10",
-            "",
-            "",
-            "res-prace:5",
-            "",
-            "",
-            "",
-            "1",
-            "1",
             "",
-            ""
-        ],
-        [
             "",
             "",
-            "die-any:0",
-            "10",
             "",
             "",
-            "res-prace:5",
             "",
             "",
             "",
@@ -13174,84 +12890,11 @@
             "",
             "Onikal orgovi",
             ""
-        ]
-    ],
-    [
-        [
-            "Nazev",
-            "ID",
-            "Popis"
         ],
         [
-            "Bez \u00fakolu",
-            "ukol-nic",
-            "\u00dakol je spln\u011bn automaticky"
-        ]
-    ],
-    [
-        [
-            "Nazev",
-            "ID"
-        ],
-        [
-            "Planinn\u00e1",
-            "die-plane"
-        ],
-        [
-            "Horsk\u00e1",
-            "die-hory"
-        ],
-        [
-            "Pou\u0161tn\u00ed",
-            "die-poust"
-        ],
-        [
-            "Lesn\u00ed",
-            "die-les"
-        ],
-        [
-            "Libovoln\u00e1",
-            "die-any"
-        ]
-    ],
-    [
-        [
-            "Nazev",
-            "ID",
-            "obrazek"
-        ]
-    ],
-    [
-        [
-            "N\u00e1zev",
-            "ID",
-            "implementace",
-            "ikona",
-            "Popis",
-            "zpr\u00e1va pro orga"
-        ],
-        [
-<<<<<<< HEAD
             "V\u00fdzkumn\u00edk",
-=======
-            "Velk\u00e9 po\u010d\u00edtadlo",
-            "ach-pocitadlo",
-            "greatCounter",
-            "zat\u00edm \u017e\u00e1dn\u00e1",
->>>>>>> Update vyroba plotting
             "",
-            "Popl\u00e1cej je po z\u00e1dech, \u017ee jsou fakt dob\u0159\u00ed"
-        ],
-        [
-            "U\u0159ezan\u00e9 prsty",
-            "arch-prsty",
-            "fingers",
-            "zat\u00edm \u017e\u00e1dn\u00e1",
             "",
-            "T\u00fdm to sice vyzkoumal, ale po\u0159ezal se u toho. Post\u0159\u00edkej je pytl\u00edkem um\u011bl\u00e9 krve."
-        ],
-        [
-            "Univerz\u00e1l",
             "",
             "Jako prvn\u00ed vyzkoumal tech lv. 3 a v\u00edc",
             ""
@@ -13260,11 +12903,6 @@
             "Pr\u016fkopn\u00edk",
             "",
             "",
-            "Z\u00edskej inici\u00e1ln\u00ed tech pro v\u0161echny \u010dty\u0159i biotopy",
-            ""
-        ],
-        [
-            "Nedosa\u017eiteln\u00fd",
             "",
             "Produkce kamene 11+",
             ""
@@ -13273,13 +12911,7 @@
             "Osv\u011btlova\u010d",
             "",
             "",
-            "P\u0159id\u011bl si tento achievement",
-            ""
-        ],
-        [
-            "Uct\u00edva\u010d boh\u016f",
             "",
-<<<<<<< HEAD
             "Produkce n\u011bkter\u00e9ho paliva 11 a v\u00edc",
             ""
         ],
@@ -13300,23 +12932,6 @@
             "Tech",
             "Cena",
             "Bonus",
-=======
-            "",
-            "",
-            "Onikal orgovi",
-            ""
-        ],
-        [
-            "V\u00fdzkumn\u00edk",
-            "",
-            "",
-            "",
-            "Jako prvn\u00ed vyzkoumal tech lv. 3 a v\u00edc",
-            ""
-        ],
-        [
-            "Pr\u016fkopn\u00edk",
->>>>>>> Update vyroba plotting
             "",
             "@ Existuje vyroba",
             "@ Existuje tech"
@@ -13324,15 +12939,9 @@
         [
             "",
             "",
-            "Produkce kamene 11+",
-            ""
-        ],
-        [
-            "Osv\u011btlova\u010d",
             "",
             "",
             "",
-<<<<<<< HEAD
             "kolik jednotek nav\u00edc dostanou",
             "",
             "",
@@ -13345,13 +12954,6 @@
             "tech-alchymie",
             "mat-luxus-2:2",
             "2",
-=======
-            "Produkce n\u011bkter\u00e9ho paliva 11 a v\u00edc",
-            ""
-        ],
-        [
-            "Popelka",
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1"
@@ -13375,7 +12977,6 @@
             "mat-zelezo:2",
             "2",
             "",
-<<<<<<< HEAD
             "1",
             "1"
         ],
@@ -13397,25 +12998,6 @@
             "tech-astronomie",
             "mat-luxus-3:3",
             "1",
-=======
-            "Rozsypal si organiz\u00e9r",
-            ""
-        ]
-    ],
-    [
-        [
-            "N\u00e1zev",
-            "ID",
-            "V\u00fdroba",
-            "Tech",
-            "Cena",
-            "Bonus",
-            "",
-            "@ Existuje vyroba",
-            "@ Existuje tech"
-        ],
-        [
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1"
@@ -13443,203 +13025,6 @@
             "1"
         ],
         [
-            "Hnojen\u00ed",
-            "enh-hnojeni-obili",
-            "vyr-obili",
-            "tech-hnojeni",
-            "prod-trus:1",
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "Akvadukt",
-            "enh-zavlazovani-obili",
-            "vyr-obili",
-            "tech-zavlazovani",
-            "mat-stavivo-3:4",
-            "2",
-            "",
-<<<<<<< HEAD
-            "1",
-            "1"
-        ],
-        [
-            "Kosa",
-            "enh-kosa-obili",
-            "vyr-obili",
-            "build-kovarna",
-            "mat-zelezo:2",
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "Kalend\u00e1\u0159",
-            "enh-kalendar-obili",
-            "vyr-obili",
-            "tech-astronomie",
-            "mat-luxus-3:3",
-            "1",
-=======
-            "kolik jednotek nav\u00edc dostanou",
-            "",
->>>>>>> Update vyroba plotting
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Barvivo",
-            "enh-barvivo-tex",
-            "vyr-textil",
-            "tech-barviva",
-            "mat-nerost:2",
-=======
-            "Destilace",
-            "enh-destilace",
-            "vyr-alkohol",
-            "tech-alchymie",
-            "mat-luxus-2:2",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Tkani na stavu",
-            "enh-stav",
-            "vyr-textil",
-            "tech-tkalcovsky-stav",
-            "mat-drevo:4",
-=======
-            "Koreneny napoj",
-            "enh-kornapoj",
-            "vyr-alkohol",
-            "tech-moreplavba",
-            "mat-koreni:3",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Manufaktura",
-            "enh-manufaktura",
-            "vyr-textil",
-            "tech-manufaktura",
-            "mat-stavivo-5:4",
-            "3",
-=======
-            "Kotel",
-            "enh-kotel",
-            "vyr-alkohol",
-            "tech-nytovani",
-            "mat-zelezo:2",
-            "2",
->>>>>>> Update vyroba plotting
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Pila",
-            "enh-pila",
-            "vyr-tramy",
-            "build-kovarna",
-            "mat-nastroj-5:2",
-=======
-            "Hnojen\u00ed",
-            "enh-hnojeni-bobule",
-            "vyr-bobule",
-            "tech-hnojeni",
-            "prod-trus:1",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Vodni pohon",
-            "enh-vodnikolo",
-            "vyr-tramy",
-            "tech-mechanika",
-            "mat-tram:4",
-            "2",
-=======
-            "Kalend\u00e1\u0159",
-            "enh-kalendar-bobule",
-            "vyr-bobule",
-            "tech-astronomie",
-            "mat-luxus-3:3",
-            "1",
->>>>>>> Update vyroba plotting
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Sekera",
-            "enh-bronzaxe",
-            "vyr-drevo",
-            "build-hut",
-            "mat-nastroj-5:2",
-=======
-            "Kosa",
-            "enh-kosa-seno",
-            "vyr-dobytek",
-            "build-kovarna",
-            "mat-zelezo:2",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "Plavebni kanal",
-            "enh-kanal",
-            "vyr-drevo",
-            "tech-zavlazovani",
-            "mat-stavivo-5:4",
-=======
-            "Barvivo",
-            "enh-barvivo-keramika",
-            "vyr-keramika",
-            "tech-barviva",
-            "mat-nerost:2",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "extrakt",
-            "enh-extrakt",
-            "vyr-lek",
-            "tech-alchymie",
-            "mat-luxus-4:2",
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-=======
             "Hnojen\u00ed",
             "enh-hnojeni-obili",
             "vyr-obili",
@@ -13772,15 +13157,12 @@
             "1"
         ],
         [
->>>>>>> Update vyroba plotting
             "neprirodni lek",
             "enh-chem",
             "vyr-lek",
             "tech-iatrochemie",
             "mat-nerost:6",
             "2",
-<<<<<<< HEAD
-=======
             "",
             "1",
             "1"
@@ -13792,70 +13174,33 @@
             "build-univerzita",
             "mat-luxus-5:4",
             "2",
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1"
         ],
         [
-<<<<<<< HEAD
-            "recept",
-            "enh-recept",
-            "vyr-lek",
-            "build-univerzita",
-            "mat-luxus-5:4",
-=======
             "Kolo",
             "enh-kolo",
             "vyr-nosic",
             "tech-matematika",
             "mat-dobytek:2",
->>>>>>> Update vyroba plotting
             "2",
             "",
             "1",
             "1"
         ],
         [
-<<<<<<< HEAD
-            "Kolo",
-            "enh-kolo",
-            "vyr-nosic",
-            "tech-matematika",
-            "mat-dobytek:2",
-=======
             "Vuz s pohyblivou oji",
             "enh-oj",
             "vyr-nosic",
             "tech-mechanika",
             "mat-drevo:4",
->>>>>>> Update vyroba plotting
             "2",
             "",
             "1",
             "1"
         ],
         [
-<<<<<<< HEAD
-            "Vuz s pohyblivou oji",
-            "enh-oj",
-            "vyr-nosic",
-            "tech-mechanika",
-            "mat-drevo:4",
-=======
-            "Chomout",
-            "enh-chomout",
-            "vyr-nosic",
-            "tech-kyklop",
-            "mat-kuze:4",
->>>>>>> Update vyroba plotting
-            "2",
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
             "Chomout",
             "enh-chomout",
             "vyr-nosic",
@@ -13867,68 +13212,34 @@
             "1"
         ],
         [
-=======
->>>>>>> Update vyroba plotting
             "Trmen",
             "enh-trmen",
             "vyr-nosic-jizda",
             "tech-karavana",
             "mat-kuze:4",
             "2",
-<<<<<<< HEAD
             "",
             "1",
             "1"
         ],
         [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-=======
->>>>>>> Update vyroba plotting
-            "",
-            "1",
-            "1"
-        ],
-        [
-<<<<<<< HEAD
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-=======
             "Lo\u010fka",
             "enh-lodka",
             "vyr-ryba",
             "tech-plavba",
             "mat-kuze:4",
             "2",
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1"
         ],
         [
-<<<<<<< HEAD
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-=======
             "\u010clun s plachtou",
             "enh-clun",
             "vyr-ryba",
             "build-texdilna",
             "mat-textil:3",
             "2",
->>>>>>> Update vyroba plotting
             "",
             "1",
             "1"
@@ -13945,67 +13256,64 @@
             "1"
         ],
         [
+            "Glazura",
+            "enh-glazura",
+            "vyr-keramika",
+            "build-dul",
+            "mat-nerost:2",
+            "2",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "Porcel\u00e1n",
+            "enh-porcelan",
+            "vyr-keramika",
+            "build-alchdilna",
+            "mat-nerost:4",
+            "2",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "Potah",
+            "enh-potah",
+            "vyr-kamen",
+            "tech-tazna",
+            "mat-dobytek:2",
+            "2",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "Kovov\u00e9 dl\u00e1ta",
+            "enh-dlato",
+            "vyr-kamen",
+            "tech-zelezo",
+            "mat-zelezo:2",
+            "2",
             "",
+            "1",
+            "1"
+        ],
+        [
+            "St\u0159eln\u00fd prach",
+            "enh-prach",
+            "vyr-kamen",
+            "tech-strelny-prach",
+            "mat-uhli:4",
+            "2",
             "",
-            "",
-<<<<<<< HEAD
-=======
-            "",
->>>>>>> Update vyroba plotting
             "1",
             "1"
         ],
         [
             "",
             "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "1",
-            "1"
-        ],
-        [
-            "",
-            "",
-            "",
+            "vyr-dobytek",
             "",
             "",
             "",
