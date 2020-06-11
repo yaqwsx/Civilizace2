@@ -24,6 +24,13 @@ class DieModel(EntityModel):
             "die-les": "4e9c00", # Green
             "die-any": "000000" # Black
         }
+        colors.update({
+            "die-plane": "eeeeee", # Blue
+            "die-hory": "eeeeee", # Gray
+            "die-poust": "eeeeee", # Orange
+            # "die-les": "eeeeee", # Green
+            # "die-any": "eeeeee" # Black
+        })
         return colors[self.id]
 
 class AchievementModel(EntityModel):
