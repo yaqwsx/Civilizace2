@@ -53,6 +53,14 @@
             {% endfor %}
             html += '</ul>';
         {% endif %}
+        {% if tech.unlock_enhancements.all %}
+            html += '<b>Odemyká vylepšení:</b>'
+            html += '<ul class="list-disc">';
+            {% for enhancement in tech.unlock_enhancements.all %}
+                html += '<li>' + "{{enhancement.label}}" + '</li>';
+            {% endfor %}
+            html += '</ul>';
+        {% endif %}
         html += '</div>';
         div.innerHTML = html;
         g.setNode( "{{tech.id}}", { label: div });
