@@ -30,6 +30,7 @@
 {% endfor %}
 </style>
 
+<button class= "w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" id="download" onclick="return downloadSVG()">Stáhnout SVG</button>
 <svg id="graph" class="w-full h-screen">
     <g/>
 </svg>
@@ -53,11 +54,11 @@
             {% endfor %}
             html += '</ul>';
         {% endif %}
-        {% if tech.unlock_enhancements.all %}
+        {% if tech.unlock_enhancers.all %}
             html += '<b>Odemyká vylepšení:</b>'
             html += '<ul class="list-disc">';
-            {% for enhancement in tech.unlock_enhancements.all %}
-                html += '<li>' + "{{enhancement.label}}" + '</li>';
+            {% for enhancer in tech.unlock_enhancers.all %}
+                html += '<li>' + "{{enhancer.label}}" + '</li>';
             {% endfor %}
             html += '</ul>';
         {% endif %}
@@ -90,6 +91,66 @@
     svg.call(zoom.transform, d3.zoomIdentity.translate((svg.node().getBBox().width - g.graph().width * initialScale) / 2, 20).scale(initialScale));
 
     document.getElementById("content").classList.remove("container");
+</script>
+
+<script>
+    function getFile(url, onComplete) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                console.log('success!', xhr);
+                onComplete(xhr.response);
+            } else {
+                console.log('The request failed!');
+            }
+            console.log(xhr.response);
+        };
+
+        // Create and send a GET request
+        // The first argument is the post type (GET, POST, PUT, DELETE, etc.)
+        // The second argument is the endpoint URL
+        xhr.open('GET', url);
+        xhr.send();
+    }
+
+    var mainStyle = "";
+    getFile("/static/css/styles.min.css", (data) => { mainStyle = data; });
+    var inlineStyle = `
+            .node rect {
+            padding: 0;
+            background: none;
+            border: none;
+            fill: white;
+            stroke: black;
+            }
+
+            .edgePath path {
+            stroke: #333;
+            fill: #333;
+            stroke-width: 3px;
+            }
+
+            {% for die in dies %}
+                .{{die.id}} path {
+                stroke: #{{die.color}};
+                fill: #{{die.color}};
+            }
+            {% endfor %}
+    `;
+
+    function downloadSVG() {
+        document.getElementById('graph').setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+        const svg = document.getElementById('graph').innerHTML;
+        var head = '<svg title="graph" version="1.1" xmlns="http://www.w3.org/2000/svg">';
+        var style = "<style>" + mainStyle + inlineStyle + "</style>";
+        var full_svg = head +  style + svg + "</svg>"
+        const blob = new Blob([full_svg], {type: "image/svg+xml"});
+        const element = document.createElement("a");
+        element.download = "w3c.svg";
+        element.href = window.URL.createObjectURL(blob);
+        element.click();
+        element.remove();
+    }
 </script>
 
 {% endblock %}

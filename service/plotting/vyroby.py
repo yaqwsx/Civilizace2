@@ -1,54 +1,24 @@
 from service.plotting.dot import indent, escapeId, fromMm, digraphHeader, endGraph
 import textwrap
 
-from game.data.tech import TechModel
+from game.data.vyroba import VyrobaModel
 
 import os
 import sys
 import subprocess
 from pathlib import Path
 
-
-def declareTech(file, tech, nodeLabelImg, indentLevel=1):
-    styles = []
-    styles.append('shape=box')
-    styles.append('margin="0"')
-    # styles.append(f'label=""')
-    styles.append(r'texlbl="\includegraphics{' + nodeLabelImg + r'}"')
-    file.write(indent(indentLevel) + "{} [{}];\n".format(
-        escapeId(tech.id),
-        ", ".join(styles)))
-
-def declareTechEdges(file, tech, indentLevel=1):
-    styles = []
-    styles.append('penwidth="50"')
-    for i, edge in enumerate(tech.unlocks_tech.all()):
-        file.write(indent(indentLevel) + "{}:dep{} -> {}[{}];\n".format(
-            escapeId(edge.src.id),
-            i + 1,
-            escapeId(edge.dst.id),
-            ", ".join(styles)
-        ))
-
-class TechBuilder:
-    def __init__(self, buildDirectory, iconDirectory, teamColor):
+class VyrobaBuilder:
+    def __init__(self, buildDirectory, iconDirectory):
         self.iconDirectory = os.path.abspath(iconDirectory)
         self.buildDirectory = os.path.abspath(buildDirectory)
-        self.teamColor = teamColor
         Path(self.buildDirectory).mkdir(parents=True, exist_ok=True)
 
-    def generateTechLabel(self, tech):
+    def generateVyrobaLabel(self, vyroba):
         try:
-            texSrc = os.path.join(self.buildDirectory, tech.id + ".tex")
+            texSrc = os.path.join(self.buildDirectory, vyroba.id + ".tex")
             with open(texSrc, "w") as f:
-                self.techNode(f, tech)
-            buildCmd = ["texfot", "pdflatex", "-halt-on-error",
-                "--output-directory", self.buildDirectory, texSrc]
-            subprocess.run(buildCmd, capture_output=True, check=True)
-
-            texSrc = os.path.join(self.buildDirectory, "empty-" + tech.id + ".tex")
-            with open(texSrc, "w") as f:
-                self.emptyTechNode(f, tech)
+                self.vyrobaCard(f, vyroba)
             buildCmd = ["texfot", "pdflatex", "-halt-on-error",
                 "--output-directory", self.buildDirectory, texSrc]
             subprocess.run(buildCmd, capture_output=True, check=True)
@@ -115,7 +85,7 @@ class TechBuilder:
         #     return r"\icon{" + os.path.join(self.iconDirectory, resource.icon) + "} " + resource.label
         # return resource.label
 
-    def cardHeader(self,teamColor):
+    def vyrobaHeader(self):
         return r"""
         \documentclass{standalone}
         \usepackage[czech]{babel}
@@ -130,14 +100,11 @@ class TechBuilder:
         \usepackage{enumitem}
         \usepackage{graphicx}
 
-        \definecolor{teamColor}{RGB}{""" + ", ".join([str(x) for x in teamColor]) + r"""}
-
         \renewcommand*{\arraystretch}{0}
 
-        \newcommand\TechCard[4]{%
+        \newcommand\VyrobaCard[4]{%
             \setlength\fboxsep{0.3cm}\setlength\fboxrule{0.0pt}% delete
             \fbox{% delete
-                    \textcolor{teamColor}{{\vrule width 0.3cm}}\ \
                     \begin{minipage}[c][5cm][t]{9cm}%
                         \begin{tabularx}{\textwidth}{lXr}
                             \raisebox{-\height+\fontcharht\font`X}{#1} \vspace{0.2cm} & #2 & \raisebox{-\height+\fontcharht\font`X}{{#3}}
@@ -148,20 +115,7 @@ class TechBuilder:
         }
         """
 
-    def emptyTechNode(self, file, tech):
-        unlocks = ""
-        file.write(self.cardHeader((255, 255, 255)))
-        file.write(r"""
-        \begin{document}
-            \TechCard
-                {}
-                {}
-                {}
-                {\begin{center}\huge\vspace{1cm} """ + tech.nodeTag + r"""\end{center}}
-        \end{document})
-        """)
-
-    def techNode(self, file, tech):
+    def vyrobaCard(self, file, vyroba):
         """
         Generate LaTeX file with tech node
         """
@@ -204,7 +158,7 @@ class TechBuilder:
         file.write(self.cardHeader(self.teamColor))
         file.write(r"""
         \begin{document}
-            \TechCard
+            \VyrobaCard
                 {\qrcode[version=1,height=2cm]{""" + tech.id + r"""}}
                 {""" + description + r"""}
                 {""" + icon + r"""}

@@ -73,7 +73,7 @@ class Parser():
                     defaults={
                         "label": label + " " + str(i),
                         "type": type,
-                        "icon": "images/placeholder.png",
+                        "icon": "placeholder.png",
                         "level": i,
                         "data": self.data
                     })
@@ -82,7 +82,7 @@ class Parser():
                     defaults={
                         "label": "Produkce: " + label + " " + str(i),
                         "type": type,
-                        "icon": "images/placeholder.png",
+                        "icon": "placeholder.png",
                         "level": i,
                         "data": self.data
                     })

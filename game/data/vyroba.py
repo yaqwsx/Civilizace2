@@ -32,7 +32,7 @@ class VyrobaInputModel(models.Model):
 
 
 class EnhancementModel(EntityModel):
-    tech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlock_enhancements")
+    tech = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlock_enhancers")
     vyroba = models.ForeignKey(VyrobaModel, on_delete=models.CASCADE)
     amount = models.IntegerField()
 
