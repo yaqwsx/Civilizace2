@@ -116,7 +116,7 @@ class VyrobaBuilder:
         \newcommand\EnhancementCard[1]{%
             \setlength\fboxsep{0.2cm}\setlength\fboxrule{0.0pt}% delete
             \fbox{% delete
-                    \begin{minipage}[c][3cm][t]{2.6cm}%
+                    \begin{minipage}[c][1cm][t]{8.6cm}%
                        \raggedright #1
                     \end{minipage}%
             }% delete
@@ -132,7 +132,6 @@ class VyrobaBuilder:
         """
 
         description = r"{\Large\textbf{" + vyroba.label + r"}}" + "\n\n"
-        description += vyroba.flavour + "\n\n"
         description += r"\textbf{Probíhá v: }" + vyroba.build.label + "\n\n"
 
         longDescription = ""
@@ -173,12 +172,12 @@ class VyrobaBuilder:
         """)
 
     def enhancementCard(self, file, enh):
-        description = r"{\Large\textbf{" + enh.label + r"}}" + "\n\n"
+        description = r"{\Large\textbf{" + enh.label + r"}}" + r"\hspace*{\fill}"
         description += r"\textbf{Zlepšuje: }" + enh.vyroba.label + "\n\n"
-        description += r"\textbf{Efekt: }" + f" {'+' if enh.amount >= 0 else '-'}{enh.amount}\n\n"
         description += r"\textbf{Vstupy: }"
         resources = ["{}$\\times$\ {}".format(r.amount, self.formatResource(r.resource)) for r in enh.inputs.all()]
-        description += ", ".join(resources) + "\n\n"
+        description += ", ".join(resources) + r"\hspace*{\fill}"
+        description += r"\textbf{Efekt: }" + f" {'+' if enh.amount >= 0 else '-'}{enh.amount} {self.formatResource(enh.vyroba.output)}\n\n"
 
         file.write(self.enhancementHeader())
         file.write(r"""
@@ -216,10 +215,12 @@ class VyrobaBuilder:
         \pagenumbering{gobble}
 
         \newcommand\VyrBox[4]{%
-            \begin{tabular}{|c|c|c|}
+            \begin{tabular}{|c|}
                 \hline
-                \multicolumn{3}{|c|}{#1} \\ \hline
-                #2 & #3 & #4  \\ \hline
+                #1 \\ \hline
+                #2 \\ \hline
+                #3 \\ \hline
+                #4 \\ \hline
             \end{tabular}
             \vspace{0.15cm}
         }
@@ -277,9 +278,8 @@ class VyrobaBuilder:
                 f.write(self.allSheetHeader())
                 f.write(r"""
                 \begin{document}
-                \begin{center}
                 \noindent""")
-                for i in range(8):
+                for i in range(6):
                     f.write(r"""\VyrBox
                     {\includegraphics{""" + os.path.join(self.buildDirectory, "empty-vyroba") + r""".pdf}}
                     {\includegraphics{""" + os.path.join(self.buildDirectory, "empty-enhancement") + r""".pdf}}
@@ -287,7 +287,6 @@ class VyrobaBuilder:
                     {\includegraphics{""" + os.path.join(self.buildDirectory, "empty-enhancement") + r""".pdf}}
                     """)
                 f.write(r"""
-                \end{center}
                 \end{document}
                 """)
             buildCmd = ["texfot", "pdflatex", "-halt-on-error",
