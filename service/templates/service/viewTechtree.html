@@ -43,7 +43,7 @@
     {% for tech in nodes %}
         var div = document.createElement("div");
         var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
-        html += '<h3 class="text-lg border-b">' + "{{tech.label}}" + '</h3>';
+        html += '<h3 class="text-lg border-b">' + "{{tech.label}}" + ' (' + "{{tech.epocha}}" + ')</h3>';
         html += "{{tech.id}}</p>"
         html += '<p>' + "{{tech.flavour}}" + '</p>';
         {% if tech.unlock_vyrobas.all %}

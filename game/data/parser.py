@@ -143,7 +143,7 @@ class Parser():
         count = 0
 
         for n, line in enumerate(myRaw[1:], start=1):
-            line = line[:8]
+            line = line[:11]
             if line[1] == "":
                 continue
             if len(line) < 8:
@@ -163,6 +163,11 @@ class Parser():
                 continue
 
             try:
+                epocha = int(line[10])
+            except Exception:
+                epocha = -1
+
+            try:
                 task = TaskModel.objects.get(id=line[2])
             except Exception:
                 self._logWarning("Tech." + str(n) + ": Nezname ID ukolu (" + str(line[2]) + ")")
@@ -170,7 +175,8 @@ class Parser():
 
             tech, _ = TechModel.objects.update_or_create(id=id, defaults={
                 "label": label, "task": task, "image": image, "notes": notes,
-                "flavour": flavour, "culture": culture, "nodeTag": nodeTag, "data": self.data})
+                "flavour": flavour, "culture": culture, "nodeTag": nodeTag,
+                "epocha": epocha, "data": self.data})
             count += 1
         print(f"   added {count} technologies")
 

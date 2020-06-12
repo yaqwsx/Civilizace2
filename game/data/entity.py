@@ -25,9 +25,9 @@ class DieModel(EntityModel):
             "die-any": "000000" # Black
         }
         colors.update({
-            "die-plane": "eeeeee", # Blue
-            "die-hory": "eeeeee", # Gray
-            "die-poust": "eeeeee", # Orange
+            # "die-plane": "eeeeee", # Blue
+            # "die-hory": "eeeeee", # Gray
+            # "die-poust": "eeeeee", # Orange
             # "die-les": "eeeeee", # Green
             # "die-any": "eeeeee" # Black
         })

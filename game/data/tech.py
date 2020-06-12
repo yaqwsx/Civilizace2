@@ -14,6 +14,7 @@ class TechModel(EntityModel):
     notes = models.TextField()
     image = models.TextField()
     nodeTag = models.TextField()
+    epocha = models.IntegerField()
 
 class TechEdgeModel(EntityModel):
     src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")
