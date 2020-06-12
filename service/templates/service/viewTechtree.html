@@ -42,6 +42,16 @@
 
     {% for tech in nodes %}
         var div = document.createElement("div");
+        var colors = [
+            "#c0c0c0",
+            "#d0f0b0",
+            "#d0e0b0",
+            "#c0d0c0",
+            "#b0d0d0",
+            "#b0d0e0",
+            "#b0c0ff"
+        ]
+        div.style.backgroundColor = colors[{{tech.epocha}}];
         var html = '<div class="text-sm" style="width: 300px; white-space: normal;">';
         html += '<h3 class="text-lg border-b">' + "{{tech.label}}" + ' (' + "{{tech.epocha}}" + ')</h3>';
         html += "{{tech.id}}</p>"
