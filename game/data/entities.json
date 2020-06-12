@@ -5106,133 +5106,133 @@
             "Pr\u00e1ce",
             "res-prace",
             "-",
-            "prace-a.png",
+            "prace-a.svg",
             ""
         ],
         [
             "Obyvatel\u00e9",
             "res-obyvatel",
             "-",
-            "obyvatel-a.png",
+            "obyvatel-a.svg",
             ""
         ],
         [
             "Bobule",
             "mat-bobule",
             "jidlo-2",
-            "jidlo-bobule-2-a.png",
+            "jidlo-bobule-2-a.svg",
             ""
         ],
         [
             "Obil\u00ed",
             "mat-obili",
             "jidlo-2",
-            "jidlo-obili-2-a.png",
+            "jidlo-obili-2-a.svg",
             ""
         ],
         [
             "Maso",
             "mat-maso",
             "jidlo-3",
-            "jidlo-maso-2-a.png",
+            "jidlo-maso-2-a.svg",
             ""
         ],
         [
             "Ovoce",
             "mat-ovoce",
             "jidlo-3",
-            "jidlo-ovoce-3-a.png",
+            "jidlo-ovoce-3-a.svg",
             ""
         ],
         [
             "Ryba",
             "mat-ryba",
             "jidlo-4",
-            "jidlo-ryba-4-a.png",
+            "jidlo-ryba-4-a.svg",
             ""
         ],
         [
             "Dobytek",
             "mat-dobytek",
             "jidlo-4",
-            "jidlo-dobytek-4-a.png",
+            "jidlo-dobytek-4-a.svg",
             ""
         ],
         [
             "Ko\u0159en\u00ed",
             "mat-koreni",
             "jidlo-5",
-            "jidlo-korekni-5-a.png",
+            "jidlo-koreni-5-a.svg",
             ""
         ],
         [
             "Cukrovinka",
             "mat-cukr",
             "jidlo-6",
-            "jidlo-cukrovinky-6-a.png",
+            "jidlo-cukrovinky-6-a.svg",
             ""
         ],
         [
             "Trus",
             "mat-trus",
             "palivo-2",
-            "palivo-trus-2-a.png",
+            "palivo-trus-2-a.svg",
             ""
         ],
         [
             "D\u0159evo",
             "mat-drevo",
             "palivo-3",
-            "palivo-drevo-3-a.png",
+            "palivo-drevo-3-a.svg",
             ""
         ],
         [
             "Tuk",
             "mat-tuk",
             "palivo-4",
-            "palivo-tuk-4-a.png",
+            "palivo-tuk-4-a.svg",
             ""
         ],
         [
             "Uhl\u00ed",
             "mat-uhli",
             "palivo-5",
-            "palivo-uhli-5-a.png",
+            "palivo-uhli-5-a.svg",
             ""
         ],
         [
             "Nafta",
             "mat-nafta",
             "palivo-6",
-            "palivo-nafta-6-a.png",
+            "palivo-nafta-6-a.svg",
             ""
         ],
         [
             "J\u00edl",
             "mat-jil",
             "stavivo-2",
-            "stavivo-jil-2-a.png",
+            "stavivo-jil-2-a.svg",
             ""
         ],
         [
             "K\u00e1men",
             "mat-kamen",
             "stavivo-3",
-            "stavivo-kamen-3-a.png",
+            "stavivo-kamen-3-a.svg",
             ""
         ],
         [
             "Tr\u00e1m",
             "mat-tram",
             "stavivo-4",
-            "stavivo-tramy-4-a.png",
+            "stavivo-tramy-4-a.svg",
             ""
         ],
         [
             "Cihla",
             "mat-cihla",
             "stavivo-5",
-            "stavivo-cihly-5-a.png",
+            "stavivo-cihly-5-a.svg",
             ""
         ],
         [
@@ -5246,28 +5246,28 @@
             "Malta",
             "mat-malta",
             "stavivo-6",
-            "stavivo-malta-6-a.png",
+            "stavivo-malta-6-a.svg",
             ""
         ],
         [
             "Kosti",
             "mat-kost",
             "nastroj-2",
-            "nastroj-kosti-2-a.png",
+            "nastroj-kosti-2-a.svg",
             ""
         ],
         [
             "Nerosty",
             "mat-nerost",
             "nastroj-3",
-            "nastroj-nerosty-3-a.png",
+            "nastroj-nerosty-3-a.svg",
             ""
         ],
         [
             "Lano",
             "mat-lano",
             "nastroj-4",
-            "nastroj-lano-3-a.png",
+            "nastroj-lano-3-a.svg",
             ""
         ],
         [
@@ -5288,7 +5288,7 @@
             "K\u016f\u017ee",
             "mat-kuze",
             "luxus-2",
-            "luxus-kuze-2-a.png",
+            "luxus-kuze-2-a.svg",
             ""
         ],
         [
@@ -5302,28 +5302,28 @@
             "Alkohol",
             "mat-alkohol",
             "luxus-3",
-            "luxus-alkohol-3-a.png",
+            "luxus-alkohol-3-a.svg",
             ""
         ],
         [
             "Keramika",
             "mat-keramika",
             "luxus-4",
-            "luxus-keramika-3-a.png",
+            "luxus-keramika-4-a.svg",
             ""
         ],
         [
             "L\u00e9\u010divo",
             "mat-lek",
             "luxus-5",
-            "luxus-lecivo-4-a.png",
+            "luxus-lecivo-5-a.svg",
             ""
         ],
         [
             "\u0160perky",
             "mat-sklo",
             "luxus-6",
-            "luxus-sperky-6-a.png",
+            "luxus-sperky-6-a.svg",
             ""
         ],
         [
@@ -5344,7 +5344,7 @@
             "Znalosti",
             "res-vedomosti",
             "-",
-            "papyrus-a.png",
+            "papyrus-a.svg",
             "model je 0-papir"
         ],
         [

@@ -110,6 +110,8 @@ class TechBuilder:
             raise
 
     def formatResource(self, resource):
+        if resource.isProduction:
+            return r"\underline{" + resource.label.replace("Produkce: ", "") + "}"
         return resource.label
         # if resource.icon:
         #     return r"\icon{" + os.path.join(self.iconDirectory, resource.icon) + "} " + resource.label
@@ -191,8 +193,8 @@ class TechBuilder:
         if unlocksTech:
             unlocks += r"\textbf{Navazující směry bádání:}\begin{itemize}[noitemsep,nolistsep,leftmargin=*]" + "\n"
             for ut in unlocksTech:
-                resources = ["{}$\\times$ {}".format(ut.dots, ut.die.label)]
-                resources += ["{}$\\times$ {}".format(r.amount, self.formatResource(r.resource)) for r in ut.resources.all()]
+                resources = ["{}$\\times$\ {}".format(ut.dots, ut.die.label)]
+                resources += ["{}$\\times$\ {}".format(r.amount, self.formatResource(r.resource)) for r in ut.resources.all()]
                 unlocks += r"\item " + ut.label + " (" + ", ".join(resources) + ")\n"
             unlocks += r"\end{itemize}" + "\n\n"
 

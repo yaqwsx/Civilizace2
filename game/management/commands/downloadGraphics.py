@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 
-from game.data.icons import downloadIcons
+from game.data.icons import downloadIcons, postProcessIcons
 
 class Command(BaseCommand):
     help = "Download graphics"
@@ -13,6 +13,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         directory = kwargs.get("--directory", "game/static/icons")
         downloadIcons(directory)
+        postProcessIcons(directory)
 
 
 
