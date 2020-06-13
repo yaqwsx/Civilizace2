@@ -32,6 +32,15 @@ def postProcessIcons(directory, report=print):
         report(conversionList)
         converstionCmd = ["inkscape", "--shell"]
         subprocess.run(converstionCmd, capture_output=True, check=True, input=conversionList.encode("utf8"))
+
+        report("PNG to JPG")
+        conversionList = ""
+        for file in os.listdir(directory):
+            if file.endswith(".png"):
+                file = os.path.abspath(os.path.join(directory, file))
+                output = file.replace(".png", ".jpg")
+                converstionCmd = ["convert", file, output]
+                subprocess.run(converstionCmd, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
         cmd = " ".join(e.cmd)
         sys.stderr.write(f"Command '{cmd}' failed:\n")
