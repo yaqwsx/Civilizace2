@@ -359,6 +359,60 @@ class Parser():
                 for chunk in chunks:
                     addInput(chunk.strip())
 
+            # ==========================================================
+            # Adding material vyrobas version
+            if line[9] != "TRUE":
+                continue
+
+            id = id + "-material"
+            label = output.label[10:] + " (" + label.split("(")[0].strip() + ")"
+
+            vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
+                "label": label, "flavour": flavour, "tech": tech, "build": build,
+                "output": output, "amount": amount, "die": die, "dots": dots, "data": self.data})
+
+            def addMatInput(entry):
+                chunks = entry.split(":")
+
+                if len(chunks) < 2:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Nepodarilo se zpracovat vstup (" + entry + ")")
+                    return None
+
+                inputId = "mat-" + chunks[0][5:] if chunks[0][:5] == "prod-" else chunks[0]
+
+                print("inputId: " + str(inputId))
+                print("chunks[0]: " + str(chunks[0]))
+
+                try:
+                    res = ResourceModel.objects.get(id=inputId)
+                except ResourceModel.DoesNotExist:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
+                    return None
+
+                try:
+                    amount = int(chunks[1])
+                except Exception:
+                    self._logWarning("Vyroba." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
+                    return None
+
+                input, _ = VyrobaInputModel.objects.update_or_create(
+                    parent=vyr, resource=res,
+                    defaults={"amount": amount})
+                return input
+
+            try:
+                prace = int(line[3])
+                if prace:
+                    addInput("res-prace:" + str(prace))
+            except ValueError:
+                pass
+
+            if line[5] != "" and line[5] != "-":
+                chunks = line[5].split(",")
+                for chunk in chunks:
+                    addInput(chunk.strip())
+
+
     def _addEnhancements(self):
         print("Parsing enhancements")
         myRaw = self.raw[self.SHEET_MAP["enh"]]
