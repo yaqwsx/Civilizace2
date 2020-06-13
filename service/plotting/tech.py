@@ -171,6 +171,7 @@ class TechBuilder:
         description = r"{\Large\textbf{" + tech.label + r"}}" + "\n\n"
         description += tech.flavour + "\n\n"
         vyrobas = tech.unlock_vyrobas.all()
+        previous = False
         if vyrobas and True:
             if len(vyrobas) == 1:
                 description += r"\textbf{Odemyká výrobu:}"
@@ -180,8 +181,11 @@ class TechBuilder:
             for vyroba in vyrobas:
                 description += r"\item " + vyroba.label + "\n"
             description += r"\end{itemize}" + "\n\n"
+            previous = True
         enhancers = tech.unlock_enhancers.all()
         if enhancers:
+            if previous:
+                description += r"\vspace{\dimexpr\baselineskip + 3pt}"
             description += r"\textbf{Odemyká vylepšení:}"
             description += r"\begin{itemize}[noitemsep,nolistsep,leftmargin=*,after=\vspace*{-\dimexpr\baselineskip - 3pt}]" + "\n"
             for enhancer in enhancers:
