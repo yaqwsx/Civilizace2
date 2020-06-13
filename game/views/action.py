@@ -93,7 +93,7 @@ class ActionMoveView(ActionView):
         try:
             state = State.objects.getNewest()
             formClass = formForActionMove(moveId)
-            form = formClass(team=teamId, action=moveId, entity=request.GET.get("entity"), state=state)
+            form = formClass(team=teamId, action=moveId, user=request.user, entity=request.GET.get("entity"), state=state)
             return render(request, "game/actionMove.html", {
                 "request": request,
                 "form": form,

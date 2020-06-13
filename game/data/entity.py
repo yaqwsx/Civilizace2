@@ -40,4 +40,6 @@ class AchievementModel(EntityModel):
 
     def achieved(self, state, team):
         from game import achievements
+        if self.implementation == "":
+            return False
         return getattr(achievements, self.implementation)(state, team)

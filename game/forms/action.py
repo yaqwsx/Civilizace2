@@ -5,6 +5,7 @@ from game.models.actionMoves import *
 from game.models.actionBase import Action
 from game.models.keywords import KeywordType
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django_enumfield.forms.fields import EnumChoiceField
 from game.models.users import Team
 
 from crispy_forms.helper import FormHelper
@@ -28,7 +29,7 @@ class MoveInitialForm(forms.Form):
     team = captures(KeywordType.team,
         TeamChoiceField(label="Tým"))
     action = captures(KeywordType.move,
-        forms.ChoiceField(label="Akce"))
+        EnumChoiceField(ActionMove, label="Akce"))
     entity = forms.ChoiceField(required=False, label="Entita")
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 
@@ -73,7 +74,7 @@ class MoveForm(MoveInitialForm):
         self.teamId = team
         self.state = state
         if data:
-            super(MoveForm, self).__init__(data, user=user, state=state)
+            super(MoveForm, self).__init__(data=data, user=user, state=state)
             self.entityId = data.get("entity")
         else:
             super(MoveForm, self).__init__(initial={
