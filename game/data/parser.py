@@ -53,6 +53,9 @@ class Parser():
 
         print(f"  added {count} tasks")
 
+    def romeLevel(self, number):
+        return ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"][number]
+
     def _addResourceTypes(self):
         print("Parsing resource types")
         myRaw = self.raw[self.SHEET_MAP["type"]]
@@ -73,7 +76,7 @@ class Parser():
                 mat, _ = ResourceModel.objects.update_or_create(
                     id="mat-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": label + " " + levelToLabel[i],
+                        "label": label + " " + self.romeLevel(i),
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,
@@ -82,7 +85,7 @@ class Parser():
                 prod, _ = ResourceModel.objects.update_or_create(
                     id="prod-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": "Produkce: " + label + " " + levelToLabel[i],
+                        "label": "Produkce: " + label + " " + self.romeLevel(i),
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,
@@ -269,14 +272,14 @@ class Parser():
         centrum = TechModel.objects.get(id="build-centrum")
 
         for n, line in enumerate(myRaw[2:], start=2):
-            line = line[:10]
+            line = line[:15]
             if line[1] == "":
                 continue
 
             id = line[1]
             label = line[0]
 
-            flavour = line[9]
+            flavour = line[14]
 
             try:
                 chunks = line[2].split(":")
@@ -377,7 +380,12 @@ class Parser():
                 continue
 
 
+<<<<<<< HEAD
             label = output.label[10:] + " (" + label.split("(")[0].strip() + ")"
+=======
+            id = id + "-material"
+            label = "Materiál: " + label
+>>>>>>> Many sunday changes... Please, make it stop
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
                 "label": label, "flavour": flavour, "tech": tech, "build": centrum,
