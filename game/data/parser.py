@@ -67,11 +67,13 @@ class Parser():
             type, _ = ResourceTypeModel.objects.update_or_create(id=id, defaults={
                 "label": label, "color": color, "data": self.data})
 
+            levelToLabel = ["-", "I", "II", "III", "IV", "V", "VI", "VII"
+                                                                    ""]
             for i in range(2, 7):
                 mat, _ = ResourceModel.objects.update_or_create(
                     id="mat-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": label + " " + str(i),
+                        "label": label + " " + levelToLabel[i],
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,
@@ -80,7 +82,7 @@ class Parser():
                 prod, _ = ResourceModel.objects.update_or_create(
                     id="prod-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": "Produkce: " + label + " " + str(i),
+                        "label": "Produkce: " + label + " " + levelToLabel[i],
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,
