@@ -3,7 +3,6 @@ from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
 from game.models.actionMovesList import ActionMove
 from game.models.actionMoves import *
 from game.models.actionBase import Action
-from game.models.keywords import KeywordType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django_enumfield.forms.fields import EnumChoiceField
 from game.models.users import Team
@@ -26,9 +25,9 @@ class DiceThrowForm(forms.Form):
             self.fields["dice"].initial = self.fields["dice"].choices[0][0]
 
 class MoveInitialForm(forms.Form):
-    team = captures(KeywordType.team,
+    team = captures("",
         TeamChoiceField(label="Tým"))
-    action = captures(KeywordType.move,
+    action = captures("",
         EnumChoiceField(ActionMove, label="Akce"))
     entity = forms.ChoiceField(required=False, label="Entita")
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)

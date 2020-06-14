@@ -5,7 +5,6 @@ from django.contrib.auth.models import Group, Permission
 from guardian.shortcuts import assign_perm
 
 from game.models.actionMovesList import ActionMove
-from game.models.keywords import KeywordType, Keyword
 from game.models.users import User, Team
 from game.models.state import State
 
@@ -31,17 +30,11 @@ TEAMS = {
 SUPER_USERS = ["maara", "honza"]
 ORG = ["abbe", "jupi", "efka", "kaja", "domca"]
 
-KEYWORDS = [
-    # keyword, description, category, value
-    ("PETRZEL", "Zvyš počítadlo", KeywordType.move,
-        ActionMove.sanboxIncreaseCounter)
-]
-
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    help = "usage: create [entities|groups|users|state|keywords]+"
+    help = "usage: create [entities|groups|users|state]+"
 
     @staticmethod
     def create_or_get_user(username, email, password, superuser=False):
@@ -69,8 +62,6 @@ class Command(BaseCommand):
                 self.createUsers()
             if what == "state":
                 self.createState()
-            if what == "keywords":
-                self.createKeywords()
 
     def createUsers(self):
         # Create team users
@@ -116,29 +107,6 @@ class Command(BaseCommand):
             print("Cannot create initialState")
         else:
             print("Initial state created: {}".format(s))
-
-    def createOrUpdateKeyword(self, keyword):
-        try:
-            k = Keyword.objects.get(word=keyword[0])
-            k.word = keyword[0]
-            k.description = keyword[1]
-            k.valueType = keyword[2]
-            k.value = keyword[3]
-            k.save()
-        except Keyword.DoesNotExist:
-            Keyword.objects.create(word=keyword[0], description=keyword[1],
-                valueType=keyword[2], value=keyword[3])
-
-    def createKeywords(self):
-        for keyword in KEYWORDS:
-            self.createOrUpdateKeyword(keyword)
-        for teamname, param in TEAMS.items():
-            team = Team.objects.get(name=teamname)
-            self.createOrUpdateKeyword((
-                param["keyword"],
-                "Play team " + teamname,
-                KeywordType.team,
-                team.id))
 
     def createEntities(self):
         updater = Update()
