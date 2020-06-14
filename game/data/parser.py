@@ -363,8 +363,17 @@ class Parser():
             # Adding material vyrobas version
             if line[9] != "TRUE":
                 continue
+            if id[:5] != "prod-":
+                continue
 
-            id = id + "-material"
+            try:
+                chunks = line[6].split(":")
+                output = ResourceModel.objects.get(id="mat-" + chunks[0][5:])
+            except ResourceModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Nepodarilo se prevést ID na materiál (" + line[6] + ")")
+                continue
+
+
             label = output.label[10:] + " (" + label.split("(")[0].strip() + ")"
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
