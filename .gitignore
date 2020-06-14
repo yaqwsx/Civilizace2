@@ -124,4 +124,11 @@ images/*
 
 _static/
 _build/
-game/static/icons/*.pdf
+game/static/*
+
+# Ignore generated graphics
+
+_graphics
+graphics
+ikony
+buildings

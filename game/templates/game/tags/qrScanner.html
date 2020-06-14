@@ -23,17 +23,34 @@
     </button>
 </div>
 
+<script>
+    var header = document.getElementById("header");
+    var div = document.createElement('div');
+    div.innerHTML = `<select name="qrCameraSelect" id="qrCameraSelect"
+            class="appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight hidden">
+        </select>`;
+    header.appendChild(div);
+</script>
+
 <script type="text/javascript" src="/static/js/instascan.min.js"></script>
 <script>
-    var keywords = {
-        {% for keyword in keywords %} "{{keyword.word}}": ["{{keyword.valueType}}", {{ keyword.value }}, "{{ keyword.description }}"],
-        {% endfor %}
-    };
     var qrScanner = document.getElementById("qrScanner");
     var cameraPreview = document.getElementById("cameraPreview");
+    var cameraSelector = document.getElementById("qrCameraSelect");
     var scanner = null;
+    var allCameras = null;
     var camera = null;
     var currentKeyword = null;
+
+    document.addEventListener('input', function (event) {
+        console.log(event);
+        if (event.target.id !== 'qrCameraSelect') return;
+        var idx = event.target.value;
+        camera = allCameras[idx];
+        localStorage.setItem("cameraIdx", idx);
+        stopScanner();
+        startScanner();
+    }, false);
 
     function toggleScanner() {
         if (qrScanner.classList.contains("hidden")) {
@@ -51,12 +68,14 @@
         showKeyword(currentKeyword);
         document.getElementById("qrScannerButton").innerText = "Zavřít skener";
         qrScanner.classList.remove("hidden");
+        cameraSelector.classList.remove("hidden");
         scanner.start(camera);
         document.getElementById("qrScannerApply").disabled = true;
     }
 
     function stopScanner() {
         qrScanner.classList.add("hidden");
+        cameraSelector.classList.add("hidden");
         if (scanner == null) {
             return;
         }
@@ -64,35 +83,55 @@
         document.getElementById("qrScannerButton").innerText = "Skenovat";
     }
 
-    function assignToElement(element, typeValue) {
-        if (element.tagName == "INPUT" || element.tagName == "SELECT") {
-            if (element.dataset.valuetype != typeValue[0]) {
-                return false;
+    function getValue(keyword) {
+        for (form of document.getElementsByTagName("form")) {
+            for (element of form.elements) {
+                if (element.tagName == "SELECT") {
+                    options = element.getElementsByTagName("OPTION");
+                    for (var i = 0; i != options.length; i++) {
+                        if (options[i].value == keyword) {
+                            return options[i].innerHTML;
+                        }
+                    }
+                }
             }
-            element.value = typeValue[1];
-            return true;
+        }
+        return "Neznámý identifikátor";
+    }
+
+    function assignToElement(element, keyword) {
+        if (element.type == "hidden") {
+            return false
+        }
+        if (element.tagName == "SELECT") {
+            options = element.getElementsByTagName("OPTION");
+            for (var i = 0; i != options.length; i++) {
+                if (options[i].value == keyword) {
+                    element.value = keyword;
+                    var event = new Event('change');
+                    element.dispatchEvent(event);
+                    return true;
+                }
+            }
         }
         return false;
     }
 
     function applyWord() {
-        var typeValue = keywords[currentKeyword];
-
         // Try to assign it to active element
-        if (assignToElement(document.activeElement, typeValue)) {
+        if (assignToElement(document.activeElement, currentKeyword)) {
             stopScanner();
             return;
         }
         for (form of document.getElementsByTagName("form")) {
             for (element of form.elements) {
-                if (assignToElement(element, typeValue)) {
+                if (assignToElement(element, currentKeyword)) {
                     stopScanner();
                     return;
                 }
             }
         }
-        alert("Nepodařilo se přiřadit hodnotu '" + typeValue[1] +
-            "' typu '" + typeValue[0] + "'");
+        alert("Nepodařilo se přiřadit hodnotu '" + currentKeyword + "'");
     }
 
     function showKeyword(keyword) {
@@ -103,8 +142,7 @@
             document.getElementById("qrScannerApply").classList.add("hidden");
             return;
         }
-        var typeValue = keywords[keyword];
-        document.getElementById("qrScannerDesc").innerText = typeValue[2];
+        document.getElementById("qrScannerDesc").innerText = getValue(keyword);
         document.getElementById("qrScannerKeyword").innerText = keyword;
         document.getElementById("qrScannerApply").disabled = false;
         document.getElementById("qrScannerApply").classList.remove("hidden");
@@ -113,24 +151,50 @@
     async function initScanner() {
         scanner = new Instascan.Scanner({ video: cameraPreview, mirror: false });
         scanner.addListener('scan', function (content) {
-            if (!(content in keywords)) {
+            {% comment %} if (!(content in keywords)) {
                 alert("Naskenován neznámý kód '" + constent + "'");
                 return;
-            }
+            } {% endcomment %}
 
             currentKeyword = content;
-            var typeValue = keywords[content];
             showKeyword(currentKeyword);
         });
         await Instascan.Camera.getCameras().then(function (cameras) {
+            allCameras = cameras;
+            for (var i = 0; i != cameras.length; i++) {
+                if (cameras[i].name != null) {
+                    name = cameras[i].name;
+                } else {
+                    name = cameras[i].id;
+                }
+                cameraSelector.options[i] = new Option(name, i);
+            }
+
             if (cameras.length > 0) {
-                for (c of cameras) {
-                    if (c.name.indexOf('back') != -1) {
-                        camera = c;
+                if (localStorage.getItem("cameraIdx") != null) {
+                    var idx = localStorage.getItem("cameraIdx");
+                    camera = allCameras[idx];
+                    cameraSelector.selectedIndex = idx;
+                    return;
+                }
+                for (var i = 0; i != cameras.length; i++) {
+                    if (allCameras[i].name == null) {
+                        continue;
+                    }
+                    if (allCameras[i].name.indexOf('back') != -1) {
+                        camera = allCameras[i];
+                        cameraSelector.selectedIndex = i;
+                        localStorage.setItem("cameraIdx", i);
+                        return;
                     }
                 }
+                // Use first camera
+                camera = allCameras[0];
+                cameraSelector.selectedIndex = 0;
+                localStorage.setItem("cameraIdx", 0);
             } else {
                 console.error('No cameras found.');
+                alert("No cameras found");
             }
         }).catch(function (e) {
             console.error(e);
