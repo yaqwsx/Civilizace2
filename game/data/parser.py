@@ -266,6 +266,7 @@ class Parser():
     def _addVyrobas(self):
         print("Parsing vyrobas")
         myRaw = self.raw[self.SHEET_MAP["vyr"]]
+        centrum = TechModel.objects.get(id="build-centrum")
 
         for n, line in enumerate(myRaw[2:], start=2):
             line = line[:10]
@@ -379,7 +380,7 @@ class Parser():
             label = output.label[10:] + " (" + label.split("(")[0].strip() + ")"
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
-                "label": label, "flavour": flavour, "tech": tech, "build": build,
+                "label": label, "flavour": flavour, "tech": tech, "build": centrum,
                 "output": output, "amount": amount, "die": die, "dots": dots, "data": self.data})
 
             def addMatInput(entry):
