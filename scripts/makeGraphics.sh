@@ -84,13 +84,13 @@ function generateCommon() {
     inkscape graphics/dots.svg --export-pdf=$DIR/dots.pdf
 }
 
-# for team in $TEAMS; do
-#     echo Generating $team
-#     generateTeam $team &
-# done
+for team in $TEAMS; do
+    echo Generating $team
+    generateTeam $team
+done
 
-# echo Generating common
-# generateCommon
+echo Generating common
+generateCommon
 
 # wait
 

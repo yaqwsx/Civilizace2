@@ -380,12 +380,8 @@ class Parser():
                 continue
 
 
-<<<<<<< HEAD
-            label = output.label[10:] + " (" + label.split("(")[0].strip() + ")"
-=======
             id = id + "-material"
             label = "Materiál: " + label
->>>>>>> Many sunday changes... Please, make it stop
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
                 "label": label, "flavour": flavour, "tech": tech, "build": centrum,
