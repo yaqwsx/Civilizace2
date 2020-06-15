@@ -132,13 +132,16 @@ class VyrobaBuilder:
     def icon(self, icon):
         return os.path.join(self.iconDirectory, icon).replace(".svg", ".pdf")
 
+    def shortCutBuildName(self, vyroba):
+        return vyroba.build.label.replace("Alchymistická dílna", "Alch. dílna")
+
     def vyrobaCard(self, file, vyroba):
         """
         Generate LaTeX file with tech node
         """
 
         description = r"{\Large\textbf{" + vyroba.label.replace("Materiál", "Mat") + r"}}" + "\n\n"
-        description += r"\textbf{Probíhá v: }" + vyroba.build.label + "\n\n"
+        description += r"\textbf{Probíhá v: }" + self.shortCutBuildName(vyroba) + "\n\n"
 
         longDescription = ""
         output = r"\textbf{Výstup: }" + f"{vyroba.amount} $\\times$ {self.formatResource(vyroba.output)} \n\n"

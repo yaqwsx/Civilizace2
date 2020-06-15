@@ -369,7 +369,7 @@ class Parser():
             # Adding material vyrobas version
             if line[9] != "TRUE":
                 continue
-            if id[:5] != "prod-":
+            if not line[6].startswith("prod-"):
                 continue
 
             try:
@@ -382,6 +382,7 @@ class Parser():
 
             id = id + "-material"
             label = "Materiál: " + label
+            print(f"adding {id}")
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
                 "label": label, "flavour": flavour, "tech": tech, "build": centrum,

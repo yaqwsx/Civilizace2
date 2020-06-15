@@ -216,13 +216,15 @@ class TechBuilder:
         unlocksTech = tech.unlocks_tech.all()
         unlocks = ""
         if unlocksTech:
-            unlocks += r"""\textbf{Navazující směry bádání:}\begin{itemize}[noitemsep,nolistsep,leftmargin=*]""" + "\n"
+            if tech.id not in ["tech-matematika", "tech-alchymie"]:
+                unlocks += r"""\textbf{Navazující směry bádání:}"""
+            unlocks += r"""\begin{itemize}[noitemsep,nolistsep,leftmargin=*]""" + "\n"
             for ut in unlocksTech:
                 resources = ["{}$\\times$\ {}".format(ut.dots, ut.die.label)]
                 resources += ["{}$\\times$\ {}".format(r.amount, self.formatResource(r.resource)) for r in ut.resources.all()]
                 unlocks += r"\item " + ut.label + " (" + ", ".join(resources) + ")\n"
             unlocks += r"\end{itemize}" + "\n\n"
-        unlocks += tech.flavour + "\n\n"
+        unlocks += r"\textit{" + tech.flavour + "}\n\n"
 
         if tech.image and tech.image != "-":
             icon = r"\includegraphics[width=2.5cm, height=2.5cm, keepaspectratio]{" + os.path.join(self.iconDirectory, tech.image) + r"}"

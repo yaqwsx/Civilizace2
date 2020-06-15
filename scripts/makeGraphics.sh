@@ -117,6 +117,9 @@ TAG_FILES=""
 for team in $TEAMS; do
     TAG_FILES="$TAG_FILES $BUILD_DIR/$team/nameTag.pdf"
 done
+for i in {1..4}; do
+    TAG_FILES="$TAG_FILES $BUILD_DIR/universal/nameTag.pdf"
+done
 pdftk $TAG_FILES cat output "$DIR/jmenovky-12x.pdf"
 
 # Techy
