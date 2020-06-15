@@ -58,7 +58,7 @@ class VyrobaBuilder:
 
     def formatResource(self, resource):
         if resource.isProduction:
-            return r"\underline{" + resource.label.replace("Produkce: ", "") + "}"
+            return r"\uline{" + resource.label.replace("Produkce: ", "") + "}"
         return resource.label
         # if resource.icon:
         #     return r"\icon{" + os.path.join(self.iconDirectory, resource.icon) + "} " + resource.label
@@ -79,8 +79,11 @@ class VyrobaBuilder:
         \usepackage{enumitem}
         \usepackage{graphicx}
         \usepackage{ragged2e}
+        \usepackage{ulem}
+        \renewcommand{\ULdepth}{1pt}
 
         \renewcommand*{\arraystretch}{0}
+        \setlength\parskip{0pt}
 
         \newcommand\VyrobaCard[4]{%
             \setlength\fboxsep{0.2cm}\setlength\fboxrule{0.0pt}% delete
@@ -89,6 +92,7 @@ class VyrobaBuilder:
                         \begin{tabularx}{\textwidth}{lXr}
                             \raisebox{-\height+\fontcharht\font`X}{#1} \vspace{0.2cm} & \raggedright #2 & \raisebox{-\height+\fontcharht\font`X}{{#3}}
                         \end{tabularx}
+                        \vspace{-6mm}
                         {#4}
                     \end{minipage}%
             }% delete
@@ -110,6 +114,8 @@ class VyrobaBuilder:
         \usepackage{enumitem}
         \usepackage{graphicx}
         \usepackage{ragged2e}
+        \usepackage{ulem}
+        \renewcommand{\ULdepth}{1pt}
 
         \renewcommand*{\arraystretch}{0}
 
@@ -131,17 +137,18 @@ class VyrobaBuilder:
         Generate LaTeX file with tech node
         """
 
-        description = r"{\Large\textbf{" + vyroba.label + r"}}" + "\n\n"
+        description = r"{\Large\textbf{" + vyroba.label.replace("Materiál", "Mat") + r"}}" + "\n\n"
         description += r"\textbf{Probíhá v: }" + vyroba.build.label + "\n\n"
 
         longDescription = ""
-        longDescription += r"\textbf{Výstup: }" + f"{vyroba.amount} $\\times$ {self.formatResource(vyroba.output)} \n\n"
+        output = r"\textbf{Výstup: }" + f"{vyroba.amount} $\\times$ {self.formatResource(vyroba.output)} \n\n"
         longDescription += r"\textbf{Vstupy: }"
         resources = ["{}$\\times$\ {}".format(vyroba.dots, vyroba.die.label)]
         resources += ["{}$\\times$\ {}".format(r.amount, self.formatResource(r.resource)) for r in vyroba.inputs.all()]
         longDescription += ", ".join(resources) + "\n\n"
 
         description += longDescription
+        description += vyroba.flavour
 
         if vyroba.output.icon and vyroba.output.icon != "-":
             icon = r"\includegraphics[width=1.5cm, height=1.5cm, keepaspectratio]{" + self.icon(vyroba.output.icon) + r"}"
@@ -155,7 +162,7 @@ class VyrobaBuilder:
                 {\qrcode[version=1,height=2cm]{""" + vyroba.id + r"""}}
                 {""" + description + r"""}
                 {""" + icon + r"""}
-                {""" + "" + r"""}
+                { \begin{flushright}\vspace*{\fill}""" + output + r"""\end{flushright}}
         \end{document}
         """)
 

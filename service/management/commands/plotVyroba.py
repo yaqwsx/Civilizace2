@@ -18,6 +18,7 @@ class Command(BaseCommand):
             print("Running in demo mode, building tech-les, build-pila")
             builder.generateVyrobaLabel(VyrobaModel.objects.get(id="vyr-vcelar"))
             builder.generateVyrobaLabel(VyrobaModel.objects.get(id="vyr-most"))
+            builder.generateVyrobaLabel(VyrobaModel.objects.get(id="vyr-div-vez1"))
 
             builder.generateEnhancementLabel(EnhancementModel.objects.get(id="enh-destilace"))
             builder.generateEnhancementLabel(EnhancementModel.objects.get(id="enh-kotel"))

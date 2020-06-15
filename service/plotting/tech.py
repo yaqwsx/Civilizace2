@@ -2,6 +2,7 @@ from service.plotting.dot import indent, escapeId, fromMm, digraphHeader, endGra
 import textwrap
 
 from game.data.tech import TechModel
+from game.data.vyroba import VyrobaModel
 
 import os
 import sys
@@ -21,11 +22,9 @@ def declareTech(file, tech, nodeLabelImg, indentLevel=1):
 
 def declareTechEdges(file, tech, indentLevel=1):
     styles = []
-    styles.append('penwidth="50"')
     for i, edge in enumerate(tech.unlocks_tech.all()):
-        file.write(indent(indentLevel) + "{}:dep{} -> {}[{}];\n".format(
+        file.write(indent(indentLevel) + "{} -> {}[{}];\n".format(
             escapeId(edge.src.id),
-            i + 1,
             escapeId(edge.dst.id),
             ", ".join(styles)
         ))
@@ -61,6 +60,8 @@ class TechBuilder:
 
     def generateTechLabels(self):
         for tech in TechModel.objects.all():
+            if tech.id.startswith("div-"):
+                continue
             self.generateTechLabel(tech)
 
     def labelFor(self, tech):
@@ -90,10 +91,17 @@ class TechBuilder:
             techs = TechModel.objects.all()
             with open(dotFile, "w") as f:
                 digraphHeader(f)
+                f.write('graph [center=true, margin=0.2, nodesep=0.1, ranksep=0.3, pad=0.3];\n')
+                f.write('ratio="0.5";\n')
+                f.write("rankdir=LR;\n")
+                f.write("{\n")
                 for t in techs:
+                    if t.id.startswith("div-"):
+                        continue
                     declareTech(f, t, techLabler(t))
                 for t in techs:
                     declareTechEdges(f, t)
+                f.write("}\n")
                 endGraph(f)
             buildCmd = ["dot2tex", "--autosize", "--usepdflatex", "-ftikz",
                 "--template", "service/plotting/graphTemplate.tex",
@@ -111,7 +119,7 @@ class TechBuilder:
 
     def formatResource(self, resource):
         if resource.isProduction:
-            return r"\underline{" + resource.label.replace("Produkce: ", "") + "}"
+            return r"\uline{" + resource.label.replace("Produkce: ", "") + "}"
         return resource.label
         # if resource.icon:
         #     return r"\icon{" + os.path.join(self.iconDirectory, resource.icon) + "} " + resource.label
@@ -131,6 +139,8 @@ class TechBuilder:
         \usepackage{pbox}
         \usepackage{enumitem}
         \usepackage{graphicx}
+        \usepackage{ulem}
+        \renewcommand{\ULdepth}{1pt}
 
         \definecolor{teamColor}{RGB}{""" + ", ".join([str(x) for x in teamColor]) + r"""}
 
@@ -144,6 +154,8 @@ class TechBuilder:
                         \begin{tabularx}{\textwidth}{lXr}
                             \raisebox{-\height+\fontcharht\font`X}{#1} \vspace{0.2cm} & #2 & \raisebox{-\height+\fontcharht\font`X}{{#3}}
                         \end{tabularx}
+                        \vspace{-2mm}
+
                         {#4}
                     \end{minipage}%
             }% delete
@@ -163,13 +175,20 @@ class TechBuilder:
         \end{document})
         """)
 
+    def formatVyroba(self, vyroba):
+        if vyroba.output.isProduction:
+            label = r"\underline{" + vyroba.label + "}"
+            if VyrobaModel.objects.filter(id=vyroba.id + "-material"):
+                label += " +M"
+            return label
+        return vyroba.label
+
     def techNode(self, file, tech):
         """
         Generate LaTeX file with tech node
         """
 
         description = r"{\Large\textbf{" + tech.label + r"}}" + "\n\n"
-        description += tech.flavour + "\n\n"
         vyrobas = tech.unlock_vyrobas.all()
         previous = False
         if vyrobas and True:
@@ -179,13 +198,15 @@ class TechBuilder:
                 description += r"\textbf{Odemyká výroby:}"
             description += r"\begin{itemize}[noitemsep,nolistsep,leftmargin=*,after=\vspace*{-\dimexpr\baselineskip - 3pt}]" + "\n"
             for vyroba in vyrobas:
-                description += r"\item " + vyroba.label + "\n"
+                if vyroba.id.endswith("-material"):
+                    continue
+                description += r"\item " + self.formatVyroba(vyroba) + "\n"
             description += r"\end{itemize}" + "\n\n"
             previous = True
         enhancers = tech.unlock_enhancers.all()
         if enhancers:
             if previous:
-                description += r"\vspace{\dimexpr\baselineskip + 3pt}"
+                description += r"\vspace{\dimexpr\baselineskip - 2pt }"
             description += r"\textbf{Odemyká vylepšení:}"
             description += r"\begin{itemize}[noitemsep,nolistsep,leftmargin=*,after=\vspace*{-\dimexpr\baselineskip - 3pt}]" + "\n"
             for enhancer in enhancers:
@@ -195,12 +216,13 @@ class TechBuilder:
         unlocksTech = tech.unlocks_tech.all()
         unlocks = ""
         if unlocksTech:
-            unlocks += r"\textbf{Navazující směry bádání:}\begin{itemize}[noitemsep,nolistsep,leftmargin=*]" + "\n"
+            unlocks += r"""\textbf{Navazující směry bádání:}\begin{itemize}[noitemsep,nolistsep,leftmargin=*]""" + "\n"
             for ut in unlocksTech:
                 resources = ["{}$\\times$\ {}".format(ut.dots, ut.die.label)]
                 resources += ["{}$\\times$\ {}".format(r.amount, self.formatResource(r.resource)) for r in ut.resources.all()]
                 unlocks += r"\item " + ut.label + " (" + ", ".join(resources) + ")\n"
             unlocks += r"\end{itemize}" + "\n\n"
+        unlocks += tech.flavour + "\n\n"
 
         if tech.image and tech.image != "-":
             icon = r"\includegraphics[width=2.5cm, height=2.5cm, keepaspectratio]{" + os.path.join(self.iconDirectory, tech.image) + r"}"
@@ -215,6 +237,8 @@ class TechBuilder:
                 {""" + description + r"""}
                 {""" + icon + r"""}
                 {""" + unlocks + r"""
+
+                    \vspace{-3mm}
                     \vspace*{\fill}
                     \begin{center} (""" + tech.nodeTag + r""")\end{center}
                 }
