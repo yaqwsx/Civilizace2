@@ -13,9 +13,15 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         for vyroba in VyrobaModel.objects.all():
-            if kwargs["f"] and not (kwargs["f"] in vyroba.id or kwargs["f"] in vyroba.label):
-                continue
             if not vyroba.output.isProduction:
+                continue
+
+            relevant = False
+            if not kwargs["f"]: relevant = True
+            if (kwargs["f"] in vyroba.id or kwargs["f"] in vyroba.label): relevant = True
+            if kwargs["f"] in vyroba.output.id or kwargs["f"] in vyroba.output.label: relevant = True
+
+            if not relevant:
                 continue
 
             print()
