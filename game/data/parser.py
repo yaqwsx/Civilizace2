@@ -279,7 +279,7 @@ class Parser():
             id = line[1]
             label = line[0]
 
-            flavour = line[14]
+            flavour = line[14] if len(line) >= 15 else ""
 
             try:
                 chunks = line[2].split(":")
@@ -382,7 +382,6 @@ class Parser():
 
             id = id + "-material"
             label = "Materiál: " + label
-            print(f"adding {id}")
 
             vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
                 "label": label, "flavour": flavour, "tech": tech, "build": centrum,
@@ -396,9 +395,6 @@ class Parser():
                     return None
 
                 inputId = "mat-" + chunks[0][5:] if chunks[0][:5] == "prod-" else chunks[0]
-
-                print("inputId: " + str(inputId))
-                print("chunks[0]: " + str(chunks[0]))
 
                 try:
                     res = ResourceModel.objects.get(id=inputId)
@@ -415,6 +411,7 @@ class Parser():
                 input, _ = VyrobaInputModel.objects.update_or_create(
                     parent=vyr, resource=res,
                     defaults={"amount": amount})
+
                 return input
 
             try:
@@ -427,7 +424,7 @@ class Parser():
             if line[5] != "" and line[5] != "-":
                 chunks = line[5].split(",")
                 for chunk in chunks:
-                    addInput(chunk.strip())
+                    addMatInput(chunk.strip())
 
 
     def _addEnhancements(self):
