@@ -133,7 +133,7 @@ class VyrobaForm(MoveForm):
         }
         cleaned_data["enhInputs"] = {}
         for enh, inputs in self.enhancersInputs.items():
-            cleaned_data["enhInputs"] = {
+            cleaned_data["enhInputs"][enh] = {
                 res: cleaned_data[field] for res, field in inputs.items()
             }
         for field in self.vyrobaInputs.values():
@@ -211,9 +211,9 @@ class VyrobaMove(Action):
             try:
                 cRes = ResourceModel.objects.get(id=self.vyrobaInputs[resource.id])
             except ResourceModel.DoesNotExist:
-                costErrorMessage += f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({self.vyroba.label})"
+                costErrorMessage.append(f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({self.vyroba.label})")
             except KeyError:
-                costErrorMessage += f"Zdroj {resource.label} nebyl určen ({self.vyroba.label})"
+                costErrorMessage.append(f"Zdroj {resource.label} nebyl určen ({self.vyroba.label})")
             if not cRes.isSpecializationOf(resource):
                 costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({self.vyroba.label})")
             amount = amount * self.volume
@@ -224,18 +224,18 @@ class VyrobaMove(Action):
                 continue
             for resource, amount in enh.getInputs().items():
                 try:
-                    cRes = ResourceModel.objects.get(id=self.vyrobaInputs[resource.id])
+                    cRes = ResourceModel.objects.get(id=self.enhInputs[enh.id][resource.id])
                 except ResourceModel.DoesNotExist:
-                    costErrorMessage += f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({enh.label})"
+                    costErrorMessage.append(f"Zdroj {self.enhInputs[enh.id][resource.id]} neexistuje ({enh.label})")
                 except KeyError:
-                    costErrorMessage += f"Zdroj {resource.label} nebyl určen ({enh.label})"
+                    costErrorMessage.append(f"Zdroj {resource.label} nebyl určen ({enh.label})")
                 if not cRes.isSpecializationOf(resource):
                     costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({enh.label})")
                 amount = amount * self.volume
                 cost[resource] = cost.get(resource, 0) + amount
         if costErrorMessage:
             msgBody = "\n".join([f'<li>{x}</li>' for x in costErrorMessage])
-            raise InvalidActionException(f'<ul>{msgBody}</ul>')
+            raise InvalidActionException(f'<ul class="list-disc px-4">{msgBody}</ul>')
         return cost
 
     def computeDistance(self):
@@ -256,12 +256,12 @@ class VyrobaMove(Action):
             materials = teamState.resources.payResources(cost)
         except ResourceStorage.NotEnoughResourcesException as e:
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
-            message = f'Nedostate zdrojů; chybí: <ul>{resMsg}</ul>'
+            message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
             return False, message
         message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"
         if len(materials) > 0:
             matMessage = "\n".join([f'<li>{res.label}: {amount}</li>' for res, amount in materials.items()])
-            message += f"Tým také musí zaplatit:<ul>{matMessage}</ul>"
+            message += f'Tým také musí zaplatit:<ul class="list-disc px-4">{matMessage}</ul>'
         else:
             message += f"Tým vám nic nebude platit<br>"
         message += f"Tým obdrží {self.gain()}&times; {self.vyroba.output.label}."
