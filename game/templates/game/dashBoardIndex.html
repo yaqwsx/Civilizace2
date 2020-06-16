@@ -57,6 +57,10 @@
                 <li>{{a}}× {{r.htmlRepr|safe}}</li>
             {% empty %}
                 <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
+            {% for r, a in teamState.foodSupply.getLuxusSupply.items %}
+                <li>{{a}}× {{r.htmlRepr|safe}}</li>
+            {% empty %}
+                <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
             </ul>
         {% endcard %}
     </div>

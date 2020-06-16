@@ -13,7 +13,6 @@ class FoodSupplyForm(MoveForm):
         super().__init__(*args, **kwargs)
 
         fields = ['Vyberte produkce, které přesměrovat na tržiště']
-        layoutData = [self.commonLayout]
 
         resources = self.state.teamState(self.teamId).resources
 
@@ -24,6 +23,14 @@ class FoodSupplyForm(MoveForm):
                 initial=0)
             fields.append(resource.id)
 
+        for resource, amount in resources.getResourcesByType(ResourceModel.objects.get(id="prod-luxus-2")).items():
+            self.fields[resource.id] = forms.IntegerField(
+                label=f"{resource.htmlRepr()} (max. {amount}x)",
+                validators=[MinValueValidator(0), MaxValueValidator(amount)],
+                initial=0)
+            fields.append(resource.id)
+
+        layoutData = [self.commonLayout]
         layoutData.append(Fieldset(*fields))
         self.helper.layout = Layout(*layoutData)
 

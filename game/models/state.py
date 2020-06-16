@@ -364,13 +364,19 @@ class FoodStorage(ImmutableModel):
     objects = FoodStorageManager()
     items = ListField(model_type=FoodStorageItem)
 
-    def getFoodSupply(self):
+    def getSupply(self, type):
         result = {}
 
         for item in self.items:
-            if item.resource.type == ResourceTypeModel.objects.get(id="type-jidlo"):
+            if item.resource.type == type:
                 result[item.resource] = item.amount
         return result
+
+    def getFoodSupply(self):
+        return self.getSupply(ResourceTypeModel.objects.get(id="type-jidlo"))
+
+    def getLuxusSupply(self):
+        return self.getSupply(ResourceTypeModel.objects.get(id="type-luxus"))
 
     def addSupply(self, resources):
         item = None
@@ -381,14 +387,10 @@ class FoodStorage(ImmutableModel):
             except FoodStorageItem.DoesNotExist:
                 item = FoodStorageItem(resource=resource, amount=amount)
                 self.items.append(item)
-            except Exception as e:
-                print("BWHOOOO")
-                print("e: " + str(e))
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
-
 
 class ResourceStorage(ImmutableModel):
     class NotEnoughResourcesException(InvalidActionException):
@@ -487,11 +489,10 @@ class ResourceStorage(ImmutableModel):
 
     def getResourcesByType(self, metaResource=None):
         if not metaResource:
-            metaResource = ResourceModel.objects.get(id="prod-jidlo-2")
+            metaResource = ResourceModel.objects.get(id="prod-luxus-2")
         resourceType = metaResource.type
         level = metaResource.level
         isProduction = metaResource.isProduction
-
 
         results = {}
         for item in self.items:
