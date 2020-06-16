@@ -4,89 +4,144 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from crispy_forms.layout import Layout, Fieldset, HTML
 
 from game.data import ResourceModel
-from game.data.vyroba import VyrobaModel
+from game.data.vyroba import VyrobaModel, EnhancementModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException
 from game.models.actionMovesList import ActionMove
 from game.models.state import ResourceStorage
 
+def hideableEnhancers():
+    return """
+    <script>
+        var checkboxes = document.querySelectorAll('.checkboxinput');
+        function hideShow() {
+            for (var i = 0; i != checkboxes.length; i++) {
+                div = document.getElementById("inputs-" + checkboxes[i].name);
+                if (div) {
+                    if (checkboxes[i].checked) {
+                        div.classList.remove("hidden");
+                    } else {
+                        div.classList.add("hidden");
+                    }
+                }
+            }
+        }
+
+        for (var i = 0; i != checkboxes.length; i++) {
+            checkboxes[i].addEventListener('change', hideShow);
+        }
+
+        hideShow();
+    </script>
+    """
+
+def scalableAmounts(field):
+    return """
+    <script>
+        var amounts = document.querySelectorAll('.vyrobaAmount');
+        var input = document.getElementById('""" + field.id_for_label + """');
+        function updateAmounts() {
+            volume = parseInt(input.value);
+            for (var i = 0; i != amounts.length; i++) {
+                amount = amounts[i];
+                amount.innerHTML = amount.dataset.amount * volume;
+            }
+        }
+        input.addEventListener("change", updateAmounts);
+        updateAmounts();
+    </script>
+    """
+
+def scalableAmount(amount):
+    return f'<span class="vyrobaAmount" data-amount="{amount}">{amount}</span>'
+
+def obtainVyrobaInfo(state, teamId, vyrobaId):
+    """
+    Return vyroba with its enhancers if available to the team
+    """
+    teamState = state.teamState(teamId)
+    techs = teamState.techs
+    vyroba = VyrobaModel.objects.get(id=vyrobaId)
+    if vyroba not in techs.availableVyrobas():
+        raise InvalidActionException("Tým nevlastní tuto výrobu.")
+    return vyroba, techs.availableEnhancements(vyroba)
+
+def inputsLabel(inputs):
+    return ", ".join([f"{scalableAmount(amount)}&times; {res.label}" for res, amount in inputs.items()])
+
+def enhancerLabel(enhancer):
+    if enhancer.amount > 0:
+        amountTxt = f"+{enhancer.amount}"
+    else:
+        amountTxt = f"{enhancer.amount}"
+    output = f"{scalableAmount(amountTxt)} {enhancer.vyroba.output.label}"
+    return f'<span class="text-xl my-2">{enhancer.label} &#8594; {output}</span>'
 
 class VyrobaForm(MoveForm):
-    volumeSelect = forms.IntegerField(label="Počet výrob", validators=[MinValueValidator(1)])
+    volumeSelect = forms.IntegerField(label="Počet výrob", validators=[MinValueValidator(1)], initial=1)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.vyroba, self.enhancers = obtainVyrobaInfo(self.state, self.teamId, self.entityId)
 
-        vyroba = VyrobaModel.objects.get(id=self.entityId)
+        inputsLayout = []
+        self.vyrobaInputs = {}
+        inputsLayout.append(HTML(f'<div>'))
+        inputsLayout.append(HTML(
+            f'<h3 class="text-xl my-2">{self.vyroba.label} &#8594; {inputsLabel(self.vyroba.getOutput())}</h3>'))
+        for resource, amount in self.vyroba.getInputs().items():
+            typeId = self.vyroba.id + "-" + resource.id
+            label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
+            choices = [(x.id, x.label) for x in resource.concreteResources()]
+            self.fields[typeId] = \
+                forms.ChoiceField(choices=choices, label=label)
+            self.vyrobaInputs[resource.id] = typeId
+            inputsLayout.append(typeId)
+        inputsLayout.append(HTML(f'</div>'))
 
-        costHtml = ResourceStorage.asHtml(vyroba.getInputs())
+        self.enhancersInputs = {}
+        for enhancer in self.enhancers:
+            self.fields[enhancer.id] = forms.BooleanField(required=False, label=enhancerLabel(enhancer))
+            inputsLayout.append(enhancer.id)
+            inputsLayout.append(HTML(f'<div id="inputs-{enhancer.id}">'))
+            inputsFields = {}
+            for resource, amount in enhancer.getInputs().items():
+                typeId = enhancer.id + "-" + resource.id
+                label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
+                choices = [(x.id, x.label) for x in resource.concreteResources()]
+                self.fields[typeId] = \
+                    forms.ChoiceField(choices=choices, label=label)
+                inputsFields[resource.id] = typeId
+                inputsLayout.append(typeId)
+            self.enhancersInputs[enhancer.id] = inputsFields
+            inputsLayout.append(HTML('</div>'))
 
-        layout = [
-            HTML(f"<b>Cena výroby</b>: {costHtml}<br>"),
-            HTML(f"<b>Výstup</b>: {ResourceStorage.asHtml(vyroba.getOutput())}<br>"),
-            'volumeSelect',
-            HTML('<hr class="border-2 border-black my-2">'),
-        ]
-        productions = {}
-        metaProductions = {}
-        build = vyroba.build
-        teamState = self.state.teamState(self.teamId)
-
-        for resource, amount in vyroba.getInputs().items():
-            if not resource.isProduction:
-                continue
-
-            if not resource.isMeta:
-                # layout.append(HTML(f"Production {resource.id}<br>"))
-                productions[resource] = amount
-            else:
-                # layout.append(HTML(f"Generic production {resource.id}<br>"))
-                metaProductions[resource] = amount
-
-        subLayout = ['Vzdálenost vstupů']
-        for resource, amount in productions.items():
-            distance = teamState.distances.getProductionDistance(resource, build)
-            field = forms.IntegerField(label=f"{resource.label}", initial=distance)
-            id = f"dist-{resource.id}"
-            self.fields[id] = field
-            subLayout.append(id)
-        layout.append(Fieldset(*subLayout))
-
-        for metaResource, metaAmount in metaProductions.items():
-            layout.append(HTML('<hr class="border-2 border-black my-2">'))
-            subLayout = [f"{metaResource.label} ({metaAmount}x)"]
-            idPrefix = f"meta-{metaResource.id}-"
-            fieldData = []
-
-            for resource, resAmount in self.state.teamState(self.teamId).resources.getResourcesByType(metaResource).items():
-                distance = teamState.distances.getProductionDistance(resource, build)
-                data = ((resource, f"{resource.label} ({resAmount}x)"), resAmount, distance)
-                fieldData.append(data)
-
-            if not len(fieldData):
-                raise ResourceStorage.NotEnoughResourcesException(f"Nemáte skladem žádné produkce typu {metaResource}")
-
-            print("metaAmount: " + str(metaAmount))
-            print("fieldData: " + str(fieldData))
-            choices = list(zip(*fieldData))[0]
-            sField = forms.ChoiceField(label="Select resource", choices=choices)
-            cField = forms.IntegerField(label="Amount", initial=metaAmount)
-            dField = forms.IntegerField(label="Vzdalenost", initial=fieldData[0][2])
-            self.fields[f"{idPrefix}s-0"] = sField
-            self.fields[f"{idPrefix}c-0"] = cField
-            self.fields[f"{idPrefix}d-0"] = dField
-            subLayout.append(f"{idPrefix}s-0")
-            subLayout.append(f"{idPrefix}c-0")
-            subLayout.append(f"{idPrefix}d-0")
-            layout.append(Fieldset(*subLayout))
-
+        costHtml = inputsLabel(self.vyroba.getInputs())
         self.helper.layout = Layout(
-            self.commonLayout,  # Don't forget to add fields of the base form
-            *layout
+            self.commonLayout,
+            'volumeSelect',
+            *inputsLayout,
+            HTML(scalableAmounts(self["volumeSelect"])),
+            HTML(hideableEnhancers())
         )
+        return
 
-        print("[*layout]: " + str([*layout]))
-
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["vyrobaInputs"] = {
+            res: cleaned_data[field] for res, field in self.vyrobaInputs.items()
+        }
+        cleaned_data["enhInputs"] = {}
+        for enh, inputs in self.enhancersInputs.items():
+            cleaned_data["enhInputs"] = {
+                res: cleaned_data[field] for res, field in inputs.items()
+            }
+        for field in self.vyrobaInputs.values():
+            del cleaned_data[field]
+        for inputs in self.enhancersInputs.values():
+            for field in inputs.values():
+                del cleaned_data[field]
+        return cleaned_data
 
 class VyrobaMove(Action):
     class Meta:
@@ -102,8 +157,9 @@ class VyrobaMove(Action):
             team=data["team"],
             move=data["action"],
             arguments={
-                **data
+                **Action.stripData(data)
         })
+        print(action.arguments)
         return action
 
     @staticmethod
@@ -119,110 +175,120 @@ class VyrobaMove(Action):
     def volume(self):
         return self.arguments["volumeSelect"]
 
-    vyroba = None
-    def preprocess(self, state):
-        print("self.arguments: " + str(self.arguments))
-        self.vyroba = VyrobaModel.objects.get(id=self.arguments["entity"])
-        self.die = self.vyroba.die
-        self.dots = 0 if self.vyroba.dots==0 else math.ceil((self.vyroba.dots*self.volume+1)/2)
-        self.cost = {}
+    @property
+    def vyroba(self):
+        return VyrobaModel.objects.get(id=self.arguments["entity"])
 
-        productions = {}
+    @property
+    def die(self):
+        return self.vyroba.die
 
-        for resource, amount in self.vyroba.getInputs().items():
-            if not resource.isProduction:
-                self.cost[resource] = amount*self.volume
-                continue
+    @property
+    def dots(self):
+        return 0 if self.vyroba.dots == 0 else math.ceil((self.vyroba.dots * self.volume+1) / 2)
 
-            if not resource.isMeta:
-                distance = self.arguments[f"dist-{resource.id}"]
-                productions[resource] = (amount * self.volume, distance)
+    @property
+    def vyrobaInputs(self):
+        return self.arguments["vyrobaInputs"]
 
-        for metaResource, metaAmount in self.vyroba.getInputs().items():
-            if not metaResource.isProduction:
-                continue
-            if metaResource.isMeta and metaResource.isProduction:
-                i = 0
-                sum = 0
-                print("Looking up meta resource: " + str(metaResource))
-                while f"meta-{metaResource.id}-s-{i}" in self.arguments:
-                    resource = ResourceModel.objects.get(id=self.arguments[f"meta-{metaResource.id}-s-{i}"])
-                    amount = self.arguments[f"meta-{metaResource.id}-c-{i}"]
-                    distance = self.arguments[f"meta-{metaResource.id}-d-{i}"]
-                    sum += amount
+    @property
+    def enhInputs(self):
+        return self.arguments["enhInputs"]
 
-                    if resource in productions:
-                        entry = productions[resource]
-                        productions[resource] = (
-                            entry[0] + amount,
-                            min(entry[1], distance)
-                        )
-                    else:
-                        productions[resource] = (amount, distance)
-                    i += 1
-                print(f"{metaResource}: Zaplaceno {sum}, ocekavano")
-                if sum != metaAmount*self.volume:
-                    raise InvalidActionException(
-                        f"Neodpovídá cena {metaResource.label}: Máte zaplatit {metaAmount*self.volume}, zadali jste {sum}")
-
-        print("productions: " + str(productions))
-        costs = {key: value[0] for key, value in productions.items()}
-        self.cost.update(costs)
-        self.distances = {key: value[1] for key, value in productions.items()}
-
-        self.arguments["team"] = None
+    def active(self, enhancementId):
+        return self.arguments[enhancementId]
 
     def requiresDice(self, state):
-        print("RequiresDice")
         return True
 
     def dotsRequired(self, state):
-        print("dotsRequired")
-        self.preprocess(state)
-        return {self.die:self.dots}
+        return {self.die: self.dots}
+
+    def computeCost(self):
+        cost = {}
+        costErrorMessage = []
+        for resource, amount in self.vyroba.getInputs().items():
+            try:
+                cRes = ResourceModel.objects.get(id=self.vyrobaInputs[resource.id])
+            except ResourceModel.DoesNotExist:
+                costErrorMessage += f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({self.vyroba.label})"
+            except KeyError:
+                costErrorMessage += f"Zdroj {resource.label} nebyl určen ({self.vyroba.label})"
+            if not cRes.isSpecializationOf(resource):
+                costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({self.vyroba.label})")
+            amount = amount * self.volume
+            cost[resource] = cost.get(resource, 0) + amount
+
+        for enh in self.vyroba.enhancers.all():
+            if not self.active(enh.id):
+                continue
+            for resource, amount in enh.getInputs().items():
+                try:
+                    cRes = ResourceModel.objects.get(id=self.vyrobaInputs[resource.id])
+                except ResourceModel.DoesNotExist:
+                    costErrorMessage += f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({enh.label})"
+                except KeyError:
+                    costErrorMessage += f"Zdroj {resource.label} nebyl určen ({enh.label})"
+                if not cRes.isSpecializationOf(resource):
+                    costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({enh.label})")
+                amount = amount * self.volume
+                cost[resource] = cost.get(resource, 0) + amount
+        if costErrorMessage:
+            msgBody = "\n".join([f'<li>{x}</li>' for x in costErrorMessage])
+            raise InvalidActionException(f'<ul>{msgBody}</ul>')
+        return cost
+
+    def gain(self):
+        gain = self.vyroba.amount
+        for enh in self.vyroba.enhancers.all():
+            if self.active(enh.id):
+                gain += enh.amount
+        return self.volume * gain
 
     def initiate(self, state):
-        print("initiate")
-        self.preprocess(state)
+        teamState =  state.teamState(self.team.id)
 
-        # materials = storage.payResources(self.cost)
-
-        print("self.cost: " + str(self.cost))
-        message = "Musíte zaplatit " + ResourceStorage.asHtml(self.cost)
-        print(message)
+        cost = self.computeCost()
+        try:
+            materials = teamState.resources.payResources(cost)
+        except ResourceStorage.NotEnoughResourcesException as e:
+            resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
+            message = f'Nedostate zdrojů; chybí: <ul>{resMsg}</ul>'
+            return False, message
+        message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"
+        if len(materials) > 0:
+            matMessage = "\n".join([f'<li>{res.label}: {amount}</li>' for res, amount in materials.items()])
+            message += f"Tým také musí zaplatit:<ul>{matMessage}</ul>"
+        else:
+            message += f"Tým vám nic nebude platit<br>"
+        message += f"Tým obdrží {self.gain()}&times; {self.vyroba.output.label}."
         return True, message
 
-
     def commit(self, state):
-        print("commit")
         teamState =  state.teamState(self.team.id)
-        self.preprocess(state)
-        resources = {self.vyroba.output: self.vyroba.amount}
+        resources = {self.vyroba.output: self.gain()}
         materials = teamState.resources.receiveResources(resources)
-        message = "Tým získal " + ResourceStorage.asHtml(resources) + "<br>" \
-                  "<b>Vydej " + ResourceStorage.asHtml(materials) + "</b>"
-        print("Vyroba commit message: " + message)
+        message = "Tým získal " + ResourceStorage.asHtml(resources) + "<br>"
+        if len(materials) > 0:
+            message += "<b>Vydej " + ResourceStorage.asHtml(materials) + "</b>"
         return True, message
 
     def abandon(self, state):
-        self.preprocess(state)
-
         productions = filter(
             lambda resource, amount:
                 resource.id[:5] == "prod-"
                 or resource.id == "res-obyvatel",
-            self.cost.items()
+            self.computeCost.items()
         )
 
         message = self.abandonMessage()
         message += "<br>"
         message += "Tým nedostane zpátky žádné materiály"
-        return True, self.abandonMessage()
+        return True, message
 
     def cancel(self, state):
         teamState =  state.teamState(self.team.id)
-        self.preprocess(state)
-        materials = teamState.resources.receiveResources(self.cost)
+        materials = teamState.resources.receiveResources(self.computeCost())
 
         message = self.cancelMessage()
         message += "<br>"

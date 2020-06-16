@@ -6,10 +6,29 @@ from .entity import EntityModel
 class ResourceTypeModel(EntityModel):
     color = models.CharField(max_length=7)
 
+class ResourceManager(models.Manager):
+    def concreteResources(self, metaResource):
+        assert(metaResource.isMeta)
+        # Use all instead of filter as it have been probably already fetched...
+        return [x for x in self.all() if x.isSpecializationOf(metaResource)]
+
 class ResourceModel(EntityModel):
     type = models.ForeignKey(ResourceTypeModel, on_delete=models.CASCADE, null=True)
     icon = models.CharField(max_length=30)
     level = models.IntegerField(validators=[MinValueValidator(2), MaxValueValidator(6)])
+
+    objects = ResourceManager()
+
+    def concreteResources(self):
+        if self.isMeta:
+            return ResourceModel.objects.concreteResources(self)
+        return [self]
+
+    def isSpecializationOf(self, meta):
+        if meta.isMeta:
+            return (self.level >= meta.level and self.type == meta.type and
+               not self.isMeta and meta.isProduction == self.isProduction)
+        return self.id == meta.id
 
     @property
     def isMeta(self):

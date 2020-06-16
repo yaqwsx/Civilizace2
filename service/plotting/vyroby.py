@@ -86,9 +86,9 @@ class VyrobaBuilder:
         \setlength\parskip{0pt}
 
         \newcommand\VyrobaCard[4]{%
-            \setlength\fboxsep{0.2cm}\setlength\fboxrule{0.0pt}% delete
+            \setlength\fboxsep{0.3cm}\setlength\fboxrule{0.0pt}% delete
             \fbox{% delete
-                    \begin{minipage}[c][3.2cm][t]{8.6cm}%
+                    \begin{minipage}[c][3.8cm][t]{8.6cm}%
                         \begin{tabularx}{\textwidth}{lXr}
                             \raisebox{-\height+\fontcharht\font`X}{#1} \vspace{0.2cm} & \raggedright #2 & \raisebox{-\height+\fontcharht\font`X}{{#3}}
                         \end{tabularx}

@@ -36,6 +36,13 @@ class EnhancementModel(EntityModel):
     vyroba = models.ForeignKey(VyrobaModel, on_delete=models.CASCADE, related_name="enhancers")
     amount = models.IntegerField()
 
+    def getInputs(self):
+        results = {item.resource: item.amount for item in self.inputs.all()}
+        return results
+
+    def getOutput(self):
+        return {self.vyroba.resource: self.amount}
+
 
 class EnhancementInputModel(models.Model):
     parent = models.ForeignKey(EnhancementModel, on_delete=models.CASCADE, related_name="inputs")

@@ -394,7 +394,9 @@ class ResourceStorageItem(ImmutableModel):
 
 class ResourceStorage(ImmutableModel):
     class NotEnoughResourcesException(InvalidActionException):
-        pass
+        def __init__(self, msg, list):
+            super().__init__(msg)
+            self.list = list
 
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team):
@@ -464,8 +466,15 @@ class ResourceStorage(ImmutableModel):
         """Subtract resources from storage.
 
         Returns a dict of resources not tracked by storage"""
-        if not self.hasResources(resources):
-            raise ResourceStorage.NotEnoughResourcesException("Insufficient resources")
+        missing = {}
+        for resource, amount in resources.items():
+            if resource.id.startswith("mat-"):
+                continue
+            owned = self.getAmount(resource)
+            if owned < amount:
+                missing[resource] = amount - owned
+        if len(missing) > 0:
+            raise ResourceStorage.NotEnoughResourcesException("Missing resources", missing)
         result = {}
         for resource, amount in resources.items():
             if resource.id[:4] == "mat-":
@@ -559,7 +568,7 @@ class TechStorageItem(ImmutableModel):
 class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):
         def createInitial(self, team):
-            initialTechs = ["build-centrum"]
+            initialTechs = ["build-centrum", "build-lovci", "tech-hnojeni", "tech-astronomie"]
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(
@@ -604,6 +613,25 @@ class TechStorage(ImmutableModel):
     def getOwnedTechs(self):
         result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items))
         return list(result)
+
+    def availableVyrobas(self):
+        vyrobas = []
+        for tech in self.items:
+            if tech.status != TechStatusEnum.OWNED:
+                continue
+            vyrobas += tech.tech.unlock_vyrobas.all()
+        return vyrobas
+
+    def availableEnhancements(self, vyroba):
+        enhs = []
+        for tech in self.items:
+            if tech.status != TechStatusEnum.OWNED:
+                continue
+            for e in tech.tech.unlock_enhancers.all():
+                if e.vyroba == vyroba:
+                    enhs.append(e)
+            enhs += [e for e in tech.tech.unlock_enhancers.all() if e.vyroba == vyroba.id]
+        return enhs
 
     def getTechsUnderResearch(self):
         result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items))

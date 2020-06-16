@@ -37,6 +37,8 @@
                 input.value = "0"
             }
             input.value = parseInt(input.value) - 1;
+            var event = new Event('change');
+            input.dispatchEvent(event);
         }, false);
 
         document.addEventListener('click', function (event) {
@@ -46,6 +48,8 @@
                 input.value = "0"
             }
             input.value = parseInt(input.value) + 1;
+            var event = new Event('change');
+            input.dispatchEvent(event);
         }, false);
     }
 
