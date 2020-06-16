@@ -8,6 +8,7 @@ from .research import ResearchMove
 from .vyroba import VyrobaMove
 from .sandbox import SandboxMove
 from .godmode import GodmodeForm
+from .foodSupply import FoodSupplyMove
 
 def buildActionMove(data):
     """

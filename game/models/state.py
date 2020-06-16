@@ -110,12 +110,16 @@ class WorldState(ImmutableModel):
     class WorldStateManager(models.Manager):
         def createInitial(self):
             generation = 0
-            return self.create(generation=generation)
+            foodValue = 20
+            castes = "[2,3,4,5,6]"
+            return self.create(generation=generation, foodValue=foodValue, castes=castes)
 
     objects = WorldStateManager()
 
     data = JSONField()
     generation = models.IntegerField()
+    foodValue = models.IntegerField()
+    castes = models.TextField()
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -132,6 +136,9 @@ class WorldState(ImmutableModel):
         if "generation" in update["change"]:
             self.generation = update["change"]["generation"]
 
+    def getCastes(self):
+        return json.loads(self.castes)
+
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
         def createInitial(self, team):
@@ -141,8 +148,10 @@ class TeamState(ImmutableModel):
             techs = TechStorage.objects.createInitial(team)
             distances = DistanceLogger.objects.createInitial(team)
             achievements = TeamAchievements.objects.createInitial()
+            foodSupply = FoodStorage.objects.createInitial()
+            print("foodSuply: " + str(foodSupply))
             return self.create(team=team, sandbox=sandbox, population=population, turn=0, resources=resources,
-                               techs=techs, distances=distances, achievements=achievements)
+                               techs=techs, distances=distances, achievements=achievements, foodSupply=foodSupply)
 
     objects = TeamStateManager()
 
@@ -154,6 +163,7 @@ class TeamState(ImmutableModel):
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
+    foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -173,7 +183,7 @@ class TeamState(ImmutableModel):
         }
 
     def godUpdate(self, update):
-        fields = ["population", "sandbox", "resources", "techs", "distances", "achievements"]
+        fields = ["population", "sandbox", "resources", "techs", "distances", "achievements", "foodSupply"]
         allowKeys(fields + ["turn"], update["change"])
         allowKeys(fields, update["add"])
         allowKeys(fields, update["remove"])
@@ -183,6 +193,7 @@ class TeamState(ImmutableModel):
         self.techs.godUpdate(eatUpdatePrefixAll("techs", update))
         print("There", update)
         self.achievements.godUpdate(eatUpdatePrefixAll("achievements", update))
+        # TODO: Add food supply here
 
         if "turn" in update["change"]:
             turn = update["change"]["turn"]
@@ -342,6 +353,37 @@ class DistanceLogger(ImmutableModel):
             self.teams.remove(self.teams.get(team=id))
 
 
+class FoodStorageItem(ImmutableModel):
+    resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
+    amount = models.IntegerField()
+
+class FoodStorage(ImmutableModel):
+    class FoodStorageManager(models.Manager):
+        def createInitial(self):
+            return self.create(items=[])
+    objects = FoodStorageManager()
+    items = ListField(model_type=FoodStorageItem)
+
+    def getFoodSupply(self):
+        result = {}
+
+        for item in self.items:
+            if item.resource.type == ResourceTypeModel.objects.get(id="type-jidlo"):
+                result[item.resource] = item.amount
+        return result
+
+    def addSupply(self, resources):
+        item = None
+        for resource, amount in resources.items():
+            try:
+                item = self.items.get(resource=resource)
+                item.amount += amount
+            except FoodStorageItem.DoesNotExist:
+                item = FoodStorageItem(resource=resource, amount=amount)
+                self.items.append(item)
+            except Exception as e:
+                print("BWHOOOO")
+                print("e: " + str(e))
 
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
@@ -375,7 +417,6 @@ class ResourceStorage(ImmutableModel):
         return separator.join([
             str(value) + "x " + key.id
             for key, value in resources.items()])
-
 
     items = ListField(model_type=ResourceStorageItem)
 

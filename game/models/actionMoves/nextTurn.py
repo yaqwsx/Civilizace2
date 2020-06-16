@@ -14,7 +14,7 @@ class NextTurnForm(MoveForm):
         turn = self.state.teamState(self.teamId).turn
 
         if turn >= generation:
-            raise InvalidActionException("Tým už v této generaci kolo začal")
+            raise InvalidActionException("Tým už v této generaci krmil")
 
 class NextTurn(Action):
     class Meta:

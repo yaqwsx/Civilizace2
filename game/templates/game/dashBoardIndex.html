@@ -51,6 +51,14 @@
                 {% endfor %}
             </p>
         {% endcard %}
+        {% card "Zásobování jídlem" icon="fa-warehouse" width="third" color="green-600" %}
+            <ul class="text-left">
+            {% for r, a in teamState.foodSupply.getFoodSupply.items %}
+                <li>{{a}}× {{r.htmlRepr|safe}}</li>
+            {% empty %}
+                <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
+            </ul>
+        {% endcard %}
     </div>
 {% endif %}
 
@@ -96,6 +104,7 @@
             <li>Univerzita &mdash; Hospoda: 1</li>
         </ul>
     {% endcard %}
+
 </div>
 
 <div class="w-full section"><h2 class="text-xl">Historie</h2></div>

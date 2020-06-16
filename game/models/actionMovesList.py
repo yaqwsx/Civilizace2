@@ -9,6 +9,7 @@ class ActionMove(enum.Enum):
     nextGeneration = 4
     research = 5
     vyroba = 7
+    foodSupply = 8
 
     godmode = 42
     sandbox = 99
@@ -18,10 +19,12 @@ class ActionMove(enum.Enum):
         sanboxIncreaseCounter: "DEBUD: Zvýšit counter",
         startNewRound: "DEBUG: Začít kolo",
 
-        nextTurn: "Next turn",
+        nextTurn: "Krmení",
         nextGeneration: "Next generation",
         research: "Zkoumat",
         vyroba: "Výroba",
+        foodSupply: "Zásobování centra",
+
 
         godmode: "SYSTEM: Godmode",
         sandbox: "DEBUG: SANDBOX"
