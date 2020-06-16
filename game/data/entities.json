@@ -53,7 +53,7 @@
         [
             "D\u016fl",
             "build-dul",
-            "ukol-nic",
+            "ukol-42",
             "build-dul.png",
             "",
             "",
@@ -66,7 +66,7 @@
         [
             "D\u00edlna s pec\u00ed",
             "build-hrncir",
-            "ukol-nic",
+            "ukol-31",
             "build-hrncir.png",
             "",
             "",
@@ -92,7 +92,7 @@
         [
             "Ko\u0159en\u00e1\u0159stv\u00ed",
             "build-korenarstvi",
-            "ukol-nic",
+            "ukol-29",
             "build-korenarstvi.png",
             "",
             "",
@@ -105,7 +105,7 @@
         [
             "Kov\u00e1rna",
             "build-kovarna",
-            "ukol-nic",
+            "ukol-45",
             "build-kovarna.png",
             "",
             "",
@@ -118,7 +118,7 @@
         [
             "L\u00e9k\u00e1rna",
             "build-lekarna",
-            "ukol-nic",
+            "ukol-38",
             "build-lekarna.png",
             "",
             "",
@@ -144,7 +144,7 @@
         [
             "Loveck\u00fd t\u00e1bor",
             "build-lovci",
-            "ukol-nic",
+            "ukol-20",
             "build-lovci.png",
             "",
             "",
@@ -170,7 +170,7 @@
         [
             "Pila",
             "build-pila",
-            "ukol-nic",
+            "ukol-40",
             "build-pila.png",
             "",
             "",
@@ -183,7 +183,7 @@
         [
             "Pole",
             "build-pole",
-            "ukol-5",
+            "ukol-21",
             "build-pole.png",
             "",
             "",
@@ -196,7 +196,7 @@
         [
             "P\u0159\u00edstav",
             "build-pristav",
-            "ukol-nic",
+            "ukol-43",
             "build-pristav.png",
             "",
             "Mus\u00ed sousedit s vodn\u00edm polem. M\u016f\u017ee m\u00edt jednu \u0159adu na vod\u011b, ale nesm\u00ed ji rozd\u011blit",
@@ -209,7 +209,7 @@
         [
             "\u0158eznictv\u00ed",
             "build-reznictvi",
-            "ukol-nic",
+            "ukol-28",
             "build-reznictvi.png",
             "",
             "",
@@ -248,7 +248,7 @@
         [
             "Uhl\u00ed\u0159stv\u00ed",
             "build-uhlirstvi",
-            "ukol-nic",
+            "ukol-19",
             "build-uhlirna.png",
             "",
             "",
@@ -274,7 +274,7 @@
         [
             "Alchymie",
             "tech-alchymie",
-            "ukol-nic",
+            "ukol-30",
             "-",
             "",
             "",
@@ -300,7 +300,7 @@
         [
             "Matematick\u00e1 anal\u00fdza",
             "tech-analyza",
-            "ukol-nic",
+            "ukol-27",
             "-",
             "",
             "",
@@ -313,7 +313,7 @@
         [
             "Anatomie",
             "tech-anatomie",
-            "ukol-nic",
+            "ukol-44",
             "-",
             "",
             "",
@@ -326,7 +326,7 @@
         [
             "Astronomie",
             "tech-astronomie",
-            "ukol-nic",
+            "ukol-39",
             "-",
             "",
             "",
@@ -339,7 +339,7 @@
         [
             "Banka",
             "tech-banka",
-            "ukol-nic",
+            "ukol-32",
             "-",
             "",
             "",
@@ -352,7 +352,7 @@
         [
             "Barviva",
             "tech-barviva",
-            "ukol-nic",
+            "ukol-36",
             "-",
             "",
             "",
@@ -378,7 +378,7 @@
         [
             "L\u00e9\u010div\u00e9 byliny",
             "tech-byliny",
-            "ukol-nic",
+            "ukol-35",
             "-",
             "",
             "",
@@ -469,7 +469,7 @@
         [
             "Iatrochemie",
             "tech-iatrochemie",
-            "ukol-nic",
+            "ukol-34",
             "-",
             "",
             "",
@@ -547,7 +547,7 @@
         [
             "K\u0159\u00ed\u017een\u00ed plemen",
             "tech-krizeni",
-            "ukol-nic",
+            "ukol-22",
             "-",
             "",
             "",
@@ -560,7 +560,7 @@
         [
             "Ob\u0159\u00ed stavby",
             "tech-kyklop",
-            "ukol-nic",
+            "ukol-41",
             "-",
             "",
             "",
@@ -586,7 +586,7 @@
         [
             "Manufaktura",
             "tech-manufaktura",
-            "ukol-nic",
+            "ukol-17",
             "-",
             "",
             "Maxim\u00e1ln\u00ed s\u00edla arm\u00e1dy: 13",
@@ -638,7 +638,7 @@
         [
             "Mo\u0159eplavba",
             "tech-moreplavba",
-            "ukol-nic",
+            "ukol-46",
             "-",
             "",
             "M\u016f\u017eete pou\u017e\u00edt p\u0159\u00edstav jako zdrojov\u00e9 pole pro Ko\u0159en\u00e1\u0159stv\u00ed",
@@ -664,7 +664,7 @@
         [
             "Navigace",
             "tech-navigace",
-            "ukol-nic",
+            "ukol-37",
             "-",
             "",
             "",
@@ -690,7 +690,7 @@
         [
             "Krevn\u00ed ob\u011bh",
             "tech-obeh",
-            "ukol-nic",
+            "ukol-25",
             "-",
             "",
             "",
@@ -703,7 +703,7 @@
         [
             "Optika",
             "tech-optika",
-            "ukol-nic",
+            "ukol-23",
             "-",
             "",
             "",
@@ -729,7 +729,7 @@
         [
             "Plavba",
             "tech-plavba",
-            "ukol-nic",
+            "ukol-33",
             "-",
             "",
             "",
@@ -755,7 +755,7 @@
         [
             "P\u0159\u00edrodn\u00ed v\u011bda",
             "tech-prirodni-veda",
-            "ukol-nic",
+            "ukol-16",
             "-",
             "",
             "",
@@ -807,7 +807,7 @@
         [
             "Ta\u017en\u00e1 s\u00edla",
             "tech-tazna",
-            "ukol-nic",
+            "ukol-26",
             "-",
             "",
             "",
@@ -820,7 +820,7 @@
         [
             "Tkalcovsk\u00fd stav",
             "tech-tkalcovsky-stav",
-            "ukol-nic",
+            "ukol-18",
             "-",
             "",
             "",
@@ -833,7 +833,7 @@
         [
             "Uhl\u00ed",
             "tech-uhli",
-            "ukol-nic",
+            "ukol-24",
             "-",
             "",
             "",
@@ -13295,304 +13295,336 @@
         ],
         [
             "Logick\u00e9 bludi\u0161t\u011b\n",
-            "",
-            "",
+            "ukol-16",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vyst\u0159\u00edhej a slep ur\u010dit\u00fd tvar\n",
-            "",
-            "",
+            "ukol-17",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vyrob prou\u017eek dlouh\u00fd x metr\u016f ze zadan\u00e9ho materi\u00e1lu",
-            "",
-            "",
+            "ukol-18",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Sestroj mlynsk\u00e9 kolo (t\u0159eba z PET)",
-            "",
-            "",
+            "ukol-19",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "lesni golf",
-            "",
-            "",
+            "ukol-20",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "mot\u00fdlci",
-            "",
-            "",
+            "ukol-21",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "mnohozv\u00ed\u0159e",
-            "",
-            "",
+            "ukol-22",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Ud\u011blat portr\u00e9t \u010dlov\u011bka, mus\u00ed b\u00fdt identifikovateln\u00fd\n",
-            "",
-            "",
+            "ukol-23",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Kor\u00fdtka",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        [
-            "Kotouly ve dvojici",
-            "",
-            "",
+            "ukol-24",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vodarna",
-            "",
-            "",
+            "ukol-25",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vozataj",
-            "",
-            "",
+            "ukol-26",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Zjisti plochu obrazce (p\u0159esn\u011b se d\u00e1 spo\u010d\u00edtat z integr\u00e1lu fce)",
-            "",
-            "",
+            "ukol-27",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Sed\u00e1nek",
-            "",
-            "",
+            "ukol-28",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Popelka",
-            "",
-            "",
+            "ukol-29",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Napi\u0161 b\u00e1sni\u010dku",
-            "",
-            "",
+            "ukol-30",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vytvo\u0159 \u017eivou sochu",
-            "",
-            "",
+            "ukol-31",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Einsteinova h\u00e1danka",
-            "",
-            "",
+            "ukol-32",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vy\u0161plhej s pomoc\u00ed provaz\u016f do 1,5 m",
-            "",
-            "",
+            "ukol-33",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Handikepov\u00e1 trasa",
-            "",
-            "",
+            "ukol-34",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Pit\u00ed v bezt\u00ed\u017en\u00e9m stavu",
-            "",
-            "",
+            "ukol-35",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Barvivo",
-            "",
-            "",
+            "ukol-36",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Navigace v noci",
-            "",
-            "",
+            "ukol-37",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Origami",
-            "",
-            "",
+            "ukol-38",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
-            "V\u00fdrokov\u00e1 logika",
-            "",
-            "",
+            "Abbeho \u00faloha",
+            "ukol-39",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Homo l\u017ei\u010dkus",
-            "",
-            "",
+            "ukol-40",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "V\u00fdtah",
-            "",
-            "",
+            "ukol-41",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Permon\u00edk",
-            "",
-            "",
+            "ukol-42",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Lo\u010f",
-            "",
-            "",
+            "ukol-43",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Identifikuj \u010dlov\u011bka",
-            "",
-            "",
+            "ukol-44",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Prov\u00e1zkov\u00fd hlavolam",
-            "",
-            "",
+            "ukol-45",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Expedice",
-            "",
-            "",
+            "ukol-46",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Vla\u0161tovky - dolet, vytrvalost, p\u0159esnost",
-            "",
-            "",
+            "ukol-47",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Postavte hydraulicke nuzky",
-            "",
-            "",
+            "ukol-48",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Telegraf",
-            "",
-            "",
+            "ukol-49",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "V\u00e1ha a kalibr",
-            "",
-            "",
+            "ukol-50",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Postav oblehac\u00ed stroj, kter\u00fd doprav\u00ed ur\u010den\u00fd projektil do vzd\u00e1lenosti x m",
-            "",
-            "",
+            "ukol-51",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""
         ],
         [
             "Zb\u011bsil\u00fd zem\u011bd\u011blec",
+            "ukol-52",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
+            ""
+        ],
+        [
+            "Abakus",
+            "ukol-53",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
+            "",
+            "",
+            ""
+        ],
+        [
+            "Chlast",
+            "ukol-54",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
+            "",
+            "",
+            ""
+        ],
+        [
+            "Slep\u00fd st\u0159elec",
+            "ukol-55",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
+            "",
+            "",
+            ""
+        ],
+        [
+            "Tangram",
+            "ukol-56",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
+            "",
+            "",
+            ""
+        ],
+        [
+            "Ov\u010d\u00e1k a ove\u010dky?",
+            "ukol-57",
+            "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "",
             "",
             ""

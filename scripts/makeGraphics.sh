@@ -70,7 +70,7 @@ function generateCommon() {
     # Generate tiles
     cat graphics/dlazdice-cesta1.svg | \
          sed -e "s/fill:#ff0000/fill:none/g"      | \
-         sed -e "s/stroke:#ff0000/stroke:none/g" > $DIR/dlazdice-cesta1.svg.svg
+         sed -e "s/stroke:#ff0000/stroke:none/g" > $DIR/dlazdice-cesta1.svg
     inkscape $DIR/dlazdice-cesta1.svg --export-pdf=$DIR/dlazdice-cesta1.svg
     cat graphics/dlazdice-cesta2.svg | \
          sed -e "s/fill:#ff0000/fill:none/g"      | \
@@ -86,16 +86,19 @@ function generateCommon() {
 
 for team in $TEAMS; do
     echo Generating $team
-    generateTeam $team
+    generateTeam $team&
 done
 
 echo Generating common
 generateCommon
 
-# wait
+echo "Waiting"
+wait
+echo "All done, combining"
 
 echo Combining results together...
 DIR=$BUILD_DIR/final
+mkdir -p $DIR
 
 # Vyroby
 pdftk $BUILD_DIR/common/vyroba/vyr-*.pdf cat output "$DIR/vyroby-9x.pdf"
@@ -118,15 +121,15 @@ for team in $TEAMS; do
     TAG_FILES="$TAG_FILES $BUILD_DIR/$team/nameTag.pdf"
 done
 for i in {1..4}; do
-    TAG_FILES="$TAG_FILES $BUILD_DIR/universal/nameTag.pdf"
+    TAG_FILES="$TAG_FILES $BUILD_DIR/univerzal/nameTag.pdf"
 done
 pdftk $TAG_FILES cat output "$DIR/jmenovky-12x.pdf"
 
 # Techy
 TECH_FILES=""
 for team in $TEAMS; do
-    TECH_FILES="$TECH_FILES $(find $BUILD_DIR/$team -name 'tech-*.pdf')"
-    TECH_FILES="$TECH_FILES $(find $BUILD_DIR/$team -name 'build-*.pdf')"
+    TECH_FILES="$TECH_FILES $(find $BUILD_DIR/$team -name 'tech-*.pdf' | sort)"
+    TECH_FILES="$TECH_FILES $(find $BUILD_DIR/$team -name 'build-*.pdf' | sort)"
 done
 pdftk $TECH_FILES cat output "$DIR/technologie-1x.pdf"
 

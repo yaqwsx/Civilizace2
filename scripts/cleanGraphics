@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+BUILD_DIR="_graphics"
+TEAMS="cerni cerveni oranzovi zluti zeleni modri fialovi ruzovi univerzal"
+
+for t in $TEAMS; do
+    rm -r $BUILD_DIR/$t
+done
+
+rm -r $BUILD_DIR/common $BUILD_DIR/final

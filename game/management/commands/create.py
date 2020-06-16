@@ -28,7 +28,7 @@ TEAMS = {
 }
 
 SUPER_USERS = ["maara", "honza"]
-ORG = ["abbe", "jupi", "efka", "kaja", "domca"]
+ORG = ["abbe", "jupi", "efka", "kaja", "domca", "darwin", "martin", "liska"]
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):

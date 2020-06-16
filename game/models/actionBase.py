@@ -1,4 +1,5 @@
 import json
+import copy
 
 from django.db import models
 from django_enumfield import enum
@@ -107,6 +108,13 @@ class Action(ImmutableModel):
     arguments = JSONField()
 
     objects = ActionManager()
+
+    @staticmethod
+    def stripData(data):
+        data = copy.copy(data)
+        del data["team"]
+        del data["action"]
+        return data
 
     def teamState(self, state):
         return state.teamState(self.team.id)
