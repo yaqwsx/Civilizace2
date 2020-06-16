@@ -1,3 +1,4 @@
+import math
 from django.db import models
 from django_enumfield import enum
 
@@ -364,6 +365,35 @@ class FoodStorage(ImmutableModel):
     objects = FoodStorageManager()
     items = ListField(model_type=FoodStorageItem)
 
+    def getMissingItems(foodStorage, kasty=[1,2,3,4,5], population=123, foodValue=10):
+        populaceKast = []
+        kasty.sort(reverse=True)
+
+        floor = math.floor(population/len(kasty))
+        extras = population - (floor*len(kasty))
+
+        for lvl in kasty:
+            if extras:
+                populaceKast.append((lvl, floor+1))
+                extras -= 1
+            else:
+                populaceKast.append( (lvl, floor))
+
+        supplyAmounts = [0,0,0,0,0,0,0]
+
+        for food, amount in foodStorage.getFoodSupply().items():
+            supplyAmounts[food.level] += amount*foodValue
+
+        totalAmount = sum(supplyAmounts)
+        
+        popSum = 0
+        foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
+        
+        for kasta in populaceKast:
+            pass
+        
+        return populaceKast
+
     def getSupply(self, type):
         result = {}
 
@@ -388,6 +418,7 @@ class FoodStorage(ImmutableModel):
                 item = FoodStorageItem(resource=resource, amount=amount)
                 self.items.append(item)
 
+
 class ResourceStorageItem(ImmutableModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
@@ -400,7 +431,7 @@ class ResourceStorage(ImmutableModel):
 
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team):
-            initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION)]
+            initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION), ("res-populace", INITIAL_POPULATION)]
 
             if team.id == 1: # TODO: remove DEBUG initial entities
                 initialResources.extend([("prod-bobule",20), ("prod-drevo",20), ("prod-cukr",20)])
@@ -429,6 +460,9 @@ class ResourceStorage(ImmutableModel):
         result = ", ".join(list)
         return result
 
+    def _addPopulation(self, amount):
+        self.items.get(resource=ResourceModel.objects.get(id="res-population")).amount += amount
+
     def spendWork(self, amount):
         self.payResources({ResourceModel.objects.get(id="res-prace"): amount})
 
@@ -452,6 +486,10 @@ class ResourceStorage(ImmutableModel):
             item = ResourceStorageItem(resource=resource, amount=amount)
             self.items.append(item)
 
+        if item.id == "res-obyvatel":
+            diff = amount - item.amount
+            if diff > 0:
+                self._addPopulation(diff)
         item.amount = amount
 
     def hasResources(self, resources):
@@ -531,6 +569,14 @@ class ResourceStorage(ImmutableModel):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
             self.items.get(resource=resource).amount = amount
 
+    def getPopulation(self):
+        return self.getAmount("res-populace")
+
+    def getWork(self):
+        return self.getAmount("res-prace")
+
+    def getObyvatel(self):
+        return self.getAmount("res-obyvatel")
 
 
 class TechStatusEnum(enum.Enum):

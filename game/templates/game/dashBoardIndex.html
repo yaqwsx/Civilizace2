@@ -54,6 +54,7 @@
                 {% endfor %}
             </p>
         {% endcard %}
+
         {% card "Zásobování jídlem" icon="fa-warehouse" width="third" color="green-600" %}
             <ul class="text-left">
             {% for r, a in teamState.foodSupply.getFoodSupply.items %}
@@ -66,18 +67,24 @@
                 <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
             </ul>
         {% endcard %}
+
+        {% card "Populace kast" %}
+            <p class="text-left">
+                {{ teamState.foodSupply.getMissingItems }}
+            </p>
+        {% endcard %}
     </div>
 {% endif %}
 
 <div class="w-full section"><h2 class="text-xl">Souhrnné informace</h2></div>
 <div class="flex flex-wrap">
     {% card "Populace" icon="fa-users" width="third" color="green-600"%}
-        86 / {{teamState.population.population}}<br>
-        <span class="text-sm text-gray-400">(nezaměstnaných/zaměstnaných)</span>
+        {{teamState.resources.getObyvatel}} / {{teamState.resources.getPopulation}}<br>
+        <span class="text-sm text-gray-400">(nespecializovaných/celkem)</span>
     {% endcard %}
 
     {% card "Dostupná práce" icon="fa-briefcase" width="third" color="green-600" %}
-        {{teamState.population.work}}
+        {{teamState.resources.getWork}}
     {% endcard %}
 
     {% card "Kolo" icon="fa-calendar" width="third" color="green-600" %}
