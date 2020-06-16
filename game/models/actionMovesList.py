@@ -14,15 +14,15 @@ class ActionMove(enum.Enum):
     sandbox = 99
 
     __labels__ = {
-        createInitial: "Vytvořit nový stav",
-        sanboxIncreaseCounter: "Zvýšit counter",
-        startNewRound: "Začít kolo",
+        createInitial: "SYSTEM: Vytvořit nový stav",
+        sanboxIncreaseCounter: "DEBUD: Zvýšit counter",
+        startNewRound: "DEBUG: Začít kolo",
 
         nextTurn: "Next turn",
         nextGeneration: "Next generation",
         research: "Zkoumat",
         vyroba: "Výroba",
 
-        godmode: "Godmode",
-        sandbox: "SANDBOX"
+        godmode: "SYSTEM: Godmode",
+        sandbox: "DEBUG: SANDBOX"
     }
