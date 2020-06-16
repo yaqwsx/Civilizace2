@@ -4,6 +4,7 @@ from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
 from game.data.entity import AchievementModel
+from game.data.parser import Parser
 from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField
 from .immutable import ImmutableModel
@@ -362,7 +363,7 @@ class FoodStorage(ImmutableModel):
     objects = FoodStorageManager()
     items = ListField(model_type=FoodStorageItem)
 
-    def getMissingItems(foodStorage, kasty=[1,2,3,4,5], population=123, foodValue=10):
+    def getMissingItems(foodStorage, kasty, population, foodValue):
         populaceKast = []
         kasty.sort(reverse=True)
 
@@ -377,19 +378,42 @@ class FoodStorage(ImmutableModel):
                 populaceKast.append( (lvl, floor))
 
         supplyAmounts = [0,0,0,0,0,0,0]
+        luxusAmounts = [0,0,0,0,0,0,0]
 
         for food, amount in foodStorage.getFoodSupply().items():
             supplyAmounts[food.level] += amount*foodValue
+        for luxus, amount in foodStorage.getLuxusSupply().items():
+            luxusAmounts[luxus.level] += amount*foodValue
 
-        totalAmount = sum(supplyAmounts)
-        
+
         popSum = 0
         foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
-        
+        luxussums = [sum(luxusAmounts[n:]) for n in range(7)]
+        result = []
+
         for kasta in populaceKast:
-            pass
-        
-        return populaceKast
+            popSum += kasta[1]
+            foodSupply = foodSums[0]
+            qualitySupply = foodSums[kasta[0]]
+            luxusSupply = luxusAmounts[kasta[0]]
+            foodMissing = popSum - foodSupply
+            qualityMissing = popSum - qualitySupply
+            luxusMissing = popSum - luxusSupply
+
+            # I know it's ugly. But it works with templates
+            result.append((
+                Parser.romeLevel(kasta[0]), # Roman letter of the Kasta level
+                kasta[0], # kasta level int
+                kasta[1], # kasta population
+                -foodMissing, # Punfed members of the caste
+                math.ceil(max(foodMissing, 0)/foodValue), # food required fto feed this caste
+                -qualityMissing, # caste members not fed by appropriate food
+                math.ceil(max(qualityMissing, 0)/foodValue), # Quality food required to feed this caste
+                -luxusMissing, # unsatisfie caste members
+                math.ceil(max(luxusMissing, 0)/foodValue) # luxus required to feed this caste
+            ))
+
+        return result
 
     def getSupply(self, type):
         result = {}

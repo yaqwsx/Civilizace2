@@ -53,7 +53,8 @@ class Parser():
 
         print(f"  added {count} tasks")
 
-    def romeLevel(self, number):
+    @staticmethod
+    def romeLevel(number):
         return ["0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"][number]
 
     def _addResourceTypes(self):
@@ -70,13 +71,11 @@ class Parser():
             type, _ = ResourceTypeModel.objects.update_or_create(id=id, defaults={
                 "label": label, "color": color, "data": self.data})
 
-            levelToLabel = ["-", "I", "II", "III", "IV", "V", "VI", "VII"
-                                                                    ""]
             for i in range(2, 7):
                 mat, _ = ResourceModel.objects.update_or_create(
                     id="mat-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": label + " " + self.romeLevel(i),
+                        "label": label + " " + Parser.romeLevel(i),
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,
@@ -85,7 +84,7 @@ class Parser():
                 prod, _ = ResourceModel.objects.update_or_create(
                     id="prod-" + id[5:] + "-" + str(i),
                     defaults={
-                        "label": "Produkce: " + label + " " + self.romeLevel(i),
+                        "label": "Produkce: " + label + " " + Parser.romeLevel(i),
                         "type": type,
                         "icon": "placeholder.png",
                         "level": i,

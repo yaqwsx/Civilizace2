@@ -32,6 +32,12 @@ class DashboardStatView(View):
         state = State.objects.getNewest()
         teamState = state.teamState(teamId)
         worldState = state.worldState
+        foodSupplyStats = teamState.foodSupply.getMissingItems(
+            worldState.getCastes(),
+            teamState.resources.getAmount("res-populace"),
+            worldState.foodValue
+        )
+        print("foodSupplyStats: " + str(foodSupplyStats))
 
         boardMessages = Message.objects.all() \
             .filter(appearDateTime__lte=timezone.now(),
@@ -49,7 +55,8 @@ class DashboardStatView(View):
             "teamState": teamState,
             "worldState": worldState,
             "boardMessages": boardMessages,
-            "messages": messages.get_messages(request)
+            "messages": messages.get_messages(request),
+            "foodSupplyStats": foodSupplyStats
         })
 
     def renderOtherTeam(self, request, myTeamId, otherTeamId):

@@ -64,15 +64,21 @@
             {% for r, a in teamState.foodSupply.getLuxusSupply.items %}
                 <li>{{a}}× {{r.htmlRepr|safe}}</li>
             {% empty %}
-                <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
+                <span class="text-center">Nemáte žádný automatizovaný luxus</span>{% endfor %}
             </ul>
         {% endcard %}
 
-        {% card "Populace kast" %}
-            <p class="text-left">
-                {{ teamState.foodSupply.getMissingItems }}
-            </p>
+        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
+            <ul class="text-left">
+            <li>Hladoví / Neuspokojení / Neluxusní</li>
+            {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
+                <li>{{ roman }}: {{ foodMissing}}×  ({{ unfed }}) &mdash; {{ qualityMissing }}× ({{ lowQuality }}) &mdash; {{ luxNeeded }}× ({{ luxMissing }})</li>
+            {% empty %}
+                <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
+            {% endfor %}
+            </ul>
         {% endcard %}
+
     </div>
 {% endif %}
 
