@@ -8,13 +8,13 @@
 
 {% if moveValid %}
     <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
-        <p class="w-full font-bold">Výsledek akce</p>
+        <p class="w-full font-bold">Akce bude mít následující efekt</p>
         <p class="w-full">{{message | safe}}</p>
     </div>
 {% else %}
 <div class="bg-orange-100 border-t-4 border-orange-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
     <p class="w-full font-bold">Akci nelze provést</p>
-    <p class="w-full">{{message}}</p>
+    <p class="w-full">{{message | safe}}</p>
 </div>
 {% endif %}
 

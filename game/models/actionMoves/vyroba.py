@@ -40,13 +40,15 @@ def scalableAmounts(field):
     <script>
         var amounts = document.querySelectorAll('.vyrobaAmount');
         var input = document.getElementById('""" + field.id_for_label + """');
-        input.addEventListener("change", function () {
+        function updateAmounts() {
             volume = parseInt(input.value);
             for (var i = 0; i != amounts.length; i++) {
                 amount = amounts[i];
                 amount.innerHTML = amount.dataset.amount * volume;
             }
-        });
+        }
+        input.addEventListener("change", updateAmounts);
+        updateAmounts();
     </script>
     """
 
@@ -253,20 +255,22 @@ class VyrobaMove(Action):
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
             message = f'Nedostate zdrojů; chybí: <ul>{resMsg}</ul>'
             return False, message
-        matMessage = "\n".join([f'{res.label}: {amount}' for res, amount in materials.items()])
-        message = f"""
-            Tým musí hodit {self.dots}&times; {self.vyroba.die.label}. Také musí zaplatit:
-            <ul>{matMessage}</ul>
-            Tým obdrží {self.gain()}&times; {self.vyroba.output.label}.
-        """
+        message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"
+        if len(materials) > 0:
+            matMessage = "\n".join([f'<li>{res.label}: {amount}</li>' for res, amount in materials.items()])
+            message += f"Tým také musí zaplatit:<ul>{matMessage}</ul>"
+        else:
+            message += f"Tým vám nic nebude platit<br>"
+        message += f"Tým obdrží {self.gain()}&times; {self.vyroba.output.label}."
         return True, message
 
     def commit(self, state):
         teamState =  state.teamState(self.team.id)
         resources = {self.vyroba.output: self.gain()}
         materials = teamState.resources.receiveResources(resources)
-        message = "Tým získal " + ResourceStorage.asHtml(resources) + "<br>" \
-                  "<b>Vydej " + ResourceStorage.asHtml(materials) + "</b>"
+        message = "Tým získal " + ResourceStorage.asHtml(resources) + "<br>"
+        if len(materials) > 0:
+            message += "<b>Vydej " + ResourceStorage.asHtml(materials) + "</b>"
         return True, message
 
     def abandon(self, state):
