@@ -289,6 +289,11 @@ class DistanceLogger(ImmutableModel):
         except DistanceItemBuilding.DoesNotExist:
             self.building.append(DistanceItemBuilding(source=source, target=target, distance=distance))
 
+    def allBuildingDistances(self):
+        return {
+            (x.source, x.target): x.distance for x in self.building
+        }
+
     def __str__(self):
         return f"Distances: {self.building}; {self.teams}"
 
@@ -382,13 +387,13 @@ class FoodStorage(ImmutableModel):
             supplyAmounts[food.level] += amount*foodValue
 
         totalAmount = sum(supplyAmounts)
-        
+
         popSum = 0
         foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
-        
+
         for kasta in populaceKast:
             pass
-        
+
         return populaceKast
 
     def getSupply(self, type):
