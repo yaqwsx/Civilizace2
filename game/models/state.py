@@ -235,8 +235,8 @@ class TeamAchievements(ImmutableModel):
                 raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
             self.list.remove(self.list.get(id=id))
 
-class DistanceItemProductions(ImmutableModel):
-    source = models.ForeignKey("ResourceModel", on_delete=models.PROTECT, related_name="distance_source")
+class DistanceItemBuilding(ImmutableModel):
+    source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
     target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
     distance = models.IntegerField()
 
@@ -250,54 +250,51 @@ class DistanceItemTeams(ImmutableModel):
 class DistanceLogger(ImmutableModel):
     class DistanceLoggerManager(models.Manager):
         def createInitial(self, team):
-            result = self.create(productions=[], teams=[])
+            result = self.create(building=[], teams=[])
             return result
     objects = DistanceLoggerManager()
 
-    productions = ListField(model_type=DistanceItemProductions)
+    building = ListField(model_type=DistanceItemBuilding)
     teams = ListField(model_type=DistanceItemTeams)
 
-    def getProductionDistance(self, source, target):
+    def getBuildingDistance(self, source, target):
         if isinstance(source, str):
-            source = ResourceModel.objects.get(id=source)
+            source = TechModel.objects.get(id=source)
         if isinstance(target, str):
             target = TechModel.objects.get(id=target)
-        items = list(filter(
-            lambda item: (item.source == source and item.target == target),
-            self.productions
-        ))
-        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
-        if not len(items):
-            return MAX_DISTANCE
-        return items[0].distance
+        if source.id > target.id:
+            source, target = target, source
+        if source.id == target.id:
+            return 0
+        try:
+            item = self.building.get(source=source.id, target=target.id)
+            return item.distance
+        except DistanceItemBuilding.DoesNotExist:
+            raise RuntimeError("No distance specified")
 
-    def setProductionDistance(self, source, target, distance):
+    def setBuildingDistance(self, source, target, distance):
         if isinstance(source, str):
-            source = ResourceModel.objects.get(id=source)
+            source = TechModel.objects.get(id=source)
         if isinstance(target, str):
             target = TechModel.objects.get(id=target)
-
-        items = list(filter(
-            lambda item: (item.source == source and item.target == target),
-            self.productions
-        ))
-
-        item = None
-        assert len(items) <= 1, f"There are multiple distance records for {source} -> {target}"
-        if not len(items):
-            item = DistanceItemProductions(source=source, target=target, distance=distance)
-            self.productions.append(item)
-        else:
-            item = items[0]
-        item.distance = distance
+        if source.id > target.id:
+            source, target = target, source
+        if source.id == target.id:
+            return
+        try:
+            item = self.building.get(source=source.id, target=target.id)
+            if item.distance > distance:
+                item.distance = distance
+        except DistanceItemBuilding.DoesNotExist:
+            self.building.append(DistanceItemBuilding(source=source, target=target, distance=distance))
 
     def __str__(self):
-        return f"Distances: {self.productions}; {self.teams}"
+        return f"Distances: {self.building}; {self.teams}"
 
     def toJson(self):
         return {
-            "productions": {
-                f"{p.source.id} -> {p.target.id}": p.distance for p in self.productions
+            "building": {
+                f"{p.source.id} -> {p.target.id}": p.distance for p in self.building
             },
             "teams": {
                 f"{t.team.name}({t.team.id})": t.distance for t in self.teams
@@ -305,33 +302,33 @@ class DistanceLogger(ImmutableModel):
         }
 
     def godUpdate(self, update):
-        allowKeys(["productions", "teams"], update["change"])
-        allowKeys(["productions", "teams"], update["add"])
-        allowKeys(["productions", "teams"], update["remove"])
-        self.godUpdateProductions(eatUpdatePrefixAll("productions", update))
+        allowKeys(["building", "teams"], update["change"])
+        allowKeys(["building", "teams"], update["add"])
+        allowKeys(["building", "teams"], update["remove"])
+        self.godUpdatebuilding(eatUpdatePrefixAll("building", update))
         self.godUpdateTeams(eatUpdatePrefixAll("teams", update))
 
-    def godUpdateProductions(self, update):
+    def godUpdatebuilding(self, update):
         def extractResources(s):
             x = s.split(s, "->")
             return x[0].strip(), x[1].strip()
         for desc, value in update["add"].items():
             source, target = extractResources(desc)
-            if self.productions.has(source=source, target=target):
+            if self.building.has(source=source, target=target):
                     raise InvalidActionException(f"Cannot add duplicite distance for '{desc}'")
-            self.productions.append(DistanceItemProductions(source=source, target=target, distance=value))
+            self.building.append(DistanceItemBuilding(source=source, target=target, distance=value))
 
         for desc, value in update["remove"].items():
             source, target = extractResources(desc)
-            if not self.productions.has(source=source, target=target):
+            if not self.building.has(source=source, target=target):
                 raise InvalidActionException(f"Cannot change '{desc}' which is not present in the list")
-            self.productions.get(source=source, target=target).distance = value
+            self.building.get(source=source, target=target).distance = value
 
         for desc, value in update["remove"].items():
             source, target = extractResources(desc)
-            if not self.productions.has(source=source, target=target):
+            if not self.building.has(source=source, target=target):
                 raise InvalidActionException(f"Cannot remove '{desc}' which is not present in the list")
-            self.productions.remove(self.productions.get(source=source, target=target))
+            self.building.remove(self.building.get(source=source, target=target))
 
     def godUpdateTeams(self, update):
         for desc, value in update["add"].items():
@@ -663,6 +660,9 @@ class TechStorage(ImmutableModel):
             results.extend(tech.unlock_vyrobas.all())
 
         return results
+
+    def getBuildings(self):
+        return [x.tech for x in self.items if x.status == TechStatusEnum.OWNED and x.tech.isBuilding]
 
     def toJson(self):
         return {

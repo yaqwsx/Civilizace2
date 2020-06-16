@@ -238,6 +238,9 @@ class VyrobaMove(Action):
             raise InvalidActionException(f'<ul>{msgBody}</ul>')
         return cost
 
+    def computeDistance(self):
+        pass
+
     def gain(self):
         gain = self.vyroba.amount
         for enh in self.vyroba.enhancers.all():

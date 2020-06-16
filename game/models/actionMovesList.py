@@ -10,6 +10,7 @@ class ActionMove(enum.Enum):
     research = 5
     vyroba = 7
     foodSupply = 8
+    setBuildingDistance = 9
 
     godmode = 42
     sandbox = 99
@@ -24,7 +25,7 @@ class ActionMove(enum.Enum):
         research: "Zkoumat",
         vyroba: "Výroba",
         foodSupply: "Zásobování centra",
-
+        setBuildingDistance: "Nastavit vzdálenost budov",
 
         godmode: "SYSTEM: Godmode",
         sandbox: "DEBUG: SANDBOX"

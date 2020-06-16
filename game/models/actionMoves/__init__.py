@@ -9,6 +9,7 @@ from .vyroba import VyrobaMove
 from .sandbox import SandboxMove
 from .godmode import GodmodeForm
 from .foodSupply import FoodSupplyMove
+from .setBuildingDistance import SetBuildingDistanceMove
 
 def buildActionMove(data):
     """

@@ -16,6 +16,10 @@ class TechModel(EntityModel):
     nodeTag = models.TextField()
     epocha = models.IntegerField()
 
+    @property
+    def isBuilding(self):
+        return self.id.startswith("build-")
+
 class TechEdgeModel(EntityModel):
     src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")
     dst = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocked_by")
