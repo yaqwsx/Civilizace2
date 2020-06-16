@@ -96,8 +96,8 @@
 <div class="flex flex-wrap">
     {% card "Právě zkoumané techologie" icon="fa-cogs" width="third" color="green-600" %}
         <ul class="text-left">
-            {% for r, a in teamState.techs.getTechsUnderResearch %}
-                <li>{{r.htmlRepr | safe}}: {{a}}</li>
+            {% for r in teamState.techs.getTechsUnderResearch %}
+                <li>{{r.htmlRepr | safe}}</li>
             {% empty %}
                 <span class="text-center">Právě nezkoumáte žádné technologie</span>
             {% endfor %}

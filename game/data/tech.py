@@ -20,6 +20,9 @@ class TechModel(EntityModel):
     def isBuilding(self):
         return self.id.startswith("build-")
 
+    def htmlRepr(self):
+        return self.label
+
 class TechEdgeModel(EntityModel):
     src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")
     dst = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocked_by")
