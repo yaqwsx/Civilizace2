@@ -113,7 +113,7 @@ class WorldState(ImmutableModel):
         def createInitial(self):
             generation = 0
             foodValue = 20
-            castes = "[2,3,4,5,6]"
+            castes = "[2,3,4,5]"
             return self.create(
                 generation=generation,
                 foodValue=foodValue,
@@ -134,15 +134,24 @@ class WorldState(ImmutableModel):
 
     def toJson(self):
         return {
-            "generation": self.generation
+            "generation": self.generation,
+            "castes": self.castes,
+            "storageLimit": self.storageLimit,
+            "foodValue": self.foodValue
         }
 
     def godUpdate(self, update):
-        allowKeys(["generation"], update["change"])
+        allowKeys(["generation", "castes", "storageLimit", "foodValue"], update["change"])
         allowKeys([], update["add"])
         allowKeys([], update["remove"])
         if "generation" in update["change"]:
             self.generation = update["change"]["generation"]
+        if "castes" in update["change"]:
+            self.castes = update["change"]["castes"]
+        if "storageLimit" in update["change"]:
+            self.storageLimit = update["change"]["storageLimit"]
+        if "foodValue" in update["change"]:
+            self.foodValue = update["change"]["foodValue"]
 
     def getCastes(self):
         kasty =  list(json.loads(self.castes))

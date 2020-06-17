@@ -55,7 +55,7 @@
             </p>
         {% endcard %}
 
-        {% card "Zásobování jídlem" icon="fa-warehouse" width="third" color="green-600" %}
+        {% card "Zásobování města" icon="fa-warehouse" width="third" color="green-600" %}
             <ul class="text-left">
             {% for r, a in teamState.foodSupply.getFoodSupply.items %}
                 <li>{{a}}× {{r.htmlRepr|safe}}</li>
@@ -69,14 +69,31 @@
         {% endcard %}
 
         {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
-            Potřebujete zaplatit {{foodSupplyTokens}}× jídlo (přebytek {{ foodSupplySurplus }})
+            Potřebujete zaplatit <b>{{foodSupplyTokens}}×</b> jídlo (přebytek {{ foodSupplySurplus }})
             <ul class="text-left">
             <li>Kvalita &mdash; Luxus</li>
             {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
-                <li><b>{{ roman }}</b>: {{ qualityMissing }}× ({{ lowQuality }}) &mdash; {{ luxNeeded }}× ({{ luxMissing }})</li>
+                <li><b>{{ roman }}</b>: <b>{{ qualityMissing }}×</b> ({{ lowQuality }}) &mdash; <b>{{ luxNeeded }}×</b> ({{ luxMissing }})</li>
             {% empty %}
                 <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
             {% endfor %}
+            </ul>
+        {% endcard %}
+        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
+            Potřebujete nakrmit {{ foodSupplySurplus }} lidí (<b>{{foodSupplyTokens}}× jídlo</b>)
+            <ul class="text-left">
+            <table style="width:100%">
+                <tr><td>Kasta</td><td>Jídlo</td><td>Luxus</td></tr>
+                {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
+                    <tr>
+                        <td>{{ roman }}</td>
+                        <td>{{ qualityMissing }}</td>
+                        <td>{{ luxNeeded }}</td>
+                    </tr>
+                {% empty %}
+                    <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
+                {% endfor %}
+            </table>
             </ul>
         {% endcard %}
 

@@ -37,7 +37,7 @@ class DashboardStatView(View):
             teamState.resources.getAmount("res-populace"),
             worldState.foodValue
         )
-        foodSupplySurplus = foodSupplyStats[-1][3]
+        foodSupplySurplus = -foodSupplyStats[-1][3]
         foodSupplyTokens = foodSupplyStats[-1][4]
         print("foodSupplyStats: " + str(foodSupplyStats))
 
