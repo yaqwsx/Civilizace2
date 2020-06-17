@@ -1,4 +1,6 @@
 import math
+from crispy_forms.layout import Layout, Fieldset, HTML
+from django import forms
 
 from game.data import ResourceModel
 from game.forms.action import MoveForm
@@ -11,10 +13,46 @@ class NextTurnForm(MoveForm):
         super().__init__(*args, **kwargs)
 
         generation = self.state.worldState.generation
-        turn = self.state.teamState(self.teamId).turn
+        team = self.state.teamState(self.teamId)
+        turn = team.turn
 
         if turn >= generation:
             raise InvalidActionException("Tým už v této generaci krmil")
+
+        missingItems = team.foodSupply.getMissingItems(
+            self.state.worldState.getCastes(),
+            team.resources.getAmount("res-populace"),
+            self.state.worldState.foodValue)
+
+        layout = [self.commonLayout]
+
+        # TODO: Formatovat jako nadpis
+        layout.append(HTML("""<b>Kvalita jídla</b>"""))
+        foodFields = ["Postupně vybírej jídlo odpovídající úrovně:"]
+        for i, kasta in enumerate(missingItems, start=1):
+            text = f"Úroveň {kasta[0]}: {kasta[6]}× jídlo"
+            self.fields["check-satisfied-" + str(i)] = forms.BooleanField(label=text,initial=kasta[6]==0,required=False)
+            foodFields.append("check-satisfied-"+str(i))
+        layout.append(Fieldset(*foodFields))
+
+        layout.append(HTML("""<hr class="border-2 border-black my-2">"""))
+        self.fields["foodTotal"] = forms.IntegerField(
+            label=f"Kolik jídla jste vybrali (doporučeno {missingItems[-1][4]})")
+        layout.append(Fieldset('Celkové množství jídla', 'foodTotal'))
+
+        layout.append(HTML("""<hr class="border-2 border-black my-2">"""))
+        luxusFields = ["Postupně vybírej luxus odpovídající úrovně:"]
+        for i, kasta in enumerate(missingItems, start=1):
+            text = f"Úroveň {kasta[0]}: {kasta[8]}× luxus"
+            self.fields["check-luxus-" + str(i)] = forms.BooleanField(label=text,initial=kasta[6]==0,required=False)
+            luxusFields.append("check-luxus-"+str(i))
+        layout.append(Fieldset(*luxusFields))
+
+
+        self.helper.layout = Layout(
+            *layout
+        )
+
 
 class NextTurn(Action):
     class Meta:
