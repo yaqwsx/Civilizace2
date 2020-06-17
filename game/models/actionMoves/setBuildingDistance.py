@@ -5,7 +5,7 @@ import json
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action
-from game.models.state import MissingDistanceError
+from game.models.state import MissingDistanceError, TechStatusEnum
 
 from game.data.tech import TechModel
 
@@ -13,10 +13,13 @@ from game.data.tech import TechModel
 class SetBuildingDistanceForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        techs = self.state.teamState(self.teamId).techs
+        sourceBuilding = TechModel.objects.get(id=self.entityId)
+        if techs.getStatus(sourceBuilding) != TechStatusEnum.OWNED:
+            raise InvalidActionException(f'Tým nevlastní budovu {sourceBuilding.label}')
         distanceLogger = self.state.teamState(self.teamId).distances
         buildings = self.state.teamState(self.teamId).techs.getBuildings()
-        sort(buildings, key=lambda x: x.label)
-        sourceBuilding = TechModel.objects.get(id=self.entityId)
+        buildings.sort(key=lambda x: x.label)
         for b in buildings:
             if b.id == self.entityId:
                 continue
