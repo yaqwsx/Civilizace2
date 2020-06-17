@@ -139,7 +139,9 @@ class WorldState(ImmutableModel):
             self.generation = update["change"]["generation"]
 
     def getCastes(self):
-        return json.loads(self.castes)
+        kasty =  list(json.loads(self.castes))
+        kasty.sort(reverse=True)
+        return kasty
 
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
@@ -487,7 +489,7 @@ class ResourceStorage(ImmutableModel):
         return result
 
     def _addPopulation(self, amount):
-        self.items.get(resource=ResourceModel.objects.get(id="res-population")).amount += amount
+        self.items.get(resource=ResourceModel.objects.get(id="res-populace")).amount += amount
 
     def spendWork(self, amount):
         self.payResources({ResourceModel.objects.get(id="res-prace"): amount})
@@ -512,10 +514,13 @@ class ResourceStorage(ImmutableModel):
             item = ResourceStorageItem(resource=resource, amount=amount)
             self.items.append(item)
 
-        if item.id == "res-obyvatel":
+        if item.resource.id == "res-obyvatel":
             diff = amount - item.amount
+            print(f"Adding population: {diff}")
             if diff > 0:
                 self._addPopulation(diff)
+        else:
+            print("Updating item.id: " + str(item.id))
         item.amount = amount
 
     def hasResources(self, resources):
@@ -561,16 +566,16 @@ class ResourceStorage(ImmutableModel):
         return result
 
     def getResourcesByType(self, metaResource=None):
-        if not metaResource:
-            metaResource = ResourceModel.objects.get(id="prod-luxus-2")
-        resourceType = metaResource.type
-        level = metaResource.level
-        isProduction = metaResource.isProduction
+        resourceType = metaResource.type if metaResource else None
+        level = metaResource.level if metaResource else 2
+        isProduction = metaResource.isProduction if metaResource else True
 
         results = {}
         for item in self.items:
             resource = item.resource
-            if resource.type == resourceType and resource.level >= level and resource.isProduction == isProduction:
+            if ((not resourceType) or resource.type == resourceType)\
+                    and resource.level >= level \
+                    and resource.isProduction == isProduction:
                 results[resource] = item.amount
         return results
 

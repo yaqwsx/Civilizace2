@@ -30,7 +30,7 @@ class NextTurnForm(MoveForm):
         layout.append(HTML("""<b>Kvalita jídla</b>"""))
         foodFields = ["Postupně vybírej jídlo odpovídající úrovně:"]
         for i, kasta in enumerate(missingItems, start=1):
-            text = f"Úroveň {kasta[0]}: {kasta[6]}× jídlo"
+            text = f"{kasta[6]}× jídlo <b>{kasta[0]}</b>"
             self.fields["check-satisfied-" + str(i)] = forms.BooleanField(label=text,initial=kasta[6]==0,required=False)
             foodFields.append("check-satisfied-"+str(i))
         layout.append(Fieldset(*foodFields))
@@ -67,32 +67,66 @@ class NextTurn(Action):
         return []
 
     def build(data):
-        action = NextTurn(team=data["team"], move=data["action"], arguments={})
+        action = NextTurn(team=data["team"], move=data["action"], arguments={**data})
+        action.arguments["team"] = None
         return action
 
     def initiate(self, state):
         unfinished = self.team.unfinishedAction()
-        print(unfinished)
+
         if unfinished:
             org = unfinished.actionstep_set.all()[0].author
             message = f"Nelze začít kolo, nedoházeli jste kostkou u organizátora {org.username}"
             return False, message
-        return True, "Začíná kolo!"
+
+        return True, ""
 
     def commit(self, state):
         team = self.teamState(state)
 
         storage = team.resources
 
+        # nacist kasta fieldy
+        missingItems = team.foodSupply.getMissingItems(
+            state.worldState.getCastes(),
+            team.resources.getAmount("res-populace"),
+            state.worldState.foodValue)
+
+        foodProvided = self.arguments["foodTotal"]
+        prirustek = 0
+        for i, kasta in enumerate(missingItems, start=1):
+            satisfied = self.arguments["check-satisfied-"+str(i)]
+            luxus = self.arguments["check-luxus-"+str(i)]
+
+            if foodProvided >= kasta[4]:
+                prirustek += 1
+            else:
+                prirustek -= 5
+            if satisfied: prirustek += 1
+            if luxus: prirustek += 2
+
+            print("kasta: " + str(kasta))
+            print("satisfied: " + str(satisfied))
+            print("luxus: " + str(luxus))
+            print("foodProvided: " + str(foodProvided))
+            print("prirustek: " + str(prirustek))
+
+        print("prirustek: " + str(prirustek))
         # obyvatele a prace
         praceLeft = storage.getAmount("res-prace")
         obyvatele = storage.getAmount("res-obyvatel")
+        obyvateleUpdated = obyvatele + prirustek
 
-        prace = obyvatele + math.floor(praceLeft/2)
+        storage.setAmount("res-obyvatel", obyvateleUpdated)
+        prace = obyvateleUpdated + math.floor(praceLeft/2)
         print("prace: " + str(prace))
         storage.setAmount("res-prace", prace)
 
         team.nextTurn()
-        message = """Začalo kolo {turn}""".format(turn=team.turn)
+        message = "<br>".join([
+            f"Začalo kolo {team.turn}",
+            f"Máte {prirustek} nových obyvatel",
+            f"V tomto kole máte {prace} práce"
+        ])
         return True, message
 

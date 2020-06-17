@@ -37,6 +37,8 @@ class DashboardStatView(View):
             teamState.resources.getAmount("res-populace"),
             worldState.foodValue
         )
+        foodSupplySurplus = foodSupplyStats[-1][3]
+        foodSupplyTokens = foodSupplyStats[-1][4]
         print("foodSupplyStats: " + str(foodSupplyStats))
 
         boardMessages = Message.objects.all() \
@@ -56,7 +58,9 @@ class DashboardStatView(View):
             "worldState": worldState,
             "boardMessages": boardMessages,
             "messages": messages.get_messages(request),
-            "foodSupplyStats": foodSupplyStats
+            "foodSupplyStats": foodSupplyStats,
+            "foodSupplyTokens": foodSupplyTokens,
+            "foodSupplySurplus": foodSupplySurplus
         })
 
     def renderOtherTeam(self, request, myTeamId, otherTeamId):

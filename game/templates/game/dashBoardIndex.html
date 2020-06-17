@@ -69,10 +69,11 @@
         {% endcard %}
 
         {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
+            Potřebujete zaplatit {{foodSupplyTokens}}× jídlo (přebytek {{ foodSupplySurplus }})
             <ul class="text-left">
-            <li>Hladoví / Neuspokojení / Neluxusní</li>
+            <li>Kvalita &mdash; Luxus</li>
             {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
-                <li>{{ roman }}: {{ foodMissing}}×  ({{ unfed }}) &mdash; {{ qualityMissing }}× ({{ lowQuality }}) &mdash; {{ luxNeeded }}× ({{ luxMissing }})</li>
+                <li><b>{{ roman }}</b>: {{ qualityMissing }}× ({{ lowQuality }}) &mdash; {{ luxNeeded }}× ({{ luxMissing }})</li>
             {% empty %}
                 <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
             {% endfor %}
@@ -109,7 +110,7 @@
             {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Dostupné zdroje" icon="fa-warehouse" width="third" color="green-600" %}
+    {% card "Dostupné produkce" icon="fa-warehouse" width="third" color="green-600" %}
         <ul class="text-left">
         {% for r, a in teamState.resources.getResourcesByType.items %}
             <li>{{a}}× {{r.htmlRepr|safe}}</li>
