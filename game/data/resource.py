@@ -37,6 +37,10 @@ class ResourceModel(EntityModel):
         return list(buildings)
 
     @property
+    def isTracked(self):
+        return self.isProduction or self.isHumanResource or self.id == "res-prace"
+
+    @property
     def isMeta(self):
         chunks = self.id.split("-")
         if chunks[0] not in ["mat", "prod"]: return False

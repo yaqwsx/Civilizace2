@@ -10,6 +10,7 @@ from .sandbox import SandboxMove
 from .godmode import GodmodeForm
 from .foodSupply import FoodSupplyMove
 from .setBuildingDistance import SetBuildingDistanceMove
+from .setTeamDistance import SetTeamDistanceMove
 
 def buildActionMove(data):
     """
