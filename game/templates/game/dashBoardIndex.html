@@ -118,12 +118,46 @@
         </ul>
     {% endcard %}
     {% card "Vzdálenosti" icon="fa-compass" width="third" color="green-600" %}
-        <ul class="text-left">
-            <li>Centrum &mdash; Pila: 58</li>
-            <li>Centrum &mdash; Přístav: 30</li>
-            <li>Centrum &mdash; Kasárna: 45</li>
-            <li>Univerzita &mdash; Hospoda: 1</li>
-        </ul>
+        <select id="build-source" class="select my-1">
+            {% for building in teamState.techs.getBuildings%}
+                <option value="{{building.id}}">{{building.label}}</option>
+            {% endfor %}
+        </select>
+        <select id="build-target" class="select my-1">
+            {% for building in teamState.techs.getBuildings%}
+                <option value="{{building.id}}">{{building.label}}</option>
+            {% endfor %}
+        </select>
+        Vzálenost: <span id="build-distance">Neznámá</span>
+        <script>
+            var distances = [
+                {% for pair, distance in teamState.distances.allBuildingDistances.items %}
+                    ["{{ pair.0 }}", "{{ pair.1 }}", {{distance}}],
+                {% endfor %}
+            ];
+            var source = document.getElementById("build-source");
+            var target = document.getElementById("build-target");
+            var distance = document.getElementById("build-distance");
+            function update() {
+                var src = source.value;
+                var tgt = target.value;
+                if (src == tgt) {
+                    distance.innerHTML = 0;
+                    return;
+                }
+                for (var i = 0; i != distances.length; i++ ) {
+                    var item = distances[i];
+                    if ( (item[0] == src && item[1] == tgt) || (item[1] == src && item[0] == tgt)) {
+                        distance.innerHTML = item[2];
+                        return;
+                    }
+                    distance.innerHTML = "Neznámá";
+                }
+            }
+            source.addEventListener("change", update);
+            target.addEventListener("change", update);
+            update();
+        </script>
     {% endcard %}
 
 </div>
