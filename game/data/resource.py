@@ -30,6 +30,12 @@ class ResourceModel(EntityModel):
                not self.isMeta and meta.isProduction == self.isProduction)
         return self.id == meta.id
 
+    def getProductionBuildings(self):
+        buildings = set()
+        for vyroba in self.output_of_vyroba.all():
+            buildings.add(vyroba.build)
+        return list(buildings)
+
     @property
     def isMeta(self):
         chunks = self.id.split("-")
@@ -40,6 +46,10 @@ class ResourceModel(EntityModel):
     def isProduction(self):
         chunks = self.id.split("-")
         return chunks[0] == "prod"
+
+    @property
+    def isHumanResource(self):
+        return self.id in ["res-obyvatel", "res-nosic"]
 
     @property
     def plainLabel(self):

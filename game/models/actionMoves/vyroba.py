@@ -8,7 +8,7 @@ from game.data.vyroba import VyrobaModel, EnhancementModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException
 from game.models.actionMovesList import ActionMove
-from game.models.state import ResourceStorage
+from game.models.state import ResourceStorage, MissingDistanceError
 
 def hideableEnhancers():
     return """
@@ -196,7 +196,7 @@ class VyrobaMove(Action):
         return self.arguments["enhInputs"]
 
     def active(self, enhancementId):
-        return self.arguments[enhancementId]
+        return enhancementId in self.arguments and self.arguments[enhancementId]
 
     def requiresDice(self, state):
         return True
@@ -217,7 +217,7 @@ class VyrobaMove(Action):
             if not cRes.isSpecializationOf(resource):
                 costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({self.vyroba.label})")
             amount = amount * self.volume
-            cost[resource] = cost.get(resource, 0) + amount
+            cost[cRes] = cost.get(cRes, 0) + amount
 
         for enh in self.vyroba.enhancers.all():
             if not self.active(enh.id):
@@ -232,14 +232,42 @@ class VyrobaMove(Action):
                 if not cRes.isSpecializationOf(resource):
                     costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({enh.label})")
                 amount = amount * self.volume
-                cost[resource] = cost.get(resource, 0) + amount
+                cost[cRes] = cost.get(cRes, 0) + amount
         if costErrorMessage:
             msgBody = "\n".join([f'<li>{x}</li>' for x in costErrorMessage])
             raise InvalidActionException(f'<ul class="list-disc px-4">{msgBody}</ul>')
         return cost
 
-    def computeDistance(self):
-        pass
+    def cheapestBuilding(self, target, builds):
+        distLogger = self.state.teamState(self.team.id).distances
+        l = [(b, distLogger.getBuildingDistance(b, target)) for b in builds]
+        return min(l, key=lambda x: x[1])
+
+    def computeDistanceCost(self):
+        cost = 0
+        target = self.vyroba.build
+        missingDistances = []
+        def computeCost(resource, amount):
+            nonlocal cost
+            if not resource.isProduction:
+                return
+            try:
+                building, price = self.cheapestBuilding(target, resource.getProductionBuildings())
+                cost += self.volume * amount * price
+            except MissingDistanceError as e:
+                missingDistances.append((e.source, e.target))
+
+        for resource, amount in self.vyroba.getInputs().items():
+            computeCost(resource, amount)
+        for enh in self.vyroba.enhancers.all():
+            if not self.active(enh.id):
+                continue
+            for resource, amount in enh.getInputs().items():
+                computeCost(resource, amount)
+        if missingDistances:
+            msgBody = "\n".join([f'<li>{source.label}&mdash;{target.label}</li>' for source, target in missingDistances])
+            raise InvalidActionException(f'Neexistují následující vzdálenosti: <ul class="list-disc px-4">{msgBody}</ul>')
+        return cost
 
     def gain(self):
         gain = self.vyroba.amount
@@ -248,17 +276,74 @@ class VyrobaMove(Action):
                 gain += enh.amount
         return self.volume * gain
 
+    def increaseTransportCapacityBy(self, amount):
+        """
+        Increase transport capacity and report success and used/missing resources
+        """
+        tVyroba = VyrobaModel.objects.get(id="vyr-obchod")
+        volume = math.ceil(amount / tVyroba.amount)
+        # tVyroba does not use any materials, assume that
+        cost = {}
+        for resource, amount in tVyroba.getInputs().items():
+            cost[resource] = amount * volume
+        try:
+            teamState = self.state.teamState(self.team.id)
+            materials = teamState.resources.payResources(cost)
+            self.rememberCost(cost)
+            t = ResourceModel.objects.get(id="res-nosic")
+            teamState.resources.receiveResources({t: tVyroba.amount * volume})
+            self.rememberCost({t: -tVyroba.amount * volume})
+        except ResourceStorage.NotEnoughResourcesException as e:
+            return False, e.list
+        return True, cost
+
+    def rememberCost(self, costDict):
+        """
+        Remember cost in the arguments - originally not needed, but with
+        the transport capacity auto increase it is needed. Based on this, we can
+        recover the resource in abandon/cancel.
+        """
+        if "cost" not in self.arguments:
+            self.arguments["cost"] = {}
+        for res, amount in costDict.items():
+            self.arguments["cost"][res.id] = self.arguments["cost"].get(res.id, 0) + amount
+
+    def retrieveCost(self):
+        return {
+            ResourceModel.objects.get(id=res): amount for res, amount in self.arguments["cost"]
+        }
+
     def initiate(self, state):
-        teamState =  state.teamState(self.team.id)
+        self.state = state
+        teamState = state.teamState(self.team.id)
 
         cost = self.computeCost()
         try:
             materials = teamState.resources.payResources(cost)
+            self.rememberCost(cost)
         except ResourceStorage.NotEnoughResourcesException as e:
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
             message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
             return False, message
+        distanceCost = self.computeDistanceCost()
+        distanceMessage = f"Přeprava materiálu stojí {distanceCost} přepravní kapacity."
+        try:
+            t = ResourceModel.objects.get(id="res-nosic")
+            teamState.resources.payResources({t: distanceCost})
+            self.rememberCost({t: distanceCost})
+        except ResourceStorage.NotEnoughResourcesException as e:
+            success, incRes = self.increaseTransportCapacityBy(e.list[t])
+            if success:
+                resMsg = ", ".join([f'{amount}&times; {res.label}' for res, amount in incRes.items()])
+                distanceMessage += f"<br>Přepravní kapacita byla automatický zvýšena, bylo použito: {resMsg}"
+                teamState.resources.payResources({t: distanceCost})
+                self.rememberCost({t: distanceCost})
+            else:
+                resMsg = ", ".join([f'{amount}&times; {res}' for amount, res in incRes])
+                return False, f"Nepodařilo se zvýšit přepravní kapacitu; chybí {resMsg}"
+
         message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"
+        message += distanceMessage + "<br>"
         if len(materials) > 0:
             matMessage = "\n".join([f'<li>{res.label}: {amount}</li>' for res, amount in materials.items()])
             message += f'Tým také musí zaplatit:<ul class="list-disc px-4">{matMessage}</ul>'
@@ -278,11 +363,11 @@ class VyrobaMove(Action):
 
     def abandon(self, state):
         productions = filter(
-            lambda resource, amount:
-                resource.id[:5] == "prod-"
-                or resource.id == "res-obyvatel",
-            self.computeCost.items()
+            lambda resource, amount: resource.isProduction or resource.isHumanResource,
+            self.retrieveCost.items()
         )
+        teamState = state.teamState(self.team.id)
+        teamState.resources.receiveResources(productions)
 
         message = self.abandonMessage()
         message += "<br>"
@@ -291,7 +376,7 @@ class VyrobaMove(Action):
 
     def cancel(self, state):
         teamState =  state.teamState(self.team.id)
-        materials = teamState.resources.receiveResources(self.computeCost())
+        materials = teamState.resources.receiveResources(self.retrieveCost())
 
         message = self.cancelMessage()
         message += "<br>"

@@ -251,6 +251,13 @@ class DistanceItemTeams(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     distance = models.IntegerField()
 
+class MissingDistanceError(RuntimeError):
+    def __init__(self, msg, source, target):
+        super().__init__(msg)
+        self.source = source
+        self.target = target
+
+
 class DistanceLogger(ImmutableModel):
     class DistanceLoggerManager(models.Manager):
         def createInitial(self, team):
@@ -274,7 +281,7 @@ class DistanceLogger(ImmutableModel):
             item = self.building.get(source=source.id, target=target.id)
             return item.distance
         except DistanceItemBuilding.DoesNotExist:
-            raise RuntimeError("No distance specified")
+            raise MissingDistanceError("No distance specified", source, target)
 
     def setBuildingDistance(self, source, target, distance):
         if isinstance(source, str):
@@ -478,7 +485,7 @@ class ResourceStorage(ImmutableModel):
     @staticmethod
     def asHtml(resources, separator=", "):
         return separator.join([
-            str(value) + "x " + key.id
+            f'{value}&times; {key.label}'
             for key, value in resources.items()])
 
     items = ListField(model_type=ResourceStorageItem)
@@ -646,6 +653,8 @@ class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):
         def createInitial(self, team):
             initialTechs = ["build-centrum", "build-lovci", "tech-hnojeni", "tech-astronomie"]
+            if team.id == 2:
+                initialTechs += ["build-dul", "tech-uhli", "build-uhlirstvi"]
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(
