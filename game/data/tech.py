@@ -34,6 +34,9 @@ class TechEdgeModel(EntityModel):
         resources += [f"{r.amount}x {r.resource.label}" for r in self.resources.all()]
         return ", ".join(resources)
 
+    def getInputs(self):
+        return {item.resource: item.amount for item in self.resources.all()}
+
 class TechEdgeInputModel(models.Model):
     parent = models.ForeignKey(TechEdgeModel, on_delete=models.CASCADE, related_name="resources")
     resource = models.ForeignKey(ResourceModel, on_delete=models.CASCADE)

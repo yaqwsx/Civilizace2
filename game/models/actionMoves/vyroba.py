@@ -387,10 +387,9 @@ class VyrobaMove(Action):
         return True, message
 
     def abandon(self, state):
-        productions = filter(
-            lambda resource, amount: resource.isProduction or resource.isHumanResource,
-            self.retrieveCost.items()
-        )
+        productions = { res: amount for res, amount in self.retrieveCost.items()
+            if res.isProduction or res.isHumanResource }
+
         teamState = state.teamState(self.team.id)
         teamState.resources.receiveResources(productions)
 

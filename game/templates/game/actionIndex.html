@@ -91,7 +91,7 @@
 
         entitySelect.onchange = function() {
             console.log("Changed entity!");
-            if (!teamSelect.value || !entitySelect.value) {
+            if (!teamSelect.value || !entitySelect.value || actionSelect.value) {
                 return;
             }
             action = actionForEntity[entitySelect.value]

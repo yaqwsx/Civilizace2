@@ -5,7 +5,7 @@ from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action, InvalidActionException
-from game.models.state import TechStorageItem, TechStatusEnum
+from game.models.state import TechStorageItem, TechStatusEnum, ResourceStorage
 
 
 class ResearchForm(MoveForm):
@@ -13,21 +13,11 @@ class ResearchForm(MoveForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Team ID is available under self.teamId
-        # State is available under self.state
-        # Entity ID is available under self.entityId
-
         techs = self.state.teamState(self.teamId).techs
         src = TechModel.objects.get(id=self.entityId)
-
         choices = []
         for edge in src.unlocks_tech.all():
-            dst = edge.dst
-            if techs.getStatus(dst) == TechStatusEnum.OWNED:
-                continue
-            if techs.getStatus(dst) == TechStatusEnum.RESEARCHING:
-                choices.append((edge.id, ">> " + edge.label))
-            if techs.getStatus(dst) == TechStatusEnum.UNKNOWN:
+            if techs.getStatus(edge.dst) == TechStatusEnum.UNKNOWN:
                 choices.append((edge.id, edge.label))
 
         if not len(choices):
@@ -42,87 +32,87 @@ class ResearchMove(Action):
         form = ResearchForm
         allowed = ["super", "org"]
 
-    @property
-    def selectId(self):
-        return self.arguments["selectId"]
-
-    teamState = None
-    status = None
-    tech = None
-    edge = None
-
     @staticmethod
     def build(data):
-        action = ResearchMove(team=data["team"], move=data["action"], arguments={"selectId": data["techSelect"]})
+        action = ResearchMove(
+            team=data["team"],
+            move=data["action"],
+            arguments=Action.stripData(data))
         return action
 
     @staticmethod
     def relevantEntities(state, team):
         techs = state.teamState(team.id).techs
-
-        results = []
-        results.extend(techs.getOwnedTechs())
-
-        return results
-
+        return techs.getOwnedTechs()
 
     def sane(self):
         return True
 
-    def preprocess(self, state):
-        self.teamState =  state.teamState(self.team.id)
-
-        if self.selectId[:5] != "edge-":
-            self.tech = TechModel.objects.get(id=self.selectId)
-            assert self.tech is not None, "Failed to decode id " + self.selectId
-            self.status = self.teamState.techs.getStatus(self.tech)
-
-            if self.status == TechStatusEnum.UNKNOWN:
-                raise Exception("Illegal request: Cannot start researching tech " + self.selectId + " directly")
-            return
-
-        self.edge = TechEdgeModel.objects.get(id=self.selectId)
-        self.tech = self.edge.dst
-        assert self.edge is not None, "Failed to decode id " + self.selectId
-        self.status = self.teamState.techs.getStatus(self.tech)
-
-        return
+    @property
+    def edge(self):
+        return TechEdgeModel.objects.get(id=self.arguments["techSelect"])
 
     def requiresDice(self, state):
-        self.preprocess(state)
-        return self.status == TechStatusEnum.UNKNOWN
+        return True
 
     def dotsRequired(self, state):
-        self.preprocess(state)
-        return {self.edge.die:self.edge.dots}
+        return {self.edge.die: self.edge.dots}
 
     def initiate(self, state):
-        self.preprocess(state)
+        teamState = self.teamState(state)
+        techs = teamState.techs
+        dst = self.edge.dst
 
-        if self.status == TechStatusEnum.OWNED:
-            return False, "Technologie " + self.tech.label + " už je vyzkoumaná"
+        if techs.getStatus(self.edge.src) != TechStatusEnum.OWNED:
+            return False, f"Zdrojová technologie {self.edge.src.label} není vyzkoumána."
+        dstStatus = techs.getStatus(dst)
+        if dstStatus == TechStatusEnum.OWNED:
+            return False, f"Cílová technologie {dst.label} už byla kompletně vyzkoumána."
+        if dstStatus == TechStatusEnum.RESEARCHING:
+            return False, f"Cilová technologie {dst.label} už je zkoumána."
 
-        if self.status == TechStatusEnum.RESEARCHING:
-            self.teamState.techs.setStatus(self.tech, TechStatusEnum.OWNED)
-            print("state changed by initiate")
-            return True, "Vyzkoumali jste technologii " + self.tech.label + "; Dostanete spoooustu nalepek"
-
-        return True, "Zacinate zkoumat tech " + self.tech.label + "; Chcete se do toho pustit?"
+        try:
+            print(self.edge.getInputs())
+            materials = teamState.resources.payResources(self.edge.getInputs())
+            if materials:
+                resMsg = "".join([f'<li>{amount}&times; {res.label}</li>' for res, amount in materials.items()])
+                costMessage = f'Tým musí zaplatit: <ul class="list-disc px-4">{resMsg}</ul>'
+            else:
+                costMessage = "Tým nic neplatí"
+        except ResourceStorage.NotEnoughResourcesException as e:
+            resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
+            message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
+            return False, message
+        return True, f"""
+            Pro vyzkoumání <i>{self.edge.dst.label}</i> skrze <i>{self.edge.label}</i> je třeba hodit: {self.edge.dots}&times; {self.edge.die.label}<br>
+            {costMessage}<br>
+        """
 
     def commit(self, state):
-        print("Commit")
-        self.preprocess(state)
-
-        if self.status != TechStatusEnum.UNKNOWN:
-            return True, "Vyhledove se tenhle status nebude zobrazovat, protoze uz mate vyzkoumano"
-
-        self.teamState.techs.setStatus(self.tech, TechStatusEnum.RESEARCHING)
-        return True, "Zacali jste zkoumat tech " + self.tech.label + ". Hodne stesti"
+        self.teamState(state).techs.setStatus(self.edge.dst, TechStatusEnum.RESEARCHING)
+        return True, f"""
+            Zkoumání technologie {self.edge.dst.label} bylo započato.<br>
+            Musíte splnit úkol: TUTO FUNKCIONALITU JE JETŠTĚ TŘEBA IMPLEMENTOVAT
+        """
 
     def abandon(self, state):
-        # TODO: Implement
-        return True, self.abandonMessage()
+        productions = { res: amount for res, amount in self.edge.getInputs().items()
+            if res.isProduction or res.isHumanResource }
+
+        teamState = self.teamState(state)
+        teamState.resources.receiveResources(productions)
+
+        message = self.abandonMessage()
+        message += "<br>"
+        message += "Tým nedostane zpátky žádné materiály"
+        return True, message
 
     def cancel(self, state):
-        # TODO: Implement
-        return True, self.cancelMessage()
+        teamState = self.teamState(state)
+        materials = teamState.resources.receiveResources(self.edge.getInputs())
+
+        message = self.cancelMessage()
+        message += "<br>"
+        message += "Vraťte týmu materiály: " + ResourceStorage.asHtml(materials)
+
+        return True, message
