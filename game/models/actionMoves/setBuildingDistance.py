@@ -15,6 +15,7 @@ class SetBuildingDistanceForm(MoveForm):
         super().__init__(*args, **kwargs)
         distanceLogger = self.state.teamState(self.teamId).distances
         buildings = self.state.teamState(self.teamId).techs.getBuildings()
+        sort(buildings, key=lambda x: x.label)
         sourceBuilding = TechModel.objects.get(id=self.entityId)
         for b in buildings:
             if b.id == self.entityId:
@@ -42,7 +43,7 @@ class SetBuildingDistanceMove(Action):
 
     @staticmethod
     def relevantEntities(state, team):
-        return state.teamState(team).techs.getBuildings()
+        return sorted(state.teamState(team).techs.getBuildings(), key=lambda x: x.label)
 
     def build(data):
         action = SetBuildingDistanceMove(

@@ -77,6 +77,7 @@ def enhancerLabel(enhancer):
     output = f"{scalableAmount(amountTxt)} {enhancer.vyroba.output.label}"
     return f'<span class="text-xl my-2">{enhancer.label} &#8594; {output}</span>'
 
+
 class VyrobaForm(MoveForm):
     volumeSelect = forms.IntegerField(label="Počet výrob", validators=[MinValueValidator(1)], initial=1)
 
@@ -90,6 +91,18 @@ class VyrobaForm(MoveForm):
         inputsLayout.append(HTML(
             f'<h3 class="text-xl my-2">{self.vyroba.label} &#8594; {inputsLabel(self.vyroba.getOutput())}</h3>'))
         for resource, amount in self.vyroba.getInputs().items():
+            if resource.isTracked:
+                continue
+            typeId = self.vyroba.id + "-" + resource.id
+            label = f'<span class="text-black">{resource.label} (potřeba {scalableAmount(amount)}&times;)</span>'
+            choices = [(x.id, x.label) for x in resource.concreteResources()]
+            self.fields[typeId] = \
+                forms.ChoiceField(choices=choices, label=label)
+            self.vyrobaInputs[resource.id] = typeId
+            inputsLayout.append(typeId)
+        for resource, amount in self.vyroba.getInputs().items():
+            if not resource.isTracked:
+                continue
             typeId = self.vyroba.id + "-" + resource.id
             label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
             choices = [(x.id, x.label) for x in resource.concreteResources()]
@@ -106,6 +119,18 @@ class VyrobaForm(MoveForm):
             inputsLayout.append(HTML(f'<div id="inputs-{enhancer.id}">'))
             inputsFields = {}
             for resource, amount in enhancer.getInputs().items():
+                if resource.isTracked:
+                    continue
+                typeId = enhancer.id + "-" + resource.id
+                label = f'<span class="text-black">{resource.label} (potřeba {scalableAmount(amount)}&times;)</span>'
+                choices = [(x.id, x.label) for x in resource.concreteResources()]
+                self.fields[typeId] = \
+                    forms.ChoiceField(choices=choices, label=label)
+                inputsFields[resource.id] = typeId
+                inputsLayout.append(typeId)
+            for resource, amount in enhancer.getInputs().items():
+                if not resource.isTracked:
+                    continue
                 typeId = enhancer.id + "-" + resource.id
                 label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
                 choices = [(x.id, x.label) for x in resource.concreteResources()]
