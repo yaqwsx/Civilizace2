@@ -117,6 +117,13 @@
         {% endfor %}
         </ul>
     {% endcard %}
+    {% card "Materiály ve skladu" icon="fa-warehouse" width="third" color="green-600" %}
+        <ul class="text-left">
+        {% for r, a in teamState.materials.getAll.items %}
+            <li>{{a}}× {{r.htmlRepr|safe}}</li>
+        {% endfor %}
+        </ul>
+    {% endcard %}
     {% card "Vzdálenosti" icon="fa-compass" width="third" color="green-600" %}
         <ul class="text-left">
             <li>Centrum &mdash; Pila: 58</li>

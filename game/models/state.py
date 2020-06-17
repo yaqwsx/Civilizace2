@@ -114,7 +114,12 @@ class WorldState(ImmutableModel):
             generation = 0
             foodValue = 20
             castes = "[2,3,4,5,6]"
-            return self.create(generation=generation, foodValue=foodValue, castes=castes)
+            return self.create(
+                generation=generation,
+                foodValue=foodValue,
+                castes=castes,
+                storageLimit=10
+            )
 
     objects = WorldStateManager()
 
@@ -122,6 +127,7 @@ class WorldState(ImmutableModel):
     generation = models.IntegerField()
     foodValue = models.IntegerField()
     castes = models.TextField()
+    storageLimit = models.IntegerField()
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -149,13 +155,23 @@ class TeamState(ImmutableModel):
             sandbox = SandboxTeamState.objects.createInitial()
             population = PopulationTeamState.objects.createInitial()
             resources = ResourceStorage.objects.createInitial(team)
+            materials = MaterialStorage.objects.createInitial()
             techs = TechStorage.objects.createInitial(team)
             distances = DistanceLogger.objects.createInitial(team)
             achievements = TeamAchievements.objects.createInitial()
             foodSupply = FoodStorage.objects.createInitial()
             print("foodSuply: " + str(foodSupply))
-            return self.create(team=team, sandbox=sandbox, population=population, turn=0, resources=resources,
-                               techs=techs, distances=distances, achievements=achievements, foodSupply=foodSupply)
+            return self.create(
+                team=team,
+                sandbox=sandbox,
+                population=population,
+                turn=0,
+                resources=resources,
+                materials=materials,
+                techs=techs,
+                distances=distances,
+                achievements=achievements,
+                foodSupply=foodSupply)
 
     objects = TeamStateManager()
 
@@ -164,6 +180,7 @@ class TeamState(ImmutableModel):
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
     turn = models.IntegerField()
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
+    materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
@@ -516,11 +533,8 @@ class ResourceStorage(ImmutableModel):
 
         if item.resource.id == "res-obyvatel":
             diff = amount - item.amount
-            print(f"Adding population: {diff}")
             if diff > 0:
                 self._addPopulation(diff)
-        else:
-            print("Updating item.id: " + str(item.id))
         item.amount = amount
 
     def hasResources(self, resources):
@@ -609,6 +623,66 @@ class ResourceStorage(ImmutableModel):
     def getObyvatel(self):
         return self.getAmount("res-obyvatel")
 
+class MaterialStorage(ImmutableModel):
+    class MaterialStorageManager(models.Manager):
+        def createInitial(self):
+            return self.create(items=[])
+
+    objects = MaterialStorageManager()
+    items = ListField(model_type=ResourceStorageItem)
+
+    def getAmount(self, resource):
+        if isinstance(resource, str):
+            resource = ResourceModel.objects.get(id=resource)
+        try:
+            item = self.items.get(resource=resource)
+            return item.amount
+        except ResourceStorageItem.DoesNotExist:
+            return 0
+
+    def setAmount(self, resource, amount):
+        if isinstance(resource, str):
+            resource = ResourceModel.objects.get(id=resource)
+
+        item = None
+        try:
+            item = self.items.get(resource=resource)
+        except ResourceStorageItem.DoesNotExist:
+            item = ResourceStorageItem(resource=resource, amount=amount)
+            self.items.append(item)
+
+        item.amount = amount
+
+    def receiveMaterials(self, materials, capacity):
+        for resource, amount in materials.items():
+            targetAmount = min(self.getAmount(resource) + amount, capacity)
+            self.setAmount(resource, targetAmount)
+            print(f"{resource}: {targetAmount}")
+
+    def getAll(self):
+        return {item.resource: item.amount for item in self.items}
+
+    def toJson(self):
+        return {
+            r.resource.id: r.amount for r in self.items
+        }
+
+    def godUpdate(self, update):
+        for resource, amount in update["add"].items():
+            if self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
+            self.items.append(ResourceStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
+
+        for resource, _ in update["remove"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
+            self.items.remove(self.items.get(resource=resource))
+
+        for resource, amount in update["change"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
+            self.items.get(resource=resource).amount = amount
+
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
@@ -634,13 +708,11 @@ def parseTechStatus(s):
     if s == "OWNED":
         return TechStatusEnum.OWNED
 
-
 class TechStorageItem(ImmutableModel):
     tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
     status = enum.EnumField(TechStatusEnum)
     def __str__(self):
         return self.tech.label + (":❌" if self.status == TechStatusEnum.RESEARCHING else ":✅")
-
 
 class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):

@@ -86,7 +86,7 @@ class NextTurn(Action):
 
         storage = team.resources
 
-        # nacist kasta fieldy
+        # Vyhodnoceni mnozeni obyvatel
         missingItems = team.foodSupply.getMissingItems(
             state.worldState.getCastes(),
             team.resources.getAmount("res-populace"),
@@ -105,22 +105,22 @@ class NextTurn(Action):
             if satisfied: prirustek += 1
             if luxus: prirustek += 2
 
-            print("kasta: " + str(kasta))
-            print("satisfied: " + str(satisfied))
-            print("luxus: " + str(luxus))
-            print("foodProvided: " + str(foodProvided))
-            print("prirustek: " + str(prirustek))
-
-        print("prirustek: " + str(prirustek))
-        # obyvatele a prace
         praceLeft = storage.getAmount("res-prace")
         obyvatele = storage.getAmount("res-obyvatel")
         obyvateleUpdated = obyvatele + prirustek
 
         storage.setAmount("res-obyvatel", obyvateleUpdated)
         prace = obyvateleUpdated + math.floor(praceLeft/2)
-        print("prace: " + str(prace))
         storage.setAmount("res-prace", prace)
+
+        # Produkce materialu
+        materials = {}
+        for resource, amount in team.resources.getResourcesByType().items():
+            matId = "mat-" + resource.id[6:]
+            print("matId: " + str(matId))
+            material = ResourceModel.objects.get(id="mat-" + resource.id[5:])
+            materials[material] = amount
+        team.materials.receiveMaterials(materials, state.worldState.storageLimit)
 
         team.nextTurn()
         message = "<br>".join([
