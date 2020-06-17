@@ -8,6 +8,7 @@ class ActionMove(enum.Enum):
     nextTurn = 3
     nextGeneration = 4
     research = 5
+    finishResearch = 6
     vyroba = 7
     foodSupply = 8
     setBuildingDistance = 9
@@ -24,6 +25,7 @@ class ActionMove(enum.Enum):
         nextTurn: "Krmení",
         nextGeneration: "Next generation",
         research: "Zkoumat",
+        finishResearch: "Dokončit zkoumání",
         vyroba: "Výroba",
         foodSupply: "Zásobování centra",
         setBuildingDistance: "Nastavit vzdálenost budov",

@@ -5,6 +5,7 @@ from .nextTurn import NextTurn
 from .sandboxIncreaseCounter import SandboxIncreaseCounterMove
 from .startRound import StartRoundMove
 from .research import ResearchMove
+from .finishResearch import FinishResearchMove
 from .vyroba import VyrobaMove
 from .sandbox import SandboxMove
 from .godmode import GodmodeForm
