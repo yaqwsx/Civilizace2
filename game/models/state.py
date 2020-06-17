@@ -304,6 +304,26 @@ class DistanceLogger(ImmutableModel):
             (x.source, x.target): x.distance for x in self.building
         }
 
+    def getTeamDistance(self, team):
+        try:
+            if isinstance(team, str):
+                distInfo = self.teams.get(team=team)
+            else:
+                distInfo = self.teams.get(team=team.id)
+            return distInfo.distance
+        except DistanceItemTeams.DoesNotExist:
+            raise MissingDistanceError("No distance specified", None, team)
+
+    def setTeamDistance(self, team, distance):
+        try:
+            if isinstance(team, str):
+                team = Team.objects.get(id=team)
+            distInfo = self.teams.get(team=team.id)
+            if distInfo.distance > distance:
+                distInfo.distance = distance
+        except DistanceItemTeams.DoesNotExist:
+            self.teams.append(DistanceItemTeams(team=team, distance=distance))
+
     def __str__(self):
         return f"Distances: {self.building}; {self.teams}"
 

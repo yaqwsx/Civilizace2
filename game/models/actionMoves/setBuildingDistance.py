@@ -5,6 +5,7 @@ import json
 from game.forms.action import MoveForm
 from game.models.actionMovesList import ActionMove
 from game.models.actionBase import Action
+from game.models.state import MissingDistanceError
 
 from game.data.tech import TechModel
 
@@ -103,7 +104,7 @@ class SetBuildingDistanceMove(Action):
                 """
                 return False, message
             distanceMessage = f"Původní vzdálenost {distLabel}: <b>{originalDistance}</b>"
-        except RuntimeError:
+        except MissingDistanceError:
             distanceMessage = f"Původní vzdálenost {distLabel}: <b>neznámá</b>"
         distLogger.setBuildingDistance(source, target, distance)
         message = f"""{distanceMessage}<br>
