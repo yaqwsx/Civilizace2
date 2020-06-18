@@ -13,6 +13,7 @@ class ActionMove(enum.Enum):
     foodSupply = 8
     setBuildingDistance = 9
     setTeamDistance = 10
+    withdraw = 11
 
     godmode = 42
     sandbox = 99
@@ -30,6 +31,7 @@ class ActionMove(enum.Enum):
         foodSupply: "Zásobování centra",
         setBuildingDistance: "Nastavit vzdálenost budov",
         setTeamDistance: "Nastavit vzdálenost týmů",
+        withdraw: "Vybrat materiály ze skladu",
 
         godmode: "SYSTEM: Godmode",
         sandbox: "DEBUG: SANDBOX"

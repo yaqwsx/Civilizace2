@@ -719,6 +719,21 @@ class MaterialStorage(ImmutableModel):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
             self.items.get(resource=resource).amount = amount
 
+    def payResources(self, resources):
+        """Subtract resources from storage.
+
+        Returns a dict of resources not tracked by storage"""
+        missing = {}
+        for resource, amount in resources.items():
+            owned = self.getAmount(resource)
+            if owned < amount:
+                missing[resource] = amount - owned
+        if len(missing) > 0:
+            raise ResourceStorage.NotEnoughResourcesException("Missing resources", missing)
+        result = {}
+        for resource, amount in resources.items():
+            self.setAmount(resource, self.getAmount(resource) - amount)
+        return result
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
