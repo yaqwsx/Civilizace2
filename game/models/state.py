@@ -211,11 +211,14 @@ class TeamState(ImmutableModel):
             "resources": self.resources.toJson(),
             "techs": self.techs.toJson(),
             "distances": self.distances.toJson(),
-            "achievements": self.achievements.toJson()
+            "achievements": self.achievements.toJson(),
+            "foodSupply": self.foodSupply.toJson(),
+            "materials": self.materials.toJson()
         }
 
     def godUpdate(self, update):
-        fields = ["population", "sandbox", "resources", "techs", "distances", "achievements", "foodSupply"]
+        fields = ["population", "sandbox", "resources", "techs",
+                  "distances", "achievements", "foodSupply", "materials"]
         allowKeys(fields + ["turn"], update["change"])
         allowKeys(fields, update["add"])
         allowKeys(fields, update["remove"])
@@ -225,10 +228,12 @@ class TeamState(ImmutableModel):
         self.techs.godUpdate(eatUpdatePrefixAll("techs", update))
         print("There", update)
         self.achievements.godUpdate(eatUpdatePrefixAll("achievements", update))
-        # TODO: Add food supply here
+        self.foodSupply.godUpdate(eatUpdatePrefixAll("foodSupply", update))
+        self.materials.godUpdate(eatUpdatePrefixAll("materials", update))
 
         if "turn" in update["change"]:
-            turn = update["change"]["turn"]
+            print("update['turn']: " + str(update['change']['turn']))
+            self.turn = update["change"]["turn"]
 
 class TeamAchievements(ImmutableModel):
     class TeamAchievementsManager(models.Manager):
@@ -507,6 +512,27 @@ class FoodStorage(ImmutableModel):
             except FoodStorageItem.DoesNotExist:
                 item = FoodStorageItem(resource=resource, amount=amount)
                 self.items.append(item)
+
+    def toJson(self):
+        return {
+            r.resource.id: r.amount for r in self.items
+        }
+
+    def godUpdate(self, update):
+        for resource, amount in update["add"].items():
+            if self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
+            self.items.append(FoodStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
+
+        for resource, _ in update["remove"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
+            self.items.remove(self.items.get(resource=resource))
+
+        for resource, amount in update["change"].items():
+            if not self.items.has(resource=resource):
+                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
+            self.items.get(resource=resource).amount = amount
 
 
 class ResourceStorageItem(ImmutableModel):
