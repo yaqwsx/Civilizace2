@@ -629,6 +629,8 @@ class ResourceStorage(ImmutableModel):
 
         results = {}
         for item in self.items:
+            if item.amount == 0:
+                continue
             resource = item.resource
             if ((not resourceType) or resource.type == resourceType)\
                     and resource.level >= level \
@@ -703,7 +705,7 @@ class MaterialStorage(ImmutableModel):
             print(f"{resource}: {targetAmount}")
 
     def getAll(self):
-        return {item.resource: item.amount for item in self.items}
+        return {item.resource: item.amount for item in filter(lambda item: item.amount > 0, self.items)}
 
     def toJson(self):
         return {
