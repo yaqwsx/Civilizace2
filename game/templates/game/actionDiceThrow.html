@@ -27,7 +27,7 @@
                     autofocus>
             </div>
             <button
-                class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1"
                 onclick="onDiceThrow()"
                 type="button">
                 Hod
@@ -71,13 +71,13 @@
 
         <div class="flex flex-wrap w-full">
             <button
-                class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400"
+                class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400 my-1"
                 type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
                 onclick="return shouldSubmit()">
                 Odeslat hody kostkou
             </button>
             <button
-                class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1"
                 type="submit" name="cancel" formaction="{% url "actionDiceThrow" action.id %}"
                 onclick="return confirm('Opravdu zrušit celou akci? Toto neznamená, že tým hodil málo teček, ale že došlo k chybě zadávání.')">
                 Zrušit celou akci
@@ -87,4 +87,7 @@
 
     {{ block.super }}
 </div>
+<script>
+    document.getElementById("mainContent").classList.add("pl-0");
+</script>
 {% endblock %}

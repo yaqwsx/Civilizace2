@@ -26,7 +26,7 @@
         </div>
         <div class="flex flex-wrap w-full">
             <button
-                class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded
+                class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1
                     {% if moveValid %} bg-green-500 hover:bg-green-400 {% else %} bg-gray-500 cursor-not-allowed{% endif %}"
                 type="submit"
                 {% if moveValid is False %} disabled {% endif %}
@@ -39,7 +39,7 @@
                 {% endif %}
             </button>
             <button
-                class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1"
                 type="submit">
                 Zrušit
             </button>
@@ -48,4 +48,7 @@
 
     {{ block.super }}
 </div>
+<script>
+    document.getElementById("mainContent").classList.add("pl-0");
+</script>
 {% endblock %}
