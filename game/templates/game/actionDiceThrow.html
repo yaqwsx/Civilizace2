@@ -38,8 +38,13 @@
                 var dotsInput = document.getElementById("{{form.dotsCount.auto_id}}");
                 var throwInput = document.getElementById("{{form.throwCount.auto_id}}");
                 function onDiceThrow() {
-                    throwInput.value = parseInt(throwInput.value) + 1;
-                    dotsInput.value = parseInt(dotsInput.value) + parseInt(currentDotsInput.value);
+                    var throwCount = parseInt(throwInput.value);
+                    var dotsNum = parseInt(dotsInput.value);
+                    var currentDotsNum = parseInt(currentDotsInput.value);
+                    if (!isNaN(dotsNum) && !isNaN(currentDotsNum) && !isNaN(throwCount) && dotsInput.value.length > 0) {
+                        dotsInput.value = dotsNum  + currentDotsNum;
+                        throwInput.value = throwCount + 1;
+                    }
                     currentDotsInput.value = "";
                     currentDotsInput.focus();
                 }
