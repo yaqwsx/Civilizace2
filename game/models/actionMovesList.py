@@ -15,6 +15,7 @@ class ActionMove(enum.Enum):
     setTeamDistance = 10
     withdraw = 11
     trade = 12
+    spendWork = 13
     addWonder = 15
 
     godmode = 42
@@ -30,6 +31,7 @@ class ActionMove(enum.Enum):
         setTeamDistance: "Nastavit vzdálenost týmů",
         withdraw: "Vybrat materiály ze skladu",
         trade: "Obchod",
+        spendWork: "Zaplatit práci",
         addWonder: "Přidat základy divu",
 
         createInitial: "SYSTEM: Vytvořit nový stav",

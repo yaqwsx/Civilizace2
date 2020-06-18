@@ -226,13 +226,11 @@ class TeamState(ImmutableModel):
         self.sandbox.godUpdate(eatUpdatePrefixAll("sandbox", update))
         self.resources.godUpdate(eatUpdatePrefixAll("resources", update))
         self.techs.godUpdate(eatUpdatePrefixAll("techs", update))
-        print("There", update)
         self.achievements.godUpdate(eatUpdatePrefixAll("achievements", update))
         self.foodSupply.godUpdate(eatUpdatePrefixAll("foodSupply", update))
         self.materials.godUpdate(eatUpdatePrefixAll("materials", update))
 
         if "turn" in update["change"]:
-            print("update['turn']: " + str(update['change']['turn']))
             self.turn = update["change"]["turn"]
 
 class TeamAchievements(ImmutableModel):
@@ -263,7 +261,6 @@ class TeamAchievements(ImmutableModel):
             try:
                 if self.list.has(id=id):
                     continue
-                print("adding")
                 self.list.append(AchievementModel.objects.get(id=id))
             except AchievementModel.DoesNotExist:
                 raise InvalidActionException(f"Unknown id '{id}'")
@@ -566,7 +563,7 @@ class ResourceStorage(ImmutableModel):
     @staticmethod
     def asHtml(resources, separator=", "):
         return separator.join([
-            f'{value}&times; {key.label}'
+            f'{value}&times; {key.htmlRepr()}'
             for key, value in resources.items()])
 
     items = ListField(model_type=ResourceStorageItem)
@@ -730,7 +727,6 @@ class MaterialStorage(ImmutableModel):
         for resource, amount in materials.items():
             targetAmount = min(self.getAmount(resource) + amount, capacity)
             self.setAmount(resource, targetAmount)
-            print(f"{resource}: {targetAmount}")
 
     def getAll(self):
         return {item.resource: item.amount for item in filter(lambda item: item.amount > 0, self.items)}

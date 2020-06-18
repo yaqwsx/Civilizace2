@@ -14,6 +14,7 @@ from .setBuildingDistance import SetBuildingDistanceMove
 from .setTeamDistance import SetTeamDistanceMove
 from .withdraw import WithdrawMove
 from .trade import TradeMove
+from .spendWork import SpendWorkMove
 from .addWonder import AddWonderMove
 
 def buildActionMove(data):

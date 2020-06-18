@@ -385,13 +385,13 @@ class VyrobaMove(Action):
                 return False, f"Nepodařilo se zvýšit přepravní kapacitu; chybí {resMsg}"
 
         message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"
-        message += distanceMessage + "<br>"
+        if distanceCost: message += distanceMessage + "<br>"
         if len(materials) > 0:
-            matMessage = "\n".join([f'<li>{res.label}: {amount}</li>' for res, amount in materials.items()])
+            matMessage = "\n".join([f'<li>{amount}× {res.htmlRepr()}</li>' for res, amount in materials.items()])
             message += f'Tým také musí zaplatit:<ul class="list-disc px-4">{matMessage}</ul>'
         else:
             message += f"Tým vám nic nebude platit<br>"
-        message += f"Tým obdrží {self.gain()}&times; {self.vyroba.output.label}."
+        message += f"Při úspěchu tým obdrží {self.gain()}&times; {self.vyroba.output.htmlRepr()}."
         return True, message
 
     def commit(self, state):
