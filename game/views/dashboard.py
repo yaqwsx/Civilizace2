@@ -39,7 +39,6 @@ class DashboardStatView(View):
         )
         foodSupplySurplus = -foodSupplyStats[-1][3]
         foodSupplyTokens = foodSupplyStats[-1][4]
-        print("foodSupplyStats: " + str(foodSupplyStats))
 
         boardMessages = Message.objects.all() \
             .filter(appearDateTime__lte=timezone.now(),

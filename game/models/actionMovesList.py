@@ -19,12 +19,7 @@ class ActionMove(enum.Enum):
     sandbox = 99
 
     __labels__ = {
-        createInitial: "SYSTEM: Vytvořit nový stav",
-        sanboxIncreaseCounter: "DEBUD: Zvýšit counter",
-        startNewRound: "DEBUG: Začít kolo",
-
         nextTurn: "Krmení",
-        nextGeneration: "Next generation",
         research: "Zkoumat",
         finishResearch: "Dokončit zkoumání",
         vyroba: "Výroba",
@@ -33,6 +28,11 @@ class ActionMove(enum.Enum):
         setTeamDistance: "Nastavit vzdálenost týmů",
         withdraw: "Vybrat materiály ze skladu",
 
+        createInitial: "SYSTEM: Vytvořit nový stav",
+        nextGeneration: "SYSTEM: Next generation",
         godmode: "SYSTEM: Godmode",
-        sandbox: "DEBUG: SANDBOX"
+
+        sandbox: "DEBUG: SANDBOX",
+        sanboxIncreaseCounter: "DEBUG: Zvýšit counter",
+        startNewRound: "DEBUG: Začít kolo"
     }
