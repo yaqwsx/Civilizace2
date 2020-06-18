@@ -60,7 +60,7 @@ class FinishResearchMove(Action):
             return False, f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní'
         if status == TechStatusEnum.UNKNOWN:
             return False, f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat'
-        techs.setStatus(tech, TechStatusEnum.RESEARCHING)
+        techs.setStatus(tech, TechStatusEnum.OWNED)
         stickers = [tech.label] + \
             [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
             [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
