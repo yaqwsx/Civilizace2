@@ -10,8 +10,6 @@ from game.models.actionMovesList import ActionMove
 
 
 class WithdrawForm(MoveForm):
-    jabkaSelect = forms.IntegerField(label="Počet jablek")
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -56,18 +54,23 @@ class WithdrawMove(Action):
     def initiate(self, state):
         print("Initiate")
         team = self.teamState(state)
-        message = ["Vyzvednuté materiály:"]
+        message = ["Vydat materiály:"]
 
         materials = {}
+        spentWork = 0
 
-        for key in filter(lambda x: x[:5] ==  "prod-", self.arguments.keys()):
+        for key in filter(lambda x: x[:4] ==  "mat-", self.arguments.keys()):
             if not self.arguments[key]:
                 continue
             resource = ResourceModel.objects.get(id=key)
-            materials[resource] = self.arguments[key]
-            message.append(f"  {self.arguments[key]}x {resource.htmlRepr()}")
+            amount = self.arguments[key]
+            materials[resource] = amount
+            spentWork += amount
+            message.append(f"  {amount}x {resource.htmlRepr()}")
 
         team.materials.payResources(materials)
+        team.resources.spendWork(spentWork)
+        message.append(f"Výběr materiálu stojí <b>{spentWork}x Práce</b>")
 
         self.arguments["team"] = None
         return True, "<br>".join(message)

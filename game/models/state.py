@@ -875,9 +875,10 @@ class TechStorage(ImmutableModel):
         }
 
     def godUpdate(self, update):
-        for tech, status in update["add"].items():
-            if self.items.has(tech=tech):
-                raise InvalidActionException(f"Cannot add '{tech}' which is already present in the list")
+        for techId, status in update["add"].items():
+            if self.items.has(tech=techId):
+                raise InvalidActionException(f"Cannot add '{techId}' which is already present in the list")
+            tech = TechModel.objects.get(id=techId)
             self.items.append(TechStorageItem(tech=tech, status=parseTechStatus(status)))
 
         for tech, _ in update["remove"].items():
