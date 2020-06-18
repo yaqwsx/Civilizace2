@@ -350,6 +350,13 @@ class DistanceLogger(ImmutableModel):
         except DistanceItemTeams.DoesNotExist:
             self.teams.append(DistanceItemTeams(team=team, distance=distance))
 
+    def allTeamDistances(self):
+        distances = { team: None for team in Team.objects.all() }
+        for distInfo in self.teams:
+            distances[distInfo.team] = distInfo.distance
+        return distances
+
+
     def __str__(self):
         return f"Distances: {self.building}; {self.teams}"
 

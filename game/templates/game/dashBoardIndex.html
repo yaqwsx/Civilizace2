@@ -141,7 +141,7 @@
         {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Vzdálenosti" icon="fa-compass" width="third" color=targetTeam.color %}
+    {% card "Vzdálenosti budov" icon="fa-compass" width="third" color=targetTeam.color %}
         <select id="build-source" class="select my-1">
             {% for building in teamState.techs.getBuildings%}
                 <option value="{{building.id}}">{{building.label}}</option>
@@ -182,6 +182,24 @@
             target.addEventListener("change", update);
             update();
         </script>
+    {% endcard %}
+
+    {% card "Vzdálenosti týmů" icon="fa-compass" width="third" color=targetTeam.color %}
+        <table class="text-left">
+            {% for team, distance in teamState.distances.allTeamDistances.items %}
+                {% if team.id != targetTeam.id %}
+                    <tr><td class="pr-5">{{team.name}}:</td>
+                        <td>
+                        {% if distance is None %}
+                            Neznámá
+                        {% else %}
+                            {{distance}}
+                        {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
     {% endcard %}
 
 </div>
