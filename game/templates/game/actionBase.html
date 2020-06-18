@@ -104,5 +104,13 @@
             addSpinbox(inputs[i]);
         }
     }
+
+    var form = document.querySelector('form');
+    form.addEventListener('submit', function() {
+        var buttons = this.querySelectorAll('button[type="submit"]');
+        buttons.forEach(function(button) {
+            button.setAttribute('disabled', 'disabled');
+        });
+    }, false);
 </script>
 {% endblock %}
