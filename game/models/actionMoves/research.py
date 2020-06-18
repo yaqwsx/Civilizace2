@@ -14,7 +14,7 @@ class ResearchForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         techs = self.state.teamState(self.teamId).techs
-        src = TechModel.objects.get(id=self.entityId)
+        src = self.getEntity(TechModel)
         choices = []
         for edge in src.unlocks_tech.all():
             if techs.getStatus(edge.dst) == TechStatusEnum.UNKNOWN:

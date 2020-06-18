@@ -83,7 +83,8 @@ class VyrobaForm(MoveForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.vyroba, self.enhancers = obtainVyrobaInfo(self.state, self.teamId, self.entityId)
+        entity = self.getEntity(VyrobaModel)
+        self.vyroba, self.enhancers = obtainVyrobaInfo(self.state, self.teamId, entity.id)
 
         inputsLayout = []
         self.vyrobaInputs = {}

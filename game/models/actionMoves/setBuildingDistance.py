@@ -14,7 +14,7 @@ class SetBuildingDistanceForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         techs = self.state.teamState(self.teamId).techs
-        sourceBuilding = TechModel.objects.get(id=self.entityId)
+        sourceBuilding = self.getEntity(TechModel)
         if techs.getStatus(sourceBuilding) != TechStatusEnum.OWNED:
             raise InvalidActionException(f'Tým nevlastní budovu {sourceBuilding.label}')
         distanceLogger = self.state.teamState(self.teamId).distances
