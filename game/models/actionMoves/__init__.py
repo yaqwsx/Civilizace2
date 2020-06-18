@@ -13,6 +13,7 @@ from .foodSupply import FoodSupplyMove
 from .setBuildingDistance import SetBuildingDistanceMove
 from .setTeamDistance import SetTeamDistanceMove
 from .withdraw import WithdrawMove
+from .addWonder import AddWonderMove
 
 def buildActionMove(data):
     """

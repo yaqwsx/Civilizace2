@@ -8,7 +8,7 @@ from game.data.vyroba import VyrobaModel, EnhancementModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException
 from game.models.actionMovesList import ActionMove
-from game.models.state import ResourceStorage, MissingDistanceError
+from game.models.state import ResourceStorage, MissingDistanceError, TechStatusEnum
 
 def hideableEnhancers():
     return """
@@ -85,6 +85,15 @@ class VyrobaForm(MoveForm):
         super().__init__(*args, **kwargs)
         entity = self.getEntity(VyrobaModel)
         self.vyroba, self.enhancers = obtainVyrobaInfo(self.state, self.teamId, entity.id)
+
+        techs = self.state.teamState(self.teamId).techs
+        if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
+            raise InvalidActionException(
+                f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i>, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
+
+        if techs.getStatus(self.vyroba.tech) != TechStatusEnum.OWNED:
+            raise InvalidActionException(
+                f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i> jelikož ji tým nevlastní. Výrobu odemyká <i>{self.vyroba.tech.label}</i>')
 
         inputsLayout = []
         self.vyrobaInputs = {}
@@ -342,6 +351,13 @@ class VyrobaMove(Action):
     def initiate(self, state):
         self.state = state
         teamState = state.teamState(self.team.id)
+        techs = teamState.techs
+
+        if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
+            return False, f'Nemůžu provádět výrobu, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>'
+
+        if techs.getStatus(self.vyroba.tech) != TechStatusEnum.OWNED:
+            return False, f'Nemůžu provádět výrobu, jelikož tým tuto výrobu (<i>{self.vyroba.label}</i>) nevlastní. Výrobu odemyká <i>{self.vyroba.tech.label}</i>'
 
         cost = self.computeCost()
         try:
