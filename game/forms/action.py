@@ -2,7 +2,7 @@ from django import forms
 from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
 from game.models.actionMovesList import ActionMove
 from game.models.actionMoves import *
-from game.models.actionBase import Action
+from game.models.actionBase import Action, InvalidActionException
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django_enumfield.forms.fields import EnumChoiceField
 from game.models.users import Team
@@ -84,5 +84,13 @@ class MoveForm(MoveInitialForm):
             self.entityId = entity
         for fieldName in ["action", "team", "entity"]:
             self.fields[fieldName].widget = forms.HiddenInput()
+
+    def getEntity(self, entityType):
+        if not self.entityId:
+            raise InvalidActionException("Nezadali jste entitu.")
+        try:
+            return entityType.objects.get(id=self.entityId)
+        except entityType.DoesNotExist:
+            raise InvalidActionException(f"Vámi zadaná entita s ID <i>{self.entityId}</i> neexistuje")
 
 

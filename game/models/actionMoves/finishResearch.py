@@ -20,6 +20,7 @@ class FinishResearchForm(MoveForm):
             </script>
             """)
         )
+        src.getEntity(TechModel)
 
 class FinishResearchMove(Action):
     class Meta:
