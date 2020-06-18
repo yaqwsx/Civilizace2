@@ -9,7 +9,7 @@ from game.models.actionBase import Action, InvalidActionException
 from game.models.state import TechStorageItem, TechStatusEnum
 
 
-class FinishResearchForm(MoveForm):
+class AddWonderForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.layout = Layout(
@@ -22,17 +22,17 @@ class FinishResearchForm(MoveForm):
         )
         self.getEntity(TechModel)
 
-class FinishResearchMove(Action):
+class AddWonderMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.finishResearch
-        form = FinishResearchForm
+        move = ActionMove.addWonder
+        form = AddWonderForm
         allowed = ["super", "org"]
 
     @staticmethod
     def build(data):
-        action = FinishResearchMove(
+        action = AddWonderMove(
             team=data["team"],
             move=data["action"],
             arguments=Action.stripData(data))
@@ -41,7 +41,7 @@ class FinishResearchMove(Action):
     @staticmethod
     def relevantEntities(state, team):
         techs = state.teamState(team.id).techs
-        return techs.getTechsUnderResearch()
+        return TechModel.objects.filter(id__startswith="div-zaklad")
 
     def sane(self):
         return True
@@ -57,12 +57,6 @@ class FinishResearchMove(Action):
         techs = self.teamState(state).techs
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
-            return False, f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní'
-        if status == TechStatusEnum.UNKNOWN:
-            return False, f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat'
-        techs.setStatus(tech, TechStatusEnum.OWNED)
-        stickers = [tech.label] + \
-            [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
-            [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
-        stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
-        return True, f'Technologie {tech.label} bude dozkoumána. Nezapomeňte týmu vydat následující samolepky:<ul class="list-disc px-4">{stickerMsg}</ul>'
+            return False, f'Div {tech.label} nelze přidat, tým ho již vlastní'
+        techs.setStatus(tech, TechStatusEnum.RESEARCHING)
+        return True, f'Div {tech.label} bude přidán týmu. Dejte mu příslušnou samolepku'

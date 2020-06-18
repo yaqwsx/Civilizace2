@@ -65,10 +65,14 @@ class ActionStep(ImmutableModel):
         pass
 
     def commit(self, state):
+        if not self.action.team:
+            return
         assert state.teamState(self.action.team.id).resources.getAmount("res-prace") >= self.workConsumed
         state.teamState(self.action.team.id).resources.spendWork(self.workConsumed)
 
     def abandon(self, state):
+        if not self.action.team:
+            return
         assert state.teamState(self.action.team.id).resources.getAmount("res-prace") >= self.workConsumed
         state.teamState(self.action.team.id).resources.spendWork(self.workConsumed)
 
