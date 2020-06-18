@@ -8,6 +8,7 @@ from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
 from game.models.actionMovesList import ActionMove
+from game.models.state import MissingDistanceError
 from game.models.users import Team
 
 
@@ -26,8 +27,13 @@ class TradeForm(MoveForm):
             lambda them: them.id != self.teamId,
             Team.objects.all()
         ):
-            distance = team.distances.getTeamDistance(them)
-            choices.append((them.id, f"{them.name} (vzdálenost {distance})"))
+            try:
+                distance = team.distances.getTeamDistance(them)
+                choices.append((them.id, f"{them.name} (vzdálenost {distance})"))
+            except MissingDistanceError:
+                pass
+        if not len(choices):
+            choices.append(("None", "Chybí zadat vzdálenosti k týmům"))
         self.fields["thatTeamField"] = forms.ChoiceField(
             label=f"Adresát",
             choices = choices
@@ -68,7 +74,9 @@ class TradeMove(Action):
 
     def initiate(self, state):
         team = self.teamState(state)
-        themTeam = Team.objects.get(id=self.arguments["thatTeamField"])
+        thatId = self.arguments["thatTeamField"]
+        if thatId == "None": return False, "Nemáte zadané vzdálenosti k týmům"
+        themTeam = Team.objects.get(id=thatId)
         them = state.teamState(themTeam)
         message = ["Produkce byly přesměrovány"]
 

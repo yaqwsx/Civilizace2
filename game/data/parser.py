@@ -1,7 +1,7 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
-from .entity import EntityModel, GameDataModel, DieModel, AchievementModel
+from .entity import EntityModel, GameDataModel, DieModel, AchievementModel, TaskModel
 from .resource import ResourceTypeModel, ResourceModel
-from .tech import TaskModel, TechModel, TechEdgeModel, TechEdgeInputModel
+from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
 
 class Parser():
     SHEET_MAP = {
@@ -46,9 +46,10 @@ class Parser():
                 continue
             label = line[0]
             id = line[1]
-            text = line[2]
+            popis = line[2]
+            text = line[3]
             task, _ = TaskModel.objects.update_or_create(id=id, defaults={
-                "label": label, "text": text, "data": self.data})
+                "label": label, "text": text, "popis":popis, "data": self.data})
             count += 1
 
         print(f"  added {count} tasks")

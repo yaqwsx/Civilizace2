@@ -157,7 +157,7 @@
         [
             "Pastvina",
             "build-pastvina",
-            "ukol-nic",
+            "ukol-57",
             "build-pastvina.png",
             "",
             "",
@@ -287,7 +287,7 @@
         [
             "Alkohol",
             "tech-alkohol",
-            "ukol-nic",
+            "ukol-54",
             "-",
             "",
             "",
@@ -365,7 +365,7 @@
         [
             "Burza",
             "tech-burza",
-            "ukol-nic",
+            "ukol-49",
             "-",
             "",
             "",
@@ -417,7 +417,7 @@
         [
             "D\u0159ev\u011bn\u00e9 uhl\u00ed",
             "tech-drevene-uhli",
-            "ukol-nic",
+            "ukol-50",
             "-",
             "",
             "",
@@ -443,7 +443,7 @@
         [
             "Fyzika",
             "tech-fyzika",
-            "ukol-nic",
+            "ukol-48",
             "-",
             "",
             "Maxim\u00e1ln\u00ed s\u00edla arm\u00e1dy: 15",
@@ -456,7 +456,7 @@
         [
             "Hnojen\u00ed",
             "tech-hnojeni",
-            "ukol-nic",
+            "ukol-52",
             "-",
             "",
             "",
@@ -599,7 +599,7 @@
         [
             "Matematika",
             "tech-matematika",
-            "ukol-nic",
+            "ukol-53",
             "-",
             "",
             "",
@@ -651,7 +651,7 @@
         [
             "Mu\u0161keta",
             "tech-musketa",
-            "ukol-nic",
+            "ukol-55",
             "-",
             "",
             "Maxim\u00e1ln\u00ed s\u00edla arm\u00e1dy: 14",
@@ -768,7 +768,7 @@
         [
             "Paln\u00e9 zbran\u011b",
             "tech-puska",
-            "ukol-nic",
+            "ukol-51",
             "-",
             "",
             "Maxim\u00e1ln\u00ed s\u00edla arm\u00e1dy: 14",
@@ -846,7 +846,7 @@
         [
             "Vysok\u00e1 pec",
             "tech-vysokapec",
-            "ukol-nic",
+            "ukol-56",
             "-",
             "",
             "",
@@ -859,7 +859,7 @@
         [
             "Akvadukt",
             "tech-zavlazovani",
-            "ukol-nic",
+            "ukol-5",
             "-",
             "",
             "",
@@ -872,7 +872,7 @@
         [
             "\u017delezo",
             "tech-zelezo",
-            "ukol-nic",
+            "ukol-47",
             "-",
             "",
             "",
@@ -13158,7 +13158,7 @@
     ],
     [
         [
-            "Nazev",
+            "Doprav",
             "ID",
             "Popis",
             "Zad\u00e1n\u00ed",
@@ -13178,8 +13178,8 @@
             "ukol-1",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "Po\u010det \u010dlen\u016f t\u00fdmu: min 2. Najdi 12 p\u00e1r\u016f. P\u0159i ot\u00e1\u010den\u00ed karti\u010dek se \u010dlenov\u00e9 t\u00fdmu mus\u00ed st\u0159\u00eddat. Hr\u00e1\u010d mus\u00ed oto\u010dit 2 karti\u010dky, p\u0159\u00edpadn\u011b vy\u0161\u0161\u00ed po\u010det podle pravidel PEXESA. Po skon\u010den\u00ed tahu se mus\u00ed hr\u00e1\u010d dotknout bodu ozna\u010den\u00e9ho PX.",
-            "",
-            ""
+            "tisk",
+            "soubor"
         ],
         [
             "Seno",
@@ -13218,16 +13218,16 @@
             "ukol-6",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "Vy\u0159e\u0161te 3x sudoku.",
-            "",
-            ""
+            "tisk",
+            "soubor"
         ],
         [
             "Sobokan",
             "ukol-7",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "Vy\u0159e\u0161te3x \u00falohu Sobokan.",
-            "",
-            ""
+            "tisk",
+            "soubor"
         ],
         [
             "Raz\u00edtko",
@@ -13235,7 +13235,7 @@
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
             "Vy\u0159e\u017ete raz\u00edtko. Vytiskn\u011bte slovo GUTENBERG. M\u016f\u017eete pou\u017e\u00edt n\u016f\u017e a p\u0159id\u011blen\u00fd materi\u00e1l na raz\u00edtko. Barvivo vyrobte z dostupn\u00fdch voln\u00fdch zdroj\u016f.",
             "",
-            "\u00dakol je vy\u0159e\u0161en automaticky"
+            ""
         ],
         [
             "Jehla",
@@ -13249,7 +13249,7 @@
             "V\u00fdrokov\u00e1 logika",
             "ukol-10",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "Dopln\u00ed Iv\u010da",
+            "Zjisti, kdo ukradl z trezoru zlat\u00fd n\u00e1hrdeln\u00edk.",
             "",
             ""
         ],
@@ -13297,23 +13297,23 @@
             "Logick\u00e9 bludi\u0161t\u011b\n",
             "ukol-16",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
-            ""
+            "Doplnit podle pravidel bludi\u0161t\u011b",
+            "tisk",
+            "soubor"
         ],
         [
             "Vyst\u0159\u00edhej a slep ur\u010dit\u00fd tvar\n",
             "ukol-17",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
-            ""
+            "Vyst\u0159\u00edhej a slep. Pou\u017eij p\u0159id\u011blen\u00fd materi\u00e1l. ",
+            "tisk",
+            "soubor"
         ],
         [
             "Vyrob prou\u017eek dlouh\u00fd x metr\u016f ze zadan\u00e9ho materi\u00e1lu",
             "ukol-18",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Vyrob 2 m dlouh\u00fd prou\u017eek z p\u0159id\u011blen\u00e9ho materi\u00e1lu. ",
             "",
             ""
         ],
@@ -13321,7 +13321,7 @@
             "Sestroj mlynsk\u00e9 kolo (t\u0159eba z PET)",
             "ukol-19",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Sestroj kolo poh\u00e1n\u011bn\u00e9 vodou. Kolo mus\u00ed b\u00fdt schopno zvednout p\u0159id\u011blenou z\u00e1t\u011b\u017e (cca 30 dkg) na prov\u00e1zku do v\u00fd\u0161e 20 cm. Pou\u017eij p\u0159id\u011blen\u00fd  i voln\u011b dostupn\u00fd materi\u00e1l. ",
             "",
             ""
         ],
@@ -13329,7 +13329,7 @@
             "lesni golf",
             "ukol-20",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "L\u00e9taj\u00edc\u00ed tal\u00ed\u0159 mus\u00ed prol\u00e9tnout mezi vyzna\u010den\u00fdmi brankami. Kdo dr\u017e\u00ed tal\u00ed\u0159, tak s n\u00edm nesm\u00ed chodit. P\u0159i hodu se mus\u00edte pravideln\u011b st\u0159\u00eddat.",
             "",
             ""
         ],
@@ -13337,7 +13337,7 @@
             "mot\u00fdlci",
             "ukol-21",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Odstra\u0148te v\u0161echny cizopasn\u00edky z pole. Pou\u017e\u00edt m\u016f\u017eete pouze br\u010dka. Nesm\u00edte se jich dot\u00fdkat, proto\u017ee jsou jedovat\u00ed.",
             "",
             ""
         ],
@@ -13345,7 +13345,7 @@
             "mnohozv\u00ed\u0159e",
             "ukol-22",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Projd\u011bte vyzna\u010denou trasu, tak \u017ee 3 lid\u00e9 se budou zem\u011b dot\u00fdkat 3 nohama a 1 rukou. ",
             "",
             ""
         ],
@@ -13353,15 +13353,15 @@
             "Ud\u011blat portr\u00e9t \u010dlov\u011bka, mus\u00ed b\u00fdt identifikovateln\u00fd\n",
             "ukol-23",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Namalujte portr\u00e9t _______________. Jeho podobu mus\u00ed bez n\u00e1pov\u011bdy identifikovat 3 lid\u00e9. Pokud identifikuj\u00ed podobu spr\u00e1vn\u011b (a na prvn\u00ed pokus), tak si nech  portr\u00e9t od nich podepsat.  M\u016f\u017eete pou\u017e\u00edt vlastn\u00ed pap\u00edr a psac\u00ed pot\u0159eby.",
             "",
             ""
         ],
         [
-            "Kor\u00fdtka",
+            "Prk\u00fdnka",
             "ukol-24",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Dopravte pap\u00edrovou kouli  pomoc\u00ed prken na vyzna\u010denou vzd\u00e1lenost. \u00dakolu se mus\u00ed \u00fa\u010dastnit min.3 \u010dlenov\u00e9 t\u00fdmu. Nesm\u00edte se koule dot\u00fdkat rukou, Kdy\u017e v\u00e1m koule spadne, tak se mus\u00edte vr\u00e1tit na start. Koule se mus\u00ed voln\u011b kut\u00e1let, koule se nesm\u00ed nosit.",
             "",
             ""
         ],
@@ -13369,7 +13369,7 @@
             "Vodarna",
             "ukol-25",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Napl\u0148te PET po rysku. K \u010derp\u00e1n\u00ed vody m\u016f\u017eete vyu\u017e\u00edt pouze p\u0159id\u011blen\u00e9ho materi\u00e1lu. Kdo dr\u017e\u00ed v ruce n\u00e1dobu na vodu, tak ten nesm\u00ed chodit.",
             "",
             ""
         ],
@@ -13377,7 +13377,7 @@
             "Vozataj",
             "ukol-26",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "2 \u010dlenov\u00e9 t\u00fdmu d\u011blaj\u00ed v\u016fz. 3 \u010dlen jako vozataj na nich stoj\u00ed a 4 \u010dlen t\u00fdmu je ta\u017en\u00e9 zv\u00ed\u0159e. Mezi vozatajem a ta\u017en\u00fdm zv\u00ed\u0159etem jsou nata\u017een\u00e9 oprat\u011b. T\u00fdm mus\u00ed takto urazit vyzna\u010denou trasu.",
             "",
             ""
         ],
@@ -13385,15 +13385,15 @@
             "Zjisti plochu obrazce (p\u0159esn\u011b se d\u00e1 spo\u010d\u00edtat z integr\u00e1lu fce)",
             "ukol-27",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
-            ""
+            "Ur\u010di plochu tohoto obrazce? S toleranc\u00ed 1 cm2.",
+            "tisk",
+            "soubor"
         ],
         [
             "Sed\u00e1nek",
             "ukol-28",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd v\u00e1\u0161 t\u00fdm mus\u00ed urazit tzv. sed\u00e1nkem vyzna\u010denou trasu.",
             "",
             ""
         ],
@@ -13401,7 +13401,7 @@
             "Popelka",
             "ukol-29",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "P\u0159eberte nam\u00edchanou sm\u011bs na jednotliv\u00e9 potraviny.",
             "",
             ""
         ],
@@ -13409,7 +13409,7 @@
             "Napi\u0161 b\u00e1sni\u010dku",
             "ukol-30",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Napi\u0161 b\u00e1sni\u010dku. Mus\u00ed obsahovat slovo alchymie. D\u00e9lka b\u00e1sni\u010dky 4 ver\u0161e. ",
             "",
             ""
         ],
@@ -13417,7 +13417,7 @@
             "Vytvo\u0159 \u017eivou sochu",
             "ukol-31",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Vytvo\u0159 \u017eivou sochu na n\u00e1sleduj\u00edc\u00ed t\u00e9ma - Zoufalstv\u00ed, Nad\u0161en\u00ed, N\u00e1pad. \u010clenov\u00e9 va\u0161eho t\u00fdmu mus\u00ed uhodnout alespo\u0148 2 ze t\u0159\u00ed soch. Na ka\u017edou sochu maj\u00ed 3 pokusy.",
             "",
             ""
         ],
@@ -13425,15 +13425,15 @@
             "Einsteinova h\u00e1danka",
             "ukol-32",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
+            "Zjisti podle uveden\u00e9 zpr\u00e1vy, kter\u00e9mu v\u011b\u0159iteli hroz\u00ed krach. ",
+            "vymyslet+tisk",
             ""
         ],
         [
             "Vy\u0161plhej s pomoc\u00ed provaz\u016f do 1,5 m",
             "ukol-33",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Vy\u0161plhej pomoc\u00ed smy\u010dek do v\u00fd\u0161e 1,5 m nad zem.",
             "",
             ""
         ],
@@ -13441,7 +13441,7 @@
             "Handikepov\u00e1 trasa",
             "ukol-34",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm mus\u00ed proj\u00edt vyzna\u010denou trasu. 1 \u010dlen t\u00fdmu nem\u016f\u017ee pou\u017e\u00edvat o\u010di a jednu nohu,  2 \u010dlen t\u00fdmu nem\u016f\u017ee pou\u017e\u00edvat nohy, 3 \u010dlen t\u00fdmu nem\u016f\u017ee pou\u017e\u00edvat hlas a ruce, 4 \u010dlen t\u00fdmu nem\u00e1 jednu ruku, jednu nohu a nesm\u00ed pou\u017e\u00edvat mozek (poslouch\u00e1 pouze rozkazy. ,  ",
             "",
             ""
         ],
@@ -13449,7 +13449,7 @@
             "Pit\u00ed v bezt\u00ed\u017en\u00e9m stavu",
             "ukol-35",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "\u010clen t\u00fdmu mus\u00ed ud\u011blat stojku (m\u016f\u017ee ji u d\u011blat s dopomoc\u00ed ostatn\u00edch \u010dlen\u016f t\u00fdmu). V t\u00e9to poloze mus\u00ed vyp\u00edt skleni\u010dku s n\u00e1pojem pomoc\u00ed br\u010dka.",
             "",
             ""
         ],
@@ -13457,7 +13457,7 @@
             "Barvivo",
             "ukol-36",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm ozdobte kresbami na obli\u010deji a rukou. Kresby mus\u00ed b\u00fdt viditeln\u00e9 alespo\u0148 ze vzd\u00e1lenosti 2 m. Pro p\u0159\u00edpravu barviva pou\u017eijte voln\u00e9 materi\u00e1ly.",
             "",
             ""
         ],
@@ -13465,7 +13465,7 @@
             "Navigace v noci",
             "ukol-37",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Jeden \u010dlen va\u0161eho t\u00fdmu- Mo\u0159eplavec mus\u00ed j\u00edt z dohledu. Ostatn\u00ed mohou p\u0159ipravit popis trasy z bodu A do bodu C p\u0159es bod B.  A\u017e budete m\u00edt instrukce hotov\u00e9, vysv\u011btlete Mo\u0159eplavci, jak se bude navigovat. Potom p\u0159ive\u010fte sv\u00e9ho Mo\u0159eplavce na bod A. Mo\u0159eplavec mus\u00ed na z\u00e1klad\u011b va\u0161ich instrukc\u00ed dorazit co nejbl\u00ed\u017e k bodu C. (Tolerance 1m).  Instrukce nesm\u00edte po celou dobu \"plavby\" m\u011bnit.  N\u00e1pov\u011bda m\u016f\u017ee Mo\u0159eplavci  \u0159\u00edkat instrukce  po \u010d\u00e1stech. Mo\u0159eplavec si ji mus\u00ed v\u017edy vy\u017e\u00e1dat. N\u00e1pov\u011bda oznamuje instrukce z pevn\u00e9ho stanovi\u0161t\u011b, nesm\u00ed to b\u00fdt bod B).",
             "",
             ""
         ],
@@ -13473,31 +13473,31 @@
             "Origami",
             "ukol-38",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
-            ""
+            "Poskl\u00e1dej origami podle n\u00e1vodu.",
+            "m\u00e1m n\u00e1vod na je\u0159\u00e1ba",
+            "soubor"
         ],
         [
             "Abbeho \u00faloha",
             "ukol-39",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
+            "Zad\u00e1n\u00ed vlo\u017e\u00ed Abbe",
+            "tisk",
             ""
         ],
         [
             "Homo l\u017ei\u010dkus",
             "ukol-40",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
+            "Dva \u010dlenov\u00e9 t\u00fdmu mus\u00ed pomoc\u00ed dvou l\u017ei\u010dek naskl\u00e1dat sirky do krabi\u010dky.",
+            "Popis v IS fondu II",
             ""
         ],
         [
             "V\u00fdtah",
             "ukol-41",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm mus\u00ed sestrojit mechanismus, kter\u00fd doprav\u00ed z\u00e1va\u017e\u00ed X do v\u00fd\u0161ky Y.",
             "",
             ""
         ],
@@ -13505,7 +13505,7 @@
             "Permon\u00edk",
             "ukol-42",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "\u010clen t\u00fdmu mus\u00ed vle\u017ee p\u0159em\u00edstit z\u00e1va\u017e\u00ed X do vzd\u00e1lenosti Y.",
             "",
             ""
         ],
@@ -13513,7 +13513,7 @@
             "Lo\u010f",
             "ukol-43",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm sestav\u00ed plavidlo, kter\u00e9 bude m\u00edt ur\u010ditou nosnost, tj. bude schopno p\u0159ev\u00e9st z\u00e1va\u017e\u00ed X na vzd\u00e1lenost Y. ",
             "",
             ""
         ],
@@ -13537,15 +13537,15 @@
             "Expedice",
             "ukol-46",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm mus\u00ed sestrojit plavidlo, kter\u00e9 propluje vyty\u010denou trasu. Plavidlo mus\u00ed b\u00fdt poh\u00e1n\u011bno bez p\u0159\u00edm\u00e9ho kontaktu.",
             "",
             ""
         ],
         [
-            "Vla\u0161tovky - dolet, vytrvalost, p\u0159esnost",
+            "Vla\u0161tovky",
             "ukol-47",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Sestroj vla\u0161tovku z p\u0159id\u011blen\u00e9ho materi\u00e1lu. Mus\u00ed ulet\u011bt vzd\u00e1lenost alespo\u0148 15 m, do c\u00edle mus\u00ed p\u0159ilet\u011bt samostatn\u011b. K \u0159e\u0161en\u00ed m\u016f\u017ee\u0161 pou\u017e\u00edt i voln\u00e9 zdroje.",
             "",
             ""
         ],
@@ -13553,15 +13553,15 @@
             "Postavte hydraulicke nuzky",
             "ukol-48",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
+            "Cel\u00fd t\u00fdm mus\u00ed sestrojit funk\u010dn\u00ed hydraulick\u00e9 n\u016f\u017eky.",
+            "Matro\u0161 :-(",
             ""
         ],
         [
             "Telegraf",
             "ukol-49",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm mus\u00ed sestavit optick\u00fd telegraf a p\u0159edat si zpr\u00e1vu na zadanou vzd\u00e1lenost.",
             "",
             ""
         ],
@@ -13574,10 +13574,10 @@
             ""
         ],
         [
-            "Postav oblehac\u00ed stroj, kter\u00fd doprav\u00ed ur\u010den\u00fd projektil do vzd\u00e1lenosti x m",
+            "Oblehac\u00ed stroj",
             "ukol-51",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Cel\u00fd t\u00fdm postav\u00ed oblehac\u00ed stroj, kter\u00fd doprav\u00ed ur\u010den\u00fd projektil do vzd\u00e1lenosti x m",
             "",
             ""
         ],
@@ -13617,9 +13617,9 @@
             "Tangram",
             "ukol-56",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
-            "",
-            ""
+            "Seskl\u00e1dej tangram do zadan\u00e9ho tvaru.",
+            "tisk",
+            "soubor"
         ],
         [
             "Ov\u010d\u00e1k a ove\u010dky?",

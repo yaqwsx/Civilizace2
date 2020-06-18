@@ -43,3 +43,10 @@ class AchievementModel(EntityModel):
         if self.implementation == "":
             return False
         return getattr(achievements, self.implementation)(state, team)
+
+class TaskModel(EntityModel):
+    popis = models.CharField(max_length=100)
+    text = models.TextField()
+
+    def htmlRepr(self):
+        return f"Úkol: <b>{self.label}</b><br><i>{self.text}</i>"

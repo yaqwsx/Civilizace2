@@ -65,4 +65,7 @@ class FinishResearchMove(Action):
             [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
             [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
         stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
-        return True, f'Technologie {tech.label} bude dozkoumána. Nezapomeňte týmu vydat následující samolepky:<ul class="list-disc px-4">{stickerMsg}</ul>'
+        return True, f"""Technologie {tech.label} bude dozkoumána.<br><br>
+                    {tech.task.htmlRepr()}<br><br> 
+                    Vydej týmu následující samolepky:
+                    <ul class="list-disc px-4">{stickerMsg}</ul>"""

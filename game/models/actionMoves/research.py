@@ -92,7 +92,7 @@ class ResearchMove(Action):
         self.teamState(state).techs.setStatus(self.edge.dst, TechStatusEnum.RESEARCHING)
         return True, f"""
             Zkoumání technologie {self.edge.dst.label} bylo započato.<br>
-            Musíte splnit úkol: TUTO FUNKCIONALITU JE JETŠTĚ TŘEBA IMPLEMENTOVAT
+            {self.edge.dst.task.htmlRepr()}
         """
 
     def abandon(self, state):

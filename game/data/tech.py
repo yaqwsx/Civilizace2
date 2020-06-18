@@ -2,10 +2,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entity import EntityModel, GameDataModel, DieModel
+from .entity import EntityModel, GameDataModel, DieModel, TaskModel
 
-class TaskModel(EntityModel):
-    text = models.TextField()
 
 class TechModel(EntityModel):
     culture = models.IntegerField(validators=[MinValueValidator(0)], default=0)
