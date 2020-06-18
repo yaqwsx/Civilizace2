@@ -4,85 +4,87 @@
 {% block title %} Příběh civilizace - Házení kostkou {% endblock %}
 
 {% block content %}
-<h1>Házení kostkou: {{action.move.label}} pro tým {{team.name}}</h1>
+<div class="w-full border-l-8 border-{{team.color}} pl-2">
+    <h1>Házení kostkou: {{action.move.label}} pro tým {{team.name}}</h1>
 
-<div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
-    <p class="w-full">{{diceThrowMessage | safe}}</p>
-    <p class="w-full">Tým může házet <b>{{ maxThrows }}x</b></p>
-</div>
+    <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">
+        <p class="w-full">{{diceThrowMessage | safe}}</p>
+        <p class="w-full">Tým může házet <b>{{ maxThrows }}x</b></p>
+    </div>
 
-<form method="post" onkeydown="return onKeyPress(event);">
-    <!-- Prevent implicit submission of the form -->
-    <button type="submit" disabled style="display: none" aria-hidden="true"></button>
-    {% csrf_token %}
-    {{ form|crispy }}
+    <form method="post" onkeydown="return onKeyPress(event);">
+        <!-- Prevent implicit submission of the form -->
+        <button type="submit" disabled style="display: none" aria-hidden="true"></button>
+        {% csrf_token %}
+        {{ form|crispy }}
 
-    <hr class="w-full black my-2" >
+        <hr class="w-full black my-2" >
 
-    <div class="flex flex-wrap w-full my-5">
-        <div class="flex w-full md:w-1/2">
-            <input id="dots" type="number" value=""
-                class="text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700"
-                autofocus>
-        </div>
-         <button
-            class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-            onclick="onDiceThrow()"
-            type="button">
-            Hod
-        </button>
-        <script>
-            var currentDotsInput = document.getElementById("dots");
-            var diceInput = document.getElementById("{{form.dice.auto_id}}");
-            var dotsInput = document.getElementById("{{form.dotsCount.auto_id}}");
-            var throwInput = document.getElementById("{{form.throwCount.auto_id}}");
-            function onDiceThrow() {
-                throwInput.value = parseInt(throwInput.value) + 1;
-                dotsInput.value = parseInt(dotsInput.value) + parseInt(currentDotsInput.value);
-                currentDotsInput.value = "";
-                currentDotsInput.focus();
-            }
-
-            function onKeyPress(event) {
-                if ( event.key != 'Enter' ) {
-                    return true;
+        <div class="flex flex-wrap w-full my-5">
+            <div class="flex w-full md:w-1/2">
+                <input id="dots" type="number" value=""
+                    class="text-right bg-gray-200 appearance-none border-2 border-gray-200 rounded py-2 px-4 text-gray-700"
+                    autofocus>
+            </div>
+            <button
+                class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                onclick="onDiceThrow()"
+                type="button">
+                Hod
+            </button>
+            <script>
+                var currentDotsInput = document.getElementById("dots");
+                var diceInput = document.getElementById("{{form.dice.auto_id}}");
+                var dotsInput = document.getElementById("{{form.dotsCount.auto_id}}");
+                var throwInput = document.getElementById("{{form.throwCount.auto_id}}");
+                function onDiceThrow() {
+                    throwInput.value = parseInt(throwInput.value) + 1;
+                    dotsInput.value = parseInt(dotsInput.value) + parseInt(currentDotsInput.value);
+                    currentDotsInput.value = "";
+                    currentDotsInput.focus();
                 }
-                onDiceThrow();
-                return true;
-            }
 
-            function shouldSubmit() {
-                if ( throwInput.value == 0 )
-                    return confirm('Opravdu tým vůbec neházel? Pokračovat?');
-                {% for dice, diceDotsRequirement in requiredDices.items %}
-                    if (diceInput.value == "{{dice.id}}" && dotsInput.value >= {{diceDotsRequirement}}) {
+                function onKeyPress(event) {
+                    if ( event.key != 'Enter' ) {
                         return true;
                     }
-                {% endfor %}
-                if (throwInput.value > {{maxThrows}}) {
-                    alert("Tým hodil vícerát, než mohl!");
-                    return false;
+                    onDiceThrow();
+                    return true;
                 }
-                return confirm('Opravdu tým nehodil dostatek? Pokračovat?');
-            }
-        </script>
-    </div>
 
-    <div class="flex flex-wrap w-full">
-        <button
-            class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400"
-            type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
-            onclick="return shouldSubmit()">
-            Odeslat hody kostkou
-        </button>
-        <button
-            class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-            type="submit" name="cancel" formaction="{% url "actionDiceThrow" action.id %}"
-            onclick="return confirm('Opravdu zrušit celou akci? Toto neznamená, že tým hodil málo teček, ale že došlo k chybě zadávání.')">
-            Zrušit celou akci
-        </button>
-    </div>
-</form>
+                function shouldSubmit() {
+                    if ( throwInput.value == 0 )
+                        return confirm('Opravdu tým vůbec neházel? Pokračovat?');
+                    {% for dice, diceDotsRequirement in requiredDices.items %}
+                        if (diceInput.value == "{{dice.id}}" && dotsInput.value >= {{diceDotsRequirement}}) {
+                            return true;
+                        }
+                    {% endfor %}
+                    if (throwInput.value > {{maxThrows}}) {
+                        alert("Tým hodil vícerát, než mohl!");
+                        return false;
+                    }
+                    return confirm('Opravdu tým nehodil dostatek? Pokračovat?');
+                }
+            </script>
+        </div>
 
-{{ block.super }}
+        <div class="flex flex-wrap w-full">
+            <button
+                class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400"
+                type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
+                onclick="return shouldSubmit()">
+                Odeslat hody kostkou
+            </button>
+            <button
+                class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                type="submit" name="cancel" formaction="{% url "actionDiceThrow" action.id %}"
+                onclick="return confirm('Opravdu zrušit celou akci? Toto neznamená, že tým hodil málo teček, ale že došlo k chybě zadávání.')">
+                Zrušit celou akci
+            </button>
+        </div>
+    </form>
+
+    {{ block.super }}
+</div>
 {% endblock %}
