@@ -3,7 +3,7 @@ from django.db import models
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
-from game.data.entity import AchievementModel
+from game.data.entity import AchievementModel, TaskModel
 from game.data.parser import Parser
 from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField
