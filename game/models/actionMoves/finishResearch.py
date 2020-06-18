@@ -20,7 +20,7 @@ class FinishResearchForm(MoveForm):
             </script>
             """)
         )
-        src.getEntity(TechModel)
+        self.getEntity(TechModel)
 
 class FinishResearchMove(Action):
     class Meta:
@@ -61,4 +61,8 @@ class FinishResearchMove(Action):
         if status == TechStatusEnum.UNKNOWN:
             return False, f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat'
         techs.setStatus(tech, TechStatusEnum.RESEARCHING)
-        return True, f'Technologie {tech.label} bude dozkoumána. Nezapomeňte týmu vydat přišlušnou samolepku (včetně výrob a vylepšení!)'
+        stickers = [tech.label] + \
+            [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
+            [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
+        stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
+        return True, f'Technologie {tech.label} bude dozkoumána. Nezapomeňte týmu vydat následující samolepky:<ul class="list-disc px-4">{stickerMsg}</ul>'
