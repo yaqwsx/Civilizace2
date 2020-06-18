@@ -55,7 +55,7 @@
             </p>
         {% endcard %}
 
-        {% card "Zásobování města" icon="fa-warehouse" width="third" color="green-600" %}
+        {% card "Zásobování města" icon="fa-warehouse" width="third" color=targetTeam.color %}
             <ul class="text-left">
             {% for r, a in teamState.foodSupply.getFoodSupply.items %}
                 <li>{{a}}× {{r.htmlRepr|safe}}</li>
@@ -68,7 +68,7 @@
             </ul>
         {% endcard %}
 
-        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
+        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color=targetTeam.color %}
             Potřebujete zaplatit <b>{{foodSupplyTokens}}×</b> jídlo (přebytek {{ foodSupplySurplus }})
             <ul class="text-left">
             <li>Kvalita &mdash; Luxus</li>
@@ -79,7 +79,7 @@
             {% endfor %}
             </ul>
         {% endcard %}
-        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color="green-600" %}
+        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color=targetTeam.color %}
             Potřebujete nakrmit {{ foodSupplySurplus }} lidí (<b>{{foodSupplyTokens}}× jídlo</b>)
             <ul class="text-left">
             <table style="width:100%">
@@ -102,23 +102,23 @@
 
 <div class="w-full section"><h2 class="text-xl">Souhrnné informace</h2></div>
 <div class="flex flex-wrap">
-    {% card "Populace" icon="fa-users" width="third" color="green-600"%}
+    {% card "Populace" icon="fa-users" width="third" color=targetTeam.color%}
         {{teamState.resources.getObyvatel}} / {{teamState.resources.getPopulation}}<br>
         <span class="text-sm text-gray-400">(nespecializovaných/celkem)</span>
     {% endcard %}
 
-    {% card "Dostupná práce" icon="fa-briefcase" width="third" color="green-600" %}
+    {% card "Dostupná práce" icon="fa-briefcase" width="third" color=targetTeam.color %}
         {{teamState.resources.getWork}}
     {% endcard %}
 
-    {% card "Kolo" icon="fa-calendar" width="third" color="green-600" %}
+    {% card "Kolo" icon="fa-calendar" width="third" color=targetTeam.color %}
         {{teamState.turn}}. kolo / {{worldState.generation}}. generace
     {% endcard %}
 </div>
 
 <div class="w-full section"><h2 class="text-xl">Ekonomika</h2></div>
 <div class="flex flex-wrap">
-    {% card "Právě zkoumané techologie" icon="fa-cogs" width="third" color="green-600" %}
+    {% card "Právě zkoumané techologie" icon="fa-cogs" width="third" color=targetTeam.color %}
         <ul class="text-left">
             {% for r in teamState.techs.getTechsUnderResearch %}
                 <li>{{r.htmlRepr | safe}}</li>
@@ -127,21 +127,21 @@
             {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Dostupné produkce" icon="fa-warehouse" width="third" color="green-600" %}
+    {% card "Dostupné produkce" icon="fa-warehouse" width="third" color=targetTeam.color %}
         <ul class="text-left">
         {% for r, a in teamState.resources.getResourcesByType.items %}
             <li>{{a}}× {{r.htmlRepr|safe}}</li>
         {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Materiály ve skladu" icon="fa-warehouse" width="third" color="green-600" %}
+    {% card "Materiály ve skladu" icon="fa-warehouse" width="third" color=targetTeam.color %}
         <ul class="text-left">
         {% for r, a in teamState.materials.getAll.items %}
             <li>{{a}}× {{r.htmlRepr|safe}}</li>
         {% endfor %}
         </ul>
     {% endcard %}
-    {% card "Vzdálenosti" icon="fa-compass" width="third" color="green-600" %}
+    {% card "Vzdálenosti" icon="fa-compass" width="third" color=targetTeam.color %}
         <select id="build-source" class="select my-1">
             {% for building in teamState.techs.getBuildings%}
                 <option value="{{building.id}}">{{building.label}}</option>
@@ -175,8 +175,8 @@
                         distance.innerHTML = item[2];
                         return;
                     }
-                    distance.innerHTML = "Neznámá";
                 }
+                distance.innerHTML = "Neznámá";
             }
             source.addEventListener("change", update);
             target.addEventListener("change", update);

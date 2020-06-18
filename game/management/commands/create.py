@@ -13,19 +13,48 @@ from game.data.update import Update, UpdateError
 GROUPS = ["super", "org"]
 
 TEAMS = {
-    "Červení": {
-        "members": ["franta", "pavel"],
-        "keyword": "JABLKO"
+    "Černí": {
+        "username": "cerni",
+        "password": "password",
+        "color": "gray-600"
     },
-    "Modří": {
-        "members": ["eliska", "magda"],
-        "keyword": "HRUSKA"
+    "Červení": {
+        "username": "cerveni",
+        "password": "password",
+        "color": "red-600"
+    },
+    "Oranžoví": {
+        "username": "oranzovi",
+        "password": "password",
+        "color": "orange-500"
+    },
+    "Žlutí": {
+        "username": "zluti",
+        "password": "password",
+        "color": "yellow-500"
     },
     "Zelení": {
-        "members": ["pepa", "vlada"],
-        "keyword": "MANDARINKA"
+        "username": "zeleni",
+        "password": "password",
+        "color": "green-600"
+    },
+    "Modří": {
+        "username": "modri",
+        "password": "password",
+        "color": "blue-600"
+    },
+    "Fialoví": {
+        "username": "fialovi",
+        "password": "password",
+        "color": "purple-500"
+    },
+    "Růžoví": {
+        "username": "ruzovi",
+        "password": "password",
+        "color": "pink-600"
     }
 }
+
 
 SUPER_USERS = ["maara", "honza"]
 ORG = ["abbe", "jupi", "efka", "kaja", "domca", "darwin", "martin", "liska"]
@@ -72,13 +101,12 @@ class Command(BaseCommand):
                 if not team:
                     raise RuntimeError()
             except:
-                team = Team.objects.create(name=teamName)
+                team = Team.objects.create(name=teamName, color=teamParams["color"])
                 print("Creating team: " + str(team))
-            for username in teamParams["members"]:
                 user = Command.create_or_get_user(
-                            username=username,
-                            email=username + "@hrac.cz",
-                            password="password")
+                        username=teamParams["username"],
+                        email=teamParams["username"] + "@hrac.cz",
+                        password=teamParams["password"],)
                 perm = Permission.objects.get(codename="stat_team")
                 assign_perm(perm, user, team)
         org = Group.objects.get(name='org')
