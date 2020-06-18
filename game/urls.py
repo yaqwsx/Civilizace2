@@ -3,6 +3,7 @@ from django.urls import path
 from game.views import *
 from game.views import messageBoard
 from game.views import dashboard
+from game.views.autoGeneration import GenerationConfigView, GenerationParameters, GenerationCountDownView
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
@@ -20,5 +21,10 @@ urlpatterns = [
     path("messageBoard/edit/<int:messageId>", messageBoard.EditMessageView.as_view(), name="messageBoardEdit"),
     path("messageBoard/delete/<int:messageId>", messageBoard.DeleteMessageView.as_view(), name="messageBoardDelete"),
     path("messageBoard/dismiss/<int:messageId>", messageBoard.DismissMessageView.as_view(), name="messageBoardDismiss"),
+
+    path("generation/params", GenerationParameters.as_view(), name="generationParams"),
+    path("generation/config", GenerationConfigView.as_view(), name="generationConfig"),
+    path("generation/", GenerationCountDownView.as_view(), name="generationCountdown"),
+
     path("demo", DemoView.as_view(), name="demo")
 ]
