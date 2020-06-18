@@ -66,5 +66,5 @@ class ResourceModel(EntityModel):
             name = self.label
         if self.icon:
             return f'<img class="inline-block" style="width: 30px; height: 30px" src="/static/icons/{self.icon}"><span class="text-gray-500">({name})</span>'
-        return self.name
+        return self.label
 

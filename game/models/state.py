@@ -169,7 +169,7 @@ class TeamState(ImmutableModel):
             distances = DistanceLogger.objects.createInitial(team)
             achievements = TeamAchievements.objects.createInitial()
             foodSupply = FoodStorage.objects.createInitial()
-            print("foodSuply: " + str(foodSupply))
+            vliv = VlivStorage.objects.createInitial()
             return self.create(
                 team=team,
                 sandbox=sandbox,
@@ -180,7 +180,8 @@ class TeamState(ImmutableModel):
                 techs=techs,
                 distances=distances,
                 achievements=achievements,
-                foodSupply=foodSupply)
+                foodSupply=foodSupply,
+                vliv=vliv)
 
     objects = TeamStateManager()
 
@@ -194,6 +195,7 @@ class TeamState(ImmutableModel):
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
     foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
+    vliv = models.ForeignKey("VlivStorage", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -265,6 +267,7 @@ class TeamAchievements(ImmutableModel):
                 raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
             self.list.remove(self.list.get(id=id))
 
+
 class DistanceItemBuilding(ImmutableModel):
     source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
     target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
@@ -282,7 +285,6 @@ class MissingDistanceError(RuntimeError):
         super().__init__(msg)
         self.source = source
         self.target = target
-
 
 class DistanceLogger(ImmutableModel):
     class DistanceLoggerManager(models.Manager):
@@ -899,6 +901,43 @@ class TechStorage(ImmutableModel):
             if not self.items.has(tech=tech):
                 raise InvalidActionException(f"Cannot change '{tech}' which is not present in the list")
             self.items.get(tech=tech).status = parseTechStatus(status)
+
+class VlivStorageItem(ImmutableModel):
+    team = models.ForeignKey("Team", on_delete=models.PROTECT)
+    amount = models.IntegerField(default=0)
+
+class VlivStorage(ImmutableModel):
+    class VlivStorageManager(models.Manager):
+        def createInitial(self):
+            return self.create(items=[])
+
+    objects = VlivStorageManager()
+    items = ListField(model_type=VlivStorageItem)
+
+    def addVliv(self, team, amount):
+        self.setVliv(team, self.getVliv(team) + amount)
+
+    def setVliv(self, team, amount):
+        assert isinstance(team, Team), f"Neznamy tym: {team}"
+
+        item = None
+        try:
+            item = self.items.get(team=team)
+            item.amount = amount
+        except VlivStorageItem.DoesNotExist:
+            item = VlivStorageItem(team=team, amount=amount)
+            self.items.append(item)
+            return
+
+    def getVliv(self, team):
+        assert isinstance(team, Team), f"Neznamy tym: {team}"
+        try:
+            item = self.items.get(team=team)
+            return item.amount
+        except VlivStorageItem.DoesNotExist:
+            return 0
+
+
 
 # =================================================
 

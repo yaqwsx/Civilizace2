@@ -16,7 +16,7 @@ class WithdrawForm(MoveForm):
         team = self.state.teamState(self.teamId)
         resources = team.materials
 
-        fields = [f"Můžete vyzvednout {team.resources.getWork()} jednotek materiálů"]
+        fields = [f"Můžete vyzvednout až {team.resources.getWork()} jednotek materiálů"]
 
         for item in resources.items:
             resource = item.resource
@@ -52,7 +52,6 @@ class WithdrawMove(Action):
         return []
 
     def initiate(self, state):
-        print("Initiate")
         team = self.teamState(state)
         message = ["Vydat materiály:"]
 
@@ -76,5 +75,4 @@ class WithdrawMove(Action):
         return True, "<br>".join(message)
 
     def commit(self, state):
-        print("Commit")
         return True, ""

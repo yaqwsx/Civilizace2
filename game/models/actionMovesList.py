@@ -14,6 +14,7 @@ class ActionMove(enum.Enum):
     setBuildingDistance = 9
     setTeamDistance = 10
     withdraw = 11
+    trade = 12
 
     godmode = 42
     sandbox = 99
@@ -27,6 +28,7 @@ class ActionMove(enum.Enum):
         setBuildingDistance: "Nastavit vzdálenost budov",
         setTeamDistance: "Nastavit vzdálenost týmů",
         withdraw: "Vybrat materiály ze skladu",
+        trade: "Obchod",
 
         createInitial: "SYSTEM: Vytvořit nový stav",
         nextGeneration: "SYSTEM: Next generation",

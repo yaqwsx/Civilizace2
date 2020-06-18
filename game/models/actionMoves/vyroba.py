@@ -225,7 +225,7 @@ class VyrobaMove(Action):
         return enhancementId in self.arguments and self.arguments[enhancementId]
 
     def requiresDice(self, state):
-        return True
+        return self.dots > 0
 
     def dotsRequired(self, state):
         return {self.die: self.dots}
