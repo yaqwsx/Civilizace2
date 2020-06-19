@@ -346,7 +346,7 @@ class VyrobaMove(Action):
 
     def retrieveCost(self):
         return {
-            ResourceModel.objects.get(id=res): amount for res, amount in self.arguments["cost"]
+            ResourceModel.objects.get(id=res): amount for res, amount in self.arguments["cost"].items()
         }
 
     def initiate(self, state):
@@ -405,7 +405,7 @@ class VyrobaMove(Action):
         return True, message
 
     def abandon(self, state):
-        productions = { res: amount for res, amount in self.retrieveCost.items()
+        productions = { res: amount for res, amount in self.retrieveCost().items()
             if res.isProduction or res.isHumanResource }
 
         teamState = state.teamState(self.team.id)
