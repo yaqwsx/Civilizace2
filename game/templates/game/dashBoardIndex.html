@@ -36,7 +36,7 @@
 
 <h1 class="text-2xl">{{targetTeam.name}}</h1>
 
-{% if user.isOrg %}
+{% if user.isSuperUser %}
     <div class="w-full section"><h2 class="text-xl">Debugovací informace</h2></div>
     <div class="flex flex-wrap">
         {% card "Zname techy" width="full" %}
@@ -79,24 +79,6 @@
             {% endfor %}
             </ul>
         {% endcard %}
-        {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color=targetTeam.color %}
-            Potřebujete nakrmit {{ foodSupplySurplus }} lidí (<b>{{foodSupplyTokens}}× jídlo</b>)
-            <ul class="text-left">
-            <table style="width:100%">
-                <tr><td>Kasta</td><td>Jídlo</td><td>Luxus</td></tr>
-                {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
-                    <tr>
-                        <td>{{ roman }}</td>
-                        <td>{{ qualityMissing }}</td>
-                        <td>{{ luxNeeded }}</td>
-                    </tr>
-                {% empty %}
-                    <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
-                {% endfor %}
-            </table>
-            </ul>
-        {% endcard %}
-
     </div>
 {% endif %}
 
@@ -141,6 +123,25 @@
         {% endfor %}
         </ul>
     {% endcard %}
+
+    {% card "Kolik krmení bude potřeba" icon="fa-utensils" width="third" color=targetTeam.color %}
+        Potřebujete nakrmit {{ foodSupplySurplus }} lidí (<b>{{foodSupplyTokens}}× jídlo</b>)
+        <ul class="text-left">
+        <table style="width:100%">
+            <tr><td>Kasta</td><td>Jídlo</td><td>Luxus</td></tr>
+            {% for roman, caste, population, unfed, foodMissing, lowQuality, qualityMissing, luxMissing, luxNeeded in foodSupplyStats %}
+                <tr>
+                    <td>{{ roman }}</td>
+                    <td>{{ qualityMissing }}</td>
+                    <td>{{ luxNeeded }}</td>
+                </tr>
+            {% empty %}
+                <span class="text-center">Nemáte žádné kasty. Něco je špatně</span>
+            {% endfor %}
+        </table>
+        </ul>
+    {% endcard %}
+
     {% card "Vzdálenosti budov" icon="fa-compass" width="third" color=targetTeam.color %}
         <select id="build-source" class="select my-1">
             {% for building in teamState.techs.getBuildings%}
@@ -202,63 +203,6 @@
         </table>
     {% endcard %}
 
-</div>
-
-<div class="w-full section"><h2 class="text-xl">Historie</h2></div>
-<div class="flex flex-wrap">
-    {% card "Příprava civilizace" width="half" %}
-        <canvas id="chartjs-7" class="chartjs" width="undefined" height="undefined"></canvas>
-        <script>
-            new Chart(document.getElementById("chartjs-7"), {
-                "type": "bar",
-                "data": {
-                    "labels": ["Prosinec", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen"],
-                    "datasets": [{
-                        "label": "Aktivita příprav",
-                        "data": [10, 20, 20, 0, 0, 5, 100],
-                        "borderColor": "rgb(255, 99, 132)",
-                        "backgroundColor": "rgba(255, 99, 132, 0.2)"
-                    }, {
-                        "label": "Úroveň stresu",
-                        "data": [5, 5, 5, 20, 0, 69, 112],
-                        "type": "line",
-                        "fill": false,
-                        "borderColor": "rgb(54, 162, 235)"
-                    }]
-                },
-                "options": {
-                    "responsive": true,
-                    "maintainAspectRatio": false,
-                    "scales": {
-                        "yAxes": [{
-                            "ticks": {
-                                "beginAtZero": true
-                            }
-                        }]
-                    }
-                }
-            });
-        </script>
-    {% endcard %}
-    {% card "Akce se blíží" width="half" %}
-        <canvas id="chartjs-0" class="chartjs" width="undefined" height="undefined"></canvas>
-        <script>
-            new Chart(document.getElementById("chartjs-0"), {
-                "type": "line",
-                "data": {
-                    "labels": ["úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek"],
-                    "datasets": [{
-                        "label": "Dnů do začátku akce",
-                        "data": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-                        "fill": false,
-                        "borderColor": "rgb(75, 192, 192)",
-                        "lineTension": 0.1
-                    }]
-                },
-                "options": {}
-            });
-        </script>
-    {% endcard %}
 </div>
 
 {{ block.super }}
