@@ -7,4 +7,5 @@ rsync -a --progress \
     --exclude graphics/ \
     --exclude db.sqlite3 \
     --exclude _static \
+    --exclude '*__pycache__*' \
     ./ 192.168.1.216:Civilizace/app

@@ -111,7 +111,7 @@ class State(ImmutableModel):
 class WorldState(ImmutableModel):
     class WorldStateManager(models.Manager):
         def createInitial(self):
-            generation = 0
+            generation = 1
             foodValue = 20
             castes = "[2,3,4,5]"
             return self.create(

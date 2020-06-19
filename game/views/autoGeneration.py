@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect, reverse
 from game.models.generationTick import GenerationTick
 from django.contrib import messages
 
+from game.models.users import User
 from game.models.state import State
 from game.models.actionBase import ActionStep
 from game.models.actionMoves.worldActions import NextGenerationAction
@@ -86,7 +87,8 @@ class GenerationCountDownView(View):
         })
         initiateStep = ActionStep.initiateAction(None, action)
         initiateStep.applyTo(state)
-        commitStep = ActionStep.commitAction(request.user, action, 0)
+        user = User.objects.get(username="honza")
+        commitStep = ActionStep.commitAction(user, action, 0)
         commitStep.applyTo(state)
         action.save()
         initiateStep.save()
