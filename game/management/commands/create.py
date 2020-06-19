@@ -57,7 +57,7 @@ TEAMS = {
 
 
 SUPER_USERS = ["maara", "honza"]
-ORG = ["abbe", "jupi", "efka", "kaja", "domca", "darwin", "martin", "liska"]
+ORG = ["abbe", "jupi", "efka", "kaja", "darwin", "martin", "liska", "tinka", "ivka", "tom", "zaloha"]
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
@@ -114,7 +114,7 @@ class Command(BaseCommand):
             user = Command.create_or_get_user(
                             username=username,
                             email=username + "@org.cz",
-                            password="password",
+                            password="macatymaara",
                             superuser=True)
             user.groups.add(org)
         superGroup = Group.objects.get(name='super')
@@ -122,7 +122,7 @@ class Command(BaseCommand):
             user = Command.create_or_get_user(
                             username=username,
                             email=username + "@super.cz",
-                            password="password")
+                            password="jogurt")
             user.groups.add(superGroup)
 
     def createGroups(self):
