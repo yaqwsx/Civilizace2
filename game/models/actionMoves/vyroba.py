@@ -220,7 +220,7 @@ class VyrobaMove(Action):
 
     @property
     def dots(self):
-        return 0 if self.vyroba.dots == 0 else math.ceil((self.vyroba.dots * self.volume+1) / 2)
+        return 0 if self.vyroba.dots == 0 else math.ceil((self.vyroba.dots * (self.volume+1)) / 2)
 
     @property
     def vyrobaInputs(self):
@@ -237,6 +237,7 @@ class VyrobaMove(Action):
         return self.dots > 0
 
     def dotsRequired(self, state):
+        print("self.dots: " + str(self.dots))
         return {self.die: self.dots}
 
     def computeCost(self):
