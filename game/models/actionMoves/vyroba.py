@@ -409,7 +409,7 @@ class VyrobaMove(Action):
             if res.isProduction or res.isHumanResource }
 
         teamState = state.teamState(self.team.id)
-        teamState.resources.receiveResources(productions)
+        teamState.resources.returnResources(productions)
 
         message = self.abandonMessage()
         message += "<br>"
@@ -418,7 +418,7 @@ class VyrobaMove(Action):
 
     def cancel(self, state):
         teamState =  state.teamState(self.team.id)
-        materials = teamState.resources.receiveResources(self.retrieveCost())
+        materials = teamState.resources.returnResources(self.retrieveCost())
 
         message = self.cancelMessage()
         message += "<br>"

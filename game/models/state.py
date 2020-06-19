@@ -545,10 +545,6 @@ class ResourceStorage(ImmutableModel):
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team):
             initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION), ("res-populace", INITIAL_POPULATION)]
-
-            if team.id == 1: # TODO: remove DEBUG initial entities
-                initialResources.extend([("prod-bobule",20), ("prod-drevo",20), ("prod-cukr",20)])
-
             items = []
             for id, amount in initialResources:
                 items.append(ResourceStorageItem.objects.create(
@@ -605,6 +601,18 @@ class ResourceStorage(ImmutableModel):
                 self._addPopulation(diff)
         item.amount = amount
 
+    def setAmountReturn(self, resource, amount):
+        if isinstance(resource, str):
+            resource = ResourceModel.objects.get(id=resource)
+
+        item = None
+        try:
+            item = self.items.get(resource=resource)
+        except ResourceStorageItem.DoesNotExist:
+            item = ResourceStorageItem(resource=resource, amount=amount)
+            self.items.append(item)
+        item.amount = amount
+
     def hasResources(self, resources):
         for resource, amount in resources.items():
             if resource.id[:4] == "mat-":
@@ -645,6 +653,19 @@ class ResourceStorage(ImmutableModel):
             else:
                 targetAmount = self.getAmount(resource) + amount
                 self.setAmount(resource, targetAmount)
+        return result
+
+    def returnResources(self, resources):
+        """Return resources to storage.
+
+        Returns a dict of resources not tracked by storage"""
+        result = {}
+        for resource, amount in resources.items():
+            if resource.id[:4] == "mat-":
+                result[resource] = amount
+            else:
+                targetAmount = self.getAmount(resource) + amount
+                self.setAmountReturn(resource, targetAmount)
         return result
 
     def getResourcesByType(self, metaResource=None):
@@ -801,9 +822,7 @@ class TechStorageItem(ImmutableModel):
 class TechStorage(ImmutableModel):
     class TechStorageManager(models.Manager):
         def createInitial(self, team):
-            initialTechs = ["build-centrum", "build-lovci", "tech-hnojeni", "tech-astronomie"]
-            if team.id == 2:
-                initialTechs += ["build-dul", "tech-uhli", "build-uhlirstvi"]
+            initialTechs = ["build-centrum"]
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(

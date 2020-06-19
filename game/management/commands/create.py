@@ -15,42 +15,42 @@ GROUPS = ["super", "org"]
 TEAMS = {
     "Černí": {
         "username": "cerni",
-        "password": "password",
+        "password": "papirovysacek",
         "color": "gray-600"
     },
     "Červení": {
         "username": "cerveni",
-        "password": "password",
+        "password": "citronovavoda",
         "color": "red-600"
     },
     "Oranžoví": {
         "username": "oranzovi",
-        "password": "password",
+        "password": "tupatuzka",
         "color": "orange-500"
     },
     "Žlutí": {
         "username": "zluti",
-        "password": "password",
+        "password": "smutnakocka",
         "color": "yellow-500"
     },
     "Zelení": {
         "username": "zeleni",
-        "password": "password",
+        "password": "dutybambus",
         "color": "green-600"
     },
     "Modří": {
         "username": "modri",
-        "password": "password",
+        "password": "chlupatymic",
         "color": "blue-600"
     },
     "Fialoví": {
         "username": "fialovi",
-        "password": "password",
+        "password": "kamennesrdce",
         "color": "purple-500"
     },
     "Růžoví": {
         "username": "ruzovi",
-        "password": "password",
+        "password": "zelenykun",
         "color": "pink-600"
     }
 }

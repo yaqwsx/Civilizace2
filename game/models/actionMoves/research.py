@@ -100,7 +100,7 @@ class ResearchMove(Action):
             if res.isProduction or res.isHumanResource }
 
         teamState = self.teamState(state)
-        teamState.resources.receiveResources(productions)
+        teamState.resources.returnResources(productions)
 
         message = self.abandonMessage()
         message += "<br>"
@@ -109,7 +109,7 @@ class ResearchMove(Action):
 
     def cancel(self, state):
         teamState = self.teamState(state)
-        materials = teamState.resources.receiveResources(self.edge.getInputs())
+        materials = teamState.resources.returnResources(self.edge.getInputs())
 
         message = self.cancelMessage()
         message += "<br>"

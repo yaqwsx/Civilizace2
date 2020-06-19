@@ -6,4 +6,5 @@ rsync -a --progress \
     --exclude buildingSraping/ \
     --exclude graphics/ \
     --exclude db.sqlite3 \
+    --exclude _static \
     ./ 192.168.1.216:Civilizace/app
