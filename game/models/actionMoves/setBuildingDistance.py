@@ -75,7 +75,7 @@ class SetBuildingDistanceMove(Action):
             if b.id not in self.arguments:
                 return False, f"Chybí vzdálenostní informace pro budovu {b.label}"
             distance = self.arguments[b.id]
-            if not distance:
+            if not distance and distance != 0:
                 continue
             try:
                 originalDistance = distLogger.getBuildingDistance(source, b)
