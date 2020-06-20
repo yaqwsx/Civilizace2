@@ -384,7 +384,7 @@ class VyrobaMove(Action):
                 teamState.resources.payResources({t: distanceCost})
                 self.rememberCost({t: distanceCost})
             else:
-                resMsg = ", ".join([f'{amount}&times; {res}' for amount, res in incRes])
+                resMsg = ", ".join([f'{amount}&times; {res}' for amount, res in incRes.items()])
                 return False, f"Nepodařilo se zvýšit přepravní kapacitu; chybí {resMsg}"
 
         message = f"Tým musí hodit {self.dots}&times; {self.vyroba.die.label}.<br>"

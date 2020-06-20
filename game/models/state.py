@@ -540,7 +540,7 @@ class ResourceStorageItem(ImmutableModel):
 class ResourceStorage(ImmutableModel):
     class NotEnoughResourcesException(InvalidActionException):
         def __init__(self, msg, list):
-            super().__init__(msg)
+            super().__init__(msg + '<ul>' + "".join([f'{amount}x {res.label}' for res, amount in list.items()]) + '</ul>')
             self.list = list
 
     class ResourceStorageManager(models.Manager):
