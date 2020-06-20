@@ -7,9 +7,9 @@
 {% block content %}
 
 <h2 class="text-xl my-1 mt-3">Přehled týmu: {{ targetTeam.name }}</h2>
-<div class="flex flex-wrap">
-    {% card "Počet obyvatel" %} {{otherTeamState.population.population}}  {% endcard %}
-</div>
-
+{% card "Populace" icon="fa-users" width="third" color=targetTeam.color%}
+        {{otherTeamState.resources.getObyvatel}} / {{otherTeamState.resources.getPopulation}}<br>
+        <span class="text-sm text-gray-400">(nespecializovaných/celkem)</span>
+    {% endcard %}
 {{ block.super }}
 {% endblock %}
