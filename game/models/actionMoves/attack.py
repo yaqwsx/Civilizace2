@@ -68,7 +68,10 @@ class AttackMove(Action):
         if currentAmount - self.arguments["amount"] < -prodAmount:
             return False, f'Nemůžu plenit {self.arguments["amount"]}, jelikož by to bylo moc'
         oTeamState.materials.setAmount(production.getMaterial(), currentAmount - self.arguments["amount"])
-        return True, f'Bude vyplněneno, vydej {self.arguments["amount"]}&times; {production.getMaterial().htmlRepr()}'
+
+        myTeamState = self.teamState(state)
+        myTeamState.materials.receiveMaterials({production.getMaterial(): self.arguments["amount"]}, state.worldState.storageLimit)
+        return True, f'Bude vyplněneno, {self.arguments["amount"]}&times; {production.getMaterial().htmlRepr()} bude uloženo do skladu'
 
     def commit(self, state):
         return True, ""

@@ -40,7 +40,7 @@ class ActionMove(enum.Enum):
         nextGeneration: "SYSTEM: Next generation",
         godmode: "SYSTEM: Godmode",
 
-        attack: "Zaútočit",
+        attack: "Útočí na",
 
         sandbox: "DEBUG: SANDBOX",
         sanboxIncreaseCounter: "DEBUG: Zvýšit counter",
