@@ -229,6 +229,7 @@ class TeamState(ImmutableModel):
         self.achievements.godUpdate(eatUpdatePrefixAll("achievements", update))
         self.foodSupply.godUpdate(eatUpdatePrefixAll("foodSupply", update))
         self.materials.godUpdate(eatUpdatePrefixAll("materials", update))
+        self.distances.godUpdate(eatUpdatePrefixAll("distances", update))
 
         if "turn" in update["change"]:
             self.turn = update["change"]["turn"]
@@ -383,7 +384,7 @@ class DistanceLogger(ImmutableModel):
 
     def godUpdatebuilding(self, update):
         def extractResources(s):
-            x = s.split(s, "->")
+            x = s.split("->")
             return x[0].strip(), x[1].strip()
         for desc, value in update["add"].items():
             source, target = extractResources(desc)
@@ -391,7 +392,7 @@ class DistanceLogger(ImmutableModel):
                     raise InvalidActionException(f"Cannot add duplicite distance for '{desc}'")
             self.building.append(DistanceItemBuilding(source=source, target=target, distance=value))
 
-        for desc, value in update["remove"].items():
+        for desc, value in update["change"].items():
             source, target = extractResources(desc)
             if not self.building.has(source=source, target=target):
                 raise InvalidActionException(f"Cannot change '{desc}' which is not present in the list")
@@ -410,7 +411,7 @@ class DistanceLogger(ImmutableModel):
                     raise InvalidActionException(f"Cannot add duplicite distance for team '{id}'")
             self.temas.append(DistanceItemTeams(team=id, distance=value))
 
-        for desc, value in update["remove"].items():
+        for desc, value in update["change"].items():
             id = extractTeamId(desc)
             if not self.teams.has(team=id):
                 raise InvalidActionException(f"Cannot change '{id}' which is not present in the list")
