@@ -7,9 +7,19 @@
 {% block content %}
 
 <h2 class="text-xl my-1 mt-3">Přehled týmu: {{ targetTeam.name }}</h2>
+<div class="flex flex-wrap">
 {% card "Populace" icon="fa-users" width="third" color=targetTeam.color%}
         {{otherTeamState.resources.getObyvatel}} / {{otherTeamState.resources.getPopulation}}<br>
         <span class="text-sm text-gray-400">(nespecializovaných/celkem)</span>
     {% endcard %}
 {{ block.super }}
+
+{% card "Dostupné produkce" icon="fa-warehouse" width="third" color=targetTeam.color %}
+    <ul class="text-left">
+    {% for r, a in otherTeamState.resources.getResourcesByType.items %}
+        <li>{{a}}× {{r.htmlRepr|safe}}</li>
+    {% endfor %}
+    </ul>
+{% endcard %}
+</div>
 {% endblock %}

@@ -59,6 +59,10 @@ class ResourceModel(EntityModel):
     def plainLabel(self):
         return self.label.replace("Produkce: ", "")
 
+    def getMaterial(self):
+        assert self.isProduction
+        return ResourceModel.objects.get(id=self.id.replace("prod-", "mat-"))
+
     def htmlRepr(self):
         if self.isProduction:
             name = f'<u>{self.plainLabel}</u>'

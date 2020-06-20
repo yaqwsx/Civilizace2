@@ -570,6 +570,11 @@ class ResourceStorage(ImmutableModel):
         result = ", ".join(list)
         return result
 
+    def getAll(self):
+        return {
+            x.resource: x.amount for x in self.items if x.amount != 0
+        }
+
     def _addPopulation(self, amount):
         self.items.get(resource=ResourceModel.objects.get(id="res-populace")).amount += amount
 
@@ -751,7 +756,7 @@ class MaterialStorage(ImmutableModel):
             self.setAmount(resource, targetAmount)
 
     def getAll(self):
-        return {item.resource: item.amount for item in filter(lambda item: item.amount > 0, self.items)}
+        return {item.resource: item.amount for item in filter(lambda item: item.amount != 0, self.items)}
 
     def toJson(self):
         return {
