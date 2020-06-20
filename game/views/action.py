@@ -247,7 +247,8 @@ class ActionDiceThrow(ActionView):
             if form.cleaned_data["throwCount"] == 0 and form.cleaned_data["dotsCount"] != 0:
                 messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
                 return redirect('actionDiceThrow', actionId=action.id)
-            if "cancel" in request.POST:
+            print(request.POST)
+            if "cancel" in request.POST.get("submit", "") == "cancel":
                 step = ActionStep.cancelAction(request.user, action)
                 channel = messages.warning
             else:

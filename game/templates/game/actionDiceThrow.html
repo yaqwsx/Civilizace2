@@ -69,22 +69,29 @@
                         alert("Tým hodil vícerát, než mohl!");
                         return false;
                     }
+                    document.getElementById("submit").value = "submit";
                     return confirm('Opravdu tým nehodil dostatek? Pokračovat?');
+                }
+
+                function shouldCancel() {
+                    document.getElementById("submit").value = "cancel";
+                    return confirm('Opravdu zrušit celou akci? Toto neznamená, že tým hodil málo teček, ale že došlo k chybě zadávání.');
                 }
             </script>
         </div>
 
         <div class="flex flex-wrap w-full">
+            <input type="hidden" class="hidden" name="submit" id="submit"></input>
             <button
                 class="w-full md:w-1/2 shadow focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded bg-green-500 hover:bg-green-400 my-1"
-                type="submit" name="submit" formaction="{% url "actionDiceThrow" action.id %}"
+                type="submit" name="submit" value="submit" formaction="{% url "actionDiceThrow" action.id %}"
                 onclick="return shouldSubmit()">
                 Odeslat hody kostkou
             </button>
             <button
                 class="w-full md:w-1/2 shadow bg-red-500 hover:bg-red-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1"
-                type="submit" name="cancel" formaction="{% url "actionDiceThrow" action.id %}"
-                onclick="return confirm('Opravdu zrušit celou akci? Toto neznamená, že tým hodil málo teček, ale že došlo k chybě zadávání.')">
+                type="submit" name="submit" value="cancel" formaction="{% url "actionDiceThrow" action.id %}"
+                onclick="return shouldCancel()">
                 Zrušit celou akci
             </button>
         </div>
