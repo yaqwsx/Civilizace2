@@ -276,10 +276,17 @@ class VyrobaMove(Action):
 
     def cheapestBuilding(self, target, builds):
         distLogger = self.state.teamState(self.team.id).distances
-        l = [(b, distLogger.getBuildingDistance(b, target)) for b in builds]
+        techs = self.state.teamState(self.team.id).techs
+        try:
+            l = [(b, distLogger.getBuildingDistance(b, target)) for b in builds]
+        except MissingDistanceError as e:
+            missing = e.source
+            if techs.getStatus(missing.id) == TechStatusEnum.OWNED:
+                raise
+            return distLogger.getBuildingDistance("build-centrum", target)
         return min(l, key=lambda x: x[1])
 
-    def computeDistanceCost(self):
+    def computeDistanceCost(self, inputs):
         cost = 0
         target = self.vyroba.build
         missingDistances = []
@@ -293,13 +300,8 @@ class VyrobaMove(Action):
             except MissingDistanceError as e:
                 missingDistances.append((e.source, e.target))
 
-        for resource, amount in self.vyroba.getInputs().items():
+        for resource, amount in inputs.items():
             computeCost(resource, amount)
-        for enh in self.vyroba.enhancers.all():
-            if not self.active(enh.id):
-                continue
-            for resource, amount in enh.getInputs().items():
-                computeCost(resource, amount)
         if missingDistances:
             msgBody = "\n".join([f'<li>{source.label}&mdash;{target.label}</li>' for source, target in missingDistances])
             raise InvalidActionException(f'Neexistují následující vzdálenosti: <ul class="list-disc px-4">{msgBody}</ul>')
@@ -368,7 +370,7 @@ class VyrobaMove(Action):
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
             message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
             return False, message
-        distanceCost = self.computeDistanceCost()
+        distanceCost = self.computeDistanceCost(cost)
         distanceMessage = f"Přeprava materiálu stojí {distanceCost} přepravní kapacity."
         try:
             t = ResourceModel.objects.get(id="res-nosic")
