@@ -459,14 +459,14 @@ class FoodStorage(ImmutableModel):
 
         popSum = 0
         foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
-        luxussums = [sum(luxusAmounts[n:]) for n in range(7)]
+        luxusSums = [sum(luxusAmounts[n:]) for n in range(7)]
         result = []
 
         for kasta in populaceKast:
             popSum += kasta[1]
             foodSupply = foodSums[0]
             qualitySupply = foodSums[kasta[0]]
-            luxusSupply = luxusAmounts[kasta[0]]
+            luxusSupply = luxusSums[kasta[0]]
             foodMissing = popSum - foodSupply
             qualityMissing = popSum - qualitySupply
             luxusMissing = popSum - luxusSupply
