@@ -21,10 +21,16 @@ class WithdrawForm(MoveForm):
         for item in resources.items:
             resource = item.resource
             amount = item.amount
-            self.fields[resource.id] = forms.IntegerField(
-                label=f"{resource.htmlRepr()} (max. {amount}x)",
-                validators=[MinValueValidator(0), MaxValueValidator(amount)],
-                initial=0)
+            if amount < 0:
+                self.fields[resource.id] = forms.IntegerField(
+                    label=f"{resource.htmlRepr()} (max. 0&times;)",
+                    validators=[MinValueValidator(0), MaxValueValidator(0)],
+                    initial=0)
+            else:
+                self.fields[resource.id] = forms.IntegerField(
+                    label=f"{resource.htmlRepr()} (max. {amount}&times;)",
+                    validators=[MinValueValidator(0), MaxValueValidator(amount)],
+                    initial=0)
             fields.append(resource.id)
 
         layoutData = [self.commonLayout]
@@ -69,7 +75,7 @@ class WithdrawMove(Action):
 
         team.materials.payResources(materials)
         team.resources.spendWork(spentWork)
-        message.append(f"Výběr materiálu stojí <b>{spentWork}x Práce</b>")
+        message.append(f"Výběr materiálu stojí <b>{spentWork}&times; Práce</b>")
 
         self.arguments["team"] = None
         return True, "<br>".join(message)
