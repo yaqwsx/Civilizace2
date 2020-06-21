@@ -16,6 +16,7 @@ from .withdraw import WithdrawMove
 from .trade import TradeMove
 from .spendWork import SpendWorkMove
 from .addWonder import AddWonderMove
+from .attack import AttackMove
 
 def buildActionMove(data):
     """

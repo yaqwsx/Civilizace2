@@ -100,7 +100,7 @@ class TradeMove(Action):
         them.resources.receiveResources(resources)
         team.vliv.addVliv(themTeam, vliv)
 
-        distance = team.distances.getTeamDistance(themTeam)
+        distance = team.distances.getTeamDistance(themTeam) // 2
         requiredTrade = distance * volume
 
         availableTrade = team.resources.getAmount("res-nosic")

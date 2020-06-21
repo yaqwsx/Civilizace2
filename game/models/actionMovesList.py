@@ -18,6 +18,8 @@ class ActionMove(enum.Enum):
     spendWork = 13
     addWonder = 15
 
+    attack = 20
+
     godmode = 42
     sandbox = 99
 
@@ -37,6 +39,8 @@ class ActionMove(enum.Enum):
         createInitial: "SYSTEM: Vytvořit nový stav",
         nextGeneration: "SYSTEM: Next generation",
         godmode: "SYSTEM: Godmode",
+
+        attack: "Zaútočit",
 
         sandbox: "DEBUG: SANDBOX",
         sanboxIncreaseCounter: "DEBUG: Zvýšit counter",

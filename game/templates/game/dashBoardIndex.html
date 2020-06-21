@@ -41,6 +41,9 @@
     <div class="flex flex-wrap">
         {% card "Zname techy" width="full" %}
             <p class="text-left">
+                Tým má {{teamState.techs.getOwnedTechs | length}} technologií.
+            </p>
+            <p class="text-left">
                 {% for t in teamState.techs.getOwnedTechs %}
                     {{t.label | safe}},
                 {% endfor %}
@@ -49,23 +52,15 @@
 
         {% card "Vyroby" width="full"%}
             <p class="text-left">
+                <p class="text-left">
+                    Tým má {{teamState.techs.getVyrobas | length}} výrob.
+                </p>
+                <p class="text-left">
                 {% for t in teamState.techs.getVyrobas %}
                     {{t.label | safe}},
                 {% endfor %}
+                </p>
             </p>
-        {% endcard %}
-
-        {% card "Zásobování města" icon="fa-warehouse" width="third" color=targetTeam.color %}
-            <ul class="text-left">
-            {% for r, a in teamState.foodSupply.getFoodSupply.items %}
-                <li>{{a}}× {{r.htmlRepr|safe}}</li>
-            {% empty %}
-                <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
-            {% for r, a in teamState.foodSupply.getLuxusSupply.items %}
-                <li>{{a}}× {{r.htmlRepr|safe}}</li>
-            {% empty %}
-                <span class="text-center">Nemáte žádný automatizovaný luxus</span>{% endfor %}
-            </ul>
         {% endcard %}
 
         {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color=targetTeam.color %}
@@ -95,6 +90,13 @@
 
     {% card "Kolo" icon="fa-calendar" width="third" color=targetTeam.color %}
         {{teamState.turn}}. kolo / {{worldState.generation}}. generace
+        <p>
+            {% if teamState.turn == worldState.generation %}
+                V této generaci jste již <b>krmili</b>.
+            {% else %}
+                V této generaci jste <b>nekrmili</b>.
+            {% endif %}
+        </p>
     {% endcard %}
 </div>
 
@@ -201,6 +203,19 @@
                 {% endif %}
             {% endfor %}
         </table>
+    {% endcard %}
+
+    {% card "Zásobování města" icon="fa-warehouse" width="third" color=targetTeam.color %}
+        <ul class="text-left">
+        {% for r, a in teamState.foodSupply.getFoodSupply.items %}
+            <li>{{a}}× {{r.htmlRepr|safe}}</li>
+        {% empty %}
+            <span class="text-center">Nemáte žádné automatizované krmení</span>{% endfor %}
+        {% for r, a in teamState.foodSupply.getLuxusSupply.items %}
+            <li>{{a}}× {{r.htmlRepr|safe}}</li>
+        {% empty %}
+            <span class="text-center">Nemáte žádný automatizovaný luxus</span>{% endfor %}
+        </ul>
     {% endcard %}
 
 </div>

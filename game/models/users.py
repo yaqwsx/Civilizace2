@@ -10,6 +10,11 @@ class Team(models.Model):
     name = models.CharField("Name", max_length=100, null=False)
     color = models.CharField("Color", max_length=20, null=False)
 
+
+    @property
+    def label(self):
+        return self.name
+
     def unfinishedAction(self):
         """ Return an action for the team which is initiated but not committed, abandoned or canceled """
         unfinished = Action.objects \
