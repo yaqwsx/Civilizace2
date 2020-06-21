@@ -218,6 +218,21 @@
         </ul>
     {% endcard %}
 
+    {% card "Vědění" icon="fa-lightbulb" width="third" color=targetTeam.color %}
+        <ul class="text-left">
+        {% if teamState.resources.getUcenec %}
+            Máte {{teamState.resources.getUcenec}} učenců.
+        {% else %}
+            Nemáte žádné učence.
+        {% endif %}
+        <br>
+        {% if teamState.resources.getVedomosti %}
+            Máte {{teamState.resources.getVedomosti}} znalostí.
+        {% else %}
+            Nemáte žádné znalosti.
+        {% endif %}
+    {% endcard %}
+
 </div>
 
 {{ block.super }}

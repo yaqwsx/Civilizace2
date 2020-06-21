@@ -33,6 +33,21 @@ class WithdrawForm(MoveForm):
                     initial=0)
             fields.append(resource.id)
 
+        resources = team.resources
+        resource = ResourceModel.objects.get(id="res-vedomosti")
+        amount = resources.getVedomosti()
+        if amount < 0:
+            self.fields[resource.id] = forms.IntegerField(
+                label=f"{resource.htmlRepr()} (max. 0&times;)",
+                validators=[MinValueValidator(0), MaxValueValidator(0)],
+                initial=0)
+        else:
+            self.fields[resource.id] = forms.IntegerField(
+                label=f"{resource.htmlRepr()} (max. {amount}&times;)",
+                validators=[MinValueValidator(0), MaxValueValidator(amount)],
+                initial=0)
+        fields.append(resource.id)
+
         layoutData = [self.commonLayout]
         layoutData.append(Fieldset(*fields))
         self.helper.layout = Layout(*layoutData)
@@ -64,7 +79,7 @@ class WithdrawMove(Action):
         materials = {}
         spentWork = 0
 
-        for key in filter(lambda x: x[:4] ==  "mat-", self.arguments.keys()):
+        for key in filter(lambda x: x[:4] in  ["mat-"], self.arguments.keys()):
             if not self.arguments[key]:
                 continue
             resource = ResourceModel.objects.get(id=key)
@@ -72,6 +87,13 @@ class WithdrawMove(Action):
             materials[resource] = amount
             spentWork += amount
             message.append(f"  {amount}x {resource.htmlRepr()}")
+
+        if "res-vedomosti" in self.arguments and self.arguments["res-vedomosti"] > 0:
+            resource = ResourceModel.objects.get(id="res-vedomosti")
+            amount = self.arguments["res-vedomosti"]
+            spentWork += amount
+            message.append(f"  {amount}x {resource.htmlRepr()}")
+            team.resources.payResources({resource: amount})
 
         team.materials.payResources(materials)
         team.resources.spendWork(spentWork)

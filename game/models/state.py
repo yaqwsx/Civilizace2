@@ -690,6 +690,19 @@ class ResourceStorage(ImmutableModel):
                 results[resource] = item.amount
         return results
 
+    def getUcenec(self):
+        try:
+            return self.items.get(resource="res-ucenec").amount
+        except ResourceStorageItem.DoesNotExist:
+            return 0
+
+    def getVedomosti(self):
+        try:
+            return self.items.get(resource="res-vedomosti").amount
+        except ResourceStorageItem.DoesNotExist:
+            return 0
+
+
     def toJson(self):
         return {
             r.resource.id: r.amount for r in self.items
