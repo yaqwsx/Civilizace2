@@ -44,7 +44,7 @@ class NextTurnForm(MoveForm):
         luxusFields = ["Postupně vybírej luxus odpovídající úrovně:"]
         for i, kasta in enumerate(missingItems, start=1):
             text = f"Úroveň {kasta[0]}: {kasta[8]}× luxus"
-            self.fields["check-luxus-" + str(i)] = forms.BooleanField(label=text,initial=kasta[6]==0,required=False)
+            self.fields["check-luxus-" + str(i)] = forms.BooleanField(label=text,initial=kasta[8]==0,required=False)
             luxusFields.append("check-luxus-"+str(i))
         layout.append(Fieldset(*luxusFields))
 
