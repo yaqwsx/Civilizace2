@@ -4,7 +4,7 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException
 from game.models.state import TechStorageItem, TechStatusEnum
 
@@ -26,7 +26,7 @@ class FinishResearchMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.finishResearch
+        move = ActionType.finishResearch
         form = FinishResearchForm
         allowed = ["super", "org"]
 
@@ -66,6 +66,6 @@ class FinishResearchMove(Action):
             [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
         stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
         return True, f"""Technologie {tech.label} bude dozkoumána.<br><br>
-                    {tech.task.htmlRepr()}<br><br> 
+                    {tech.task.htmlRepr()}<br><br>
                     Vydej týmu následující samolepky:
                     <ul class="list-disc px-4">{stickerMsg}</ul>"""

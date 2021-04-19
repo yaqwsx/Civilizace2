@@ -3,7 +3,7 @@ from django import forms
 from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException
 from game.models.state import TechStorageItem, TechStatusEnum, ResourceStorage
 
@@ -28,7 +28,7 @@ class ResearchMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.research
+        move = ActionType.research
         form = ResearchForm
         allowed = ["super", "org"]
 

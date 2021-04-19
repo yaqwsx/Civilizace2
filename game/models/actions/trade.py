@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.state import MissingDistanceError
 from game.models.users import Team
 
@@ -56,7 +56,7 @@ class TradeMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.trade
+        move = ActionType.trade
         form = TradeForm
         allowed = ["super", "org"]
 

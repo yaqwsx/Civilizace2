@@ -10,8 +10,8 @@ from django.contrib import messages
 
 from game.models.users import User
 from game.models.state import State
-from game.models.actionBase import ActionStep
-from game.models.actionMoves.worldActions import NextGenerationAction
+from game.models.actionBase import ActionEvent
+from game.models.actions.worldActions import NextGenerationAction
 
 def getParameters():
     return GenerationTick.objects.get_or_create(id=1)[0]
@@ -85,10 +85,10 @@ class GenerationCountDownView(View):
             "team": None,
             "action": NextGenerationAction.CiviMeta.move,
         })
-        initiateStep = ActionStep.initiateAction(None, action)
+        initiateStep = ActionEvent.initiateAction(None, action)
         initiateStep.applyTo(state)
         user = User.objects.get(username="honza")
-        commitStep = ActionStep.commitAction(user, action, 0)
+        commitStep = ActionEvent.commitAction(user, action, 0)
         commitStep.applyTo(state)
         action.save()
         initiateStep.save()

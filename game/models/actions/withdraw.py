@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 
 
 class WithdrawForm(MoveForm):
@@ -56,7 +56,7 @@ class WithdrawMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.withdraw
+        move = ActionType.withdraw
         form = WithdrawForm
         allowed = ["super", "org"]
 

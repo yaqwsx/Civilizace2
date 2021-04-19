@@ -12,7 +12,7 @@ urlpatterns = [
     path("dashboard/<int:teamId>/messages", dashboard.DashboardMessageView.as_view(), name="dashboardMessages"),
 
     path("action/", ActionIndexView.as_view(), name="actionIndex"),
-    path("action/team/<int:teamId>/makemove/<int:moveId>", ActionMoveView.as_view(), name="actionMove"),
+    path("action/team/<int:teamId>/makemove/<int:moveId>", ActionInitiateView.as_view(), name="actionInitiate"),
     path("action/team/<int:teamId>/commitmove/<int:moveId>", ActionConfirmView.as_view(), name="actionConfirm"),
     path("action/throwdice/<int:actionId>", ActionDiceThrow.as_view(), name="actionDiceThrow"),
 

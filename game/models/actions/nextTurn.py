@@ -4,7 +4,7 @@ from django import forms
 
 from game.data import ResourceModel
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException
 
 
@@ -58,7 +58,7 @@ class NextTurn(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.nextTurn
+        move = ActionType.nextTurn
         form = NextTurnForm
         allowed = ["super", "org"]
 
@@ -75,7 +75,7 @@ class NextTurn(Action):
         unfinished = self.team.unfinishedAction()
 
         if unfinished:
-            org = unfinished.actionstep_set.all()[0].author
+            org = unfinished.actionevent_set.all()[0].author
             message = f"Nelze začít kolo, nedoházeli jste kostkou u organizátora {org.username}"
             return False, message
 

@@ -4,7 +4,7 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException
 from game.models.state import TechStorageItem, TechStatusEnum
 
@@ -26,7 +26,7 @@ class AddWonderMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.addWonder
+        move = ActionType.addWonder
         form = AddWonderForm
         allowed = ["super", "org"]
 

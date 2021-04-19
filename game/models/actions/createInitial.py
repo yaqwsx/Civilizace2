@@ -1,5 +1,5 @@
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action
 
 class CreateInitialForm(MoveForm):
@@ -9,7 +9,7 @@ class CreateInitialMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.createInitial
+        move = ActionType.createInitial
         form = CreateInitialForm
         allowed = []
 

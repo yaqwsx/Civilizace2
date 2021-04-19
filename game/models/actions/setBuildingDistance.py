@@ -3,7 +3,7 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 import json
 
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action
 from game.models.state import MissingDistanceError, TechStatusEnum
 
@@ -40,7 +40,7 @@ class SetBuildingDistanceMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.setBuildingDistance
+        move = ActionType.setBuildingDistance
         form = SetBuildingDistanceForm
         allowed = ["super", "org"]
 

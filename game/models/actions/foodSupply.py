@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 
 
 class FoodSupplyForm(MoveForm):
@@ -38,7 +38,7 @@ class FoodSupplyMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.foodSupply
+        move = ActionType.foodSupply
         form = FoodSupplyForm
         allowed = ["super", "org"]
 

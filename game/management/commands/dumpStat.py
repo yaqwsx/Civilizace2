@@ -3,8 +3,8 @@ from django.core.management import BaseCommand
 from pathlib import Path
 import os
 from game.models.state import State
-from game.models.actionBase import ActionPhase, ActionStep, Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionBase import ActionPhase, ActionEvent, Action
+from game.models.actionTypeList import ActionType
 from game.models.users import Team
 
 def isRoundEnd(prevState, state):

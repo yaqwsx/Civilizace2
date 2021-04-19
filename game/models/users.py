@@ -18,11 +18,11 @@ class Team(models.Model):
     def unfinishedAction(self):
         """ Return an action for the team which is initiated but not committed, abandoned or canceled """
         unfinished = Action.objects \
-            .filter(actionstep__action__team=self.id) \
+            .filter(actionevent__action__team=self.id) \
             .annotate(
-                initcount=Count('actionstep',
-                    filter=Q(actionstep__phase=ActionPhase.initiate))) \
-            .annotate(allcount=Count('actionstep')) \
+                initcount=Count('actionevent',
+                    filter=Q(actionevent__phase=ActionPhase.initiate))) \
+            .annotate(allcount=Count('actionevent')) \
             .filter(initcount=1, allcount=1)[:1]
         if unfinished:
             return unfinished[0].resolve()

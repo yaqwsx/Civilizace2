@@ -4,7 +4,7 @@ from django.core.management import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from guardian.shortcuts import assign_perm
 
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.users import User, Team
 from game.models.state import State
 

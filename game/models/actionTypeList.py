@@ -1,6 +1,6 @@
 from django_enumfield import enum
 
-class ActionMove(enum.Enum):
+class ActionType(enum.Enum):
     createInitial = 0
     sanboxIncreaseCounter = 1
     startNewRound = 2

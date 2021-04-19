@@ -7,7 +7,7 @@ from game.data import ResourceModel
 from game.data.vyroba import VyrobaModel, EnhancementModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.state import ResourceStorage, MissingDistanceError, TechStatusEnum
 
 def hideableEnhancers():
@@ -182,7 +182,7 @@ class VyrobaMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.vyroba
+        move = ActionType.vyroba
         form = VyrobaForm
         allowed = ["super", "org"]
 

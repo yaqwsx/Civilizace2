@@ -4,7 +4,7 @@ from django import forms
 
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 
 
 class SandboxForm(MoveForm):
@@ -33,7 +33,7 @@ class SandboxMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.sandbox
+        move = ActionType.sandbox
         form = SandboxForm
         allowed = []
 

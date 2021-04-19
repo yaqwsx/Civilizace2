@@ -1,5 +1,5 @@
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action
 
 class NextGenerationForm(MoveForm):
@@ -9,7 +9,7 @@ class NextGenerationAction(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.nextGeneration
+        move = ActionType.nextGeneration
         form = NextGenerationForm
         allowed = ["super"]
 

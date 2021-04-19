@@ -1,7 +1,7 @@
 from django import forms
 from .fields import EmptyEnumChoiceField, TeamChoiceField, captures
-from game.models.actionMovesList import ActionMove
-from game.models.actionMoves import *
+from game.models.actionTypeList import ActionType
+from game.models.actions import *
 from game.models.actionBase import Action, InvalidActionException
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django_enumfield.forms.fields import EnumChoiceField
@@ -28,12 +28,12 @@ class MoveInitialForm(forms.Form):
     team = captures("",
         TeamChoiceField(label="Tým"))
     action = captures("",
-        EnumChoiceField(ActionMove, label="Akce"))
+        EnumChoiceField(ActionType, label="Akce"))
     entity = forms.ChoiceField(required=False, label="Entita")
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 
     def __init__(self, user, data=None, state=None, **kwargs):
-        from game.models.actionMoves import allowedActionMoves
+        from game.models.actions import allowedActionTypes
         if data:
             super().__init__(data)
         else:
@@ -56,7 +56,7 @@ class MoveInitialForm(forms.Form):
                 for entity in entities:
                     self.actionForEntity[entity] = action.CiviMeta.move
         self.fields["entity"].choices = [('', '-----------')] + [(entity.id, entity.label) for entity in self.allEntities]
-        self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActionMoves(user)]
+        self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActionTypes(user)]
 
         self.commonLayout = Layout(
             Field('team'),

@@ -15,7 +15,7 @@ import json
 from .translations import Translations
 
 from game.managers import PrefetchManager
-from game.models.actionBase import ActionStep, InvalidActionException
+from game.models.actionBase import ActionEvent, InvalidActionException
 from game.models.users import Team
 from game import parameters
 
@@ -66,7 +66,7 @@ class StateManager(PrefetchManager):
         teamStates = [TeamState.objects.createInitial(team=team)
                       for team in Team.objects.all()]
         worldState = WorldState.objects.createInitial()
-        action = ActionStep.objects.createInitial()
+        action = ActionEvent.objects.createInitial()
         state = self.create(action=action, worldState=worldState)
         state.teamStates.set(teamStates)
         return state
@@ -76,7 +76,7 @@ class StateManager(PrefetchManager):
 
 
 class State(ImmutableModel):
-    action = models.ForeignKey("ActionStep", on_delete=models.PROTECT)
+    action = models.ForeignKey("ActionEvent", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
 

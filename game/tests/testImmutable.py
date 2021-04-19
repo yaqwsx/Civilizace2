@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.db import models
-from game.models import Team, State, ActionMove
+from game.models import Team, State, ActionType
 
 class ImmutableTest(TestCase):
     def setUp(self):
@@ -14,7 +14,7 @@ class ImmutableTest(TestCase):
         self.assertEqual(s.id, 1)
         # Action
         self.assertEqual(s.action.id, 1)
-        self.assertEqual(s.action.move, ActionMove.createInitial)
+        self.assertEqual(s.action.move, ActionType.createInitial)
         # World state
         self.assertEqual(s.worldState.id, 1)
         self.assertEqual(s.worldState.data, {})
@@ -37,13 +37,13 @@ class ImmutableTest(TestCase):
 
     def test_changeAction(self):
         s = State.objects.all()[0]
-        s.action.move = ActionMove.increasePopulation
+        s.action.move = ActionType.increasePopulation
         s.save()
         # State
         self.assertNotEqual(s.id, 1)
         # Action
         self.assertNotEqual(s.action.id, 1)
-        self.assertEqual(s.action.move, ActionMove.increasePopulation)
+        self.assertEqual(s.action.move, ActionType.increasePopulation)
         # The other items should stay intact
         # World state
         self.assertEqual(s.worldState.id, 1)
@@ -73,7 +73,7 @@ class ImmutableTest(TestCase):
         self.assertNotEqual(s.id, 1)
         # Action
         self.assertEqual(s.action.id, 1)
-        self.assertEqual(s.action.move, ActionMove.createInitial)
+        self.assertEqual(s.action.move, ActionType.createInitial)
         # The other items should stay intact
         # World state
         self.assertEqual(s.worldState.id, 1)

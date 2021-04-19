@@ -18,9 +18,9 @@ from .spendWork import SpendWorkMove
 from .addWonder import AddWonderMove
 from .attack import AttackMove
 
-def buildActionMove(data):
+def buildAction(data):
     """
-    Take an associated form data and build the actionMove
+    Take an associated form data and build the action
     """
     from game.models.actionBase import Action
     move = data["action"]
@@ -29,14 +29,14 @@ def buildActionMove(data):
             return actionClass.build(data=data)
     return None
 
-def formForActionMove(move):
+def formForActionType(move):
     from game.models.actionBase import Action
     for actionClass in Action.__subclasses__():
         if actionClass.CiviMeta.move == move:
             return actionClass.CiviMeta.form
     return None
 
-def allowedActionMoves(org):
+def allowedActionTypes(org):
     from game.models.actionBase import Action
     orgGroups = list([x.name for x in org.groups.all()])
     return [c.CiviMeta.move for c in Action.__subclasses__()

@@ -3,7 +3,7 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 import json
 
 from game.forms.action import MoveForm
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException
 from game.models.users import Team
 
@@ -42,7 +42,7 @@ class SetTeamDistanceMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.setTeamDistance
+        move = ActionType.setTeamDistance
         form = SetTeamDistanceForm
         allowed = ["super", "org"]
 

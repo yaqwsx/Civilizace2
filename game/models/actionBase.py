@@ -6,7 +6,7 @@ from django_enumfield import enum
 
 from .immutable import ImmutableModel
 from .fields import JSONField
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 
 class ActionPhase(enum.Enum):
     initiate = 0
@@ -14,7 +14,7 @@ class ActionPhase(enum.Enum):
     abandon = 2
     cancel = 3
 
-class ActionStepManager(models.Manager):
+class ActionEventManager(models.Manager):
     def createInitial(self):
         return self.create(
             author = None,
@@ -22,14 +22,14 @@ class ActionStepManager(models.Manager):
             action=Action.objects.createInitial(),
             workConsumed=0)
 
-class ActionStep(ImmutableModel):
+class ActionEvent(ImmutableModel):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     author = models.ForeignKey("User", on_delete=models.PROTECT, null=True)
     phase = enum.EnumField(ActionPhase)
     action = models.ForeignKey("Action", on_delete=models.PROTECT)
     workConsumed = models.IntegerField()
 
-    objects = ActionStepManager()
+    objects = ActionEventManager()
 
     def applyTo(self, state):
         """
@@ -81,34 +81,34 @@ class ActionStep(ImmutableModel):
 
     @staticmethod
     def initiateAction(author, action):
-        return ActionStep(author=author, phase=ActionPhase.initiate,
+        return ActionEvent(author=author, phase=ActionPhase.initiate,
             action=action, workConsumed=0)
 
     @staticmethod
     def cancelAction(author, action):
-        return ActionStep(author=author, phase=ActionPhase.cancel,
+        return ActionEvent(author=author, phase=ActionPhase.cancel,
                 action=action, workConsumed=0)
 
     @staticmethod
     def commitAction(author, action, workConsumed):
-        return ActionStep(author=author, phase=ActionPhase.commit,
+        return ActionEvent(author=author, phase=ActionPhase.commit,
                 action=action, workConsumed=workConsumed)
 
     @staticmethod
     def abandonAction(author, action, workConsumed):
-        return ActionStep(author=author, phase=ActionPhase.abandon,
+        return ActionEvent(author=author, phase=ActionPhase.abandon,
                 action=action, workConsumed=workConsumed)
 
 class ActionManager(models.Manager):
     def createInitial(self):
-        return self.create(move=ActionMove.createInitial, arguments={})
+        return self.create(move=ActionType.createInitial, arguments={})
 
 class InvalidActionException(Exception):
     pass
 
 class Action(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
-    move = enum.EnumField(ActionMove)
+    move = enum.EnumField(ActionType)
     arguments = JSONField()
 
     objects = ActionManager()

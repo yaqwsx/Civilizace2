@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.state import MissingDistanceError, InvalidActionException
 from game.models.users import Team
 
@@ -42,7 +42,7 @@ class AttackMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.attack
+        move = ActionType.attack
         form = AttackForm
         allowed = ["super", "org"]
 

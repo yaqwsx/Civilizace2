@@ -9,9 +9,9 @@ from django.http import HttpResponse
 from django.db.models import Count, Q
 
 from game import models
-from game.models.actionMoves import *
-from game.models.actionMovesList import ActionMove
-from game.models.actionBase import Action, ActionStep, ActionPhase, InvalidActionException
+from game.models.actions import *
+from game.models.actionTypeList import ActionType
+from game.models.actionBase import Action, ActionEvent, ActionPhase, InvalidActionException
 from game.models.users import User, Team
 from game.models.state import State
 from game.data.entity import DieModel
@@ -31,11 +31,11 @@ class ActionView(View):
         Return one of the unfinished actions by the current user, None otherwise
         """
         unfinished = Action.objects \
-            .filter(actionstep__author=user) \
+            .filter(actionevent__author=user) \
             .annotate(
-                initcount=Count('actionstep',
-                    filter=Q(actionstep__phase=ActionPhase.initiate))) \
-            .annotate(allcount=Count('actionstep')) \
+                initcount=Count('actionevent',
+                    filter=Q(actionevent__phase=ActionPhase.initiate))) \
+            .annotate(allcount=Count('actionevent')) \
             .filter(initcount=1, allcount=1)[:1]
         if unfinished:
             return unfinished[0].resolve()
@@ -70,7 +70,7 @@ class ActionIndexView(ActionView):
         state = State.objects.getNewest()
         form = MoveInitialForm(data=request.POST, state=state, user=request.user)
         if form.is_valid():
-            return redirect(reverse('actionMove', kwargs={
+            return redirect(reverse('actionInitiate', kwargs={
                                     "moveId": form.cleaned_data['action'].value,
                                     "teamId": form.cleaned_data['team'].id
             }) + '?' + urlencode({"entity": form.cleaned_data['entity']}))
@@ -81,7 +81,7 @@ class ActionIndexView(ActionView):
         })
 
 
-class ActionMoveView(ActionView):
+class ActionInitiateView(ActionView):
     @method_decorator(login_required)
     def get(self, request, teamId, moveId):
         if not request.user.isOrg():
@@ -92,13 +92,13 @@ class ActionMoveView(ActionView):
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         try:
             state = State.objects.getNewest()
-            formClass = formForActionMove(moveId)
+            formClass = formForActionType(moveId)
             form = formClass(team=teamId, action=moveId, user=request.user, entity=request.GET.get("entity"), state=state)
-            return render(request, "game/actionMove.html", {
+            return render(request, "game/actionInitiate.html", {
                 "request": request,
                 "form": form,
                 "team": get_object_or_404(Team, pk=teamId),
-                "action": ActionMove(moveId),
+                "action": ActionType(moveId),
                 "messages": messages.get_messages(request)
             })
         except InvalidActionException as e:
@@ -110,16 +110,16 @@ class ActionMoveView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
-        form = formForActionMove(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
+        form = formForActionType(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
              state=state, team=teamId, user=request.user)
         try:
             if form.is_valid() and not form.cleaned_data["canceled"]:
-                action = buildActionMove(form.cleaned_data)
+                action = buildAction(form.cleaned_data)
                 requiresDice = action.requiresDice(state)
-                initiateStep = ActionStep.initiateAction(request.user, action)
+                initiateStep = ActionEvent.initiateAction(request.user, action)
                 moveValid, message = initiateStep.applyTo(state)
                 if moveValid and  not requiresDice:
-                    commitStep = ActionStep.commitAction(request.user, action, 0)
+                    commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
                     moveValid = moveValid and commitValid
                     message += "<br>" + commitMessage
@@ -138,11 +138,11 @@ class ActionMoveView(ActionView):
         except InvalidActionException as e:
             messages.error(request, str(e))
         form.data["canceled"] = False
-        return render(request, "game/actionMove.html", {
+        return render(request, "game/actionInitiate.html", {
             "request": request,
             "form": form,
             "team": get_object_or_404(Team, pk=teamId),
-            "action": ActionMove(moveId),
+            "action": ActionType(moveId),
             "messages": messages.get_messages(request)
         })
 
@@ -154,14 +154,14 @@ class ActionConfirmView(ActionView):
         try:
             state = State.objects.getNewest()
             team = get_object_or_404(Team, pk=teamId)
-            form = formForActionMove(moveId)(data=request.POST, state=state, team=teamId, user=request.user)
+            form = formForActionType(moveId)(data=request.POST, state=state, team=teamId, user=request.user)
             if form.is_valid(): # Should be always unless someone plays with API directly
-                action = buildActionMove(form.cleaned_data)
+                action = buildAction(form.cleaned_data)
                 requiresDice = action.requiresDice(state)
-                initiateStep = ActionStep.initiateAction(request.user, action)
+                initiateStep = ActionEvent.initiateAction(request.user, action)
                 moveValid, message = initiateStep.applyTo(state)
                 if moveValid and not requiresDice:
-                    commitStep = ActionStep.commitAction(request.user, action, 0)
+                    commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
                     moveValid = moveValid and commitValid
                     message += "<br>" + commitMessage
@@ -249,17 +249,17 @@ class ActionDiceThrow(ActionView):
                 return redirect('actionDiceThrow', actionId=action.id)
             print(request.POST)
             if "cancel" in request.POST.get("submit", "") == "cancel":
-                step = ActionStep.cancelAction(request.user, action)
+                step = ActionEvent.cancelAction(request.user, action)
                 channel = messages.warning
             else:
                 dice = DieModel.objects.get(id=form.cleaned_data["dice"])
                 requiredDots = action.dotsRequired(state)[dice]
                 workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
                 if form.cleaned_data["dotsCount"] >= requiredDots:
-                    step = ActionStep.commitAction(request.user, action, workConsumed)
+                    step = ActionEvent.commitAction(request.user, action, workConsumed)
                     channel = messages.success
                 else:
-                    step = ActionStep.abandonAction(request.user, action, workConsumed)
+                    step = ActionEvent.abandonAction(request.user, action, workConsumed)
                     channel = messages.warning
             moveValid, message = step.applyTo(state)
             if not moveValid:
@@ -277,4 +277,4 @@ class ActionDiceThrow(ActionView):
             return redirect('actionDiceThrow', actionId=action.id)
 
     def isFinished(self, action):
-        return action.actionstep_set.all().exclude(phase=ActionPhase.initiate).exists()
+        return action.actionevent_set.all().exclude(phase=ActionPhase.initiate).exists()

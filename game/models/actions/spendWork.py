@@ -4,7 +4,7 @@ from django import forms
 
 from game.forms.action import MoveForm
 from game.models.actionBase import Action
-from game.models.actionMovesList import ActionMove
+from game.models.actionTypeList import ActionType
 from game.models.state import ResourceStorage
 
 
@@ -18,7 +18,7 @@ class SpendWorkMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionMove.spendWork
+        move = ActionType.spendWork
         form = SpendWorkForm
         allowed = ["super", "org"]
 
