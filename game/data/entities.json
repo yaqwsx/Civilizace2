@@ -1635,21 +1635,6 @@
             ""
         ],
         [
-            "L\u00e9\u010div\u00e9 byliny",
-            "edge-byliny",
-            "build-lovci",
-            "tech-byliny",
-            "die-les:10",
-            "",
-            "",
-            "mat-bobule:5",
-            "1",
-            "1",
-            "2",
-            "",
-            ""
-        ],
-        [
             "Elixir",
             "edge-elixir",
             "tech-byliny",
@@ -13690,7 +13675,7 @@
         ],
         [
             "Univerz\u00e1l",
-            "",
+            "a",
             "",
             "",
             "Z\u00edskej inici\u00e1ln\u00ed tech pro v\u0161echny \u010dty\u0159i biotopy",
@@ -13698,7 +13683,7 @@
         ],
         [
             "Nedosa\u017eiteln\u00fd",
-            "",
+            "b",
             "",
             "",
             "P\u0159id\u011bl si tento achievement",
@@ -13706,7 +13691,7 @@
         ],
         [
             "Uct\u00edva\u010d boh\u016f",
-            "",
+            "c",
             "",
             "",
             "Onikal orgovi",
@@ -13714,7 +13699,7 @@
         ],
         [
             "V\u00fdzkumn\u00edk",
-            "",
+            "d",
             "",
             "",
             "Jako prvn\u00ed vyzkoumal tech lv. 3 a v\u00edc",
@@ -13722,7 +13707,7 @@
         ],
         [
             "Pr\u016fkopn\u00edk",
-            "",
+            "e",
             "",
             "",
             "Produkce kamene 11+",
@@ -13730,7 +13715,7 @@
         ],
         [
             "Osv\u011btlova\u010d",
-            "",
+            "f",
             "",
             "",
             "Produkce n\u011bkter\u00e9ho paliva 11 a v\u00edc",
@@ -13738,7 +13723,7 @@
         ],
         [
             "Popelka",
-            "",
+            "g",
             "",
             "",
             "Rozsypal si organiz\u00e9r",
@@ -13800,18 +13785,6 @@
             "vyr-alkohol-palenka",
             "tech-nytovani",
             "mat-sroub:3",
-            "3",
-            "",
-            "1",
-            "1",
-            "prod-alkohol:2"
-        ],
-        [
-            "Kotel",
-            "enh-kotel",
-            "vyr-alkohol-pivo",
-            "tech-nytovani",
-            "mat-sroub:2",
             "3",
             "",
             "1",

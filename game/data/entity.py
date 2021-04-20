@@ -1,15 +1,18 @@
 from django.db import models
 
-class GameDataModel(models.Model):
-    pass
-
+class EntitiesVersion(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
 
 class EntityModel(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     label = models.CharField(max_length=50)
-    data = models.ForeignKey(GameDataModel, on_delete=models.CASCADE)
+    version = models.ForeignKey(EntitiesVersion, on_delete=models.CASCADE)
+
     class Meta:
         abstract = True
+        constraints = [
+            models.UniqueConstraint(name="%(class)s_pk", fields=["id", "version"])
+        ]
 
     def __str__(self):
         return self.id
@@ -24,13 +27,6 @@ class DieModel(EntityModel):
             "die-les": "4e9c00", # Green
             "die-any": "000000" # Black
         }
-        colors.update({
-            # "die-plane": "eeeeee", # Blue
-            # "die-hory": "eeeeee", # Gray
-            # "die-poust": "eeeeee", # Orange
-            # "die-les": "eeeeee", # Green
-            # "die-any": "eeeeee" # Black
-        })
         return colors[self.id]
 
 class AchievementModel(EntityModel):
@@ -50,3 +46,7 @@ class TaskModel(EntityModel):
 
     def htmlRepr(self):
         return f"Úkol: <b>{self.label}</b><br><i>{self.text}</i>"
+
+class IslandModel(EntityModel):
+    pass
+    # Maara: You should put anything specific to the island entity here

@@ -1,5 +1,5 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
-from .entity import EntityModel, GameDataModel, DieModel, AchievementModel, TaskModel
+from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel, TaskModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
 
@@ -32,8 +32,7 @@ class Parser():
                 continue
             label = line[0]
             id = line[1]
-            die, _ = DieModel.objects.update_or_create(id=id, defaults={
-                "label": label, "data": self.data})
+            die = DieModel.objects.create(id=id, label=label, version=self.entitiesVersion)
 
     def _addTasks(self):
         print("Parsing tasks")
@@ -48,8 +47,8 @@ class Parser():
             id = line[1]
             popis = line[2]
             text = line[3]
-            task, _ = TaskModel.objects.update_or_create(id=id, defaults={
-                "label": label, "text": text, "popis":popis, "data": self.data})
+            task = TaskModel.objects.create(id=id, label=label, text=text,
+                popis=popis, version=self.entitiesVersion)
             count += 1
 
         print(f"  added {count} tasks")
@@ -69,28 +68,26 @@ class Parser():
             label = line[0]
             id = line[1]
             color = line[2]
-            type, _ = ResourceTypeModel.objects.update_or_create(id=id, defaults={
-                "label": label, "color": color, "data": self.data})
+            type = ResourceTypeModel.objects.create(id=id, label=label,
+                color=color, version=self.entitiesVersion)
 
             for i in range(2, 7):
-                mat, _ = ResourceModel.objects.update_or_create(
+                mat = ResourceModel.objects.create(
                     id="mat-" + id[5:] + "-" + str(i),
-                    defaults={
-                        "label": label + " " + Parser.romeLevel(i),
-                        "type": type,
-                        "icon": "placeholder.png",
-                        "level": i,
-                        "data": self.data
-                    })
-                prod, _ = ResourceModel.objects.update_or_create(
+                    label=label + " " + Parser.romeLevel(i),
+                    type=type,
+                    icon="placeholder.png",
+                    level=i,
+                    version=self.entitiesVersion
+                )
+                prod = ResourceModel.objects.create(
                     id="prod-" + id[5:] + "-" + str(i),
-                    defaults={
-                        "label": "Produkce: " + label + " " + Parser.romeLevel(i),
-                        "type": type,
-                        "icon": "placeholder.png",
-                        "level": i,
-                        "data": self.data
-                    })
+                    label="Produkce: " + label + " " + Parser.romeLevel(i),
+                    type=type,
+                    icon="placeholder.png",
+                    level=i,
+                    version=self.entitiesVersion
+                    )
 
     def _addResources(self):
         print("Parsing resources")
@@ -106,8 +103,8 @@ class Parser():
             typeRaw = line[2]
             icon = line[3]
             if typeRaw == "-":
-                res, _ = ResourceModel.objects.update_or_create(id=id, defaults={
-                    "label": label, "type": None, "level": 1, "icon": icon, "data": self.data})
+                res = ResourceModel.objects.create(id=id, label=label,
+                    type=None, level=1, icon=icon, version=self.entitiesVersion)
             else:
                 chunks = typeRaw.split("-")
                 if len(chunks) < 2:
@@ -126,21 +123,21 @@ class Parser():
                     self._logWarning("Zdroje." + str(n) + ": Neznamy typ " + chunks[0])
                     continue
 
-                mat, _ = ResourceModel.objects.update_or_create(id=id, defaults={
-                    "label": label,
-                    "type": typeRef,
-                    "level": level,
-                    "icon": icon,
-                    "data": self.data})
+                mat = ResourceModel.objects.create(id=id,
+                    label=label,
+                    type=typeRef,
+                    level=level,
+                    icon=icon,
+                    version=self.entitiesVersion)
 
                 prodId = "prod" + id[3:]
                 prodLabel = "Produkce: " + label
-                prod, _ = ResourceModel.objects.update_or_create(id=prodId, defaults={
-                    "label": prodLabel,
-                    "type": typeRef,
-                    "level": level,
-                    "icon": icon.replace("a.png", "b.png"),
-                    "data": self.data})
+                prod = ResourceModel.objects.create(id=prodId,
+                    label=prodLabel,
+                    type=typeRef,
+                    level=level,
+                    icon=icon.replace("a.png", "b.png"),
+                    version=self.entitiesVersion)
 
     def _addTechs(self):
         print("Parsing techs")
@@ -178,10 +175,10 @@ class Parser():
                 self._logWarning("Tech." + str(n) + ": Nezname ID ukolu (" + str(line[2]) + ")")
                 continue
 
-            tech, _ = TechModel.objects.update_or_create(id=id, defaults={
-                "label": label, "task": task, "image": image, "notes": notes,
-                "flavour": flavour, "culture": culture, "nodeTag": nodeTag,
-                "epocha": epocha, "data": self.data})
+            tech = TechModel.objects.create(id=id,
+                label=label, task=task, image=image, notes=notes,
+                flavour=flavour, culture=culture, nodeTag=nodeTag,
+                epocha=epocha, version=self.entitiesVersion)
             count += 1
         print(f"   added {count} technologies")
 
@@ -217,9 +214,8 @@ class Parser():
             except:
                 self._logWarning("Edge." + str(n) + ": Nepodarilo se zpracovat udaje o kostce (" + line[4] + ")")
                 continue
-
-            edge, _ = TechEdgeModel.objects.update_or_create(id=id, defaults={
-                "label": label, "src": src, "dst": dst, "die": die, "dots": dots, "data": self.data})
+            edge = TechEdgeModel.objects.create(id=id, label=label, src=src,
+                dst=dst, die=die, dots=dots, version=self.entitiesVersion)
             count += 1
 
             def addInput(entry):
@@ -241,9 +237,8 @@ class Parser():
                     self._logWarning("Edge." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input, _ = TechEdgeInputModel.objects.update_or_create(
-                    parent=edge, resource=res,
-                    defaults={"amount": amount})
+                input = TechEdgeInputModel.objects.create(
+                    parent=edge, resource=res, amount=amount)
                 return input
 
             try:
@@ -318,9 +313,9 @@ class Parser():
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID budovy (" + line[8] + ")")
                 continue
 
-            vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
-                "label": label, "flavour": flavour, "tech": tech, "build": build,
-                "output": output, "amount": amount, "die": die, "dots": dots, "data": self.data})
+            vyr = VyrobaModel.objects.create(id=id,
+                label=label, flavour=flavour, tech=tech, build=build,
+                output=output, amount=amount, die=die, dots=dots, version=self.entitiesVersion)
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -341,9 +336,9 @@ class Parser():
                     self._logWarning("Vyroba." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input, _ = VyrobaInputModel.objects.update_or_create(
+                input = VyrobaInputModel.objects.create(
                     parent=vyr, resource=res,
-                    defaults={"amount": amount})
+                    amount=amount)
                 return input
 
             try:
@@ -383,9 +378,9 @@ class Parser():
             id = id + "-material"
             label = "Materiál: " + label
 
-            vyr, _ = VyrobaModel.objects.update_or_create(id=id, defaults={
-                "label": label, "flavour": flavour, "tech": tech, "build": centrum,
-                "output": output, "amount": amount, "die": die, "dots": dots, "data": self.data})
+            vyr = VyrobaModel.objects.create(id=id,
+                label=label, flavour=flavour, tech=tech, build=centrum,
+                output=output, amount=amount, die=die, dots=dots, version=self.entitiesVersion)
 
             def addMatInput(entry):
                 chunks = entry.split(":")
@@ -408,9 +403,8 @@ class Parser():
                     self._logWarning("Vyroba." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input, _ = VyrobaInputModel.objects.update_or_create(
-                    parent=vyr, resource=res,
-                    defaults={"amount": amount})
+                input = VyrobaInputModel.objects.create(
+                    parent=vyr, resource=res, amount=amount)
 
                 return input
 
@@ -457,8 +451,8 @@ class Parser():
                 self._logWarning("Vylepšení ." + str(n) + ".: Bonus musí být číslo (" + line[5] + ")")
                 return None
 
-            defaults = {"label": label, "tech": tech, "vyroba": vyroba, "amount": amount, "data": self.data}
-            enhancement, _ = EnhancementModel.objects.update_or_create(id=id, defaults=defaults)
+            enhancement = EnhancementModel.objects.create(id=id,
+                label=label, tech=tech, vyroba=vyroba, amount=amount, version=self.entitiesVersion)
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -479,9 +473,8 @@ class Parser():
                     self._logWarning("Vylepšení." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input, _ = EnhancementInputModel.objects.update_or_create(
-                    parent=enhancement, resource=res,
-                    defaults={"amount": amount})
+                input = EnhancementInputModel.objects.create(
+                    parent=enhancement, resource=res, amount=amount)
                 return input
 
             if line[4] != "" and line[4] != "-":
@@ -496,9 +489,9 @@ class Parser():
 
         for n, line in enumerate(myRaw[1:], start=1):
             label, id, implementation, icon, orgMessage = line[:5]
-            AchievementModel.objects.update_or_create(id=id,
-                    defaults={"label": label, "implementation": implementation,
-                              "icon": icon, "orgMessage": orgMessage, "data": self.data})
+            AchievementModel.objects.create(id=id,
+                label=label, implementation=implementation,
+                icon=icon, orgMessage=orgMessage, version=self.entitiesVersion)
 
 
     def parse(self, rawData):
@@ -517,10 +510,8 @@ class Parser():
 
         self.warnings = []
 
-        # create a fresh data entity - we will erase items with old game data
-        # tag later
-        oldData = GameDataModel.objects.all().first()
-        self.data = GameDataModel.objects.create()
+        # create a fresh entity version
+        self.entitiesVersion = EntitiesVersion.objects.create()
         self.raw = rawData
 
         # parse each entity type
@@ -533,12 +524,6 @@ class Parser():
         self._addVyrobas()
         self._addEnhancements()
         self._addAchievements()
-
-        # Delete items which weren't updated - the ones with old game data
-        if oldData:
-            for model in EntityModel.__subclasses__():
-                model.objects.filter(data=oldData.id).delete()
-            oldData.delete()
 
         warnings = self.warnings
         self.warnings = None

@@ -4,7 +4,7 @@ import json
 
 from django.db import transaction
 
-from .entity import EntityModel, GameDataModel, DieModel
+from .entity import EntityModel, EntitiesVersion, DieModel
 from .tech import TechModel
 from .parser import Parser
 
@@ -31,7 +31,7 @@ class Update():
         return result
 
     def _createEntities(self, raw, warnings):
-        entities = GameDataModel.objects.create()
+        entities = EntitiesVersion.objects.create()
 
         return {}
 
@@ -43,7 +43,7 @@ class Update():
         return True
 
     def _cleanup(self):
-        entitiesSets = GameDataModel.objects.all()
+        entitiesSets = EntitiesVersion.objects.all()
         for entity in entitiesSets:
             entity.delete()
         dice = DieModel.objects.all()

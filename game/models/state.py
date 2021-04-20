@@ -161,27 +161,18 @@ class WorldState(ImmutableModel):
 class TeamState(ImmutableModel):
     class TeamStateManager(models.Manager):
         def createInitial(self, team):
-            sandbox = SandboxTeamState.objects.createInitial()
-            population = PopulationTeamState.objects.createInitial()
-            resources = ResourceStorage.objects.createInitial(team)
-            materials = MaterialStorage.objects.createInitial()
-            techs = TechStorage.objects.createInitial(team)
-            distances = DistanceLogger.objects.createInitial(team)
-            achievements = TeamAchievements.objects.createInitial()
-            foodSupply = FoodStorage.objects.createInitial()
-            vliv = VlivStorage.objects.createInitial()
             return self.create(
                 team=team,
-                sandbox=sandbox,
-                population=population,
+                sandbox=SandboxTeamState.objects.createInitial(),
+                population=PopulationTeamState.objects.createInitial(),
                 turn=0,
-                resources=resources,
-                materials=materials,
-                techs=techs,
-                distances=distances,
-                achievements=achievements,
-                foodSupply=foodSupply,
-                vliv=vliv)
+                resources=ResourceStorage.objects.createInitial(team),
+                materials=MaterialStorage.objects.createInitial(),
+                techs=TechStorage.objects.createInitial(team),
+                distances=DistanceLogger.objects.createInitial(team),
+                achievements=TeamAchievements.objects.createInitial(),
+                foodSupply=FoodStorage.objects.createInitial(),
+                vliv=VlivStorage.objects.createInitial())
 
     objects = TeamStateManager()
 

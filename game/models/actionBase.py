@@ -7,6 +7,7 @@ from django_enumfield import enum
 from .immutable import ImmutableModel
 from .fields import JSONField
 from game.models.actionTypeList import ActionType
+from game.data.entity import EntitiesVersion
 
 class ActionPhase(enum.Enum):
     initiate = 0
@@ -100,6 +101,10 @@ class ActionEvent(ImmutableModel):
                 action=action, workConsumed=workConsumed)
 
 class ActionManager(models.Manager):
+    def create(self, *args, **kwargs):
+        super().create(*args, **kwargs,
+            entitiesVersion=EntitiesVersion.objects.latest('id').id)
+
     def createInitial(self):
         return self.create(move=ActionType.createInitial, arguments={})
 
@@ -109,6 +114,7 @@ class InvalidActionException(Exception):
 class Action(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
     move = enum.EnumField(ActionType)
+    entitiesVersion = models.ForeignKey("EntitiesVersion", on_delete=models.PROTECT)
     arguments = JSONField()
 
     objects = ActionManager()
