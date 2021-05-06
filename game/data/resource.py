@@ -1,12 +1,12 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from .entity import EntityModel
+from .entity import EntityModel, EntityManager
 
 class ResourceTypeModel(EntityModel):
     color = models.CharField(max_length=7)
 
-class ResourceManager(models.Manager):
+class ResourceManager(EntityManager):
     def concreteResources(self, metaResource):
         assert(metaResource.isMeta)
         # Use all instead of filter as it have been probably already fetched...
@@ -17,7 +17,7 @@ class ResourceModel(EntityModel):
     icon = models.CharField(max_length=30)
     level = models.IntegerField(validators=[MinValueValidator(2), MaxValueValidator(6)])
 
-    objects = ResourceManager()
+    manager = ResourceManager()
 
     def concreteResources(self):
         if self.isMeta:

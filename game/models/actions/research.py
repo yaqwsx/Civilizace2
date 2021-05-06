@@ -45,9 +45,6 @@ class ResearchMove(Action):
         techs = state.teamState(team.id).techs
         return techs.getOwnedTechs()
 
-    def sane(self):
-        return True
-
     @property
     def edge(self):
         return TechEdgeModel.objects.get(id=self.arguments["techSelect"])

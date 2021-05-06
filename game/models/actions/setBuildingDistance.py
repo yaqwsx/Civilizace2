@@ -65,7 +65,7 @@ class SetBuildingDistanceMove(Action):
 
     def commit(self, state):
         distLogger = state.teamState(self.team.id).distances
-        source = TechModel.objects.get(id=self.arguments["entity"])
+        source = self.context.techs.get(id=self.arguments["entity"])
         buildings = state.teamState(self.team.id).techs.getBuildings()
         messages = []
         distances = {}

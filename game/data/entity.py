@@ -1,12 +1,44 @@
 from django.db import models
+from game.utils import classproperty
+import copy
+import types
+
+class EntitiesVersionManager(models.Manager):
+    def getNewest(self):
+        return self.latest("pk")
 
 class EntitiesVersion(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+
+    objects = EntitiesVersionManager()
+
+class EntityManager(models.Manager):
+    def fixVersionManger(self, version):
+        """
+        Return a new manager that returns entities on given version
+        """
+        s = super(EntityManager, self)
+        def get_queryset(self):
+            return s.get_queryset().filter(version=version.id)
+        newManager = copy.copy(self)
+        newManager.get_queryset = types.MethodType(get_queryset, newManager)
+        return newManager
+
+    def latest(self):
+        return self.get_queryset().filter(version=EntitiesVersion.objects.getNewest())
 
 class EntityModel(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     label = models.CharField(max_length=50)
     version = models.ForeignKey(EntitiesVersion, on_delete=models.CASCADE)
+
+    @classproperty
+    def objects(self):
+        raise NotImplementedError(
+            "You tried to access entity manager without "
+            "specifying entity version. Use action context!")
+
+    manager = EntityManager()
 
     class Meta:
         abstract = True

@@ -1,6 +1,8 @@
 # See https://medium.com/@philamersune/using-postgresql-jsonfield-in-sqlite-95ad4ad2e5f1
 
 import json
+import types
+import functools
 
 from django.conf import settings
 from django.contrib.postgres.fields import (
@@ -61,8 +63,22 @@ if 'sqlite' in settings.DATABASES['default']['ENGINE']:
             return name, path, args, kwargs
 
 class DbList(list):
-    def __init__(self, model_type):
+    def __init__(self, model_type, populate_by=None):
         self.model_type = model_type
+        self.populate_by = populate_by
+        proxies = ["__len__", "__getitem__", "__delitem__", "__setitem__",
+            "__iter__", "__str__", "__repr__", "insert", "append", "extend", "clear"]
+        def f(fnName, self, *args, **kwargs):
+            self._populate()
+            getattr(super(DbList, self), fnName)(*args, **kwargs)
+        for p in proxies:
+            fWrapper = functools.partial(f, p) # To capture p by value
+            setattr(self, p, types.MethodType(fWrapper, self))
+
+    def _populate(self):
+        if self.populate_by is not None:
+            super(DBList, self).extend([x() for x in self.populate_by])
+            self.populate_by = None
 
     def get(self, **kwargs):
         def eq(field, value):
@@ -89,8 +105,12 @@ class DbList(list):
         False
 
 class ListField(Field):
-    def __init__(self, model_type, **kwargs):
+    def __init__(self, model_type, model_manager=None, **kwargs):
         self.model_type = model_type
+        if model_manager is not None:
+            self.get_model_manager = model_manager
+        else:
+            self.get_model_manager = lambda: model_manager
         return super().__init__(**kwargs)
 
     def deconstruct(self):
@@ -110,11 +130,14 @@ class ListField(Field):
         return DbList(self.model_type)
 
     def to_python(self, value):
-        items = DbList(self.model_type)
+        def populate(pk):
+            return self.get_model_manager.get(pk=pk)
         if value is not None:
-            for obj in serializers.deserialize("json", value):
-                items.append(self.model_type.objects.get(pk=obj.object.pk))
-        return items
+            items = [functools.partial(populate, obj.object.pk)
+                for obj in serializers.deserialize("json", value)]
+        else:
+            items = []
+        return DbList(self.model_type, items)
 
     def get_prep_value(self, value):
         if value is not None:

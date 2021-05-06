@@ -117,11 +117,12 @@ class ActionInitiateView(ActionView):
                 action = buildAction(form.cleaned_data)
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionEvent.initiateAction(request.user, action)
-                moveValid, message = initiateStep.applyTo(state)
-                if moveValid and  not requiresDice:
+                res = initiateStep.applyTo(state)
+                message = res.message
+                if res.success and  not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
-                    moveValid = moveValid and commitValid
+                    res.success = res.success and commitValid
                     message += "<br>" + commitMessage
 
                 form.data["canceled"] = True
@@ -131,7 +132,7 @@ class ActionInitiateView(ActionView):
                     "team": get_object_or_404(Team, pk=teamId),
                     "action": action,
                     "requiresDice": requiresDice,
-                    "moveValid": moveValid,
+                    "moveValid": res.success,
                     "message": message,
                     "messages": messages.get_messages(request)
                 })
@@ -159,21 +160,22 @@ class ActionConfirmView(ActionView):
                 action = buildAction(form.cleaned_data)
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionEvent.initiateAction(request.user, action)
-                moveValid, message = initiateStep.applyTo(state)
-                if moveValid and not requiresDice:
+                res = initiateStep.applyTo(state)
+                message = res.message
+                if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitValid, commitMessage = commitStep.applyTo(state)
-                    moveValid = moveValid and commitValid
+                    res.success = res.success and commitValid
                     message += "<br>" + commitMessage
                     awardAchievements(request, state, team)
-                if not moveValid:
+                if not res.success:
                     form.data["canceled"] = True
                     return render(request, "game/actionConfirm.html", {
                         "request": request,
                         "form": form,
                         "team": team,
                         "action": action,
-                        "moveValid": moveValid,
+                        "moveValid": res.success,
                         "message": message,
                         "messages": messages.get_messages(request)
                     })
@@ -247,12 +249,11 @@ class ActionDiceThrow(ActionView):
             if form.cleaned_data["throwCount"] == 0 and form.cleaned_data["dotsCount"] != 0:
                 messages.error(request, "Tým neházel, ale přesto má nenulový počet puntíků. Opakujte zadání.")
                 return redirect('actionDiceThrow', actionId=action.id)
-            print(request.POST)
             if "cancel" in request.POST.get("submit", "") == "cancel":
                 step = ActionEvent.cancelAction(request.user, action)
                 channel = messages.warning
             else:
-                dice = DieModel.objects.get(id=form.cleaned_data["dice"])
+                dice = action.context.dies.get(id=form.cleaned_data["dice"])
                 requiredDots = action.dotsRequired(state)[dice]
                 workConsumed = form.cleaned_data["throwCount"] * parameters.DICE_THROW_PRICE
                 if form.cleaned_data["dotsCount"] >= requiredDots:
@@ -261,16 +262,16 @@ class ActionDiceThrow(ActionView):
                 else:
                     step = ActionEvent.abandonAction(request.user, action, workConsumed)
                     channel = messages.warning
-            moveValid, message = step.applyTo(state)
-            if not moveValid:
-                messages.error(message)
+            res = step.applyTo(state)
+            if not res.success:
+                messages.error(res.message)
                 return redirect('actionDiceThrow', actionId=action.id)
             awardAchievements(request, state, team)
             action.save()
             step.save()
             state.save()
-            if message and len(message) > 0:
-                channel(request, message)
+            if len(res.message) > 0:
+                channel(request, res.message)
             return redirect('actionIndex')
         except InvalidActionException as e:
             messages.error(request, str(e))

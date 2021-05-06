@@ -7,7 +7,13 @@ from django_enumfield import enum
 from .immutable import ImmutableModel
 from .fields import JSONField
 from game.models.actionTypeList import ActionType
-from game.data.entity import EntitiesVersion
+from game.data.entity import (
+    EntitiesVersion, EntityModel, DieModel, AchievementModel, TaskModel,
+    IslandModel)
+from game.data.resource import ResourceModel, ResourceTypeModel
+from game.data.tech import TechModel, TechEdgeModel
+from game.data.vyroba import VyrobaModel, EnhancementModel
+from game.models.stickers import Sticker
 
 class ActionPhase(enum.Enum):
     initiate = 0
@@ -16,11 +22,11 @@ class ActionPhase(enum.Enum):
     cancel = 3
 
 class ActionEventManager(models.Manager):
-    def createInitial(self):
+    def createInitial(self, context):
         return self.create(
             author = None,
             phase=ActionPhase.commit,
-            action=Action.objects.createInitial(),
+            action=Action.objects.createInitial(context),
             workConsumed=0)
 
 class ActionEvent(ImmutableModel):
@@ -40,26 +46,27 @@ class ActionEvent(ImmutableModel):
         value is a message for the org - either extra instructions or failure
         reason. The message can use HTML tags to further format it.
         """
+        state.setContext(self.action.context)
         if self.phase == ActionPhase.initiate:
-            res, message = self.action.initiate(state)
-            if res:
+            res = self.action.initiate(state)
+            if res.success:
                 self.initiate(state)
-            return res, message
+            return res
         if self.phase == ActionPhase.commit:
-            res, message = self.action.commit(state)
-            if res:
+            res = self.action.commit(state)
+            if res.success:
                 self.commit(state)
-            return res, message
+            return res
         if self.phase == ActionPhase.abandon:
-            res, message = self.action.abandon(state)
-            if res:
+            res = self.action.abandon(state)
+            if res.success:
                 self.abandon(state)
-            return res, message
+            return res
         if self.phase == ActionPhase.cancel:
-            res, message = self.action.cancel(state)
-            if res:
+            res = self.action.cancel(state)
+            if res.success:
                 self.cancel(state)
-            return res, message
+            return res
         raise ValueError("Invalid action phase specified")
 
     def initiate(self, state):
@@ -101,15 +108,64 @@ class ActionEvent(ImmutableModel):
                 action=action, workConsumed=workConsumed)
 
 class ActionManager(models.Manager):
-    def create(self, *args, **kwargs):
-        super().create(*args, **kwargs,
-            entitiesVersion=EntitiesVersion.objects.latest('id').id)
+    def create(self, *args, entitiesVersion=None, **kwargs):
+        if entitiesVersion is None:
+            entitiesVersion = EntitiesVersion.objects.latest('id')
+        return super().create(*args, **kwargs, entitiesVersion=entitiesVersion)
 
-    def createInitial(self):
-        return self.create(move=ActionType.createInitial, arguments={})
+    def createInitial(self, context):
+        return self.create(move=ActionType.createInitial,
+            entitiesVersion=context.entitiesVersion, arguments={})
 
 class InvalidActionException(Exception):
     pass
+
+class ActionResult:
+    """
+    Result of the application of an action to the state
+    """
+    def __init__(self, success, message, stickers=[]):
+        """
+        Fist parameter indicates if the application was successful. The message
+        will be dislayed to the organizer and it can contain HTML entities for
+        formatting. Stickers is a list of Sticker objects representing new
+        stickers that the team was awarded.
+        """
+        self.success = success
+        self.message = message
+        self.stickers = stickers
+
+    @staticmethod
+    def makeSuccess(message, stickers=[]):
+        return ActionResult(True, message, stickers)
+
+    @staticmethod
+    def makeFail(message):
+        return ActionResult(False, message, [])
+
+class ActionContext:
+    """
+    Execution context of the action. It is meant to contain game data - e.g.,
+    entities in the particular version.
+    """
+    def __init__(self, entitiesVersion):
+        managers = {
+            "dies": DieModel,
+            "achievements": AchievementModel,
+            "islands": IslandModel,
+            "resources": ResourceModel,
+            "resourceTypes": ResourceTypeModel,
+            "techs": TechModel,
+            "vyrobas": VyrobaModel
+        }
+        for name, model in managers.items():
+            setattr(self, name, model.manager.fixVersionManger(entitiesVersion))
+        self.entitiesVersion = entitiesVersion
+
+    @staticmethod
+    def latests():
+        return ActionContext(EntitiesVersion.objects.getNewest())
+
 
 class Action(ImmutableModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
@@ -118,6 +174,12 @@ class Action(ImmutableModel):
     arguments = JSONField()
 
     objects = ActionManager()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.entitiesVersion_id:
+            self.entitiesVersion = EntitiesVersion.objects.getNewest()
+        self.context = ActionContext(self.entitiesVersion)
 
     @staticmethod
     def stripData(data):
@@ -150,12 +212,10 @@ class Action(ImmutableModel):
     def initiate(self, state):
         """
         Apply "initiate" step of this action to the state. Initiation can
-        allocate some of the resources - which can be returned in the abondon
+        allocate some of the resources - which can be returned in the abandon
         step.
 
-        Return value: tuple< bool, str >. First value indicate success, second
-        value is a message for the org - either extra instructions or failure
-        reason. The message can use HTML tags to further format it.
+        Return value: ActionResult.
 
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
@@ -167,9 +227,7 @@ class Action(ImmutableModel):
         Apply "commit" step of this action to the state.
         Commiting actions means apply all effects to the state
 
-        Return value: tuple< bool, str >. First value indicate success, second
-        value is a message for the org - either extra instructions or failure
-        reason. The message can use HTML tags to further format it.
+        Return value: ActionResult
 
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
@@ -181,9 +239,7 @@ class Action(ImmutableModel):
         Apply "abandon" step of this action to the state.
         Abandoning action means further requirements (dice throw) was unsuccessful
 
-        Return value: tuple< bool, str >. First value indicate success, second
-        value is a message for the org - either extra instructions or failure
-        reason. The message can use HTML tags to further format it.
+        Return value: ActionResult
 
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
@@ -195,9 +251,7 @@ class Action(ImmutableModel):
         Cancel initiated action - basically rollback all effects by the initiate
         step. Only actions with initiate step can be cancelled.
 
-        Return value: tuple< bool, str >. First value indicate success, second
-        value is a message for the org - either extra instructions or failure
-        reason. The message can use HTML tags to further format it.
+        Return value: ActionResult
 
         When false is returned the state is undefined state and it should not be
         used by the caller anymore.
@@ -209,12 +263,6 @@ class Action(ImmutableModel):
             if actionClass.CiviMeta.move == self.move:
                 return actionClass.objects.get(pk=self.pk)
         return None
-
-    def sane(self):
-        """
-        Check if the action is sane and can be safely applied
-        """
-        return self.move is not None and self.team is not None
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -233,8 +281,8 @@ class Action(ImmutableModel):
     def description(self):
         return "{} pro tým {}".format(self.move.label, self.team.name)
 
-    def cancelMessage(self):
-        return "Akce \"{}\" byla zrušena.".format(self.description())
+    def makeCancel(self):
+        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla zrušena.")
 
-    def abandonMessage(self):
-        return "Akce \"{}\" byla uzavřena neúspěchem. Týmu se nepovedlo hodit dostatek".format(self.description())
+    def makeAbandon(self):
+        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla uzavřena neúspěchem. Týmu se nepovedlo hodit dostatek")

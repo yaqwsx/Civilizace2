@@ -2,7 +2,7 @@ from django import forms
 
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 from game.data.entity import DieModel
 
 class SanboxIncreaseCounterForm(MoveForm):
@@ -20,17 +20,17 @@ class SandboxIncreaseCounterMove(Action):
     def relevantEntities(state, team):
         return []
 
-
     def requiresDice(self, state):
         return True
 
     def dotsRequired(self, state):
-        return { DieModel.objects.get(id="die-plane"): 15, DieModel.objects.get(id="die-hory"): 24 }
+        return { self.context.dies.get(id="die-plane"): 15, self.context.dies.get(id="die-hory"): 24 }
 
     # Just to ease accessing the arguments
     @property
     def amount(self):
         return self.arguments["amount"]
+
     @amount.setter
     def amount(self, value):
         self.arguments["amount"] = value
@@ -42,14 +42,7 @@ class SandboxIncreaseCounterMove(Action):
     def build(data):
         action = SandboxIncreaseCounterMove(team=data["team"], move=data["action"], arguments={})
         action.amount = data["amount"]
-        print("build: " + str(action))
         return action
-
-    def sane(self):
-        # Just an example here
-        result = super.sane() and self.amount < 10000000
-        print("sane: " + str(result))
-        return result
 
     def initiate(self, state):
         val = self.sandbox(state).data["counter"] + self.amount
@@ -57,25 +50,25 @@ class SandboxIncreaseCounterMove(Action):
             message = "Změní počítadlo na: {}".format(val)
             message += "<br>" + self.diceThrowMessage(state)
             print("initiate: " + str((True, message)))
-            return True, message
+            return ActionResult.makeSuccess(message)
         message = "Počítadlo by kleslo pod nulu ({})".format(val)
         print("initiate: " + str((False, message)))
-        return False, message
+        return ActionResult.makeFail(message)
 
     def commit(self, state):
         self.sandbox(state).data["counter"] += self.amount
         if self.sandbox(state).data["counter"] >= 0:
             message = "Počítadlo změněno na: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(self.sandbox(state).data["counter"])
             print("commit: " + str((True, message)))
-            return True, message
+            return ActionResult.makeSuccess(message)
         message = "Počítadlo by kleslo pod nulu ({})".format(self.sandbox(state).data["counter"])
         print("commit: " + str((False, message)))
-        return False,
+        return ActionResult.makeFail(message)
 
     def abandon(self, state):
         print("abandon: " + str((True, self.abandonMessage())))
-        return True, self.abandonMessage()
+        return self.makeAbandon()
 
     def cancel(self, state):
         print("cancel: " + str((True, self.cancelMessage())))
-        return True, self.cancelMessage()
+        return self.makeCancel

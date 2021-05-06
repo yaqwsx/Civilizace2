@@ -62,20 +62,41 @@ class StateManager(PrefetchManager):
         # you can get different handles to models)
         super(StateManager, self).__init__(prefetch_related=("teamStates",), select_related=("action",))
 
-    def createInitial(self):
-        teamStates = [TeamState.objects.createInitial(team=team)
+    def createInitial(self, context):
+        teamStates = [TeamState.objects.createInitial(team=team, context=context)
                       for team in Team.objects.all()]
-        worldState = WorldState.objects.createInitial()
-        action = ActionEvent.objects.createInitial()
+        worldState = WorldState.objects.createInitial(context)
+        action = ActionEvent.objects.createInitial(context)
         state = self.create(action=action, worldState=worldState)
         state.teamStates.set(teamStates)
         return state
 
     def getNewest(self):
-        return self.latest("pk")
+        state = self.latest("pk")
+        state.setContext(state.action.action.context)
+        return state
 
+class StateModel(ImmutableModel):
+    class Meta:
+        abstract = True
 
-class State(ImmutableModel):
+    def setContext(self, context):
+        self.context = context
+        relevantFields = []
+        for field in self._meta.get_fields():
+            if not hasattr(self, field.name):
+                continue
+            attr = getattr(self, field.name)
+            if isinstance(field, models.fields.related.ManyToManyField):
+                for relative in attr.all():
+                    relevantFields.append(relative)
+            else:
+                relevantFields.append(attr)
+        for f in relevantFields:
+            if hasattr(f, "setContext"):
+                f.setContext(context)
+
+class State(StateModel):
     action = models.ForeignKey("ActionEvent", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
@@ -108,9 +129,9 @@ class State(ImmutableModel):
             # ToDo: Ignore the team name
             ts.godUpdate(eatUpdatePrefixAll(f"{ts.team.name}({ts.team.id})", update))
 
-class WorldState(ImmutableModel):
+class WorldState(StateModel):
     class WorldStateManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, context):
             generation = 1
             foodValue = 20
             castes = "[2,3,4,5]"
@@ -158,21 +179,21 @@ class WorldState(ImmutableModel):
         kasty.sort(reverse=True)
         return kasty
 
-class TeamState(ImmutableModel):
+class TeamState(StateModel):
     class TeamStateManager(models.Manager):
-        def createInitial(self, team):
+        def createInitial(self, team, context):
             return self.create(
                 team=team,
-                sandbox=SandboxTeamState.objects.createInitial(),
-                population=PopulationTeamState.objects.createInitial(),
+                sandbox=SandboxTeamState.objects.createInitial(context),
+                population=PopulationTeamState.objects.createInitial(context),
                 turn=0,
-                resources=ResourceStorage.objects.createInitial(team),
-                materials=MaterialStorage.objects.createInitial(),
-                techs=TechStorage.objects.createInitial(team),
-                distances=DistanceLogger.objects.createInitial(team),
-                achievements=TeamAchievements.objects.createInitial(),
-                foodSupply=FoodStorage.objects.createInitial(),
-                vliv=VlivStorage.objects.createInitial())
+                resources=ResourceStorage.objects.createInitial(team, context),
+                materials=MaterialStorage.objects.createInitial(context),
+                techs=TechStorage.objects.createInitial(team, context),
+                distances=DistanceLogger.objects.createInitial(team, context),
+                achievements=TeamAchievements.objects.createInitial(context),
+                foodSupply=FoodStorage.objects.createInitial(context),
+                vliv=VlivStorage.objects.createInitial(context))
 
     objects = TeamStateManager()
 
@@ -225,9 +246,9 @@ class TeamState(ImmutableModel):
         if "turn" in update["change"]:
             self.turn = update["change"]["turn"]
 
-class TeamAchievements(ImmutableModel):
+class TeamAchievements(StateModel):
     class TeamAchievementsManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, context):
             return self.create(list=[])
 
     list = ListField(model_type=AchievementModel)
@@ -236,7 +257,7 @@ class TeamAchievements(ImmutableModel):
     def awardNewAchievements(self, state, team):
         """ Checks if new achievements should be awarded, if so, return their list """
         newAchievements = []
-        for achievement in AchievementModel.objects.all():
+        for achievement in self.context.achievements.all():
             if self.list.has(id=achievement.id): # Skip already awarded achievements
                 continue
             if achievement.achieved(state, team):
@@ -253,7 +274,7 @@ class TeamAchievements(ImmutableModel):
             try:
                 if self.list.has(id=id):
                     continue
-                self.list.append(AchievementModel.objects.get(id=id))
+                self.list.append(self.context.achievements.get(id=id))
             except AchievementModel.DoesNotExist:
                 raise InvalidActionException(f"Unknown id '{id}'")
         for id in update["remove"].get("", []):
@@ -262,7 +283,7 @@ class TeamAchievements(ImmutableModel):
             self.list.remove(self.list.get(id=id))
 
 
-class DistanceItemBuilding(ImmutableModel):
+class DistanceItemBuilding(StateModel):
     source = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_source")
     target = models.ForeignKey("TechModel", on_delete=models.PROTECT, related_name="distance_target")
     distance = models.IntegerField()
@@ -270,7 +291,7 @@ class DistanceItemBuilding(ImmutableModel):
     def __str__(self):
         return f"{self.source} -> {self.target}={self.distance}"
 
-class DistanceItemTeams(ImmutableModel):
+class DistanceItemTeams(StateModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     distance = models.IntegerField()
 
@@ -280,9 +301,9 @@ class MissingDistanceError(RuntimeError):
         self.source = source
         self.target = target
 
-class DistanceLogger(ImmutableModel):
+class DistanceLogger(StateModel):
     class DistanceLoggerManager(models.Manager):
-        def createInitial(self, team):
+        def createInitial(self, team, context):
             result = self.create(building=[], teams=[])
             return result
     objects = DistanceLoggerManager()
@@ -292,9 +313,9 @@ class DistanceLogger(ImmutableModel):
 
     def getBuildingDistance(self, source, target):
         if isinstance(source, str):
-            source = TechModel.objects.get(id=source)
+            source = self.context.techs.get(id=source)
         if isinstance(target, str):
-            target = TechModel.objects.get(id=target)
+            target = self.context.techs.get(id=target)
         if source.id > target.id:
             source, target = target, source
         if source.id == target.id:
@@ -307,9 +328,9 @@ class DistanceLogger(ImmutableModel):
 
     def setBuildingDistance(self, source, target, distance):
         if isinstance(source, str):
-            source = TechModel.objects.get(id=source)
+            source = self.context.techs.get(id=source)
         if isinstance(target, str):
-            target = TechModel.objects.get(id=target)
+            target = self.context.techs.get(id=target)
         if source.id > target.id:
             source, target = target, source
         if source.id == target.id:
@@ -415,13 +436,13 @@ class DistanceLogger(ImmutableModel):
             self.teams.remove(self.teams.get(team=id))
 
 
-class FoodStorageItem(ImmutableModel):
+class FoodStorageItem(StateModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
 
-class FoodStorage(ImmutableModel):
+class FoodStorage(StateModel):
     class FoodStorageManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, context):
             return self.create(items=[])
     objects = FoodStorageManager()
     items = ListField(model_type=FoodStorageItem)
@@ -487,10 +508,10 @@ class FoodStorage(ImmutableModel):
         return result
 
     def getFoodSupply(self):
-        return self.getSupply(ResourceTypeModel.objects.get(id="type-jidlo"))
+        return self.getSupply(self.context.resourceTypes.get(id="type-jidlo"))
 
     def getLuxusSupply(self):
-        return self.getSupply(ResourceTypeModel.objects.get(id="type-luxus"))
+        return self.getSupply(self.context.resourceTypes.get(id="type-luxus"))
 
     def addSupply(self, resources):
         item = None
@@ -511,7 +532,7 @@ class FoodStorage(ImmutableModel):
         for resource, amount in update["add"].items():
             if self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(FoodStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
+            self.items.append(FoodStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
 
         for resource, _ in update["remove"].items():
             if not self.items.has(resource=resource):
@@ -524,23 +545,23 @@ class FoodStorage(ImmutableModel):
             self.items.get(resource=resource).amount = amount
 
 
-class ResourceStorageItem(ImmutableModel):
+class ResourceStorageItem(StateModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
 
-class ResourceStorage(ImmutableModel):
+class ResourceStorage(StateModel):
     class NotEnoughResourcesException(InvalidActionException):
         def __init__(self, msg, list):
             super().__init__(msg + '<ul>' + "".join([f'{amount}x {res.label}' for res, amount in list.items()]) + '</ul>')
             self.list = list
 
     class ResourceStorageManager(models.Manager):
-        def createInitial(self, team):
+        def createInitial(self, team, context):
             initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION), ("res-populace", INITIAL_POPULATION)]
             items = []
             for id, amount in initialResources:
                 items.append(ResourceStorageItem.objects.create(
-                    resource=game.data.ResourceModel.objects.get(id=id),
+                    resource=context.resources.get(id=id),
                     amount=amount
                 ))
             result = self.create(items=items)
@@ -567,14 +588,14 @@ class ResourceStorage(ImmutableModel):
         }
 
     def _addPopulation(self, amount):
-        self.items.get(resource=ResourceModel.objects.get(id="res-populace")).amount += amount
+        self.items.get(resource=self.context.resources.get(id="res-populace")).amount += amount
 
     def spendWork(self, amount):
-        self.payResources({ResourceModel.objects.get(id="res-prace"): amount})
+        self.payResources({self.context.resources.get(id="res-prace"): amount})
 
     def getAmount(self, resource):
         if isinstance(resource, str):
-            resource = ResourceModel.objects.get(id=resource)
+            resource = self.context.resources.get(id=resource)
         try:
             item = self.items.get(resource=resource)
             return item.amount
@@ -583,7 +604,7 @@ class ResourceStorage(ImmutableModel):
 
     def setAmount(self, resource, amount):
         if isinstance(resource, str):
-            resource = ResourceModel.objects.get(id=resource)
+            resource = self.context.resources.get(id=resource)
 
         item = None
         try:
@@ -600,7 +621,7 @@ class ResourceStorage(ImmutableModel):
 
     def setAmountReturn(self, resource, amount):
         if isinstance(resource, str):
-            resource = ResourceModel.objects.get(id=resource)
+            resource = Rself.context.resources.get(id=resource)
 
         item = None
         try:
@@ -703,7 +724,7 @@ class ResourceStorage(ImmutableModel):
         for resource, amount in update["add"].items():
             if self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(ResourceStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
+            self.items.append(ResourceStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
 
         for resource, _ in update["remove"].items():
             if not self.items.has(resource=resource):
@@ -724,9 +745,9 @@ class ResourceStorage(ImmutableModel):
     def getObyvatel(self):
         return self.getAmount("res-obyvatel")
 
-class MaterialStorage(ImmutableModel):
+class MaterialStorage(StateModel):
     class MaterialStorageManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, context):
             return self.create(items=[])
 
     objects = MaterialStorageManager()
@@ -734,7 +755,7 @@ class MaterialStorage(ImmutableModel):
 
     def getAmount(self, resource):
         if isinstance(resource, str):
-            resource = ResourceModel.objects.get(id=resource)
+            resource = self.context.resources.get(id=resource)
         try:
             item = self.items.get(resource=resource)
             return item.amount
@@ -743,7 +764,7 @@ class MaterialStorage(ImmutableModel):
 
     def setAmount(self, resource, amount):
         if isinstance(resource, str):
-            resource = ResourceModel.objects.get(id=resource)
+            resource = Rself.context.resources.get(id=resource)
 
         item = None
         try:
@@ -771,7 +792,7 @@ class MaterialStorage(ImmutableModel):
         for resource, amount in update["add"].items():
             if self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(ResourceStorageItem(resource=ResourceModel.objects.get(id=resource), amount=amount))
+            self.items.append(ResourceStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
 
         for resource, _ in update["remove"].items():
             if not self.items.has(resource=resource):
@@ -823,20 +844,20 @@ def parseTechStatus(s):
     if s == "OWNED":
         return TechStatusEnum.OWNED
 
-class TechStorageItem(ImmutableModel):
+class TechStorageItem(StateModel):
     tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
     status = enum.EnumField(TechStatusEnum)
     def __str__(self):
         return self.tech.label + (":❌" if self.status == TechStatusEnum.RESEARCHING else ":✅")
 
-class TechStorage(ImmutableModel):
+class TechStorage(StateModel):
     class TechStorageManager(models.Manager):
-        def createInitial(self, team):
+        def createInitial(self, team, context):
             initialTechs = ["build-centrum"]
             items = []
             for id in initialTechs:
                 items.append(TechStorageItem.objects.create(
-                    tech=game.data.TechModel.objects.get(id=id),
+                    tech=context.techs.get(id=id),
                     status=TechStatusEnum.OWNED
                 ))
             result = self.create(items=items)
@@ -940,7 +961,7 @@ class TechStorage(ImmutableModel):
         for techId, status in update["add"].items():
             if self.items.has(tech=techId):
                 raise InvalidActionException(f"Cannot add '{techId}' which is already present in the list")
-            tech = TechModel.objects.get(id=techId)
+            tech = self.context.techs.get(id=techId)
             self.items.append(TechStorageItem(tech=tech, status=parseTechStatus(status)))
 
         for tech, _ in update["remove"].items():
@@ -953,13 +974,13 @@ class TechStorage(ImmutableModel):
                 raise InvalidActionException(f"Cannot change '{tech}' which is not present in the list")
             self.items.get(tech=tech).status = parseTechStatus(status)
 
-class VlivStorageItem(ImmutableModel):
+class VlivStorageItem(StateModel):
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     amount = models.IntegerField(default=0)
 
-class VlivStorage(ImmutableModel):
+class VlivStorage(StateModel):
     class VlivStorageManager(models.Manager):
-        def createInitial(self):
+        def createInitial(self, context):
             return self.create(items=[])
 
     objects = VlivStorageManager()
@@ -993,14 +1014,14 @@ class VlivStorage(ImmutableModel):
 # =================================================
 
 class PopulationTeamStateManager(models.Manager):
-    def createInitial(self):
+    def createInitial(self, context):
         return self.create(
             work=parameters.INITIAL_POPULATION,
             population=parameters.INITIAL_POPULATION
         )
 
 
-class PopulationTeamState(ImmutableModel):
+class PopulationTeamState(StateModel):
     population = models.IntegerField("population")
     work = models.IntegerField("work")
 
@@ -1029,13 +1050,13 @@ class PopulationTeamState(ImmutableModel):
             self.work = update["change"]["work"]
 
 class SandboxTeamStateManager(models.Manager):
-    def createInitial(self):
+    def createInitial(self, context):
         return self.create(data={
             "counter": 0
         })
 
 
-class SandboxTeamState(ImmutableModel):
+class SandboxTeamState(StateModel):
     data = JSONField()
 
     objects = SandboxTeamStateManager()

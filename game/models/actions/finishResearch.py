@@ -43,9 +43,6 @@ class FinishResearchMove(Action):
         techs = state.teamState(team.id).techs
         return techs.getTechsUnderResearch()
 
-    def sane(self):
-        return True
-
     def requiresDice(self, state):
         return False
 
@@ -53,7 +50,7 @@ class FinishResearchMove(Action):
         return True, ""
 
     def commit(self, state):
-        tech = TechModel.objects.get(id=self.arguments["entity"])
+        tech = self.context.techs.get(id=self.arguments["entity"])
         techs = self.teamState(state).techs
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:

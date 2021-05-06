@@ -7,6 +7,8 @@ from guardian.shortcuts import assign_perm
 from game.models.actionTypeList import ActionType
 from game.models.users import User, Team
 from game.models.state import State
+from game.models.actionBase import ActionContext
+from game.data.entity import EntitiesVersion
 
 from game.data.update import Update, UpdateError
 
@@ -130,7 +132,8 @@ class Command(BaseCommand):
             group, created = Group.objects.get_or_create(name=group_name)
 
     def createState(self):
-        s = State.objects.createInitial()
+        context = ActionContext(EntitiesVersion.objects.getNewest())
+        s = State.objects.createInitial(context)
         if s is None:
             print("Cannot create initialState")
         else:

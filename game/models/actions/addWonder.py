@@ -41,10 +41,7 @@ class AddWonderMove(Action):
     @staticmethod
     def relevantEntities(state, team):
         techs = state.teamState(team.id).techs
-        return TechModel.objects.filter(id__startswith="div-zaklad")
-
-    def sane(self):
-        return True
+        return TechModel.manager.latest().filter(id__startswith="div-zaklad")
 
     def requiresDice(self, state):
         return False
@@ -53,7 +50,7 @@ class AddWonderMove(Action):
         return True, ""
 
     def commit(self, state):
-        tech = TechModel.objects.get(id=self.arguments["entity"])
+        tech = self.context.techs.get(id=self.arguments["entity"])
         techs = self.teamState(state).techs
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
