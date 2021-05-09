@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load generationInfo %}
 
 {% block nav %}
     {% if request.user.isOrg %}
@@ -38,4 +39,10 @@
             {% endif %}
         </ul>
     {% endif %}
+{% endblock %}
+
+{% block contentHeader %}
+    <div class="border-t-4 rounded-b px-4 py-3 shadow-md mb-4">
+        {% generationInfo %}
+    </div>
 {% endblock %}

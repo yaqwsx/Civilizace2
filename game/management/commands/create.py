@@ -8,6 +8,7 @@ from game.models.actionTypeList import ActionType
 from game.models.users import User, Team
 from game.models.state import State
 from game.models.actionBase import ActionContext
+from game.models.generationTick import GenerationTickSettings, ExpectedGeneration
 from game.data.entity import EntitiesVersion
 
 from game.data.update import Update, UpdateError
@@ -58,7 +59,7 @@ TEAMS = {
 }
 
 
-SUPER_USERS = ["maara", "honza"]
+SUPER_USERS = ["maara", "honza", "system"]
 ORG = ["abbe", "jupi", "efka", "kaja", "darwin", "martin", "liska", "tinka", "ivka", "tom", "zaloha"]
 
 class Command(BaseCommand):
@@ -138,6 +139,9 @@ class Command(BaseCommand):
             print("Cannot create initialState")
         else:
             print("Initial state created: {}".format(s))
+
+        ExpectedGeneration.objects.create()
+        GenerationTickSettings.objects.create()
 
     def createEntities(self):
         updater = Update()

@@ -2,83 +2,94 @@
 
 {% block content %}
 <div class="text-center">
-    <h1 style="font-size:80px">Odpočet do konce {{generation}}. generace</h1>
+    <h1 style="font-size:80px" id="heading">
+        Odpočet do konce {{generation}}. generace
+    </h1>
     <div id="countdown" style="font-size:300px"></div>
     <div id="pauseMessage" style="font-size:80px" class="hidden">
         Generace jsou pozastaveny.
     </div>
-
     <div id="statusMessage">
     </div>
-
-    <form method="post" class="hidden">
-        {% csrf_token %}
-    </form>
 </div>
 
 <script>
     document.getElementById("content").classList.remove("container");
+    var heading = document.querySelector('#heading');
     var pauseMessage = document.querySelector('#pauseMessage');
     var timerDiv = document.querySelector('#countdown')
 
-    var running = {{ params.running|yesno:"true,false" }};
-    var reload = false;
-    var period = {{ params.period }};
-    var timer = period;
-    var interval;
-    interval = setInterval(function () {
-        if (reload) {
-            reload = false;
-            timer = period;
-        }
-
-        if (!running) {
-            timerDiv.textContent = "";
-            pauseMessage.classList.remove("hidden");
+    function fetchNew() {
+        let g = generationInfo;
+        if (g.fetching)
             return;
-        }
-
-        var minutes = parseInt(timer / 60, 10);
-        var seconds = parseInt(timer % 60, 10);
-
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-
-        pauseMessage.classList.add("hidden");
-        timerDiv.textContent = minutes + ":" + seconds;
-
-        if (--timer < 0) {
-            clearInterval(interval)
-            document.getElementsByTagName("FORM")[0].submit();
-        }
-    }, 1000);
-
-    var statusMessage = document.querySelector('#statusMessage');
-    setInterval(function() {
-        var request = new XMLHttpRequest();
-        request.open('GET', '/generation/params', true);
-
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
-                var data = JSON.parse(request.responseText);
-                period = data["period"];
-                running = data["running"];
-                if (data["forceUpdate"]) {
-                    reload = true;
-                    request.open('POST', '/generation/params', true);
-                    request.send();
-                }
-                statusMessage.textContent = "";
-            } else {
-                statusMessage.textContent = "Přijata špatná data: " + request.statusText;
+        g.fetching = true;
+        fetch("/generation/info").then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
             }
-        };
+            if (response.status !== 200) {
+                return response.text().then( text => {
+                    throw new Error(`Response: ${response.status}: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(r => {
+            g.serverTime = Date.parse(r.serverTime);
+            g.localTime = Date.now();
+            g.generationDue = Date.parse(r.nextGenerationEnd);
+            g.generationSeq = r.generationNum;
+            g.fetching = false;
+        })
+        .catch(e => {
+            statusMessage.textContent = e.message;
+            g.fetching = false;
+        });
+    };
 
-        request.onerror = function() {
-            statusMessage.textContent = "Spojení ztraceno: " + request.statusText;
-        };
+    function renderGenerationInfo() {
+        let g = generationInfo;
+        g.updateCount += 1
+        if (g.updateCount % 5 == 0)
+            fetchNew()
 
-        request.send();
-    }, 1500);
+        if (g.generationDue) {
+            heading.textContent = `Odpočet do konce ${g.generationSeq}. generace`;
+            let clientDue = g.localTime + (g.generationDue - g.serverTime);
+            let remains = clientDue - Date.now();
+            if (remains <= 0) {
+                timerDiv.textContent = ""
+                statusMessage.textContent = `Probíhá změna z generace ${g.generationSeq} na ${g.generationSeq + 1}.`;
+                fetchNew();
+            }
+            else {
+                let rSeconds = remains / 1000;
+                let minutes = Math.floor(rSeconds / 60);
+                let seconds = Math.floor(rSeconds % 60);
+                statusMessage.textContent = ""
+                timerDiv.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+            }
+        } else {
+            heading.textContent = "Odpočítávání generací je zastaveno."
+            statusMessage.textContent = ""
+            timerDiv.textContent = ""
+        }
+    }
+    var generationInfo = {
+        "serverTime": Date.parse("{{serverTime|date:"c"}}"),
+        "localTime": Date.now(),
+        "generationDue":
+            {%if nextGenerationEnd %}
+                Date.parse("{{nextGenerationEnd|date:"c"}}"),
+            {% else %}
+                null,
+            {% endif %}
+        "generationSeq": {{generation}},
+        "fetching": false,
+        "updateCount": 0
+    };
+    setInterval(renderGenerationInfo, 1000);
+    renderGenerationInfo();
 </script>
 {% endblock %}

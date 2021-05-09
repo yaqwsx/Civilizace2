@@ -1,6 +1,6 @@
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 
 class NextGenerationForm(MoveForm):
     pass
@@ -23,12 +23,10 @@ class NextGenerationAction(Action):
         return action
 
     def initiate(self, state):
-        return True, ""
+        return ActionResult.makeSuccess("Generace započata")
 
     def commit(self, state):
-        print("State: " + str(state))
         world = state.worldState
-        print("world: " + str(world))
         world.generation += 1
         message = """Začala generace {gen}""".format(gen=world.generation)
-        return True, message
+        return ActionResult.makeSuccess(message)
