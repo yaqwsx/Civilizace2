@@ -31,7 +31,7 @@
         parent.append(plus);
 
         minus = document.createElement("button");
-        minus.id = input.id + "-minus10";
+        minus.id = input.id + "-minus5";
         minus.innerHTML = "&darr;&darr;";
         minus.style = "min-width: 0px";
         minus.classList.add("inline-block", "shadow", "text-center",
@@ -40,7 +40,7 @@
             "rounded", "flex-none", "mx-1", "text-xs");
 
         plus = document.createElement("buttom");
-        plus.id = input.id + "-plus10";
+        plus.id = input.id + "-plus5";
         plus.innerHTML = "&uarr;&uarr;";
         plus.style = "min-width: 0px";
         plus.classList.add("inline-block", "shadow", "text-center",
@@ -75,24 +75,24 @@
         }, false);
 
         document.addEventListener('click', function (event) {
-            if (!event.target.matches('#' + input.id + "-minus10")) return;
+            if (!event.target.matches('#' + input.id + "-minus5")) return;
             event.preventDefault();
 
             if (input.value == null || input.value == "") {
                 input.value = "0"
             }
-            input.value = parseInt(input.value) - 10;
+            input.value = Math.floor(((parseInt(input.value) - 1) / 5)) * 5;
             var event = new Event('change');
             input.dispatchEvent(event);
         }, false);
 
         document.addEventListener('click', function (event) {
-            if (!event.target.matches('#' + input.id + "-plus10")) return;
+            if (!event.target.matches('#' + input.id + "-plus5")) return;
             event.preventDefault();
             if (input.value == null || input.value == "") {
                 input.value = "0"
             }
-            input.value = parseInt(input.value) + 10;
+            input.value = Math.ceil(((parseInt(input.value) + 1) / 5)) * 5;
             var event = new Event('change');
             input.dispatchEvent(event);
         }, false);
