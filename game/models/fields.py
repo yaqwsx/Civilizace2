@@ -77,7 +77,7 @@ class DbList(list):
 
     def _populate(self):
         if self.populate_by is not None:
-            super(DBList, self).extend([x() for x in self.populate_by])
+            super(DbList, self).extend([x() for x in self.populate_by])
             self.populate_by = None
 
     def get(self, **kwargs):
@@ -110,7 +110,7 @@ class ListField(Field):
         if model_manager is not None:
             self.get_model_manager = model_manager
         else:
-            self.get_model_manager = lambda: model_manager
+            self.get_model_manager = lambda: model_type.objects
         return super().__init__(**kwargs)
 
     def deconstruct(self):
@@ -131,7 +131,7 @@ class ListField(Field):
 
     def to_python(self, value):
         def populate(pk):
-            return self.get_model_manager.get(pk=pk)
+            return self.get_model_manager().get(pk=pk)
         if value is not None:
             items = [functools.partial(populate, obj.object.pk)
                 for obj in serializers.deserialize("json", value)]

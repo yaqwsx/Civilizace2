@@ -49,26 +49,20 @@ class SandboxIncreaseCounterMove(Action):
         if self.sandbox(state).data["counter"] >= 0:
             message = "Změní počítadlo na: {}".format(val)
             message += "<br>" + self.diceThrowMessage(state)
-            print("initiate: " + str((True, message)))
             return ActionResult.makeSuccess(message)
         message = "Počítadlo by kleslo pod nulu ({})".format(val)
-        print("initiate: " + str((False, message)))
         return ActionResult.makeFail(message)
 
     def commit(self, state):
         self.sandbox(state).data["counter"] += self.amount
         if self.sandbox(state).data["counter"] >= 0:
             message = "Počítadlo změněno na: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(self.sandbox(state).data["counter"])
-            print("commit: " + str((True, message)))
             return ActionResult.makeSuccess(message)
         message = "Počítadlo by kleslo pod nulu ({})".format(self.sandbox(state).data["counter"])
-        print("commit: " + str((False, message)))
         return ActionResult.makeFail(message)
 
     def abandon(self, state):
-        print("abandon: " + str((True, self.abandonMessage())))
         return self.makeAbandon()
 
     def cancel(self, state):
-        print("cancel: " + str((True, self.cancelMessage())))
         return self.makeCancel

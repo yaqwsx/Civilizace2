@@ -47,6 +47,7 @@ class ActionEvent(ImmutableModel):
         reason. The message can use HTML tags to further format it.
         """
         state.setContext(self.action.context)
+        state.action = self
         if self.phase == ActionPhase.initiate:
             res = self.action.initiate(state)
             if res.success:
