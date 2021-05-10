@@ -60,6 +60,7 @@ class ActionIndexView(ActionView):
         return render(request, "game/actionIndex.html", {
             "request": request,
             "form": form,
+            "teams": Team.objects.all(),
             "messages": messages.get_messages(request)
         })
 
@@ -77,6 +78,7 @@ class ActionIndexView(ActionView):
         return render(request, "game/actionIndex.html", {
             "request": request,
             "form": form,
+            "teams": Team.objects.all(),
             "messages": messages.get_messages(request)
         })
 

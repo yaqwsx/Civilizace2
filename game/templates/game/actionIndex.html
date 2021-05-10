@@ -6,6 +6,25 @@
 {% block content %}
     <form method="post">
         {% csrf_token %}
+
+        <div class="md:flex md:items-center mb-6">
+            <div class="md:w-1/3">
+                <label for="id_team" class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4 requiredField">
+                    Tým<span class="asteriskField">*</span>
+                </label>
+            </div>
+            <div class="flex flex-wrap field md:w-2/3">
+                {% for team in teams %}
+                    <button class="teamButton bg-{{team.color}} mr-2 mb-2 border-black rounded flex-auto"
+                            style="width: 70px; height: 70px;"
+                            data-team="{{team.id}}"
+                            onclick="return onTeamButtonClick(this)">
+                        {{team.name}}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
         {{ form|crispy }}
         <button
             class="w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
@@ -82,11 +101,31 @@
             entitySelect.firstChild.selected = true;
         }
 
+        function onTeamButtonClick(button) {
+            teamSelect.value = button.dataset.team;
+            renderButtons();
+            return false;
+        }
+
+        function renderButtons() {
+            let buttons = document.querySelectorAll(".teamButton");
+            let selected = teamSelect.value;
+            for (let i = 0; i != buttons.length; i++) {
+                let btn = buttons[i];
+                if (btn.dataset.team == selected) {
+                    btn.classList.add("border-4");
+                } else {
+                    btn.classList.remove("border-4");
+                }
+            }
+        }
+
         teamSelect.onchange = function() {
             console.log("Changed team!");
             filterEntities();
             showAllOptions(actionSelect);
             actionSelect.firstChild.selected = true;
+            renderButtons();
         };
 
         entitySelect.onchange = function() {
@@ -105,6 +144,7 @@
             console.log("Changed action!");
             filterEntities();
         };
+
     </script>
     <script>
         var entities = [
