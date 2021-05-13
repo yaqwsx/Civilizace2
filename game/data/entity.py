@@ -41,7 +41,6 @@ class EntityModel(models.Model):
     manager = EntityManager()
 
     class Meta:
-        abstract = True
         constraints = [
             models.UniqueConstraint(name="%(class)s_pk", fields=["id", "version"])
         ]

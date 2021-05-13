@@ -23,6 +23,8 @@ class ActionType(enum.Enum):
     godmode = 42
     sandbox = 99
 
+    addSticker = 100
+
     __labels__ = {
         nextTurn: "Krmení",
         research: "Zkoumat",
@@ -44,5 +46,6 @@ class ActionType(enum.Enum):
 
         sandbox: "DEBUG: SANDBOX",
         sanboxIncreaseCounter: "DEBUG: Zvýšit counter",
-        startNewRound: "DEBUG: Začít kolo"
+        startNewRound: "DEBUG: Začít kolo",
+        addSticker: "DEBUG: Udělit samolepku"
     }

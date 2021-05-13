@@ -152,6 +152,7 @@ class ActionContext:
     def __init__(self, entitiesVersion):
         managers = {
             "dies": DieModel,
+            "entities": EntityModel,
             "achievements": AchievementModel,
             "islands": IslandModel,
             "resources": ResourceModel,

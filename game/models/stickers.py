@@ -1,9 +1,64 @@
+from django.db import models
+from game.data.entity import EntityModel
+from PIL import Image, ImageDraw
+import io
+import os
+from pathlib import Path
+
+class FileCache:
+    def __init__(self, cacheDirectory, suffix):
+        self.cacheDirector = cacheDirectory
+        Path(cacheDirectory).mkdir(exist_ok=True)
+        self.suffix = suffix
+
+    def get(self, ident, renderer):
+        """
+        Given an object ident (something convertible to string) and renderer
+        (function that can render the object to bytes), return the object either
+        from cache or by rendering it.
+        """
+        cacheFile = os.path.join(self.cacheDirectory, f"{ident}.{self.suffix}")
+        try:
+            with open(cacheFile) as f:
+                return f.read()
+        except FileNotFoundError as e:
+            # File is not in cache
+            content = renderer()
+            with open(cacheFile, "w") as f:
+                f.write(content)
+            return content
+
+STICKER_CACHE = FileCache("./_stickers", "png")
 
 
-class Sticker:
-    # TBA
+class Sticker(models.Model):
+    """
+    Sticker model. The model is defined by an entity, team and a state.
+    """
+    entity = models.ForeignKey(EntityModel, on_delete=models.PROTECT, null=False)
+    state = models.ForeignKey("State", on_delete=models.PROTECT, null=True)
+    team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
+    awardedAt = models.DateTimeField("Time of creating the action", auto_now=True)
 
-    @staticmethod
-    def building():
-        pass
-        # TBA: An example of static method that generates a building sticker
+    def shortDescription(self):
+        """
+        Return a pretty short string description of the sticker
+        """
+        return f"Sticker for team {self.team.id} of {self.entity.id}"
+
+    def getImage(self):
+        """
+        Return sticker image as PNG file in bytes
+        """
+        return STICKER_CACHE.get(f"sticker_{self.id:04d}", lambda: self.render())
+
+    def render(self):
+        """
+        Render the sticker into PNG file returned as bytes
+        """
+        img = Image.new('RGB', (100, 100), color = (255, 255, 255))
+        d = ImageDraw.Draw(img)
+        d.text((10,10), self.shortDescription(), fill=(0,0,0))
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        return buffer.getvalue()

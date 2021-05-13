@@ -121,11 +121,11 @@ class ActionInitiateView(ActionView):
                 initiateStep = ActionEvent.initiateAction(request.user, action)
                 res = initiateStep.applyTo(state)
                 message = res.message
-                if res.success and  not requiresDice:
+                if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
-                    commitValid, commitMessage = commitStep.applyTo(state)
-                    res.success = res.success and commitValid
-                    message += "<br>" + commitMessage
+                    commitRes = commitStep.applyTo(state)
+                    res.success = res.success and commitRes.success
+                    message += "<br>" + commitRes.message
 
                 form.data["canceled"] = True
                 return render(request, "game/actionConfirm.html", {
@@ -166,9 +166,9 @@ class ActionConfirmView(ActionView):
                 message = res.message
                 if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
-                    commitValid, commitMessage = commitStep.applyTo(state)
-                    res.success = res.success and commitValid
-                    message += "<br>" + commitMessage
+                    commitRes = commitStep.applyTo(state)
+                    res.success = res.success and commitRes.success
+                    message += "<br>" + commitRes.message
                     awardAchievements(request, state, team)
                 if not res.success:
                     form.data["canceled"] = True

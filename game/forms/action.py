@@ -88,7 +88,7 @@ class MoveForm(MoveInitialForm):
         if not self.entityId:
             raise InvalidActionException("Nezadali jste entitu.")
         try:
-            return entityType.objects.get(id=self.entityId)
+            return entityType.manager.latest().get(id=self.entityId)
         except entityType.DoesNotExist:
             raise InvalidActionException(f"Vámi zadaná entita s ID <i>{self.entityId}</i> neexistuje")
 

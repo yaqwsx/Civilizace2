@@ -102,6 +102,36 @@ class DashboardMessageView(View):
             "messages": messages.get_messages(request)
         })
 
+class DashboardTasksView(View):
+    @method_decorator(login_required)
+    def get(self, request, teamId):
+        user = request.user
+        if user.isPlayer() and user.team().id != teamId:
+            raise PermissionDenied("Cannot view the page")
+        team = get_object_or_404(Team, pk=teamId)
+        return render(request, 'game/dashBoardTasks.html', {
+            "request": request,
+            "myTeam": team,
+            "targetTeam": team,
+            "teams": Team.objects.all(),
+            "messages": messages.get_messages(request)
+        })
+
+class DashboardStickersView(View):
+    @method_decorator(login_required)
+    def get(self, request, teamId):
+        user = request.user
+        if user.isPlayer() and user.team().id != teamId:
+            raise PermissionDenied("Cannot view the page")
+        team = get_object_or_404(Team, pk=teamId)
+        return render(request, 'game/dashBoardStickers.html', {
+            "request": request,
+            "myTeam": team,
+            "targetTeam": team,
+            "teams": Team.objects.all(),
+            "messages": messages.get_messages(request)
+        })
+
 class DemoView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'demo.html')

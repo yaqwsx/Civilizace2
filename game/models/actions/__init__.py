@@ -17,6 +17,7 @@ from .trade import TradeMove
 from .spendWork import SpendWorkMove
 from .addWonder import AddWonderMove
 from .attack import AttackMove
+from .addSticker import AddStickerMove
 
 def buildAction(data):
     """
