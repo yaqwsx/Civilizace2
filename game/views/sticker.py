@@ -16,5 +16,5 @@ class StickerView(View):
         if not user.isOrg() and user.team().id != sticker.team:
             raise PermissionDenied()
         buffer = io.BytesIO(sticker.getImage())
-        return FileResponse(buffer)
+        return FileResponse(buffer, filename=f"sticker_{stickerId}.png")
 

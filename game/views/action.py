@@ -24,6 +24,18 @@ def awardAchievements(request, state, team):
     for ach in state.teamState(team).achievements.awardNewAchievements(state, team):
         messages.info(request, f"Tým {team.name} získal achievement <b>{ach.label}</b>!<br>{ach.orgMessage}")
 
+def awardStickers(request, state, team, stickers):
+    if len(stickers) == 0:
+        return ""
+    msg = "Tým obdržel samolepky: "
+    for s in stickers:
+        s.id = None
+        s.state = state
+        s.team = team
+        s.save()
+        msg += f'<a href="/stickers/{s.id}">{s.shortDescription()}</a> '
+    return msg
+
 
 class ActionView(View):
     def unfinishedActionBy(self, user):
@@ -112,6 +124,7 @@ class ActionInitiateView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
+        team = get_object_or_404(Team, pk=teamId)
         form = formForActionType(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
              state=state, team=teamId, user=request.user)
         try:
@@ -121,17 +134,21 @@ class ActionInitiateView(ActionView):
                 initiateStep = ActionEvent.initiateAction(request.user, action)
                 res = initiateStep.applyTo(state)
                 message = res.message
+                stickers = res.stickers
                 if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitRes = commitStep.applyTo(state)
                     res.success = res.success and commitRes.success
+                    res.stickers.extend(commitRes.stickers)
                     message += "<br>" + commitRes.message
+                if res.success:
+                    message += "<br>" + awardStickers(request, state, team, stickers)
 
                 form.data["canceled"] = True
                 return render(request, "game/actionConfirm.html", {
                     "request": request,
                     "form": form,
-                    "team": get_object_or_404(Team, pk=teamId),
+                    "team": team,
                     "action": action,
                     "requiresDice": requiresDice,
                     "moveValid": res.success,
@@ -164,12 +181,17 @@ class ActionConfirmView(ActionView):
                 initiateStep = ActionEvent.initiateAction(request.user, action)
                 res = initiateStep.applyTo(state)
                 message = res.message
+                stickers = res.stickers
                 if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitRes = commitStep.applyTo(state)
                     res.success = res.success and commitRes.success
                     message += "<br>" + commitRes.message
+                    res.stickers.extend(commitRes.stickers)
                     awardAchievements(request, state, team)
+                if res.success:
+                    message += "<br>" + awardStickers(request, state, team, stickers)
+
                 if not res.success:
                     form.data["canceled"] = True
                     return render(request, "game/actionConfirm.html", {
@@ -268,12 +290,13 @@ class ActionDiceThrow(ActionView):
             if not res.success:
                 messages.error(res.message)
                 return redirect('actionDiceThrow', actionId=action.id)
+            stickerMessage = awardStickers(request, state, team, res.stickers)
             awardAchievements(request, state, team)
             action.save()
             step.save()
             state.save()
             if len(res.message) > 0:
-                channel(request, res.message)
+                channel(request, res.message + "<br>" + stickerMessage)
             return redirect('actionIndex')
         except InvalidActionException as e:
             messages.error(request, str(e))

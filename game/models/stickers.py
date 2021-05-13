@@ -7,7 +7,7 @@ from pathlib import Path
 
 class FileCache:
     def __init__(self, cacheDirectory, suffix):
-        self.cacheDirector = cacheDirectory
+        self.cacheDirectory = cacheDirectory
         Path(cacheDirectory).mkdir(exist_ok=True)
         self.suffix = suffix
 
@@ -19,12 +19,12 @@ class FileCache:
         """
         cacheFile = os.path.join(self.cacheDirectory, f"{ident}.{self.suffix}")
         try:
-            with open(cacheFile) as f:
+            with open(cacheFile, "rb") as f:
                 return f.read()
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             # File is not in cache
             content = renderer()
-            with open(cacheFile, "w") as f:
+            with open(cacheFile, "wb") as f:
                 f.write(content)
             return content
 
@@ -44,7 +44,7 @@ class Sticker(models.Model):
         """
         Return a pretty short string description of the sticker
         """
-        return f"Sticker for team {self.team.id} of {self.entity.id}"
+        return f"Sticker \nfor team {self.team.id} \nof {self.entity.id}"
 
     def getImage(self):
         """
@@ -61,4 +61,5 @@ class Sticker(models.Model):
         d.text((10,10), self.shortDescription(), fill=(0,0,0))
         buffer = io.BytesIO()
         img.save(buffer, format='PNG')
+        buffer.seek(0)
         return buffer.getvalue()

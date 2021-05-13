@@ -19,6 +19,10 @@ class AddStickerMove(Action):
         form = AddStickerForm
         allowed = ["super"]
 
+    @property
+    def entity(self):
+        return self.context.entities.get(id=self.arguments["entity"])
+
     @staticmethod
     def relevantEntities(state, team):
         return state.context.entities.all()
@@ -36,8 +40,7 @@ class AddStickerMove(Action):
     def initiate(self, state):
         return ActionResult.makeSuccess("")
 
-
     def commit(self, state):
         result = ActionResult.makeSuccess("Akce se povedla")
-        # result.stickers.append(Sti)
+        result.stickers.append(Sticker(entity=self.entity))
         return result
