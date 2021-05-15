@@ -1,5 +1,6 @@
 from django.views import View
 from django.shortcuts import render, redirect, reverse, get_object_or_404
+from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.utils.http import urlencode
@@ -24,7 +25,7 @@ def awardAchievements(request, state, team):
     for ach in state.teamState(team).achievements.awardNewAchievements(state, team):
         messages.info(request, f"Tým {team.name} získal achievement <b>{ach.label}</b>!<br>{ach.orgMessage}")
 
-def awardStickers(request, state, team, stickers):
+def awardStickers(request, state, team, stickers, commit=False):
     if len(stickers) == 0:
         return ""
     msg = "Tým obdržel samolepky: "
@@ -32,10 +33,13 @@ def awardStickers(request, state, team, stickers):
         s.id = None
         s.state = state
         s.team = team
-        s.save()
-        msg += f'<a href="/stickers/{s.id}">{s.shortDescription()}</a> '
+        if commit:
+            s.save()
+    msg = render_to_string("game/fragments/awardedStickers.html", {
+        "stickers": stickers,
+        "committed": commit
+    })
     return msg
-
 
 class ActionView(View):
     def unfinishedActionBy(self, user):
@@ -190,7 +194,7 @@ class ActionConfirmView(ActionView):
                     res.stickers.extend(commitRes.stickers)
                     awardAchievements(request, state, team)
                 if res.success:
-                    message += "<br>" + awardStickers(request, state, team, stickers)
+                    message += "<br>" + awardStickers(request, state, team, stickers, res.success)
 
                 if not res.success:
                     form.data["canceled"] = True
@@ -209,9 +213,11 @@ class ActionConfirmView(ActionView):
                     commitStep.save()
                 state.save()
                 if requiresDice:
-                    messages.success(request, "Akce \"{}\" započata".format(action.description()))
+                    messages.success(request,
+                        f"Akce {action.description()} započata s efektem: <br/> {message}")
                     return redirect('actionDiceThrow', actionId=action.id)
-                messages.success(request, "Akce \"{}\" provedena".format(action.description()))
+                messages.success(request,
+                        f"Akce {action.description()} provedena s efektem: <br/> {message}")
                 return redirect('actionIndex')
         except InvalidActionException as e:
             messages.error(request, str(e))
@@ -290,7 +296,7 @@ class ActionDiceThrow(ActionView):
             if not res.success:
                 messages.error(res.message)
                 return redirect('actionDiceThrow', actionId=action.id)
-            stickerMessage = awardStickers(request, state, team, res.stickers)
+            stickerMessage = awardStickers(request, state, team, res.stickers, True)
             awardAchievements(request, state, team)
             action.save()
             step.save()

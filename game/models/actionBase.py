@@ -137,7 +137,9 @@ class ActionResult:
         self.stickers = stickers
 
     @staticmethod
-    def makeSuccess(message, stickers=[]):
+    def makeSuccess(message, stickers=None):
+        if stickers is None:
+            stickers = []
         return ActionResult(True, message, stickers)
 
     @staticmethod

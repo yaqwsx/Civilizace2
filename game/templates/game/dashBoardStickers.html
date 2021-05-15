@@ -1,11 +1,13 @@
 {% extends "game/dashboardBase.html" %}
 
-{% load cards %}
+{% load cards printStickersDialog %}
 
 {% block title %} Příběh civilizace - Dashboard: Samolepky{% endblock %}
 
 {% block content %}
 <h1>Přehled samolepek</h1>
+
+{% printStickersDialog "ID" %}
 
 {{ block.super }}
 {% endblock %}

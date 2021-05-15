@@ -1,0 +1,58 @@
+<div class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none justify-center items-center"
+     id="{{dialogId}}">
+  <div class="relative w-auto my-6 mx-auto max-w-3xl">
+    <!--content-->
+    <div class="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+      <!--header-->
+      <div class="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
+        <h3 class="text-2xl font-semibold">
+          Tisk samolepek
+        </h3>
+        <button class="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                onclick="toggleModal('{{dialogId}}')">
+          <span class="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
+            ×
+          </span>
+        </button>
+      </div>
+      <div class="relative p-6 flex-auto">
+        <div class="md:flex md:items-center mb-6">
+            <div class="md:w-1/3">
+                <label for="id_action" class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4 requiredField">
+                    Tiskárna
+                </label>
+            </div>
+            <div class="field md:w-2/3">
+                <select name="{{dialogId}}-printer" data-valuetype="" class="select" id="{{dialogId}}-printer">
+                    <option value="" selected="">-----------</option>
+                    <option value="">Tiskárna u krmení</option>
+                    <option value="">Tiskárna v orgovně</option>
+                </select>
+            </div>
+        </div>
+      </div>
+      <!--footer-->
+      <div class="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+        <button
+            class="w-full my-4 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+            tpye="button"
+            onclick="printStickers('{{dialogId}}')">
+            Vytisknout samolepky
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="hidden opacity-25 fixed inset-0 z-40 bg-black" id="{{dialogId}}-backdrop"></div>
+<script type="text/javascript">
+  function toggleModal(modalID){
+    document.getElementById(modalID).classList.toggle("hidden");
+    document.getElementById(modalID + "-backdrop").classList.toggle("hidden");
+    document.getElementById(modalID).classList.toggle("flex");
+    document.getElementById(modalID + "-backdrop").classList.toggle("flex");
+  }
+
+  function printStickers(modalID) {
+      toggleModal(modalID);
+  }
+</script>
