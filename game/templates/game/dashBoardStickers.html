@@ -7,7 +7,39 @@
 {% block content %}
 <h1>Přehled samolepek</h1>
 
-{% printStickersDialog "ID" %}
+{% printStickersDialog "mainPrintDialog" %}
+
+<div class="w-full flex flex-wrap">
+    {% for sticker in teamStickers %}
+        <div class="flex-auto m-2 p-2 rounded shadow bg-white">
+            <img src="{% url "stickerView" sticker.id %}"
+                 class="mx-auto"/>
+            <div class="w-full text-center">
+                {{sticker.shortDescription}}
+            </div>
+            <div class="w-full text-center text-gray-600 text-sm">
+                Uděleno: {{sticker.awardedAt}}
+            </div>
+            <div class="flex flex-wrap">
+                <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                        type="button"
+                        onclick="return onButtonPrint{{sticker.id}}()">
+                    Vytisknout
+                </button>
+                <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded "
+                        type="button"
+                        disabled>
+                    Aktualizovat
+                </button>
+            </div>
+        </div>
+        <script>
+            function onButtonPrint{{sticker.id}}() {
+                toggleModal("mainPrintDialog");
+            }
+        </script>
+    {% endfor %}
+</div>
 
 {{ block.super }}
 {% endblock %}
