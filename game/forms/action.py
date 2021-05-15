@@ -55,7 +55,9 @@ class MoveInitialForm(forms.Form):
                 self.allEntities.update(entities)
                 for entity in entities:
                     self.actionForEntity[entity] = action.CiviMeta.move
-        self.fields["entity"].choices = [('', '-----------')] + [(entity.id, entity.label) for entity in self.allEntities]
+        entities = list([(entity.id, entity.label) for entity in self.allEntities])
+        entities.sort(key=lambda x: x[1])
+        self.fields["entity"].choices = [('', '-----------')] + entities
         self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActionTypes(user)]
         self.commonLayout = Layout(
             Field('team'),

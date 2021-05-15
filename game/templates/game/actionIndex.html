@@ -1,5 +1,5 @@
 {% extends "game/actionBase.html" %}
-{% load crispy_forms_tags qrScanner %}
+{% load crispy_forms_tags qrScanner filters %}
 
 {% block title %} Příběh civilizace - Zadat akci {% endblock %}
 
@@ -149,7 +149,7 @@
     <script>
         var entities = [
             {%for entity in form.allEntities %}
-                ["{{entity.id}}", "{{entity.label}}"],
+                ["{{entity.id}}", "{{entity.label|noNewline}}"],
             {%endfor%}
         ];
         var teamAllowedEntities = {
