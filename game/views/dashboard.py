@@ -125,11 +125,12 @@ class DashboardStickersView(View):
             raise PermissionDenied("Cannot view the page")
         team = get_object_or_404(Team, pk=teamId)
         return render(request, 'game/dashBoardStickers.html', {
+            "user": user,
             "request": request,
             "myTeam": team,
             "targetTeam": team,
             "teams": Team.objects.all(),
-            "teamStickers": team.sticker_set.all(),
+            "teamStickers": team.sticker_set.order_by('awardedAt').all(),
             "messages": messages.get_messages(request)
         })
 

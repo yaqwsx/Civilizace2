@@ -15,7 +15,7 @@ class StickerView(View):
     def get(self, request, stickerId):
         sticker = get_object_or_404(Sticker, id=stickerId)
         user = request.user
-        if not user.isOrg() and user.team().id != sticker.team:
+        if not user.isOrg() and user.team() != sticker.team:
             raise PermissionDenied()
         buffer = io.BytesIO(sticker.getImage())
         return FileResponse(buffer, filename=f"sticker_{stickerId}.png")
