@@ -2,6 +2,7 @@ import json
 import copy
 
 from django.db import models
+from django.db.models.deletion import PROTECT
 from django_enumfield import enum
 
 from .immutable import ImmutableModel
@@ -14,6 +15,7 @@ from game.data.resource import ResourceModel, ResourceTypeModel
 from game.data.tech import TechModel, TechEdgeModel
 from game.data.vyroba import VyrobaModel, EnhancementModel
 from game.models.stickers import Sticker
+from ground.models import GitRevision
 
 class ActionPhase(enum.Enum):
     initiate = 0
@@ -32,6 +34,7 @@ class ActionEventManager(models.Manager):
 class ActionEvent(ImmutableModel):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     author = models.ForeignKey("User", on_delete=models.PROTECT, null=True)
+    codeRevision = models.ForeignKey(GitRevision, on_delete=PROTECT, null=True)
     phase = enum.EnumField(ActionPhase)
     action = models.ForeignKey("Action", on_delete=models.PROTECT)
     workConsumed = models.IntegerField()
@@ -91,22 +94,26 @@ class ActionEvent(ImmutableModel):
     @staticmethod
     def initiateAction(author, action):
         return ActionEvent(author=author, phase=ActionPhase.initiate,
-            action=action, workConsumed=0)
+            action=action, workConsumed=0,
+            codeRevision=GitRevision.objects.getCurrent())
 
     @staticmethod
     def cancelAction(author, action):
         return ActionEvent(author=author, phase=ActionPhase.cancel,
-                action=action, workConsumed=0)
+                action=action, workConsumed=0,
+                codeRevision=GitRevision.objects.getCurrent())
 
     @staticmethod
     def commitAction(author, action, workConsumed):
         return ActionEvent(author=author, phase=ActionPhase.commit,
-                action=action, workConsumed=workConsumed)
+                action=action, workConsumed=workConsumed,
+                codeRevision=GitRevision.objects.getCurrent())
 
     @staticmethod
     def abandonAction(author, action, workConsumed):
         return ActionEvent(author=author, phase=ActionPhase.abandon,
-                action=action, workConsumed=workConsumed)
+                action=action, workConsumed=workConsumed,
+                codeRevision=GitRevision.objects.getCurrent())
 
 class ActionManager(models.Manager):
     def create(self, *args, entitiesVersion=None, **kwargs):

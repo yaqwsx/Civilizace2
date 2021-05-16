@@ -12,8 +12,10 @@
 <div class="w-full flex flex-wrap">
     {% for sticker in teamStickers %}
         <div class="flex-auto m-2 p-2 rounded shadow bg-white">
-            <img src="{% url "stickerView" sticker.id %}"
-                 class="mx-auto"/>
+            <a href="{% url "stickerView" sticker.id %}">
+                <img src="{% url "stickerView" sticker.id %}"
+                    class="mx-auto"/>
+            </a>
             <div class="w-full text-center">
                 {{sticker.shortDescription}}
             </div>
