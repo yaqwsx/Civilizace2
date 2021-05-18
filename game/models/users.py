@@ -10,6 +10,8 @@ class Team(models.Model):
     name = models.CharField("Name", max_length=100, null=False)
     color = models.CharField("Color", max_length=20, null=False)
 
+    assignedTasks = models.ManyToManyField("TaskModel", through="AssignedTask")
+
 
     @property
     def label(self):

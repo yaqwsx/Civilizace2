@@ -8,7 +8,6 @@ from .entity import EntityModel, EntitiesVersion, DieModel, TaskModel
 class TechModel(EntityModel):
     culture = models.IntegerField(validators=[MinValueValidator(0)], default=0)
     flavour = models.TextField()
-    task = models.ForeignKey(TaskModel, on_delete=models.CASCADE)
     notes = models.TextField()
     image = models.TextField()
     nodeTag = models.TextField()

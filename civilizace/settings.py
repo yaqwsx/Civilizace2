@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'ground.apps.GroundConfig',
     'service.apps.ServiceConfig',
 
-    'crispy_forms'
+    'crispy_forms',
+    'markdownify.apps.MarkdownifyConfig'
 ]
 
 MIDDLEWARE = [
@@ -143,6 +144,25 @@ STATIC_ROOT = '_static'
 TAILWIND_APP_NAME = 'theme'
 CRISPY_ALLOWED_TEMPLATE_PACKS = ('bootstrap', 'uni_form', 'bootstrap3', 'bootstrap4', 'tailwind', )
 CRISPY_TEMPLATE_PACK = 'tailwind'
+
+MARKDOWNIFY = {
+    "default": {
+        "WHITELIST_TAGS": [
+            'a',
+            'abbr',
+            'acronym',
+            'b',
+            'blockquote',
+            'em',
+            'i',
+            'li',
+            'ol',
+            'p',
+            'strong',
+            'ul'
+        ]
+    }
+}
 
 try:
    from .settingsLocal import *

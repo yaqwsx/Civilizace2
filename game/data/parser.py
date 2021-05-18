@@ -1,5 +1,5 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
-from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel, TaskModel
+from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
 
@@ -33,25 +33,6 @@ class Parser():
             label = line[0]
             id = line[1]
             die = DieModel.manager.create(id=id, label=label, version=self.entitiesVersion)
-
-    def _addTasks(self):
-        print("Parsing tasks")
-        myRaw = self.raw[self.SHEET_MAP["task"]]
-        count = 0
-
-        for n, line in enumerate(myRaw[1:], start=1):
-            if len(line) < 3:
-                self._logWarning("Ukoly." + str(n) + ": Málo parametrů (" + len(line) + "/3)")
-                continue
-            label = line[0]
-            id = line[1]
-            popis = line[2]
-            text = line[3]
-            task = TaskModel.manager.create(id=id, label=label, text=text,
-                popis=popis, version=self.entitiesVersion)
-            count += 1
-
-        print(f"  added {count} tasks")
 
     @staticmethod
     def romeLevel(number):
@@ -169,14 +150,8 @@ class Parser():
             except Exception:
                 epocha = -1
 
-            try:
-                task = TaskModel.manager.get(id=line[2])
-            except Exception:
-                self._logWarning("Tech." + str(n) + ": Nezname ID ukolu (" + str(line[2]) + ")")
-                continue
-
             tech = TechModel.manager.create(id=id,
-                label=label, task=task, image=image, notes=notes,
+                label=label, image=image, notes=notes,
                 flavour=flavour, culture=culture, nodeTag=nodeTag,
                 epocha=epocha, version=self.entitiesVersion)
             count += 1
@@ -516,7 +491,6 @@ class Parser():
 
         # parse each entity type
         self._addDice()
-        self._addTasks()
         self._addResourceTypes()
         self._addResources()
         self._addTechs()

@@ -3,6 +3,7 @@ from django.urls import path
 from game.views import *
 from game.views import messageBoard
 from game.views import dashboard
+from game.views import task
 from game.views.generation import (GenerationConfigView, GenerationCountDownView, GenerationInfo)
 from game.views import sticker
 
@@ -30,6 +31,11 @@ urlpatterns = [
     path("generation/config", GenerationConfigView.as_view(), name="generationConfig"),
     path("generation/", GenerationCountDownView.as_view(), name="generationCountdown"),
     path("generation/info", GenerationInfo.as_view(), name="generationInfo"),
+
+    path("tasks", task.TaskIndexView.as_view(), name="taskTaskIndex"),
+    path("tasks/new", task.NewTaskView.as_view(), name="taskTaskNew"),
+    path("tasks/<int:taskId>/edit", task.EditTaskView.as_view(), name="taskTaskEdit"),
+    path("tasks/mapping", task.TaskMappingIndexView.as_view(), name="taskMappingIndex"),
 
     path("demo", DemoView.as_view(), name="demo")
 ]

@@ -33,7 +33,8 @@
     "d3plus": "*",
     "dagre-d3": "*",
     "flatpickr": "*",
-    "jsoneditor": "^9.0.0"
+    "jsoneditor": "^9.0.0",
+    "marked": "^2.0.3"
   },
   "copyFiles": [
     {
@@ -81,9 +82,12 @@
       "to": "../static/css/img/"
     },
     {
+      "from": "node_modules/marked/lib/**.js",
+      "to": "../static/js/"
+    },
+    {
       "from": "img/**",
       "to": "../static/img/"
     }
   ]
 }
-
