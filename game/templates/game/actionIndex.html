@@ -4,7 +4,7 @@
 {% block title %} Příběh civilizace - Zadat akci {% endblock %}
 
 {% block content %}
-    <form method="post">
+    <form method="post" onsubmit="onSubmit()">
         {% csrf_token %}
 
         <div class="md:flex md:items-center mb-6">
@@ -36,6 +36,11 @@
         var teamSelect = document.getElementById("{{form.team.auto_id}}");
         var entitySelect = document.getElementById("{{form.entity.auto_id}}");
         var actionSelect = document.getElementById("{{form.action.auto_id}}");
+
+        function onSubmit() {
+            console.log(actionSelect.value)
+            window.localStorage.setItem("lastAction", actionSelect.value);
+        }
 
         function unwrap(node) {
             node.replaceWith(...node.childNodes);
@@ -104,6 +109,7 @@
         function onTeamButtonClick(button) {
             teamSelect.value = button.dataset.team;
             renderButtons();
+            teamSelect.onchange();
             return false;
         }
 
@@ -124,7 +130,13 @@
             console.log("Changed team!");
             filterEntities();
             showAllOptions(actionSelect);
-            actionSelect.firstChild.selected = true;
+            let lastAction = window.localStorage.getItem("lastAction");
+            if (lastAction) {
+                actionSelect.value = lastAction;
+            }
+            else {
+                actionSelect.firstChild.selected = true;
+            }
             renderButtons();
         };
 
