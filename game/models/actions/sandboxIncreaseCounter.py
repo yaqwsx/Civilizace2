@@ -65,4 +65,4 @@ class SandboxIncreaseCounterMove(Action):
         return self.makeAbandon()
 
     def cancel(self, state):
-        return self.makeCancel
+        return self.makeCancel()
