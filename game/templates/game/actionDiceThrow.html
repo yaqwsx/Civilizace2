@@ -29,7 +29,8 @@
             <button
                 class="w-full md:w-1/2 shadow bg-orange-500 hover:bg-orange-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded my-1"
                 onclick="onDiceThrow()"
-                type="button">
+                type="button"
+                id="throwButton">
                 Hod
             </button>
             <script>
@@ -37,6 +38,20 @@
                 var diceInput = document.getElementById("{{form.dice.auto_id}}");
                 var dotsInput = document.getElementById("{{form.dotsCount.auto_id}}");
                 var throwInput = document.getElementById("{{form.throwCount.auto_id}}");
+                var throwButton = document.getElementById("throwButton");
+                var throwTimeout = undefined;
+
+                throwButton.addEventListener("mousedown", function() {
+                    throwTimeout = setTimeout(function() {
+                        throwInput.value = 1;
+                        dotsInput.value = 9999;
+                    }, 500);
+                });
+
+                throwButton.addEventListener("mouseup", function() {
+                    clearTimeout(throwTimeout);
+                });
+
                 function onDiceThrow() {
                     var throwCount = parseInt(throwInput.value);
                     var dotsNum = parseInt(dotsInput.value);

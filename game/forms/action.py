@@ -20,9 +20,9 @@ class DiceThrowForm(forms.Form):
     def __init__(self, allowedDices, *args, **kwargs):
         super(DiceThrowForm, self).__init__(*args, **kwargs)
         self.fields["dice"].choices = [(x, x.label) for x in allowedDices]
+        self.fields["dice"].initial = self.fields["dice"].choices[0][0]
         if len(allowedDices) == 1:
             self.fields["dice"].widget = forms.HiddenInput()
-            self.fields["dice"].initial = self.fields["dice"].choices[0][0]
 
 class MoveInitialForm(forms.Form):
     team = captures("",
