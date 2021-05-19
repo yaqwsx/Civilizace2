@@ -1,11 +1,29 @@
 {% extends "game/dashboardBase.html" %}
 
-{% load cards %}
+{% load markdownify %}
 
 {% block title %} Příběh civilizace - Dashboard: Úkoly{% endblock %}
 
 {% block content %}
-<h1>Přehled úkolů</h1>
+<h1>Přehled aktivních úkolů</h1>
+
+{% if not targetTeam.activeTasks %}
+    <p>Momentálně neplníte žádné úkoly</p>
+{% else %}
+    {% for at in targetTeam.activeTasks %}
+        <div class="bg-white p-2 my-2 rounded shadow">
+            <p class="font-bold text-xs uppercase text-gray-600">
+                {{at.assignedAt}}</p>
+            <p>
+            <div class="text-lg font-bold">
+                {{at.task.name}} - třeba splnit pro {{at.tech.label}}
+            </div>
+            <div>
+                {{at.task.teamDescription|markdownify}}
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
 
 {{ block.super }}
 {% endblock %}

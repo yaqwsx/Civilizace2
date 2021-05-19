@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entity import EntityModel, EntitiesVersion, DieModel, TaskModel
+from .entity import EntityModel, DieModel, TaskModel, TaskMapping
 
 
 class TechModel(EntityModel):
@@ -19,6 +19,13 @@ class TechModel(EntityModel):
 
     def htmlRepr(self):
         return self.label
+
+    def getAvailableTasks(self, team):
+        """
+        Return a list of all tasks that are available for this technology and
+        have not been completed by the team yet.
+        """
+        raise NotImplementedError("Tell Honza to implement this. He was lazy at the moment")
 
 class TechEdgeModel(EntityModel):
     src = models.ForeignKey(TechModel, on_delete=models.CASCADE, related_name="unlocks_tech")

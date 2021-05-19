@@ -32,9 +32,12 @@ class Team(models.Model):
 
     def activeTasks(self):
         """
-        Return a query of all unfinished tasks
+        Return a query of all unfinished tasks as AssignedTask
         """
-        return self.assignedTasks.filter(completedAt__isnull=True).all()
+        return (self.assignedtask_set
+                    .filter(completedAt__isnull=True)
+                    .order_by("assignedAt")
+                    .all())
 
     class Meta:
         permissions = (

@@ -130,8 +130,8 @@ class AssignedTask(models.Model):
     task = models.ForeignKey("TaskModel", on_delete=models.PROTECT)
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
     tech = models.ForeignKey("TechModel", on_delete=models.PROTECT, null=True)
-    assignedAt = models.DateTimeField(auto_now=True)
-    completedAt = models.DateTimeField(auto_now=True, null=True)
+    assignedAt = models.DateTimeField(auto_now=False)
+    completedAt = models.DateTimeField(auto_now=False, default=None, null=True)
 
     class Meta:
         constraints = [

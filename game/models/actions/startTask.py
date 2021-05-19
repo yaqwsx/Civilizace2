@@ -42,6 +42,9 @@ class StartTaskMove(Action):
         return ActionResult.makeSuccess("")
 
     def commit(self, state):
+        task = self.entity
+        if self.team.assignedTasks.filter(pk=task.pk).exists():
+            return ActionResult.makeFail(f"Tým už má úkol '{task.name}' přiřazen!")
         result = ActionResult.makeSuccess("Akce se povedla")
-        result.startTask(self.entity, None)
+        result.startTask(task, None)
         return result

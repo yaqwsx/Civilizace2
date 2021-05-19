@@ -147,7 +147,7 @@ class TaskMappingIndexView(View):
             tasks = set([x["task"].id for x in assignment.cleaned_data if "task" in x and x["task"] is not None])
             self.updateMapping(tech, tasks)
             messages.success(request, f"Úkoly pro technologii '{tech.label}' upraveny")
-            return redirect("taskMappingIndex")
+            return redirect(reverse("taskMappingIndex") + "#" + tech.id)
         return render(request, "game/taskMappingIndex.html", {
             "request": request,
             "messages": messages.get_messages(request),
