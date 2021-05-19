@@ -14,6 +14,32 @@
             </div>
             <div class="md:w-2/3">
                 {{ visibilityForm|crispy}}
+                <div class="w-full flex flex-wrap my-2">
+                    <button
+                        class="flex-auto mx-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                        type="button"
+                        onclick="selectall(true)"
+                    >
+                        Vybrat vše
+                    </button>
+
+                    <button
+                        class="flex-auto mx-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                        type="button"
+                        onclick="selectall(false)"
+                    >
+                        Nevybrat nic
+                    </button>
+                    <script>
+                        function selectall(value) {
+                            {% for form in visibilityForm %}
+                                {% for field in form %}
+                                    document.getElementById("{{field.auto_id}}").checked = value;
+                                {% endfor %}
+                            {% endfor %}
+                        }
+                    </script>
+                </div>
             </div>
         </div>
         <button
