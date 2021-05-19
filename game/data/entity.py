@@ -135,7 +135,8 @@ class AssignedTask(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(name="%(class)s_pk", fields=["task", "team"])
+            models.UniqueConstraint(name="%(class)s_team-task", fields=["task", "team"]),
+            models.UniqueConstraint(name="%(class)s_team-tech", fields=["tech", "team"])
         ]
 
 

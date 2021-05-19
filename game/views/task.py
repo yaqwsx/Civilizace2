@@ -1,4 +1,4 @@
-from game.data.entity import TaskMapping
+from game.data.entity import AssignedTask, TaskMapping
 from django.views import View
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -172,6 +172,8 @@ class TaskMappingIndexView(View):
         return [
             {
                 "tech": t,
+                "completedBy": AssignedTask.objects.filter(tech=t.id, completedAt__isnull=False).all(),
+                "assigned": AssignedTask.objects.filter(tech=t.id, completedAt__isnull=True).all(),
                 "mappingForm": TechTaskMappingForm(initial={"tech": t.id}),
                 "assignementForm": TaskAssignmentFormset(initial=[
                     {"task": m.task.id} for m in TaskMapping.objects.filter(tech=t, active=True).all()])

@@ -21,10 +21,31 @@
             </div>
             <div class="w-full flex">
                 <div class="w-full md:w-1/2">
-                    <div class="text-gray-600">Splněno následujícími týmy:</div>
-                    Nikdo nesplnil
-                    <div class="text-gray-600">Týmy plní:</div>
-                    Nikdo neplní
+                    <div class="text-gray-600 mt-2">Splněno následujícími týmy:</div>
+                    {% if tech.completedBy %}
+                        <ul>
+                            {% for t in tech.completedBy %}
+                                <li>
+                                    {{t.team.name}} ({{t.task.name}}): {{t.completedAt}}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        Nikdo nesplnil
+                    {% endif %}
+
+                    <div class="text-gray-600 mt-2">Týmy plní:</div>
+                    {% if tech.assigned %}
+                        <ul>
+                            {% for t in tech.assigned %}
+                                <li>
+                                    {{t.team.name}} ({{t.task.name}}): {{t.assignedAt}}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        Nikdo neplní
+                    {% endif %}
                 </div>
                 <div class="w-full md:w-1/2">
                     <span class="text-gray-600">Přiřazené úkoly:</span>
