@@ -4,7 +4,7 @@
 {% block title %} Příběh civilizace - Zadat akci {% endblock %}
 
 {% block content %}
-    <form method="post" onsubmit="onSubmit()">
+    <form method="post" onsubmit="onSubmit()" autocomplete="off">
         {% csrf_token %}
 
         <div class="md:flex md:items-center mb-6">
@@ -18,6 +18,7 @@
                     <button class="teamButton bg-{{team.color}} mr-2 mb-2 border-black rounded flex-auto"
                             style="width: 70px; height: 70px;"
                             data-team="{{team.id}}"
+                            type="button"
                             onclick="return onTeamButtonClick(this)">
                         {{team.name}}
                     </button>
@@ -27,8 +28,15 @@
 
         {{ form|crispy }}
         <button
-            class="w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-            type="submit">
+            class="w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded disabled:bg-gray-500"
+            type="button"
+            {% comment %}
+                // Firefox seems to be overly-protective and it disables the submit
+                // button when going back... and Maara wants to use back a lot.
+                // Let's make him happy by not making this a submit, but use JS
+            {% endcomment %}
+            onclick="this.closest('form').submit()"
+            autocomplete="off">
             Začít tah
         </button>
     </form>
@@ -38,7 +46,6 @@
         var actionSelect = document.getElementById("{{form.action.auto_id}}");
 
         function onSubmit() {
-            console.log(actionSelect.value)
             window.localStorage.setItem("lastAction", actionSelect.value);
         }
 
