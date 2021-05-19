@@ -66,14 +66,17 @@ class DbList(list):
     def __init__(self, model_type, populate_by=None):
         self.model_type = model_type
         self.populate_by = populate_by
-        proxies = ["__len__", "__getitem__", "__delitem__", "__setitem__",
-            "__iter__", "__str__", "__repr__", "insert", "append", "extend", "clear"]
-        def f(fnName, self, *args, **kwargs):
-            self._populate()
-            getattr(super(DbList, self), fnName)(*args, **kwargs)
-        for p in proxies:
-            fWrapper = functools.partial(f, p) # To capture p by value
-            setattr(self, p, types.MethodType(fWrapper, self))
+        self._populate()
+        # TBA: Quick and dirty
+        # proxies = ["__len__", "__getitem__", "__delitem__", "__setitem__",
+        #     "__iter__", "__str__", "__repr__", "insert", "append", "extend", "clear"]
+        # proxies = [k for k, v in list.__dict__.items() if "method" in str(v)]
+        # def f(fnName, self, *args, **kwargs):
+        #     self._populate()
+        #     getattr(super(DbList, self), fnName)(*args, **kwargs)
+        # for p in proxies:
+        #     fWrapper = functools.partial(f, p) # To capture p by value
+        #     setattr(self, p, types.MethodType(fWrapper, self))
 
     def _populate(self):
         if self.populate_by is not None:
