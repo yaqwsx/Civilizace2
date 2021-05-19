@@ -1,0 +1,10 @@
+{% for a in announcements %}
+    <div class="w-full bg-white rounded shadow text-xl my-3 p-3">
+        <p class="font-bold uppercase text-gray-600">
+            {{a.appearDateTime}}</p>
+        <p>
+        <p class="w-full">
+            {{ a.content | safe}}
+        </p>
+    </div>
+{% endfor %}

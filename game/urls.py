@@ -4,7 +4,7 @@ from game.views import *
 from game.views import messageBoard
 from game.views import dashboard
 from game.views import task
-from game.views.generation import (GenerationConfigView, GenerationCountDownView, GenerationInfo)
+from game.views import generation
 from game.views import sticker
 
 urlpatterns = [
@@ -28,9 +28,10 @@ urlpatterns = [
 
     path("stickers/<int:stickerId>", sticker.StickerView.as_view(), name="stickerView"),
 
-    path("generation/config", GenerationConfigView.as_view(), name="generationConfig"),
-    path("generation/", GenerationCountDownView.as_view(), name="generationCountdown"),
-    path("generation/info", GenerationInfo.as_view(), name="generationInfo"),
+    path("generation/config", generation.GenerationConfigView.as_view(), name="generationConfig"),
+    path("generation/", generation.GenerationCountDownView.as_view(), name="generationCountdown"),
+    path("generation/info", generation.GenerationInfo.as_view(), name="generationInfo"),
+    path("generation/announcement", generation.AnnouncementView.as_view(), name="generationAnnouncement"),
 
     path("tasks", task.TaskIndexView.as_view(), name="taskTaskIndex"),
     path("tasks/new", task.NewTaskView.as_view(), name="taskTaskNew"),

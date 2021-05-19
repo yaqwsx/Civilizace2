@@ -1,3 +1,4 @@
+from game.models.messageBoard import Message
 from django.views import View
 from django import forms
 from django.utils.decorators import method_decorator
@@ -97,3 +98,10 @@ class GenerationCountDownView(View):
         })
 
 
+class AnnouncementView(View):
+    def get(self, request):
+        announcements = [m for m in Message.objects.order_by("-appearDateTime").all() if m.isPublic()]
+        return render(request, "game/announcements.html", {
+            "request": request,
+            "announcements": announcements[:5]
+        })
