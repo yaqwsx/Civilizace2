@@ -12,17 +12,22 @@
     {% for tech in techs %}
         <div class="w-full my-4 p-3 bg-white shadow rounded" id="{{tech.tech.id}}">
             <div class="w-full">
-                {{tech.tech.label}} <span class="text-gray-600 text-sm">({{tech.tech.id}})</span>
+                <span class="text-lg font-bold">
+                    {{tech.tech.label}}
+                </span>
+                <span class="text-gray-600">
+                    ({{tech.tech.id}})
+                </span>
             </div>
             <div class="w-full flex">
                 <div class="w-full md:w-1/2">
-                    <div class="text-sm">Splněno následujícími týmy:</div>
+                    <div class="text-gray-600">Splněno následujícími týmy:</div>
                     Nikdo nesplnil
-                    <div class="text-sm">Týmy plní:</div>
+                    <div class="text-gray-600">Týmy plní:</div>
                     Nikdo neplní
                 </div>
                 <div class="w-full md:w-1/2">
-                    <span class="text-sm">Přiřazené úkoly:</span>
+                    <span class="text-gray-600">Přiřazené úkoly:</span>
                     <form method="post">
                         {% csrf_token %}
 

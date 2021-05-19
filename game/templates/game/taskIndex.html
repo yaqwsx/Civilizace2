@@ -18,7 +18,10 @@
         <div class="w-full my-4 p-3 bg-white shadow rounded">
             <div class="flex">
                 <span class="text-lg font-bold">
-                    ID {{task.id}}: {{task.name}}
+                    {{task.name}}
+                </span>
+                <span class="text-gray-600">
+                    &nbsp;({{task.id}})
                 </span>
                 <a href="{% url "taskTaskEdit" task.id %}" class="flex-auto" >
                     <button class="float-right shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded text-sm">
