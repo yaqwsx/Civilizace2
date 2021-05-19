@@ -18,6 +18,8 @@ from .spendWork import SpendWorkMove
 from .addWonder import AddWonderMove
 from .attack import AttackMove
 from .addSticker import AddStickerMove
+from .startTask import StartTaskMove
+from .finishTask import FinishTaskMove
 
 def buildAction(data):
     """

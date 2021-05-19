@@ -3,36 +3,35 @@ from django import forms
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult
-from game.data.entity import EntityModel
-from game.models.stickers import Sticker
+from game.data.entity import TaskModel
 
-class AddStickerForm(MoveForm):
+class FinishTaskForm(MoveForm):
     def __init__(self, *arg, **kwarg):
         super().__init__(*arg, **kwarg)
-        self.getEntity(EntityModel)
+        self.getEntity(TaskModel)
 
-class AddStickerMove(Action):
+class FinishTaskMove(Action):
     class Meta:
         proxy = True
     class CiviMeta:
-        move = ActionType.addSticker
-        form = AddStickerForm
+        move = ActionType.finishTask
+        form = FinishTaskForm
         allowed = ["super"]
 
     @property
     def entity(self):
-        return self.context.entities.get(id=self.arguments["entity"])
+        return TaskModel.objects.get(pk=self.arguments["entity"])
 
     @staticmethod
     def relevantEntities(state, team):
-        return state.context.entities.all()
+        return team.assignedTasks.all()
 
     def requiresDice(self, state):
         return False
 
     @staticmethod
     def build(data):
-        action = AddStickerMove(
+        action = FinishTaskMove(
             team=data["team"],
             move=data["action"], arguments=Action.stripData(data))
         return action
@@ -42,5 +41,5 @@ class AddStickerMove(Action):
 
     def commit(self, state):
         result = ActionResult.makeSuccess("Akce se povedla")
-        result.addSticker(Sticker(entity=self.entity))
+        result.finishTask(self.entity)
         return result

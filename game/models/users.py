@@ -30,6 +30,12 @@ class Team(models.Model):
             return unfinished[0].resolve()
         return None
 
+    def activeTasks(self):
+        """
+        Return a query of all unfinished tasks
+        """
+        return self.assignedTasks.filter(completedAt__isnull=True).all()
+
     class Meta:
         permissions = (
             ("stat_team", "Can view stats for the team"),

@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Count, Q
+from django.utils import timezone
 
 from game import models
 from game.models.actions import *
@@ -15,7 +16,7 @@ from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionEvent, ActionPhase, InvalidActionException
 from game.models.users import User, Team
 from game.models.state import State
-from game.data.entity import DieModel
+from game.data.entity import AssignedTask, DieModel
 
 from game.forms.action import MoveInitialForm, DiceThrowForm
 
@@ -40,6 +41,31 @@ def awardStickers(request, state, team, stickers, commit=False):
         "committed": commit
     })
     return msg
+
+def handleNewTasks(request, state, team, newTasks, finishedTasks, commit=False):
+    if len(newTasks) + len(finishedTasks) == 0:
+        return ""
+    messages = []
+
+    for task, tech in newTasks:
+        if commit:
+            AssignedTask.objects.create(
+                task=task, team=team, tech=tech,
+                assignedAt = timezone.now(),
+                completedAt = None)
+        messages.append(render_to_string("game/fragments/awardedTask.html", {
+            "task": task,
+            "tech": tech,
+            "committed": commit
+        }))
+
+    if commit:
+        for t in finishedTasks:
+            taskAssignment = team.assignedTasks.get(task=t)
+            taskAssignment.completedAt = timezone.now()
+            taskAssignment.save()
+
+    return "<br/>".join(messages)
 
 class ActionView(View):
     def unfinishedActionBy(self, user):
@@ -137,16 +163,16 @@ class ActionInitiateView(ActionView):
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionEvent.initiateAction(request.user, action)
                 res = initiateStep.applyTo(state)
-                message = res.message
-                stickers = res.stickers
                 if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitRes = commitStep.applyTo(state)
-                    res.success = res.success and commitRes.success
-                    res.stickers.extend(commitRes.stickers)
-                    message += "<br>" + commitRes.message
+                    res.append(commitRes)
+                message = res.message
                 if res.success:
-                    message += "<br>" + awardStickers(request, state, team, stickers)
+                    message += "<br>" + awardStickers(request, state, team,
+                        res.stickers)
+                    message += "<br>" + handleNewTasks(request, state, team,
+                        res.startedTasks, res.finishedTasks)
 
                 form.data["canceled"] = True
                 return render(request, "game/actionConfirm.html", {
@@ -184,17 +210,17 @@ class ActionConfirmView(ActionView):
                 requiresDice = action.requiresDice(state)
                 initiateStep = ActionEvent.initiateAction(request.user, action)
                 res = initiateStep.applyTo(state)
-                message = res.message
-                stickers = res.stickers
                 if res.success and not requiresDice:
                     commitStep = ActionEvent.commitAction(request.user, action, 0)
                     commitRes = commitStep.applyTo(state)
-                    res.success = res.success and commitRes.success
-                    message += "<br>" + commitRes.message
-                    res.stickers.extend(commitRes.stickers)
+                    res.append(commitRes)
                     awardAchievements(request, state, team)
+                message = res.message
                 if res.success:
-                    message += "<br>" + awardStickers(request, state, team, stickers, res.success)
+                    message += "<br>" + awardStickers(request, state, team,
+                        res.stickers, res.success)
+                    message += "<br>" + handleNewTasks(request, state, team,
+                        res.startedTasks, res.finishedTasks, res.success)
 
                 if not res.success:
                     form.data["canceled"] = True
@@ -296,13 +322,15 @@ class ActionDiceThrow(ActionView):
             if not res.success:
                 messages.error(res.message)
                 return redirect('actionDiceThrow', actionId=action.id)
-            stickerMessage = awardStickers(request, state, team, res.stickers, True)
+            message = awardStickers(request, state, team, res.stickers, True)
+            message += "<br>" + handleNewTasks(request, state, team,
+                res.startedTasks, res.finishedTasks, True)
             awardAchievements(request, state, team)
             action.save()
             step.save()
             state.save()
             if len(res.message) > 0:
-                channel(request, res.message + "<br>" + stickerMessage)
+                channel(request, res.message + "<br>" + message)
             return redirect('actionIndex')
         except InvalidActionException as e:
             messages.error(request, str(e))

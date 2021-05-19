@@ -24,6 +24,8 @@ class ActionType(enum.Enum):
     sandbox = 99
 
     addSticker = 100
+    startTask = 101
+    finishTask = 102
 
     __labels__ = {
         nextTurn: "Krmení",
@@ -47,5 +49,7 @@ class ActionType(enum.Enum):
         sandbox: "DEBUG: SANDBOX",
         sanboxIncreaseCounter: "DEBUG: Zvýšit counter",
         startNewRound: "DEBUG: Začít kolo",
-        addSticker: "DEBUG: Udělit samolepku"
+        addSticker: "DEBUG: Udělit samolepku",
+        startTask: "DEBUG: Začít úkol",
+        finishTask: "DEBUG: Dokončit úkol"
     }

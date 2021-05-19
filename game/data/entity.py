@@ -27,6 +27,17 @@ class EntityManager(models.Manager):
     def latest(self):
         return self.get_queryset().filter(version=EntitiesVersion.objects.getNewest())
 
+class FakeEntityManager(models.Manager):
+    """
+    There are some models (e.g., tasks) that are useful to be treated like
+    entities, but they are not versioned. Let's give them the same interface
+    """
+    def fixVersionManger(self, version):
+        return self
+
+    def latest(self):
+        return self
+
 class EntityModel(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     label = models.CharField(max_length=50)
@@ -77,6 +88,17 @@ class TaskModel(models.Model):
     orgDescription = models.TextField()
     capacity = models.IntegerField()
 
+    # Let's pretend we are a versioned entity...
+    objects = FakeEntityManager()
+    manager = FakeEntityManager()
+
+    @property
+    def label(self):
+        """
+        Make it compliant with EntityModel
+        """
+        return self.name
+
     def htmlRepr(self):
         return f"Úkol: <b>{self.label}</b><br><i>{self.text}</i>"
 
@@ -95,6 +117,11 @@ class TaskMapping(models.Model):
     tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
     active = models.BooleanField(default=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(name="%(class)s_pk", fields=["task", "tech"])
+        ]
+
 class AssignedTask(models.Model):
     """
     Assigns task to a team for given tech. Once the model is created, it should
@@ -102,9 +129,14 @@ class AssignedTask(models.Model):
     """
     task = models.ForeignKey("TaskModel", on_delete=models.PROTECT)
     team = models.ForeignKey("Team", on_delete=models.PROTECT)
-    tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
+    tech = models.ForeignKey("TechModel", on_delete=models.PROTECT, null=True)
     assignedAt = models.DateTimeField(auto_now=True)
     completedAt = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(name="%(class)s_pk", fields=["task", "team"])
+        ]
 
 
 class IslandModel(EntityModel):

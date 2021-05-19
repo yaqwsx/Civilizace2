@@ -142,6 +142,28 @@ class ActionResult:
         self.success = success
         self.message = message
         self.stickers = stickers
+        self.startedTasks = []
+        self.finishedTasks = []
+
+    def append(self, other):
+        """
+        Append another result (e.g., when initiating and committing in a single
+        step)
+        """
+        self.success = self.success and other.success
+        self.message = self.message + "<br/>" + other.message
+        self.stickers.extend(other.stickers)
+        self.startedTasks.extend(other.startedTasks)
+        self.finishedTasks.extend(other.finishedTasks)
+
+    def addSticker(self, sticker):
+        self.stickers.append(sticker)
+
+    def startTask(self, task, viaTech):
+        self.startedTasks.append((task, viaTech))
+
+    def finishTask(self, task):
+        self.finishedTasks.append(task)
 
     @staticmethod
     def makeSuccess(message, stickers=None):
