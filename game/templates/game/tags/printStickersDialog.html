@@ -87,10 +87,16 @@
       })
       .then(responseJson => {
         printers.options.length = 0;
+        let select = null;
+        let lastPrinter = window.localStorage.getItem("lastPrinter");
         responseJson["printers"].forEach(printer => {
             printers.options[printers.options.length] =
               new Option(printer.name, printer.id);
+            if (printer.id == lastPrinter)
+              select = lastPrinter;
         });
+        if (select !== null )
+          printers.value = select;
         spinbox.classList.add("hidden");
         printingOptions.classList.remove("hidden");
         submitButton.disabled = false;
@@ -118,6 +124,7 @@
     status.innerHTML = "Odesílám tisk";
 
     let selectedPrinter = printers.value;
+    window.localStorage.setItem("lastPrinter", selectedPrinter);
     let promises = stickersToPrint_{{dialogId}}.map(stickerId => {
         return fetch(`/printers/${selectedPrinter}/sticker/${stickerId}`, { method: 'POST' })
           .then(response => {
