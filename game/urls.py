@@ -6,6 +6,7 @@ from game.views import dashboard
 from game.views import task
 from game.views import generation
 from game.views import sticker
+from game.views import printing
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
@@ -37,6 +38,9 @@ urlpatterns = [
     path("tasks/new", task.NewTaskView.as_view(), name="taskTaskNew"),
     path("tasks/<int:taskId>/edit", task.EditTaskView.as_view(), name="taskTaskEdit"),
     path("tasks/mapping", task.TaskMappingIndexView.as_view(), name="taskMappingIndex"),
+
+    path("printers", printing.PrintersView.as_view(), name="printers"),
+    path("printers/<int:printerId>/sticker/<int:stickerId>", printing.PrintStickerView.as_view(), name="printSticker"),
 
     path("demo", DemoView.as_view(), name="demo")
 ]

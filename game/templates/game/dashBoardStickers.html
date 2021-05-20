@@ -39,7 +39,7 @@
         </div>
         <script>
             function onButtonPrint{{sticker.id}}() {
-                toggleModal("mainPrintDialog");
+                printStickers("mainPrintDialog", ["{{sticker.id}}"]);
             }
         </script>
     {% endfor %}

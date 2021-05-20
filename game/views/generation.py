@@ -2,22 +2,16 @@ from game.models.messageBoard import Message
 from django.views import View
 from django import forms
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, reverse
-from game.models.generationTick import (
-    GenerationTickSettings, ExpectedGeneration,
-    updateGeneration, getExpectedGeneration, getGenerationSettings)
+from game.models.generationTick import (getExpectedGeneration, getGenerationSettings)
 from django.contrib import messages
 from django.utils import timezone
 
-from datetime import timedelta, datetime
+from datetime import timedelta
 
-from game.models.users import User
 from game.models.state import State
-from game.models.actionBase import ActionEvent
-from game.models.actions.worldActions import NextGenerationAction
 
 
 class GenerationForm(forms.Form):

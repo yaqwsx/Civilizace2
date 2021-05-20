@@ -16,27 +16,32 @@
         </button>
       </div>
       <div class="relative p-6 flex-auto">
-        <div class="md:flex md:items-center mb-6">
+        <div class="printingSpinbox text-center w-full">
+          <div class="loader"></div>
+        </div>
+        <div class="printingOptions"><div class="md:flex md:items-center mb-6">
             <div class="md:w-1/3">
                 <label for="id_action" class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4 requiredField">
                     Tiskárna
                 </label>
             </div>
             <div class="field md:w-2/3">
-                <select name="{{dialogId}}-printer" data-valuetype="" class="select" id="{{dialogId}}-printer">
+                <select name="{{dialogId}}-printer" data-valuetype="" class="select printingPrinters">
                     <option value="" selected="">-----------</option>
                     <option value="">Tiskárna u krmení</option>
                     <option value="">Tiskárna v orgovně</option>
                 </select>
             </div>
+        </div></div>
+        <div class="printingStatus">
         </div>
       </div>
       <!--footer-->
       <div class="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
         <button
-            class="w-full my-4 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+            class="printingButton w-full my-4 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
             tpye="button"
-            onclick="printStickers('{{dialogId}}')">
+            onclick="doPrinting('{{dialogId}}')">
             Vytisknout samolepky
         </button>
       </div>
@@ -45,6 +50,8 @@
 </div>
 <div class="hidden opacity-25 fixed inset-0 z-40 bg-black" id="{{dialogId}}-backdrop"></div>
 <script type="text/javascript">
+  var stickersToPrint_{{dialogId}} = [];
+
   function toggleModal(modalID){
     document.getElementById(modalID).classList.toggle("hidden");
     document.getElementById(modalID + "-backdrop").classList.toggle("hidden");
@@ -52,7 +59,85 @@
     document.getElementById(modalID + "-backdrop").classList.toggle("flex");
   }
 
-  function printStickers(modalID) {
+  function printStickers(modalID, stickers) {
+      stickersToPrint_{{dialogId}} = stickers;
+
+      let dialog = document.getElementById(modalID);
+      let spinbox = dialog.querySelector(".printingSpinbox");
+      let printingOptions = dialog.querySelector(".printingOptions");
+      let printers = printingOptions.querySelector("select");
+      let submitButton = dialog.querySelector(".printingButton");
+      let status = dialog.querySelector(".printingStatus");
+
+      spinbox.classList.remove("hidden");
+      printingOptions.classList.add("hidden");
+      submitButton.disabled = true;
+      status.innerHTML = "Získávám seznam tiskáren";
+
+      fetch("/printers").then(response => {
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        if (response.status !== 200) {
+            return response.text().then( text => {
+                throw new Error(`Response: ${response.status}: ${text}`);
+            });
+        }
+        return response.json();
+      })
+      .then(responseJson => {
+        printers.options.length = 0;
+        responseJson["printers"].forEach(printer => {
+            printers.options[printers.options.length] =
+              new Option(printer.name, printer.id);
+        });
+        spinbox.classList.add("hidden");
+        printingOptions.classList.remove("hidden");
+        submitButton.disabled = false;
+        status.innerHTML = "";
+      })
+      .catch(e => {
+          spinbox.classList.add("hidden");
+          status.innerHTML = e.message;
+      });
+
       toggleModal(modalID);
+  }
+
+  function doPrinting(modalID) {
+    let dialog = document.getElementById(modalID);
+    let spinbox = dialog.querySelector(".printingSpinbox");
+    let printingOptions = dialog.querySelector(".printingOptions");
+    let printers = printingOptions.querySelector("select");
+    let submitButton = dialog.querySelector(".printingButton");
+    let status = dialog.querySelector(".printingStatus");
+
+    spinbox.classList.remove("hidden");
+    printingOptions.classList.add("hidden");
+    submitButton.disabled = true;
+    status.innerHTML = "Odesílám tisk";
+
+    let selectedPrinter = printers.value;
+    let promises = stickersToPrint_{{dialogId}}.map(stickerId => {
+        return fetch(`/printers/${selectedPrinter}/sticker/${stickerId}`, { method: 'POST' })
+          .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            if (response.status !== 200) {
+                return response.text().then( text => {
+                    throw new Error(`Response: ${response.status}: ${text}`);
+                });
+            }
+          return response.text();
+        });
+    });
+
+    Promise.all(promises).then(values => {
+      toggleModal(modalID);
+    }).catch(e => {
+        spinbox.classList.add("hidden");
+        status.innerHTML = e.message;
+    });
   }
 </script>

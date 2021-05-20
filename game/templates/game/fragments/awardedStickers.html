@@ -15,7 +15,7 @@
         <button
             class="w-full my-4 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
             type="button"
-            onclick="return toggleModal('stickerDialog')"
+            onclick="printStickers('stickerDialog', [{% for s in stickers %}'s.id', {% endfor %}])"
         >
             Vytisknout samolepky
         </button>
