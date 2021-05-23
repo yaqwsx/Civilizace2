@@ -20,6 +20,7 @@ from .attack import AttackMove
 from .addSticker import AddStickerMove
 from .startTask import StartTaskMove
 from .finishTask import FinishTaskMove
+from .maaraCounter import MaaraMove
 
 def buildAction(data):
     """

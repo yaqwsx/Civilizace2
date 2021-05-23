@@ -47,7 +47,8 @@ class ResearchMove(Action):
 
     @property
     def edge(self):
-        return TechEdgeModel.objects.get(id=self.arguments["techSelect"])
+        tech = self.context.edges.get(id=self.arguments["techSelect"])
+        return tech
 
     def requiresDice(self, state):
         return True

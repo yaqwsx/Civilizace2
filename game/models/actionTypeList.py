@@ -17,7 +17,6 @@ class ActionType(enum.Enum):
     trade = 12
     spendWork = 13
     addWonder = 15
-
     attack = 20
 
     godmode = 42
@@ -26,6 +25,8 @@ class ActionType(enum.Enum):
     addSticker = 100
     startTask = 101
     finishTask = 102
+
+    maaraCounter = 103
 
     __labels__ = {
         nextTurn: "Krmení",
@@ -51,5 +52,7 @@ class ActionType(enum.Enum):
         startNewRound: "DEBUG: Začít kolo",
         addSticker: "DEBUG: Udělit samolepku",
         startTask: "DEBUG: Začít úkol",
-        finishTask: "DEBUG: Dokončit úkol"
+        finishTask: "DEBUG: Dokončit úkol",
+
+        maaraCounter: "MAARA: Debug counter",
     }

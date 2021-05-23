@@ -189,7 +189,8 @@ class ActionContext:
             "resources": ResourceModel,
             "resourceTypes": ResourceTypeModel,
             "techs": TechModel,
-            "vyrobas": VyrobaModel
+            "vyrobas": VyrobaModel,
+            "edges": TechEdgeModel
         }
         for name, model in managers.items():
             setattr(self, name, model.manager.fixVersionManger(entitiesVersion))
