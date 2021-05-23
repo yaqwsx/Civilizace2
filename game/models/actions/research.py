@@ -4,7 +4,7 @@ from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action, InvalidActionException
+from game.models.actionBase import Action, InvalidActionException, ActionResult
 from game.models.state import TechStorageItem, TechStatusEnum, ResourceStorage
 
 
@@ -62,12 +62,12 @@ class ResearchMove(Action):
         dst = self.edge.dst
 
         if techs.getStatus(self.edge.src) != TechStatusEnum.OWNED:
-            return False, f"Zdrojová technologie {self.edge.src.label} není vyzkoumána."
+            return ActionResult.makeFail(f"Zdrojová technologie {self.edge.src.label} není vyzkoumána.")
         dstStatus = techs.getStatus(dst)
         if dstStatus == TechStatusEnum.OWNED:
-            return False, f"Cílová technologie {dst.label} už byla kompletně vyzkoumána."
+            return ActionResult.makeFail(f"Cílová technologie {dst.label} už byla kompletně vyzkoumána.")
         if dstStatus == TechStatusEnum.RESEARCHING:
-            return False, f"Cilová technologie {dst.label} už je zkoumána."
+            return ActionResult.makeFail(f"Cilová technologie {dst.label} už je zkoumána.")
 
         try:
             print(self.edge.getInputs())
@@ -80,18 +80,19 @@ class ResearchMove(Action):
         except ResourceStorage.NotEnoughResourcesException as e:
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
             message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
-            return False, message
-        return True, f"""
-            Pro vyzkoumání <i>{self.edge.dst.label}</i> skrze <i>{self.edge.label}</i> je třeba hodit: {self.edge.dots}&times; {self.edge.die.label}<br>
-            {costMessage}<br>
-        """
+            return ActionResult.makeFail(message)
+        return ActionResult.makeSuccess(
+            f"""
+                Pro vyzkoumání <i>{self.edge.dst.label}</i> skrze <i>{self.edge.label}</i> je třeba hodit: {self.edge.dots}&times; {self.edge.die.label}<br>
+                {costMessage}<br>
+            """)
 
     def commit(self, state):
         self.teamState(state).techs.setStatus(self.edge.dst, TechStatusEnum.RESEARCHING)
-        return True, f"""
+        return ActionResult.makeSuccess(f"""
             Zkoumání technologie {self.edge.dst.label} bylo započato.<br>
-            {self.edge.dst.task.htmlRepr()}
-        """
+        """)
+        # TODO: How to show the new task?
 
     def abandon(self, state):
         productions = { res: amount for res, amount in self.edge.getInputs().items()
@@ -99,18 +100,11 @@ class ResearchMove(Action):
 
         teamState = self.teamState(state)
         teamState.resources.returnResources(productions)
-
-        message = self.abandonMessage()
-        message += "<br>"
-        message += "Tým nedostane zpátky žádné materiály"
-        return True, message
+        return self.makeAbandon("Tým nedostane zpátky žádné materiály")
 
     def cancel(self, state):
         teamState = self.teamState(state)
         materials = teamState.resources.returnResources(self.edge.getInputs())
+        message = "Vraťte týmu materiály: " + ResourceStorage.asHtml(materials)
 
-        message = self.cancelMessage()
-        message += "<br>"
-        message += "Vraťte týmu materiály: " + ResourceStorage.asHtml(materials)
-
-        return True, message
+        return self.makeCancel(message)

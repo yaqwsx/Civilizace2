@@ -571,9 +571,11 @@ class ResourceStorage(StateModel):
 
     @staticmethod
     def asHtml(resources, separator=", "):
-        return separator.join([
-            f'{value}&times; {key.htmlRepr()}'
-            for key, value in resources.items()])
+        if len(resources) > 0:
+            return separator.join([
+               f'{value}&times; {key.htmlRepr()}'
+               for key, value in resources.items()])
+        return "-"
 
     items = ListField(model_type=ResourceStorageItem)
 

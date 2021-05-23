@@ -5,7 +5,7 @@ from game.data.tech import TechEdgeModel, TechModel
 from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action, InvalidActionException
+from game.models.actionBase import Action, InvalidActionException, ActionResult
 from game.models.state import TechStorageItem, TechStatusEnum
 
 
@@ -47,22 +47,22 @@ class FinishResearchMove(Action):
         return False
 
     def initiate(self, state):
-        return True, ""
+        return ActionResult.makeSuccess()
 
     def commit(self, state):
         tech = self.context.techs.get(id=self.arguments["entity"])
         techs = self.teamState(state).techs
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
-            return False, f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní'
+            return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní')
         if status == TechStatusEnum.UNKNOWN:
-            return False, f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat'
+            return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat')
         techs.setStatus(tech, TechStatusEnum.OWNED)
         stickers = [tech.label] + \
             [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
             [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
         stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
-        return True, f"""Technologie {tech.label} bude dozkoumána.<br><br>
-                    {tech.task.htmlRepr()}<br><br>
+        return ActionResult.makeSuccess(f"""Technologie {tech.label} bude dozkoumána.<br><br>
+                    TODO: Tech task description<br><br>
                     Vydej týmu následující samolepky:
-                    <ul class="list-disc px-4">{stickerMsg}</ul>"""
+                    <ul class="list-disc px-4">{stickerMsg}</ul>""")

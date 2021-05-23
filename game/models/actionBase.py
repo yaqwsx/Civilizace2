@@ -166,7 +166,7 @@ class ActionResult:
         self.finishedTasks.append(task)
 
     @staticmethod
-    def makeSuccess(message, stickers=None):
+    def makeSuccess(message="", stickers=None):
         if stickers is None:
             stickers = []
         return ActionResult(True, message, stickers)
@@ -315,8 +315,10 @@ class Action(ImmutableModel):
     def description(self):
         return "{} pro tým {}".format(self.move.label, self.team.name)
 
-    def makeCancel(self):
-        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla zrušena.")
+    def makeCancel(self, message=None):
+        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla zrušena."
+                                        + ("" if message is None else f"<br>" + message))
 
-    def makeAbandon(self):
-        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla uzavřena neúspěchem. Týmu se nepovedlo hodit dostatek")
+    def makeAbandon(self, message=None):
+        return ActionResult.makeSuccess(f"Akce \"{self.description()}\" byla uzavřena neúspěchem. Týmu se nepovedlo hodit dostatek"
+                                        + ("" if message is None else f"<br>" + message))
