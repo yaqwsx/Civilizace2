@@ -143,7 +143,7 @@ class TaskMappingIndexView(View):
         techTaskMappingForm = TechTaskMappingForm(request.POST)
         assignment = TaskAssignmentFormset(data=request.POST)
         if techTaskMappingForm.is_valid() and assignment.is_valid():
-            tech = TechModel.manager.latest().get(pk=techTaskMappingForm.cleaned_data["tech"])
+            tech = TechModel.manager.latest().get(id=techTaskMappingForm.cleaned_data["tech"])
             tasks = set([x["task"].id for x in assignment.cleaned_data if "task" in x and x["task"] is not None])
             self.updateMapping(tech, tasks)
             messages.success(request, f"Úkoly pro technologii '{tech.label}' upraveny")

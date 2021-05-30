@@ -20,7 +20,7 @@ class FinishTaskMove(Action):
 
     @property
     def entity(self):
-        return TaskModel.objects.get(pk=self.arguments["entity"])
+        return TaskModel.objects.get(id=self.arguments["entity"])
 
     @staticmethod
     def relevantEntities(state, team):
