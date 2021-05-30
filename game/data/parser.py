@@ -12,8 +12,8 @@ class Parser():
         "tech": 1,
         "edge": 2,
         "vyr": 5,
-        "ach": 9,
-        "enh": 10
+        "ach": 8,
+        "enh": 9
     }
 
     warnings = None
@@ -465,9 +465,10 @@ class Parser():
 
         for n, line in enumerate(myRaw[1:], start=1):
             label, id, implementation, icon, orgMessage = line[:5]
-            AchievementModel.manager.create(id=id,
-                label=label, implementation=implementation,
-                icon=icon, orgMessage=orgMessage, version=self.entitiesVersion)
+            if id:
+                AchievementModel.manager.create(id=id,
+                    label=label, implementation=implementation,
+                    icon=icon, orgMessage=orgMessage, version=self.entitiesVersion)
 
 
     def parse(self, rawData):
@@ -497,7 +498,7 @@ class Parser():
         self._addTechs()
         self._addEdges()
         self._addVyrobas()
-        self._addEnhancements()
+        # self._addEnhancements() # TODO: Update enhancement mechanics
         self._addAchievements()
 
         warnings = self.warnings

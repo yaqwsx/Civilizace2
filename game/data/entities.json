@@ -25,6 +25,71 @@
             "Level"
         ],
         [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
             "Alchymistick\u00e1 d\u00edlna",
             "build-alchdilna",
             "ukol-nic",
@@ -151,7 +216,7 @@
             "0",
             "radost",
             "Loveck\u00fd t\u00e1bor, Loveck\u00fd t\u00e1bor ze d\u0159eva",
-            "D\u0159ev\u011bn\u00e9 uhl\u00ed, L\u00e9\u010div\u00e9 byliny, L\u00e9\u010div\u00e9 byliny",
+            "D\u0159ev\u011bn\u00e9 uhl\u00ed, L\u00e9\u010div\u00e9 byliny",
             "1"
         ],
         [
@@ -384,7 +449,7 @@
             "",
             "0",
             "mu\u0161le",
-            "L\u00e9\u010div\u00e9 byliny, L\u00e9\u010div\u00e9 byliny",
+            "L\u00e9\u010div\u00e9 byliny",
             "Elixir, L\u00e9ka\u0159stv\u00ed, Astronomie",
             "2"
         ],
@@ -1635,6 +1700,21 @@
             ""
         ],
         [
+            "L\u00e9\u010div\u00e9 byliny",
+            "edge-byliny",
+            "build-lovci",
+            "tech-byliny",
+            "die-les:10",
+            "",
+            "",
+            "mat-bobule:5",
+            "1",
+            "1",
+            "2",
+            "",
+            ""
+        ],
+        [
             "Elixir",
             "edge-elixir",
             "tech-byliny",
@@ -1673,21 +1753,6 @@
             "",
             "",
             "mat-uhli:2",
-            "1",
-            "1",
-            "2",
-            "",
-            ""
-        ],
-        [
-            "L\u00e9\u010div\u00e9 byliny",
-            "edge-byliny",
-            "build-lovci",
-            "tech-byliny",
-            "die-les:10",
-            "",
-            "",
-            "mat-bobule:5",
             "1",
             "1",
             "2",
@@ -13506,7 +13571,7 @@
             "Identifikuj \u010dlov\u011bka",
             "ukol-44",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Musi\u0161 poslepu rozpoznat \u010dlena sv\u00e9ho t\u00fdmu. Jako spr\u00e1vn\u00fd anatom to mus\u00ed\u0161 zjistit pouze podle jedn\u00e9 \u010d\u00e1sti t\u011bla (noha, ruka). M\u00e1\u0161 2 minuty na p\u0159\u00edpravu.",
             "",
             ""
         ],
@@ -13514,7 +13579,7 @@
             "Prov\u00e1zkov\u00fd hlavolam",
             "ukol-45",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Rozd\u011bl se se sv\u00fdm sousedem.",
             "",
             ""
         ],
@@ -13554,7 +13619,7 @@
             "V\u00e1ha a kalibr",
             "ukol-50",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Odhadni 3 deka s toleranc\u00ed +/-  xxx g",
             "",
             ""
         ],
@@ -13578,7 +13643,7 @@
             "Abakus",
             "ukol-53",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Sestrojte po\u010d\u00edtadlo, na kter\u00e9m se\u010dtete 3245+5978 ",
             "",
             ""
         ],
@@ -13586,7 +13651,7 @@
             "Chlast",
             "ukol-54",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Identifikuj pou\u017eit\u00e9 ovoce.",
             "",
             ""
         ],
@@ -13594,7 +13659,7 @@
             "Slep\u00fd st\u0159elec",
             "ukol-55",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
-            "",
+            "Mus\u00ed\u0161 poslepu trefit ter\u010d. M\u00e1\u0161 5 pokus\u016f",
             "",
             ""
         ],
@@ -13610,7 +13675,159 @@
             "Ov\u010d\u00e1k a ove\u010dky?",
             "ukol-57",
             "Vy\u0159e\u0161it \u00fakol podle zad\u00e1n\u00ed.",
+            "Za\u017ee\u0148 ovce do vyhra\u017een\u00e9 ohr\u00e1dky.",
             "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Vyzna\u010dte, odmerajte \u010do najpresnej\u0161ie jeden XYLON.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "\u010co je jeden XYLON?",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Mo\u017eno V\u00e1m pom\u00f4\u017ee toto:",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Stadion m\u00e1 600 P\u00fas.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "P\u00fas m\u00e1 16 Daktylos.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Xylon m\u00e1 72 Daktylos.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "#ERROR!",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Pre in\u0161truktorov:",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Xylon m\u00e1  1,388 m",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Daktylos m\u00e1  0,019m Je to gr\u00e9cky palec.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "P\u00fas m\u00e1 0,308 m Je to gr\u00e9cka stopa.",
+            "",
+            ""
+        ],
+        [
+            "",
+            "",
+            "",
+            "Stadion m\u00e1 185 m (Olympsk\u00fd)",
             "",
             ""
         ]
@@ -13643,13 +13860,6 @@
     ],
     [
         [
-            "Nazev",
-            "ID",
-            "obrazek"
-        ]
-    ],
-    [
-        [
             "N\u00e1zev",
             "ID",
             "implementace",
@@ -13675,7 +13885,7 @@
         ],
         [
             "Univerz\u00e1l",
-            "a",
+            "",
             "",
             "",
             "Z\u00edskej inici\u00e1ln\u00ed tech pro v\u0161echny \u010dty\u0159i biotopy",
@@ -13683,7 +13893,7 @@
         ],
         [
             "Nedosa\u017eiteln\u00fd",
-            "b",
+            "",
             "",
             "",
             "P\u0159id\u011bl si tento achievement",
@@ -13691,7 +13901,7 @@
         ],
         [
             "Uct\u00edva\u010d boh\u016f",
-            "c",
+            "",
             "",
             "",
             "Onikal orgovi",
@@ -13699,7 +13909,7 @@
         ],
         [
             "V\u00fdzkumn\u00edk",
-            "d",
+            "",
             "",
             "",
             "Jako prvn\u00ed vyzkoumal tech lv. 3 a v\u00edc",
@@ -13707,7 +13917,7 @@
         ],
         [
             "Pr\u016fkopn\u00edk",
-            "e",
+            "",
             "",
             "",
             "Produkce kamene 11+",
@@ -13715,7 +13925,7 @@
         ],
         [
             "Osv\u011btlova\u010d",
-            "f",
+            "",
             "",
             "",
             "Produkce n\u011bkter\u00e9ho paliva 11 a v\u00edc",
@@ -13723,7 +13933,7 @@
         ],
         [
             "Popelka",
-            "g",
+            "",
             "",
             "",
             "Rozsypal si organiz\u00e9r",
@@ -13785,6 +13995,18 @@
             "vyr-alkohol-palenka",
             "tech-nytovani",
             "mat-sroub:3",
+            "3",
+            "",
+            "1",
+            "1",
+            "prod-alkohol:2"
+        ],
+        [
+            "Kotel",
+            "enh-kotel",
+            "vyr-alkohol-pivo",
+            "tech-nytovani",
+            "mat-sroub:2",
             "3",
             "",
             "1",
