@@ -99,7 +99,7 @@ class Parser():
                 try:
                     type = chunks[0]
                     typeId = "type-" + type
-                    typeRef = ResourceTypeModel.manager.get(id="type-" + type)
+                    typeRef = ResourceTypeModel.manager.get(id="type-" + type, version=self.entitiesVersion)
                 except Exception:  # TODO: Look up the correct error
                     self._logWarning("Zdroje." + str(n) + ": Neznamy typ " + chunks[0])
                     continue
@@ -172,23 +172,24 @@ class Parser():
             label = line[0]
             id = line[1]
             try:
-                src = TechModel.manager.get(id=line[2])
+                src = TechModel.manager.get(id=line[2], version=self.entitiesVersion)
             except TechModel.DoesNotExist:
                 self._logWarning("Edge." + str(n) + ": Nezname zdrojove ID (" + line[2] + ")")
                 continue
             try:
-                dst = TechModel.manager.get(id=line[3])
+                dst = TechModel.manager.get(id=line[3], version=self.entitiesVersion)
             except TechModel.DoesNotExist:
                 self._logWarning("Edge." + str(n) + ": Nezname cilove ID (" + line[3] + ")")
                 continue
 
             try:
                 chunks = line[4].split(":")
-                die = DieModel.manager.get(id=chunks[0])
+                die = DieModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 dots = int(chunks[1])
             except:
                 self._logWarning("Edge." + str(n) + ": Nepodarilo se zpracovat udaje o kostce (" + line[4] + ")")
                 continue
+            print(f"Creating {id}, {self.entitiesVersion}")
             edge = TechEdgeModel.manager.create(id=id, label=label, src=src,
                 dst=dst, die=die, dots=dots, version=self.entitiesVersion)
             count += 1
@@ -201,7 +202,7 @@ class Parser():
                     return None
 
                 try:
-                    res = ResourceModel.manager.get(id=chunks[0])
+                    res = ResourceModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 except ResourceModel.DoesNotExist:
                     self._logWarning("Edge." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
                     return None
@@ -239,7 +240,7 @@ class Parser():
     def _addVyrobas(self):
         print("Parsing vyrobas")
         myRaw = self.raw[self.SHEET_MAP["vyr"]]
-        centrum = TechModel.manager.get(id="build-centrum")
+        centrum = TechModel.manager.get(id="build-centrum", version=self.entitiesVersion)
 
         for n, line in enumerate(myRaw[2:], start=2):
             line = line[:15]
@@ -253,7 +254,7 @@ class Parser():
 
             try:
                 chunks = line[2].split(":")
-                die = DieModel.manager.get(id=chunks[0])
+                die = DieModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 dots = int(chunks[1])
             except DieModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID kostky (" + line[2] + ")")
@@ -264,7 +265,7 @@ class Parser():
 
             try:
                 chunks = line[6].split(":")
-                output = ResourceModel.manager.get(id=chunks[0])
+                output = ResourceModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 amount = int(chunks[1])
             except ResourceModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID materiálu (" + line[6] + ")")
@@ -274,7 +275,7 @@ class Parser():
                 continue
 
             try:
-                tech = TechModel.manager.get(id=line[7])
+                tech = TechModel.manager.get(id=line[7], version=self.entitiesVersion)
             except TechModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID technologie (" + line[7] + ")")
                 continue
@@ -283,7 +284,7 @@ class Parser():
                 if line[8][:5] == "land-":
                     build = None
                 else:
-                    build = TechModel.manager.get(id=line[8])
+                    build = TechModel.manager.get(id=line[8], version=self.entitiesVersion)
             except TechModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Neznámé ID budovy (" + line[8] + ")")
                 continue
@@ -300,7 +301,7 @@ class Parser():
                     return None
 
                 try:
-                    res = ResourceModel.manager.get(id=chunks[0])
+                    res = ResourceModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 except ResourceModel.DoesNotExist:
                     self._logWarning("Vyroba." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
                     return None
@@ -344,7 +345,7 @@ class Parser():
 
             try:
                 chunks = line[6].split(":")
-                output = ResourceModel.manager.get(id="mat-" + chunks[0][5:])
+                output = ResourceModel.manager.get(id="mat-" + chunks[0][5:], version=self.entitiesVersion)
             except ResourceModel.DoesNotExist:
                 self._logWarning("Vyroba." + str(n) + ": Nepodarilo se prevést ID na materiál (" + line[6] + ")")
                 continue
@@ -367,7 +368,7 @@ class Parser():
                 inputId = "mat-" + chunks[0][5:] if chunks[0][:5] == "prod-" else chunks[0]
 
                 try:
-                    res = ResourceModel.manager.get(id=inputId)
+                    res = ResourceModel.manager.get(id=inputId, version=self.entitiesVersion)
                 except ResourceModel.DoesNotExist:
                     self._logWarning("Vyroba." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
                     return None
@@ -409,13 +410,13 @@ class Parser():
             label = line[0]
 
             try:
-                vyroba = VyrobaModel.manager.get(id=line[2])
+                vyroba = VyrobaModel.manager.get(id=line[2], version=self.entitiesVersion)
             except VyrobaModel.DoesNotExist:
                 self._logWarning("Vylepšení ." + str(n) + ": Neznámé ID výroby (" + line[2] + ")")
                 continue
 
             try:
-                tech = TechModel.manager.get(id=line[3])
+                tech = TechModel.manager.get(id=line[3], version=self.entitiesVersion)
             except TechModel.DoesNotExist:
                 self._logWarning("Vylepšení ." + str(n) + ": Neznámé ID technologie (" + line[3] + ")")
                 continue
@@ -437,7 +438,7 @@ class Parser():
                     return None
 
                 try:
-                    res = ResourceModel.manager.get(id=chunks[0])
+                    res = ResourceModel.manager.get(id=chunks[0], version=self.entitiesVersion)
                 except ResourceModel.DoesNotExist:
                     self._logWarning("Vylepšení." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
                     return None

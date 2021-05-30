@@ -39,7 +39,8 @@ class FakeEntityManager(models.Manager):
         return self
 
 class EntityModel(models.Model):
-    id = models.CharField(max_length=20, primary_key=True)
+    syntheticId = models.AutoField(primary_key=True)
+    id = models.CharField(max_length=20)
     label = models.CharField(max_length=50)
     version = models.ForeignKey(EntitiesVersion, on_delete=models.CASCADE)
 
@@ -52,9 +53,10 @@ class EntityModel(models.Model):
     manager = EntityManager()
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(name="%(class)s_pk", fields=["id", "version"])
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(name="%(class)s_pk", fields=["id", "version"])
+        # ]
+        unique_together = (("id", "version"),)
 
     def __str__(self):
         return self.id
