@@ -21,7 +21,8 @@ class Update():
         credentials = ServiceAccountCredentials.from_json_keyfile_name("game/google-sheet-key.json", scope)
         gc = gspread_authorize(credentials)
 
-        wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1EcBVbrpLp3_ypbYTMWM9Cw1EGQq8ST44zQcV9KA-B_A/edit?usp=sharing")
+        # wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1EcBVbrpLp3_ypbYTMWM9Cw1EGQq8ST44zQcV9KA-B_A/edit?usp=sharing")
+        wks = gc.open_by_url("https://docs.google.com/spreadsheets/d/1sXUdcZYGBz_XzbykQFTkJzZ9nI0dwOQYP9DBl6UqmHk/edit")
 
         result = []
         for sheet in wks.worksheets():
