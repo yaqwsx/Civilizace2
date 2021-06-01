@@ -3,7 +3,7 @@ from crispy_forms.layout import Layout, Fieldset, Field, HTML
 from django import forms
 
 from game.forms.action import MoveForm
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 from game.models.actionTypeList import ActionType
 from game.forms.layout import jsonDiffEditor
 
@@ -44,7 +44,7 @@ class GodMove(Action):
         return []
 
     def initiate(self, state):
-        return True, ""
+        return ActionResult.makeSuccess()
 
     def htmlList(self, dic):
         return "<ul class=\"list-disc px-6\">" + "".join([f"<li>{key}: {value}</li>" for key, value in dic.items()]) + "</ul>"
@@ -61,5 +61,5 @@ class GodMove(Action):
 
     def commit(self, state):
         state.godUpdate(self.arguments)
-        return True, self.message()
+        return ActionResult.makeSuccess(self.message())
 

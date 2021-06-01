@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from game.data import ResourceModel
 from game.forms.action import MoveForm
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 from game.models.actionTypeList import ActionType
 
 
@@ -16,14 +16,14 @@ class FoodSupplyForm(MoveForm):
 
         resources = self.state.teamState(self.teamId).resources
 
-        for resource, amount in resources.getResourcesByType(ResourceModel.objects.get(id="prod-jidlo-2")).items():
+        for resource, amount in resources.getResourcesByType(ResourceModel.manager.latest().get(id="prod-jidlo-2")).items():
             self.fields[resource.id] = forms.IntegerField(
                 label=f"{resource.htmlRepr()} (max. {amount}x)",
                 validators=[MinValueValidator(0), MaxValueValidator(amount)],
                 initial=0)
             fields.append(resource.id)
 
-        for resource, amount in resources.getResourcesByType(ResourceModel.objects.get(id="prod-luxus-2")).items():
+        for resource, amount in resources.getResourcesByType(ResourceModel.manager.latest().get(id="prod-luxus-2")).items():
             self.fields[resource.id] = forms.IntegerField(
                 label=f"{resource.htmlRepr()} (max. {amount}x)",
                 validators=[MinValueValidator(0), MaxValueValidator(amount)],
@@ -60,7 +60,7 @@ class FoodSupplyMove(Action):
         for key in filter(lambda x: x[:5] ==  "prod-", self.arguments.keys()):
             if not self.arguments[key]:
                 continue
-            resource = ResourceModel.objects.get(id=key)
+            resource = self.context.resources.get(id=key)
             transfer[resource] = self.arguments[key]
             message.append(f"  {self.arguments[key]}x {resource.htmlRepr()}")
 
@@ -69,8 +69,8 @@ class FoodSupplyMove(Action):
         team.foodSupply.addSupply(transfer)
 
         self.arguments["team"] = None
-        return True, "<br>".join(message)
+        return ActionResult.makeSuccess("<br>".join(message))
 
     def commit(self, state):
-        return True, ""
+        return ActionResult.makeSuccess()
 

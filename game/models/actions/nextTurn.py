@@ -5,7 +5,7 @@ from django import forms
 from game.data import ResourceModel
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action, InvalidActionException
+from game.models.actionBase import Action, InvalidActionException, ActionResult
 
 
 class NextTurnForm(MoveForm):
@@ -76,10 +76,10 @@ class NextTurn(Action):
 
         if unfinished:
             org = unfinished.actionevent_set.all()[0].author
-            message = f"Nelze začít kolo, nedoházeli jste kostkou u organizátora {org.username}"
-            return False, message
+            result = ActionResult.makeFail(f"Nelze začít kolo, nedoházeli jste kostkou u organizátora {org.username}")
+            return result
 
-        return True, ""
+        return ActionResult.makeSuccess()
 
     def commit(self, state):
         team = self.teamState(state)
@@ -128,5 +128,5 @@ class NextTurn(Action):
             f"Máte {prirustek} nových obyvatel",
             f"V tomto kole máte {prace} práce"
         ])
-        return True, message
+        return ActionResult.makeSuccess(message)
 
