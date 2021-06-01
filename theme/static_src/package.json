@@ -5,9 +5,9 @@
     "build": "npm run build-css && npm run build-js",
     "build-js": "copy-files-from-to",
     "build-css": "npm run build-clean && npm run build-postcss && npm run build-cleancss",
-    "build-postcss": "postcss --config . --map false --output ../static/css/styles.min.css ./src/styles.scss",
-    "build-cleancss": "cleancss -o ../static/css/styles.min.css ../static/css/styles.min.css",
-    "build-clean": "rimraf ../css",
+    "build-postcss": "npx postcss --config . --map false --output ../static/css/styles.min.css ./src/styles.scss",
+    "build-cleancss": "npx cleancss -o ../static/css/styles.min.css ../static/css/styles.min.css",
+    "build-clean": "npx rimraf ../css",
     "start": "watch 'npm run build-postcss' ./src",
     "update:packages": "node wipe-dependencies.js && rm -rf node_modules && npm update --save-dev && npm update --save"
   },
