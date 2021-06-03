@@ -190,6 +190,7 @@ class TeamState(StateModel):
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
                 techs=TechStorage.objects.createInitial(team, context),
+                storage=Storage.objects.createInitial(context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(context),
@@ -201,6 +202,7 @@ class TeamState(StateModel):
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
     turn = models.IntegerField()
+    storage = models.ForeignKey("Storage", on_delete=models.PROTECT)
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
@@ -435,10 +437,46 @@ class DistanceLogger(StateModel):
                 raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
             self.teams.remove(self.teams.get(team=id))
 
+class StorageItem(StateModel):
+    entityId = models.TextField()
+    value = models.IntegerField()
 
 class FoodStorageItem(StateModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
+
+class Storage(StateModel):
+    class StorageManager(models.Manager):
+        def createInitial(self, context):
+            return self.create(items=[])
+    objects = StorageManager()
+    items = ListField(model_type=StorageItem)
+
+    def count(self):
+        sum = 0
+        for key, val in self.items.items():
+            sum += val
+        return sum
+
+    def get(self, id):
+        try:
+            item = self.items.get(entityId=id)
+            if not item: return 0
+            return item.value
+        except StorageItem.DoesNotExist:
+            return 0
+
+    def set(self, id, value):
+        previousItem = None
+        try:
+            previousItem = self.items.get(entityId=id)
+            self.items.remove(previousItem)
+        except StorageItem.DoesNotExist:
+            pass
+
+        self.items.append(StorageItem(entityId=id, value=value))
+        return self.items[-1]
+
 
 class FoodStorage(StateModel):
     class FoodStorageManager(models.Manager):
@@ -544,7 +582,6 @@ class FoodStorage(StateModel):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
             self.items.get(resource=resource).amount = amount
 
-
 class ResourceStorageItem(StateModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
@@ -623,7 +660,7 @@ class ResourceStorage(StateModel):
 
     def setAmountReturn(self, resource, amount):
         if isinstance(resource, str):
-            resource = Rself.context.resources.get(id=resource)
+            resource = self.context.resources.get(id=resource)
 
         item = None
         try:
@@ -766,7 +803,7 @@ class MaterialStorage(StateModel):
 
     def setAmount(self, resource, amount):
         if isinstance(resource, str):
-            resource = Rself.context.resources.get(id=resource)
+            resource = self.context.resources.get(id=resource)
 
         item = None
         try:

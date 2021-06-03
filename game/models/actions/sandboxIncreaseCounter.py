@@ -55,8 +55,12 @@ class SandboxIncreaseCounterMove(Action):
 
     def commit(self, state):
         self.sandbox(state).data["counter"] += self.amount
+        storage = self.teamState(state).storage
+        value = storage.get("debugID")
+        storage.set("debugID", value+1)
+
         if self.sandbox(state).data["counter"] >= 0:
-            message = "Počítadlo změněno na: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(self.sandbox(state).data["counter"])
+            message = "Počítadlo změněno na: {}. Test: {}. Řekni o tom týmu i Maarovi a vydej jim svačinu".format(self.sandbox(state).data["counter"], value)
             return ActionResult.makeSuccess(message)
         message = "Počítadlo by kleslo pod nulu ({})".format(self.sandbox(state).data["counter"])
         return ActionResult.makeFail(message)
