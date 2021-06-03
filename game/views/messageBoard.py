@@ -58,6 +58,7 @@ class NewMessageView(View):
         visibilityForm = messageVisibilityForm(data=request.POST)
         if messageForm.is_valid() and visibilityForm.is_valid():
             message = Message.objects.create(
+                type = messageForm.cleaned_data["type"],
                 content = messageForm.cleaned_data["content"],
                 appearDateTime = messageForm.cleaned_data["appearDateTime"],
                 author = request.user)
@@ -100,6 +101,7 @@ class EditMessageView(View):
         visibilityForm = messageVisibilityForm(data=request.POST)
         if messageForm.is_valid() and visibilityForm.is_valid():
             message = get_object_or_404(Message, pk=messageId)
+            message.type = messageForm.cleaned_data["type"]
             message.content = messageForm.cleaned_data["content"]
             message.appearDateTime = messageForm.cleaned_data["appearDateTime"]
             message.author = request.user

@@ -11,21 +11,32 @@
 
     {% for message in boardMessages %}
         <div class="w-full my-2">
-            <div class="bg-white border-orange-400 border-2 rounded shadow p-4">
+            <div class="rounded shadow p-4
+                    {% if message.type == message.type.normal %}
+                        bg-white
+                    {% elif message.type == message.type.errata %}
+                        bg-blue-300
+                    {% elif message.type == message.type.announcement %}
+                        bg-red-300
+                    {% endif %}">
                 <div class="flex flex-row items-center">
                     <div class="flex-grow text-left md:w-full">
                         <p class="font-bold text-xs uppercase text-gray-600 mb-2">
-                            {{message.appearDateTime}}</p>
+                            {{message.appearDateTime}}
+                            <span class="ml-4">
+                                ({{message.type}})
+                            </span>
+                        </p>
                         <p>
                             {{ message.content | safe }}
                         </p>
                     </div>
                     <div class="flex-none text-left">
-                        {%if not user.isOrg %}<a href="{%url "messageBoardDismiss" messageId=message.id %}?next={{ request.get_full_path|urlencode }}">{% endif %}
-                            <button class="text-white rounded p-4 {%if user.isOrg %} bg-gray-500 {% else %} bg-purple-500 {% endif %}">
+                        {%if user.team == targetTeam %}<a href="{%url "messageBoardDismiss" messageId=message.id %}?next={{ request.get_full_path|urlencode }}">{% endif %}
+                            <button class="text-white rounded p-4 {%if user.team != targetTeam %} bg-gray-500 {% else %} bg-purple-500 {% endif %}">
                                 Skrýt
                             </button>
-                        {%if not user.isOrg %}</a>{% endif %}
+                        {%if user.team == targetTeam %}</a>{% endif %}
                     </div>
                 </div>
             </div>
