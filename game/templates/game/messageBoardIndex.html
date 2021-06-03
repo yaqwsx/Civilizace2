@@ -19,6 +19,9 @@
             Viditelná od: {{message.appearDateTime}}
         </p>
         <p>
+            Typ: {{message.type}}
+        </p>
+        <p>
             Vidí ji:
             {% for messageStatus in message.allowedTeams %}
                 {{messageStatus.team.name}}

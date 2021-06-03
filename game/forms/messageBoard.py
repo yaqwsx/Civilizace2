@@ -2,6 +2,8 @@ from django import forms
 import datetime
 from django.utils import timezone
 from theme.widgets import FlatpickerDateTime
+from django_enumfield.forms.fields import EnumChoiceField
+from game.models.messageBoard import MessageType
 
 class MessageForm(forms.Form):
     appearDateTime = forms.DateTimeField(label="Zobrazit zprávu od",
@@ -9,6 +11,7 @@ class MessageForm(forms.Form):
         initial=timezone.now(),
         widget=FlatpickerDateTime()
     )
+    type = EnumChoiceField(MessageType)
     content = forms.CharField(label="Obsah zprávy",
         widget=forms.Textarea(attrs={
             "oninput": "auto_grow(this)",
@@ -20,6 +23,7 @@ class MessageForm(forms.Form):
             super().__init__(*args, **kwargs)
         else:
             super().__init__(initial={
+                    "type": message.type,
                     "appearDateTime": message.appearDateTime,
                     "content": message.content
                 }, *args, **kwargs)

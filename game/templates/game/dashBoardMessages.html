@@ -9,11 +9,22 @@
 
 {% for message in boardMessages %}
     <div class="w-full my-2">
-        <div class="bg-white border rounded shadow p-4">
+        <div class="rounded shadow p-4
+                    {% if message.type == message.type.normal %}
+                        bg-white
+                    {% elif message.type == message.type.errata %}
+                        bg-blue-300
+                    {% elif message.type == message.type.announcement %}
+                        bg-red-300
+                    {% endif %}">
             <div class="flex flex-row items-center">
                 <div class="flex-1 text-left md:w-full">
                     <p class="font-bold text-xs uppercase text-gray-600 mb-2">
-                        {{message.appearDateTime}}</p>
+                        {{message.appearDateTime}}
+                        <span class="ml-4">
+                            ({{message.type}})
+                        </span>
+                    </p>
                     <p>
                         {{ message.content | safe}}
                     </p>
