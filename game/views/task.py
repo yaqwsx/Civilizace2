@@ -8,6 +8,7 @@ from django.contrib import messages
 from django import forms
 from django_enumfield.forms.fields import EnumChoiceField
 from django.forms import formset_factory
+from django.utils import timezone
 
 
 from game.data.tech import TaskModel, TechModel
@@ -91,6 +92,9 @@ class EditTaskView(View):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         task = get_object_or_404(TaskModel, pk=taskId)
+        if task.assignedtask_set.filter(assignedAt__lte=timezone.now()).exists():
+            messages.warning(request,
+                "Snažíš se upravit úkol, který už byl někomu přidělen! Opravdu to chceš dělat?")
         taskForm = TaskForm(initial={
             "name": task.name,
             "capacity": task.capacity,

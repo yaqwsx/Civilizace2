@@ -4,7 +4,7 @@
 {% block title %} Příběh civilizace - Úkoly {% endblock %}
 
 {% block content %}
-    <h1>Vývěska - {% if edit %}Editace úkolu{% else %}Nový úkol{% endif %}</h1>
+    <h1>Vývěska — {% if edit %}Editace úkolu{% else %}Nový úkol{% endif %}</h1>
     <p>Pro editaci je možné použít markdown!</p>
     <form method="post">
         {% csrf_token %}
