@@ -5,9 +5,10 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.contrib import messages
+from django.db.models import Exists, OuterRef, Count
 from game.models.users import Team
 from game.models.state import State
-from game.models.messageBoard import Message
+from game.models.messageBoard import Message, MessageRead
 
 
 class DashboardIndexView(View):
@@ -40,12 +41,18 @@ class DashboardStatView(View):
         foodSupplySurplus = -foodSupplyStats[-1][3]
         foodSupplyTokens = foodSupplyStats[-1][4]
 
-        boardMessages = Message.objects.all() \
-            .filter(appearDateTime__lte=timezone.now(),
-                    messagestatus__team=team.id,
-                    messagestatus__visible=True,
-                    messagestatus__read=False) \
-            .order_by('-appearDateTime')
+        if request.user.isOrg():
+            boardMessages = []
+        else:
+            boardMessages = Message.objects.all() \
+                .filter(appearDateTime__lte=timezone.now(),
+                        messagestatus__team=team.id,
+                        messagestatus__visible=True) \
+                .filter(~Exists(
+                    MessageRead.objects.filter(
+                        user=request.user,
+                        message=OuterRef('pk')))) \
+                .order_by('-appearDateTime')
 
         return render(request, 'game/dashBoardIndex.html', {
             "request": request,

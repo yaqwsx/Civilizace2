@@ -1,5 +1,6 @@
 from django.db import models
-from game.models.users import Team
+from django.db.models.base import Model
+from game.models.users import Team, User
 from django_enumfield import enum
 
 class MessageType(enum.Enum):
@@ -29,4 +30,8 @@ class MessageStatus(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
     visible = models.BooleanField()
-    read = models.BooleanField(default=False)
+
+
+class MessageRead(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)

@@ -19,15 +19,34 @@
                     {% endif %}">
             <div class="flex flex-row items-center">
                 <div class="flex-1 text-left md:w-full">
-                    <p class="font-bold text-xs uppercase text-gray-600 mb-2">
+                    <p class="font-bold text-xs uppercase text-gray-600">
                         {{message.appearDateTime}}
                         <span class="ml-4">
                             ({{message.type}})
                         </span>
                     </p>
-                    <p>
+                    {% if user.isOrg %}
+                        <p class="text-xs uppercase text-gray-600">
+                            Četl:
+                            {% for read in message.messageread_set.all %}
+                                {{read.user.username}}
+                                {% if not forloop.last %}
+                                    {% ifequal forloop.revcounter 2 %}
+                                        a
+                                    {% else %}
+                                        ,&nbsp;
+                                    {% endifequal %}
+                                {% else %}
+                                {% endif %}
+                            {% empty %}
+                                nikým
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                    <p class="mt-2">
                         {{ message.content | safe}}
                     </p>
+
                 </div>
             </div>
         </div>

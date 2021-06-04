@@ -17,43 +17,44 @@ GROUPS = ["super", "org"]
 
 TEAMS = {
     "Černí": {
-        "username": "cerni",
-        "password": "papirovysacek",
+        "players": [
+            {
+                "username": "cerny1",
+                "password": "password",
+            },
+            {
+                "username": "cerny2",
+                "password": "password",
+            }
+        ],
         "color": "gray-600"
     },
     "Červení": {
-        "username": "cerveni",
-        "password": "citronovavoda",
+        "players": [],
         "color": "red-600"
     },
     "Oranžoví": {
-        "username": "oranzovi",
-        "password": "tupatuzka",
+        "players": [],
         "color": "orange-500"
     },
     "Žlutí": {
-        "username": "zluti",
-        "password": "smutnakocka",
+        "players": [],
         "color": "yellow-500"
     },
     "Zelení": {
-        "username": "zeleni",
-        "password": "dutybambus",
+        "players": [],
         "color": "green-600"
     },
     "Modří": {
-        "username": "modri",
-        "password": "chlupatymic",
+        "players": [],
         "color": "blue-600"
     },
     "Fialoví": {
-        "username": "fialovi",
-        "password": "kamennesrdce",
+        "players": [],
         "color": "purple-500"
     },
     "Růžoví": {
-        "username": "ruzovi",
-        "password": "zelenykun",
+        "players": [],
         "color": "pink-600"
     }
 }
@@ -98,18 +99,16 @@ class Command(BaseCommand):
     def createUsers(self):
         # Create team users
         for teamName, teamParams in TEAMS.items():
-            try:
-                # There can be more than one team with the name - do not use get
-                team = Team.objects.all().filter(name=teamName).first()
-                if not team:
-                    raise RuntimeError()
-            except:
+            # There can be more than one team with the name - do not use get
+            team = Team.objects.all().filter(name=teamName).first()
+            if not team:
                 team = Team.objects.create(name=teamName, color=teamParams["color"])
                 print("Creating team: " + str(team))
+            for userParams in teamParams["players"]:
                 user = Command.create_or_get_user(
-                        username=teamParams["username"],
-                        email=teamParams["username"] + "@hrac.cz",
-                        password=teamParams["password"],)
+                        username=userParams["username"],
+                        email=userParams["username"] + "@hrac.cz",
+                        password=userParams["password"],)
                 perm = Permission.objects.get(codename="stat_team")
                 assign_perm(perm, user, team)
         org = Group.objects.get(name='org')

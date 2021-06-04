@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.forms import formset_factory
 
-from game.models.messageBoard import Message, MessageStatus
+from game.models.messageBoard import Message, MessageRead, MessageStatus
 from game.models.users import Team
 
 from game.forms.messageBoard import MessageForm, TeamVisibilityForm
@@ -146,15 +146,10 @@ class DismissMessageView(View):
     @method_decorator(login_required)
     def get(self, request, messageId):
         next = request.GET.get('next', '/')
-        if not request.user.isPlayer():
-            messages.warning(request, "Organizátor nemůže účastníkům skrývat zprávy")
-            return redirect(next)
-        try:
-            status = MessageStatus.objects.get(message=messageId, team=request.user.team().pk)
-        except MessageStatus.DoesNotExist:
-            messages.error(request, "Organizátor nemůže účastníkům skrývat zprávy")
-            return redirect(next)
-        status.read = True
-        status.save()
+        message = get_object_or_404(Message, pk=messageId)
+        MessageRead.objects.create(
+            message=message,
+            user=request.user
+        )
         messages.success(request, "Zpráva označena jako přečtená")
         return redirect(next)
