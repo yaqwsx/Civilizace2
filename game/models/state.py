@@ -105,12 +105,13 @@ class StateModel(ImmutableModel):
             "is-": "island",
             "res-": "resources",
             "tech-": "techs",
+            "build-": "techs",
             "vyr-": "vyrobas",
             "edge-": "edges"
         }
         for p, c in prefixes.items():
             if id.startswith(p):
-                return self.context[c].get(id=id)
+                return getattr(self.context, c).get(id=id)
         raise RuntimeError(f"No manager in context for entity {id}")
 
 class State(StateModel):
@@ -207,7 +208,6 @@ class TeamState(StateModel):
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
                 techs=TechStorage.objects.createInitial(team, context),
-                storage=Storage.objects.createInitial(context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(context),
@@ -219,7 +219,6 @@ class TeamState(StateModel):
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
     turn = models.IntegerField()
-    storage = models.ForeignKey("Storage", on_delete=models.PROTECT)
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT)
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT, related_name="techs")
@@ -459,6 +458,9 @@ class FoodStorageItem(StateModel):
     amount = models.IntegerField()
 
 class Storage(StateModel):
+    class Meta:
+        abstract = True
+
     class StorageManager(models.Manager):
         def createInitial(self, context):
             return self.create(items={})
@@ -497,7 +499,7 @@ class Storage(StateModel):
         """
         Return a map that maps Entity models to the amounts stored
         """
-        return { self.toEntity(id): amount for id, amount in self.items }
+        return { self.toEntity(id): amount for id, amount in self.items.items() }
 
 
 class FoodStorage(StateModel):
@@ -944,8 +946,9 @@ class TechStorage(Storage):
         return
 
     def getOwnedTechs(self):
-        result = map(lambda item: item[0], filter(lambda item: item[1] == TechStatusEnum.OWNED, self.asMap().items()))
-        return list(result)
+        return [self.toEntity(tech) for tech, status
+                    in self.items.items()
+                    if status == TechStatusEnum.OWNED]
 
     def availableVyrobas(self):
         vyrobas = []
@@ -956,8 +959,9 @@ class TechStorage(Storage):
         return vyrobas
 
     def getTechsUnderResearch(self):
-        result = map(lambda item: item[0], filter(lambda item: item[1] == TechStatusEnum.RESEARCHING, self.asMap().items()))
-        return list(result)
+        return [self.toEntity(tech) for tech, status
+                    in self.items.items()
+                    if status == TechStatusEnum.RESEARCHING]
 
     def getActionableEdges(self):
         ownedTechs = self.getOwnedTechs()
