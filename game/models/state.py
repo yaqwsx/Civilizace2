@@ -222,7 +222,7 @@ class TeamState(StateModel):
     storage = models.ForeignKey("Storage", on_delete=models.PROTECT)
     resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
     materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT)
-    techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
+    techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT, related_name="techs")
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
     foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
@@ -466,35 +466,32 @@ class Storage(StateModel):
     objects = StorageManager()
     items = JSONField()
 
-    def setContext(self, context):
-        self.context = context
-
     def count(self):
         sum = 0
         for _, val in self.items():
             sum += val
         return sum
 
-    def get(self, id):
+    def get(self, entity):
         """
         Get amount of entity stored
         """
         try:
-            return self.items[id]
+            return self.items[entity.id]
         except KeyError:
             return 0
 
-    def set(self, id, value):
+    def set(self, entity, value):
         """
         Set amount of entity stored.
         """
-        self.items[id] = value
+        self.items[entity.id] = value
 
     def asMap(self):
         """
         Return a map that maps Entity models to the amounts stored
         """
-        return { self.toEntity(id): amount for id, amount in self.items }
+        return { self.toEntity(id): amount for id, amount in self.items.items() }
 
 
 class FoodStorage(StateModel):
@@ -902,45 +899,32 @@ def parseTechStatus(s):
     if s == "OWNED":
         return TechStatusEnum.OWNED
 
-class TechStorageItem(StateModel):
-    tech = models.ForeignKey("TechModel", on_delete=models.PROTECT)
-    status = enum.EnumField(TechStatusEnum)
-    def __str__(self):
-        return self.tech.label + (":❌" if self.status == TechStatusEnum.RESEARCHING else ":✅")
-
-class TechStorage(StateModel):
+class TechStorage(Storage):
     class TechStorageManager(models.Manager):
         def createInitial(self, team, context):
             initialTechs = ["build-centrum"]
-            items = []
-            for id in initialTechs:
-                items.append(TechStorageItem.objects.create(
-                    tech=context.techs.get(id=id),
-                    status=TechStatusEnum.OWNED
-                ))
-            result = self.create(items=items)
+            result = self.create(items={techId: TechStatusEnum.OWNED for techId in initialTechs})
             return result
 
     objects = TechStorageManager()
-    items = ListField(model_type=TechStorageItem)
 
     def __str__(self):
-        list = [x.tech.label + ": " + str(x.status) for x in self.items]
+        list = [entity.label + ": " + status for entity, status in self.asMap().items()]
         result = ", ".join(list)
         return result
 
     def getStatus(self, tech):
         try:
-            result = self.items.get(tech=tech).status
+            result = self.get(entity=tech)
             return result if result else TechStatusEnum.UNKNOWN
-        except TechStorageItem.DoesNotExist:
+        except Exception:
             return TechStatusEnum.UNKNOWN
 
     def setStatus(self, tech, status, enforce=False):
         previousItem = None
         try:
-            previousItem = self.items.get(tech=tech)
-        except TechStorageItem.DoesNotExist:
+            previousItem = self.get(entity=tech)
+        except Exception:
             pass
 
         if previousItem:
@@ -950,47 +934,36 @@ class TechStorage(StateModel):
                 return previousItem
             self.items.remove(previousItem)
 
-        self.items.append(TechStorageItem(tech=tech, status=status))
-        return self.items[-1]
+        self.set(entity=tech, value=status)
+        return
 
     def getOwnedTechs(self):
-        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.OWNED, self.items))
+        result = map(lambda item: item[0], filter(lambda item: item[1] == TechStatusEnum.OWNED, self.asMap().items()))
         return list(result)
 
     def availableVyrobas(self):
         vyrobas = []
-        for tech in self.items:
-            if tech.status != TechStatusEnum.OWNED:
+        for tech, status in self.getMap().items():
+            if status != TechStatusEnum.OWNED:
                 continue
-            vyrobas += tech.tech.unlock_vyrobas.all()
+            vyrobas += tech.unlock_vyrobas.all()
         return vyrobas
 
-    def availableEnhancements(self, vyroba):
-        enhs = []
-        for tech in self.items:
-            if tech.status != TechStatusEnum.OWNED:
-                continue
-            for e in tech.tech.unlock_enhancers.all():
-                if e.vyroba == vyroba:
-                    enhs.append(e)
-            enhs += [e for e in tech.tech.unlock_enhancers.all() if e.vyroba == vyroba.id]
-        return enhs
-
     def getTechsUnderResearch(self):
-        result = map(lambda item: item.tech, filter(lambda tech: tech.status == TechStatusEnum.RESEARCHING, self.items))
+        result = map(lambda item: item[0], filter(lambda item: item[1] == TechStatusEnum.RESEARCHING, self.asMap().items()))
         return list(result)
 
     def getActionableEdges(self):
         ownedTechs = self.getOwnedTechs()
         startedTechs = list(map(
-            lambda item: item.tech,
+            lambda item: item[0],
             filter(
-                lambda tech: tech.status == TechStatusEnum.RESEARCHING or tech.status == TechStatusEnum.OWNED,
-                self.items)))
+                lambda item: item[1] == TechStatusEnum.RESEARCHING or item[1] == TechStatusEnum.OWNED,
+                self.asMap().items())))
 
         edges = set()
-        for item in self.items:
-            for edge in item.tech.unlocks_tech.all():
+        for tech, status in self.asMap().items():
+            for edge in tech.unlocks_tech.all():
                 if edge.dst in startedTechs:
                     continue
                 if edge.src not in ownedTechs:
@@ -1008,11 +981,11 @@ class TechStorage(StateModel):
         return results
 
     def getBuildings(self):
-        return [x.tech for x in self.items if x.status == TechStatusEnum.OWNED and x.tech.isBuilding]
+        return [tech for tech, status in self.asMap().items() if status == TechStatusEnum.OWNED and tech.isBuilding]
 
     def toJson(self):
         return {
-            t.tech.id: t.status.label for t in self.items
+            tech.id: status.label for tech, status in self.asMap().items()
         }
 
     def godUpdate(self, update):
@@ -1020,7 +993,7 @@ class TechStorage(StateModel):
             if self.items.has(tech=techId):
                 raise InvalidActionException(f"Cannot add '{techId}' which is already present in the list")
             tech = self.context.techs.get(id=techId)
-            self.items.append(TechStorageItem(tech=tech, status=parseTechStatus(status)))
+            self.set(entity=tech, value=parseTechStatus(status))
 
         for tech, _ in update["remove"].items():
             if not self.items.has(tech=tech):

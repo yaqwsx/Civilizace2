@@ -6,7 +6,7 @@ from game.data.entity import DieModel
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException, ActionResult
-from game.models.state import TechStorageItem, TechStatusEnum
+from game.models.state import TechStatusEnum
 
 
 class FinishResearchForm(MoveForm):
