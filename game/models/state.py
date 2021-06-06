@@ -96,6 +96,23 @@ class StateModel(ImmutableModel):
             if hasattr(f, "setContext"):
                 f.setContext(context)
 
+    def toEntity(self, id):
+        # Not sure if ideal... but what the heck. The whole "prefixy" thing is
+        # shady anyway.
+        prefixes = {
+            "die-": "dies",
+            "ach-": "achivements",
+            "is-": "island",
+            "res-": "resources",
+            "tech-": "techs",
+            "vyr-": "vyrobas",
+            "edge-": "edges"
+        }
+        for p, c in prefixes.items():
+            if id.startswith(p):
+                return self.context[c].get(id=id)
+        raise RuntimeError(f"No manager in context for entity {id}")
+
 class State(StateModel):
     action = models.ForeignKey("ActionEvent", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
@@ -437,10 +454,6 @@ class DistanceLogger(StateModel):
                 raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
             self.teams.remove(self.teams.get(team=id))
 
-class StorageItem(StateModel):
-    entityId = models.TextField()
-    value = models.IntegerField()
-
 class FoodStorageItem(StateModel):
     resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
     amount = models.IntegerField()
@@ -448,34 +461,40 @@ class FoodStorageItem(StateModel):
 class Storage(StateModel):
     class StorageManager(models.Manager):
         def createInitial(self, context):
-            return self.create(items=[])
+            return self.create(items={})
+
     objects = StorageManager()
-    items = ListField(model_type=StorageItem)
+    items = JSONField()
+
+    def setContext(self, context):
+        self.context = context
 
     def count(self):
         sum = 0
-        for key, val in self.items.items():
+        for _, val in self.items():
             sum += val
         return sum
 
     def get(self, id):
+        """
+        Get amount of entity stored
+        """
         try:
-            item = self.items.get(entityId=id)
-            if not item: return 0
-            return item.value
-        except StorageItem.DoesNotExist:
+            return self.items[id]
+        except KeyError:
             return 0
 
     def set(self, id, value):
-        previousItem = None
-        try:
-            previousItem = self.items.get(entityId=id)
-            self.items.remove(previousItem)
-        except StorageItem.DoesNotExist:
-            pass
+        """
+        Set amount of entity stored.
+        """
+        self.items[id] = value
 
-        self.items.append(StorageItem(entityId=id, value=value))
-        return self.items[-1]
+    def asMap(self):
+        """
+        Return a map that maps Entity models to the amounts stored
+        """
+        return { self.toEntity(id): amount for id, amount in self.items }
 
 
 class FoodStorage(StateModel):
