@@ -3,7 +3,7 @@ from django.db import models
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
-from game.data.entity import AchievementModel, TaskModel
+from game.data.entity import AchievementModel, EntityModel, TaskModel
 from game.data.parser import Parser
 from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField
@@ -479,6 +479,9 @@ class Storage(StateModel):
         """
         Get amount of entity stored
         """
+        if isinstance(id, EntityModel):
+            id = id.id
+        assert isinstance(id, str)
         try:
             return self.items[id]
         except KeyError:
@@ -488,6 +491,9 @@ class Storage(StateModel):
         """
         Set amount of entity stored.
         """
+        if isinstance(id, EntityModel):
+            id = id.id
+        assert isinstance(id, str)
         self.items[id] = value
 
     def asMap(self):
