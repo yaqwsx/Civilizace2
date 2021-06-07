@@ -923,26 +923,26 @@ class TechStorage(Storage):
 
     def getStatus(self, tech):
         try:
-            result = self.get(entity=tech)
+            result = self.get(tech)
             return result if result else TechStatusEnum.UNKNOWN
-        except Exception:
+        except Exception as e:
             return TechStatusEnum.UNKNOWN
 
     def setStatus(self, tech, status, enforce=False):
-        previousItem = None
+        previousValue = None
         try:
-            previousItem = self.get(entity=tech)
+            previousItem = self.get(tech)
         except Exception:
             pass
 
         if previousItem:
-            if status < previousItem.status:
+            if status < previousItem:
                 raise Exception("Cannot downgrade status of " + tech.label)
-            if status == previousItem.status:
+            if status == previousItem:
                 return previousItem
-            self.items.remove(previousItem)
+            self.items.pop(tech.id)
 
-        self.set(entity=tech, value=status)
+        self.set(tech.id, status)
         return
 
     def getOwnedTechs(self):

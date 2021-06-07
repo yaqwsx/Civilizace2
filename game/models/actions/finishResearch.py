@@ -58,10 +58,12 @@ class FinishResearchMove(Action):
         if status == TechStatusEnum.UNKNOWN:
             return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat')
         techs.setStatus(tech, TechStatusEnum.OWNED)
-        stickers = [tech.label] + \
-            [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()] + \
-            [f'Vylepšeni: <i>{x.label}</i>' for x in tech.unlock_enhancers.all()]
-        stickerMsg = "".join([f'<li>{x}</li>' for x in stickers])
+        stickers = [tech] + \
+            [x for x in tech.unlock_vyrobas.all()]
+        stickerDescriptions = [tech.label] + \
+            [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()]
+
+        stickerMsg = "".join([f'<li>{x}</li>' for x in stickerDescriptions])
         return ActionResult.makeSuccess(f"""Technologie {tech.label} bude dozkoumána.<br><br>
                     TODO: Tech task description<br><br>
                     Vydej týmu následující samolepky:
