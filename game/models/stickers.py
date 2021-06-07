@@ -1,6 +1,8 @@
 from django.db import models
 from django_enumfield import enum
 from game.data.entity import EntityModel
+from game.data.tech import TechModel
+from game.data.vyroba import VyrobaModel
 from PIL import Image, ImageDraw
 import io
 import os
@@ -62,6 +64,20 @@ class Sticker(models.Model):
         """
         Render the sticker into PNG file returned as bytes
         """
+        choices = {
+            "build-": (TechModel, self.renderBuilding),
+            "tech-": (TechModel, self.renderTech),
+            "vyr-": (VyrobaModel, self.renderVyroba)
+        }
+        for pref, (mod, ren) in choices.items():
+            if self.entity.id.startswith(pref):
+                return ren(mod.manager.get(pk=self.entity.pk))
+        raise RuntimeError(f"Unknown entity type to render {self.entity.id}")
+
+    def renderInternal(self):
+        """
+        Render the sticker into PNG file returned as bytes
+        """
         img = Image.new('RGB', (100, 100), color = (255, 255, 255))
         d = ImageDraw.Draw(img)
         d.text((10,10), self.shortDescription(), fill=(0,0,0))
@@ -69,3 +85,13 @@ class Sticker(models.Model):
         img.save(buffer, format='PNG')
         buffer.seek(0)
         return buffer.getvalue()
+
+
+    def renderTech(self, entity):
+        return self.renderInternal()
+
+    def renderBuilding(self, entity):
+        return self.renderInternal()
+
+    def renderVyroba(self, entity):
+        return self.renderInternal()
