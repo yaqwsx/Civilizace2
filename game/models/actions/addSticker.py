@@ -4,12 +4,15 @@ from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult
 from game.data.entity import EntityModel
-from game.models.stickers import Sticker
+from django_enumfield.forms.fields import EnumChoiceField
+from game.models.stickers import Sticker, StickerType
 
 class AddStickerForm(MoveForm):
     def __init__(self, *arg, **kwarg):
         super().__init__(*arg, **kwarg)
         self.getEntity(EntityModel)
+
+    type = EnumChoiceField(StickerType, label="Typ samolepky")
 
 class AddStickerMove(Action):
     class Meta:
@@ -42,5 +45,5 @@ class AddStickerMove(Action):
 
     def commit(self, state):
         result = ActionResult.makeSuccess("Akce se povedla")
-        result.addSticker(Sticker(entity=self.entity))
+        result.addSticker(Sticker(entity=self.entity, type=self.arguments["type"]))
         return result

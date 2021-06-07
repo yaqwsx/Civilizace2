@@ -1,4 +1,5 @@
 from django.db import models
+from django_enumfield import enum
 from game.data.entity import EntityModel
 from PIL import Image, ImageDraw
 import io
@@ -30,12 +31,17 @@ class FileCache:
 
 STICKER_CACHE = FileCache("./_stickers", "png")
 
+class StickerType(enum.Enum):
+    REGULAR = 0
+    PUBLIC = 1
+    COMPACT = 2
 
 class Sticker(models.Model):
     """
     Sticker model. The model is defined by an entity, team and a state.
     """
     entity = models.ForeignKey(EntityModel, on_delete=models.PROTECT, null=False)
+    type = enum.EnumField(StickerType, default=StickerType.REGULAR)
     state = models.ForeignKey("State", on_delete=models.PROTECT, null=True)
     team = models.ForeignKey("Team", on_delete=models.PROTECT, null=True)
     awardedAt = models.DateTimeField("Time of creating the action", auto_now=True)
