@@ -210,8 +210,7 @@ class TeamState(StateModel):
                 techs=TechStorage.objects.createInitial(team, context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
-                foodSupply=FoodStorage.objects.createInitial(context),
-                vliv=VlivStorage.objects.createInitial(context))
+                foodSupply=FoodStorage.objects.createInitial(context))
 
     objects = TeamStateManager()
 
@@ -219,13 +218,12 @@ class TeamState(StateModel):
     population = models.ForeignKey("PopulationTeamState", on_delete=models.PROTECT)
     sandbox = models.ForeignKey("SandboxTeamState", on_delete=models.PROTECT)
     turn = models.IntegerField()
-    resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT)
-    materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT)
+    resources = models.ForeignKey("ResourceStorage", on_delete=models.PROTECT, related_name="resources")
+    materials = models.ForeignKey("MaterialStorage", on_delete=models.PROTECT, related_name="materials")
     techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT, related_name="techs")
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
     foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
-    vliv = models.ForeignKey("VlivStorage", on_delete=models.PROTECT)
 
     def __str__(self):
         return json.dumps(self._dict)
@@ -499,7 +497,7 @@ class Storage(StateModel):
         """
         Return a map that maps Entity models to the amounts stored
         """
-        return { self.toEntity(id): amount for id, amount in self.items.items() }
+        return { self.toEntity(id): amount for id, amount in filter (lambda resource, amount: amount > 0, self.items.items())}
 
 
 class FoodStorage(StateModel):
@@ -606,11 +604,7 @@ class FoodStorage(StateModel):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
             self.items.get(resource=resource).amount = amount
 
-class ResourceStorageItem(StateModel):
-    resource = models.ForeignKey("ResourceModel", on_delete=models.PROTECT)
-    amount = models.IntegerField()
-
-class ResourceStorage(StateModel):
+class ResourceStorage(Storage):
     class NotEnoughResourcesException(InvalidActionException):
         def __init__(self, msg, list):
             super().__init__(msg + '<ul>' + "".join([f'{amount}x {res.label}' for res, amount in list.items()]) + '</ul>')
@@ -619,16 +613,16 @@ class ResourceStorage(StateModel):
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team, context):
             initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION), ("res-populace", INITIAL_POPULATION)]
-            items = []
+            items = {}
             for id, amount in initialResources:
-                items.append(ResourceStorageItem.objects.create(
-                    resource=context.resources.get(id=id),
-                    amount=amount
-                ))
+                items[id] = amount
             result = self.create(items=items)
             return result
 
     objects = ResourceStorageManager()
+
+    def ignored(self, resource):
+        return resource.id[:4] == "mat-"
 
     @staticmethod
     def asHtml(resources, separator=", "):
@@ -638,65 +632,28 @@ class ResourceStorage(StateModel):
                for key, value in resources.items()])
         return "-"
 
-    items = ListField(model_type=ResourceStorageItem)
-
     def __str__(self):
         list = [x.resource.label + ":" + str(x.amount) for x in self.items]
         result = ", ".join(list)
         return result
 
-    def getAll(self):
-        return {
-            x.resource: x.amount for x in self.items if x.amount != 0
-        }
+    def set(self, resource, amount):
+        if (resource.id == "res-obyvatel"):
+            diff = self.get(resource) - amount
+            super.self.add("res-populace", diff)
+        super.self.set(resource, amount)
 
-    def _addPopulation(self, amount):
-        self.items.get(resource=self.context.resources.get(id="res-populace")).amount += amount
+    def add(self, resource, amount):
+        newAmount = self.get(resource) + amount
+        if newAmount < 0: raise ResourceStorage.NotEnoughResourcesException("Cannot lower resource amount below 0", [(resource, amount)])
+        self.set(resource, amount)
 
     def spendWork(self, amount):
         self.payResources({self.context.resources.get(id="res-prace"): amount})
 
-    def getAmount(self, resource):
-        if isinstance(resource, str):
-            resource = self.context.resources.get(id=resource)
-        try:
-            item = self.items.get(resource=resource)
-            return item.amount
-        except ResourceStorageItem.DoesNotExist:
-            return 0
-
-    def setAmount(self, resource, amount):
-        if isinstance(resource, str):
-            resource = self.context.resources.get(id=resource)
-
-        item = None
-        try:
-            item = self.items.get(resource=resource)
-        except ResourceStorageItem.DoesNotExist:
-            item = ResourceStorageItem(resource=resource, amount=amount)
-            self.items.append(item)
-
-        if item.resource.id == "res-obyvatel":
-            diff = amount - item.amount
-            if diff > 0:
-                self._addPopulation(diff)
-        item.amount = amount
-
-    def setAmountReturn(self, resource, amount):
-        if isinstance(resource, str):
-            resource = self.context.resources.get(id=resource)
-
-        item = None
-        try:
-            item = self.items.get(resource=resource)
-        except ResourceStorageItem.DoesNotExist:
-            item = ResourceStorageItem(resource=resource, amount=amount)
-            self.items.append(item)
-        item.amount = amount
-
     def hasResources(self, resources):
         for resource, amount in resources.items():
-            if resource.id[:4] == "mat-":
+            if self.ignored(resource):
                 continue
             if self.getAmount(resource) < amount:
                 return False
@@ -708,19 +665,19 @@ class ResourceStorage(StateModel):
         Returns a dict of resources not tracked by storage"""
         missing = {}
         for resource, amount in resources.items():
-            if resource.id.startswith("mat-"):
+            if self.ignored(resource):
                 continue
-            owned = self.getAmount(resource)
+            owned = self.get(resource)
             if owned < amount:
                 missing[resource] = amount - owned
         if len(missing) > 0:
             raise ResourceStorage.NotEnoughResourcesException("Missing resources", missing)
         result = {}
         for resource, amount in resources.items():
-            if resource.id[:4] == "mat-":
+            if self.ignored(resource):
                 result[resource] = amount
             else:
-                self.setAmount(resource, self.getAmount(resource) - amount)
+                self.add(resource, -amount)
         return result
 
     def receiveResources(self, resources):
@@ -729,7 +686,7 @@ class ResourceStorage(StateModel):
         Returns a dict of resources not tracked by storage"""
         result = {}
         for resource, amount in resources.items():
-            if resource.id[:4] == "mat-":
+            if self.ignored(resource):
                 result[resource] = amount
             else:
                 targetAmount = self.getAmount(resource) + amount
@@ -742,11 +699,10 @@ class ResourceStorage(StateModel):
         Returns a dict of resources not tracked by storage"""
         result = {}
         for resource, amount in resources.items():
-            if resource.id[:4] == "mat-":
+            if self.ignored(resource):
                 result[resource] = amount
             else:
-                targetAmount = self.getAmount(resource) + amount
-                self.setAmountReturn(resource, targetAmount)
+                self.add(resource, amount)
         return result
 
     def getResourcesByType(self, metaResource=None):
@@ -765,19 +721,6 @@ class ResourceStorage(StateModel):
                 results[resource] = item.amount
         return results
 
-    def getUcenec(self):
-        try:
-            return self.items.get(resource="res-ucenec").amount
-        except ResourceStorageItem.DoesNotExist:
-            return 0
-
-    def getVedomosti(self):
-        try:
-            return self.items.get(resource="res-vedomosti").amount
-        except ResourceStorageItem.DoesNotExist:
-            return 0
-
-
     def toJson(self):
         return {
             r.resource.id: r.amount for r in self.items
@@ -787,17 +730,17 @@ class ResourceStorage(StateModel):
         for resource, amount in update["add"].items():
             if self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(ResourceStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
+            self.set(resource, amount)
 
         for resource, _ in update["remove"].items():
             if not self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
-            self.items.remove(self.items.get(resource=resource))
+            self.set(resource, 0)
 
         for resource, amount in update["change"].items():
             if not self.items.has(resource=resource):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
-            self.items.get(resource=resource).amount = amount
+            self.set(resource, amount)
 
     def getPopulation(self):
         return self.getAmount("res-populace")
@@ -808,80 +751,21 @@ class ResourceStorage(StateModel):
     def getObyvatel(self):
         return self.getAmount("res-obyvatel")
 
-class MaterialStorage(StateModel):
+class MaterialStorage(ResourceStorage):
     class MaterialStorageManager(models.Manager):
         def createInitial(self, context):
             return self.create(items=[])
 
     objects = MaterialStorageManager()
-    items = ListField(model_type=ResourceStorageItem)
 
-    def getAmount(self, resource):
-        if isinstance(resource, str):
-            resource = self.context.resources.get(id=resource)
-        try:
-            item = self.items.get(resource=resource)
-            return item.amount
-        except ResourceStorageItem.DoesNotExist:
-            return 0
-
-    def setAmount(self, resource, amount):
-        if isinstance(resource, str):
-            resource = self.context.resources.get(id=resource)
-
-        item = None
-        try:
-            item = self.items.get(resource=resource)
-        except ResourceStorageItem.DoesNotExist:
-            item = ResourceStorageItem(resource=resource, amount=amount)
-            self.items.append(item)
-
-        item.amount = amount
+    def ignored(self, resource):
+        return resource.id[:4] != "mat-"
 
     def receiveMaterials(self, materials, capacity):
         for resource, amount in materials.items():
-            targetAmount = min(self.getAmount(resource) + amount, capacity)
-            self.setAmount(resource, targetAmount)
+            targetAmount = min(self.get(resource) + amount, capacity)
+            self.set(resource, targetAmount)
 
-    def getAll(self):
-        return {item.resource: item.amount for item in filter(lambda item: item.amount != 0, self.items)}
-
-    def toJson(self):
-        return {
-            r.resource.id: r.amount for r in self.items
-        }
-
-    def godUpdate(self, update):
-        for resource, amount in update["add"].items():
-            if self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(ResourceStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
-
-        for resource, _ in update["remove"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
-            self.items.remove(self.items.get(resource=resource))
-
-        for resource, amount in update["change"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
-            self.items.get(resource=resource).amount = amount
-
-    def payResources(self, resources):
-        """Subtract resources from storage.
-
-        Returns a dict of resources not tracked by storage"""
-        missing = {}
-        for resource, amount in resources.items():
-            owned = self.getAmount(resource)
-            if owned < amount:
-                missing[resource] = amount - owned
-        if len(missing) > 0:
-            raise ResourceStorage.NotEnoughResourcesException("Missing resources", missing)
-        result = {}
-        for resource, amount in resources.items():
-            self.setAmount(resource, self.getAmount(resource) - amount)
-        return result
 
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
@@ -1014,43 +898,6 @@ class TechStorage(Storage):
             if not self.items.has(tech=tech):
                 raise InvalidActionException(f"Cannot change '{tech}' which is not present in the list")
             self.items.get(tech=tech).status = parseTechStatus(status)
-
-class VlivStorageItem(StateModel):
-    team = models.ForeignKey("Team", on_delete=models.PROTECT)
-    amount = models.IntegerField(default=0)
-
-class VlivStorage(StateModel):
-    class VlivStorageManager(models.Manager):
-        def createInitial(self, context):
-            return self.create(items=[])
-
-    objects = VlivStorageManager()
-    items = ListField(model_type=VlivStorageItem)
-
-    def addVliv(self, team, amount):
-        self.setVliv(team, self.getVliv(team) + amount)
-
-    def setVliv(self, team, amount):
-        assert isinstance(team, Team), f"Neznamy tym: {team}"
-
-        item = None
-        try:
-            item = self.items.get(team=team)
-            item.amount = amount
-        except VlivStorageItem.DoesNotExist:
-            item = VlivStorageItem(team=team, amount=amount)
-            self.items.append(item)
-            return
-
-    def getVliv(self, team):
-        assert isinstance(team, Team), f"Neznamy tym: {team}"
-        try:
-            item = self.items.get(team=team)
-            return item.amount
-        except VlivStorageItem.DoesNotExist:
-            return 0
-
-
 
 # =================================================
 
