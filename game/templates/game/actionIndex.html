@@ -100,12 +100,14 @@
             }
             var allowed;
             if (actionSelect.value) {
-                var a = actionEntities[actionSelect.value];
-                var b = teamAllowedEntities[teamSelect.value];
-                allowed = new Set(
-                    [...a].filter(x => b.has(x)));
+                allowed = entityFilter[actionSelect.value][teamSelect.value]
             } else {
-                allowed = teamAllowedEntities[teamSelect.value];
+                allowed = new Set();
+                for (const [action, teamFilter] of Object.entries(entityFilter)) {
+                    for (let elem of teamFilter[teamSelect.value]) {
+                        allowed.add(elem)
+                    }
+                }
             }
 
             allowed.add("");
@@ -153,8 +155,13 @@
             if (!teamSelect.value || !entitySelect.value || actionSelect.value) {
                 return;
             }
-            action = actionForEntity[entitySelect.value]
-            var allowed = new Set([action]);
+            var allowed = new Set();
+            for (const [action, teamFilter] of Object.entries(entityFilter)) {
+                if (teamFilter[teamSelect.value].has(entitySelect.value)) {
+                    allowed.add(action)
+                    break;
+                }
+            }
             console.log(allowed);
             filterOptions(actionSelect, allowed);
             document.querySelector('#sel [value="' + action + '"]').selected = true;
@@ -167,24 +174,13 @@
 
     </script>
     <script>
-        var entities = [
-            {%for entity in form.allEntities %}
-                ["{{entity.id}}", "{{entity.label|noNewline}}"],
-            {%endfor%}
-        ];
-        var teamAllowedEntities = {
-            {% for team, entities in form.teamAllowedEntities.items %}
-                {{team}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
-        };
-        var actionEntities = {
-            {% for action, entities in form.actionEntities.items %}
-                {{action.value}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
-        };
-
-        var actionForEntity = {
-            {% for entity, action in form.actionForEntity.items %}
-                "{{entity.id}}": "{{action.value}}",{% endfor %}
-        };
+        const entityFilter = {
+            {% for action, filter in form.entityFilter.items %}
+                {{action.CiviMeta.move.value}}: {
+                    {% for team, entities in filter.items %}
+                        {{team.id}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
+                },{% endfor %}
+        }
     </script>
 
 {{ block.super }}

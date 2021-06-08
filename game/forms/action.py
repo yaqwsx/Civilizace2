@@ -42,24 +42,24 @@ class MoveInitialForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False
 
+        allowedActions = allowedActionTypes(user)
         teams = Team.objects.all()
         self.allEntities = set()
-        self.teamAllowedEntities = {team.id: set() for team in teams}
-        self.actionEntities = {action.CiviMeta.move: set() for action in Action.__subclasses__()}
-        self.actionForEntity = {}
+        self.entityFilter = {}
         for action in Action.__subclasses__():
+            if action.CiviMeta.move not in allowedActions:
+                continue
+            teamFilter = {}
             for team in teams:
                 entities = action.relevantEntities(state, team)
-                self.teamAllowedEntities[team.id].update(entities)
-                self.actionEntities[action.CiviMeta.move].update(entities)
+                teamFilter[team] = set(entities)
                 self.allEntities.update(entities)
-                for entity in entities:
-                    self.actionForEntity[entity] = action.CiviMeta.move
+            self.entityFilter[action] = teamFilter
         entities = list(dict.fromkeys(
             [(entity.id, entity.label) for entity in self.allEntities]))
         entities.sort(key=lambda x: x[1])
         self.fields["entity"].choices = [('', '-----------')] + entities
-        self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActionTypes(user)]
+        self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActions]
         self.commonLayout = Layout(
             Field('team'),
             Field('action'),
