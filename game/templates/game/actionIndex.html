@@ -136,7 +136,6 @@
         }
 
         teamSelect.onchange = function() {
-            console.log("Changed team!");
             filterEntities();
             showAllOptions(actionSelect);
             let lastAction = window.localStorage.getItem("lastAction");
@@ -151,7 +150,6 @@
         };
 
         entitySelect.onchange = function() {
-            console.log("Changed entity!");
             if (!teamSelect.value || !entitySelect.value || actionSelect.value) {
                 return;
             }
@@ -162,13 +160,10 @@
                     break;
                 }
             }
-            console.log(allowed);
             filterOptions(actionSelect, allowed);
-            document.querySelector('#sel [value="' + action + '"]').selected = true;
         };
 
         actionSelect.onchange = function() {
-            console.log("Changed action!");
             filterEntities();
         };
 

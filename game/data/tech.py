@@ -12,6 +12,7 @@ class TechModel(EntityModel):
     image = models.TextField()
     nodeTag = models.TextField()
     epocha = models.IntegerField()
+    defenseBonus = models.IntegerField()
 
     @property
     def isBuilding(self):
