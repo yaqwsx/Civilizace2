@@ -5486,6 +5486,27 @@
             "-",
             "",
             ""
+        ],
+        [
+            "P\u0159epravn\u00ed kapacita",
+            "lod-kapacita",
+            "-",
+            "",
+            ""
+        ],
+        [
+            "N\u00e1mo\u0159n\u00ed s\u00edla",
+            "lod-sila",
+            "-",
+            "",
+            ""
+        ],
+        [
+            "M\u00edsto v p\u0159\u00edstavu",
+            "lod-misto",
+            "-",
+            "",
+            ""
         ]
     ],
     [

@@ -1,5 +1,6 @@
 import math
 from django.db import models
+from django.db.models.fields import related
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
@@ -65,10 +66,13 @@ class StateManager(PrefetchManager):
     def createInitial(self, context):
         teamStates = [TeamState.objects.createInitial(team=team, context=context)
                       for team in Team.objects.all()]
+        islandStates = [IslandState.objects.createInitial(islandId=isl.id, context=context)
+                      for isl in context.islands.all()]
         worldState = WorldState.objects.createInitial(context)
         action = ActionEvent.objects.createInitial(context)
         state = self.create(action=action, worldState=worldState)
         state.teamStates.set(teamStates)
+        state.islandStates.set(islandStates)
         return state
 
     def getNewest(self):
@@ -118,6 +122,7 @@ class State(StateModel):
     action = models.ForeignKey("ActionEvent", on_delete=models.PROTECT)
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
+    islandStates = models.ManyToManyField("IslandState")
 
     objects = StateManager()
 
@@ -207,7 +212,7 @@ class TeamState(StateModel):
                 turn=0,
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
-                techs=TechStorage.objects.createInitial(team, context),
+                techs=TechStorage.objects.createInitial(["build-centrum"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(context))
@@ -261,6 +266,28 @@ class TeamState(StateModel):
 
         if "turn" in update["change"]:
             self.turn = update["change"]["turn"]
+
+class IslandState(StateModel):
+    class InslandManager(models.Manager):
+        def createInitial(self, islandId, context):
+            root = context.islands.get(id=islandId).root.id
+            return self.create(
+                islandId=islandId,
+                owner=None,
+                techs=TechStorage.objects.createInitial([root], context),
+                defense=0)
+
+    objects = InslandManager()
+
+    islandId = models.CharField(max_length=32)
+    owner = models.ForeignKey("Team", on_delete=models.PROTECT, related_name="owened_islands", null=True)
+    techs = models.ForeignKey("TechStorage", on_delete=models.PROTECT)
+    defense = models.IntegerField()
+
+    @property
+    def island(self):
+        return self.context.islands.get(id=self.islandId)
+
 
 class TeamAchievements(StateModel):
     class TeamAchievementsManager(models.Manager):
@@ -465,6 +492,9 @@ class Storage(StateModel):
 
     objects = StorageManager()
     items = JSONField()
+
+    def setContext(self, context):
+        self.context = context
 
     def count(self):
         sum = 0
@@ -798,8 +828,7 @@ def parseTechStatus(s):
 
 class TechStorage(Storage):
     class TechStorageManager(models.Manager):
-        def createInitial(self, team, context):
-            initialTechs = ["build-centrum"]
+        def createInitial(self, initialTechs, context):
             result = self.create(items={techId: TechStatusEnum.OWNED for techId in initialTechs})
             return result
 

@@ -19,6 +19,14 @@ class ActionType(enum.Enum):
     addWonder = 15
     attack = 20
 
+    discoverIsland = 30,
+    exploreIsland = 31,
+    colonizeIsland = 32,
+    attackIsland = 33,
+    researchIsland = 34,
+    shareIsland = 35,
+    transferIsland = 36,
+
     godmode = 42
     sandbox = 99
 
@@ -40,6 +48,14 @@ class ActionType(enum.Enum):
         trade: "Obchod",
         spendWork: "Zaplatit práci",
         addWonder: "Přidat základy divu",
+
+        discoverIsland: "OSTROV: Hledat",
+        exploreIsland: "OSTROV: Prozkoumat",
+        colonizeIsland: "OSTROV: Kolonizovat",
+        attackIsland: "OSTROV: Zaútočit",
+        researchIsland: "OSTROV: Zkoumat technologii",
+        shareIsland: "OSTROV: Sdílet polohu",
+        transferIsland: "OSTROV: Přenést vlastnictví",
 
         createInitial: "SYSTEM: Vytvořit nový stav",
         nextGeneration: "SYSTEM: Next generation",
