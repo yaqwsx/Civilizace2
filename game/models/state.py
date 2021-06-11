@@ -497,7 +497,7 @@ class Storage(StateModel):
         """
         Return a map that maps Entity models to the amounts stored
         """
-        return { self.toEntity(id): amount for id, amount in filter (lambda resource, amount: amount > 0, self.items.items())}
+        return { self.toEntity(id): amount for id, amount in self.items.items() if amount > 0}
 
 
 class FoodStorage(StateModel):
@@ -604,7 +604,10 @@ class FoodStorage(StateModel):
                 raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
             self.items.get(resource=resource).amount = amount
 
-class ResourceStorage(Storage):
+class ResourceStorageAbstract(Storage):
+    class Meta:
+        abstract = True
+
     class NotEnoughResourcesException(InvalidActionException):
         def __init__(self, msg, list):
             super().__init__(msg + '<ul>' + "".join([f'{amount}x {res.label}' for res, amount in list.items()]) + '</ul>')
@@ -640,13 +643,13 @@ class ResourceStorage(Storage):
     def set(self, resource, amount):
         if (resource.id == "res-obyvatel"):
             diff = self.get(resource) - amount
-            super.self.add("res-populace", diff)
-        super.self.set(resource, amount)
+            super().add("res-populace", diff)
+        super().set(resource, amount)
 
     def add(self, resource, amount):
         newAmount = self.get(resource) + amount
         if newAmount < 0: raise ResourceStorage.NotEnoughResourcesException("Cannot lower resource amount below 0", [(resource, amount)])
-        self.set(resource, amount)
+        self.set(resource, newAmount)
 
     def spendWork(self, amount):
         self.payResources({self.context.resources.get(id="res-prace"): amount})
@@ -655,7 +658,7 @@ class ResourceStorage(Storage):
         for resource, amount in resources.items():
             if self.ignored(resource):
                 continue
-            if self.getAmount(resource) < amount:
+            if self.get(resource) < amount:
                 return False
         return True
 
@@ -689,8 +692,8 @@ class ResourceStorage(Storage):
             if self.ignored(resource):
                 result[resource] = amount
             else:
-                targetAmount = self.getAmount(resource) + amount
-                self.setAmount(resource, targetAmount)
+                targetAmount = self.get(resource) + amount
+                self.set(resource, targetAmount)
         return result
 
     def returnResources(self, resources):
@@ -711,14 +714,13 @@ class ResourceStorage(Storage):
         isProduction = metaResource.isProduction if metaResource else True
 
         results = {}
-        for item in self.items:
-            if item.amount == 0:
+        for resource, amount in self.asMap().items():
+            if amount == 0:
                 continue
-            resource = item.resource
             if ((not resourceType) or resource.type == resourceType)\
                     and resource.level >= level \
                     and resource.isProduction == isProduction:
-                results[resource] = item.amount
+                results[resource] = amount
         return results
 
     def toJson(self):
@@ -743,15 +745,18 @@ class ResourceStorage(Storage):
             self.set(resource, amount)
 
     def getPopulation(self):
-        return self.getAmount("res-populace")
+        return self.get("res-populace")
 
     def getWork(self):
-        return self.getAmount("res-prace")
+        return self.get("res-prace")
 
     def getObyvatel(self):
-        return self.getAmount("res-obyvatel")
+        return self.get("res-obyvatel")
 
-class MaterialStorage(ResourceStorage):
+class ResourceStorage(ResourceStorageAbstract):
+    pass
+
+class MaterialStorage(ResourceStorageAbstract):
     class MaterialStorageManager(models.Manager):
         def createInitial(self, context):
             return self.create(items=[])
@@ -836,7 +841,7 @@ class TechStorage(Storage):
 
     def availableVyrobas(self):
         vyrobas = []
-        for tech, status in self.getMap().items():
+        for tech, status in self.asMap().items():
             if status != TechStatusEnum.OWNED:
                 continue
             vyrobas += tech.unlock_vyrobas.all()

@@ -274,7 +274,7 @@ class ActionDiceThrow(ActionView):
             "diceThrowMessage": diceThrowMessage,
             "requiredDices": action.dotsRequired(state),
             "messages": messages.get_messages(request),
-            "maxThrows": teamState.resources.getAmount("res-prace") // parameters.DICE_THROW_PRICE
+            "maxThrows": teamState.resources.get("res-prace") // parameters.DICE_THROW_PRICE
         })
 
     @method_decorator(login_required)
@@ -293,7 +293,7 @@ class ActionDiceThrow(ActionView):
         try:
             state = State.objects.getNewest()
             teamState = state.teamState(action.team.id)
-            maxThrowTries = teamState.resources.getAmount("res-prace") // parameters.DICE_THROW_PRICE
+            maxThrowTries = teamState.resources.get("res-prace") // parameters.DICE_THROW_PRICE
             if form.cleaned_data["throwCount"] > maxThrowTries:
                 messages.error(request, """
                     Zadali jste více hodů než na kolik má tým nárok. Tým mohl hodit

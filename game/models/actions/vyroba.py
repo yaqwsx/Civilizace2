@@ -64,7 +64,7 @@ def obtainVyrobaInfo(state, teamId, vyrobaId):
     vyroba = VyrobaModel.manager.latest().get(id=vyrobaId)
     if vyroba not in techs.availableVyrobas():
         raise InvalidActionException("Tým nevlastní tuto výrobu.")
-    return vyroba, techs.availableEnhancements(vyroba)
+    return vyroba
 
 def inputsLabel(inputs):
     return ", ".join([f"{scalableAmount(amount)}&times; {res.label}" for res, amount in inputs.items()])
@@ -84,7 +84,7 @@ class VyrobaForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         entity = self.getEntity(VyrobaModel)
-        self.vyroba, self.enhancers = obtainVyrobaInfo(self.state, self.teamId, entity.id)
+        self.vyroba = obtainVyrobaInfo(self.state, self.teamId, entity.id)
 
         techs = self.state.teamState(self.teamId).techs
         if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
@@ -122,35 +122,6 @@ class VyrobaForm(MoveForm):
             inputsLayout.append(typeId)
         inputsLayout.append(HTML(f'</div>'))
 
-        self.enhancersInputs = {}
-        for enhancer in self.enhancers:
-            self.fields[enhancer.id] = forms.BooleanField(required=False, label=enhancerLabel(enhancer))
-            inputsLayout.append(enhancer.id)
-            inputsLayout.append(HTML(f'<div id="inputs-{enhancer.id}">'))
-            inputsFields = {}
-            for resource, amount in enhancer.getInputs().items():
-                if resource.isTracked:
-                    continue
-                typeId = enhancer.id + "-" + resource.id
-                label = f'<span class="text-black">{resource.label} (potřeba {scalableAmount(amount)}&times;)</span>'
-                choices = [(x.id, x.label) for x in resource.concreteResources()]
-                self.fields[typeId] = \
-                    forms.ChoiceField(choices=choices, label=label)
-                inputsFields[resource.id] = typeId
-                inputsLayout.append(typeId)
-            for resource, amount in enhancer.getInputs().items():
-                if not resource.isTracked:
-                    continue
-                typeId = enhancer.id + "-" + resource.id
-                label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
-                choices = [(x.id, x.label) for x in resource.concreteResources()]
-                self.fields[typeId] = \
-                    forms.ChoiceField(choices=choices, label=label)
-                inputsFields[resource.id] = typeId
-                inputsLayout.append(typeId)
-            self.enhancersInputs[enhancer.id] = inputsFields
-            inputsLayout.append(HTML('</div>'))
-
         costHtml = inputsLabel(self.vyroba.getInputs())
         self.helper.layout = Layout(
             self.commonLayout,
@@ -167,15 +138,8 @@ class VyrobaForm(MoveForm):
             res: cleaned_data[field] for res, field in self.vyrobaInputs.items()
         }
         cleaned_data["enhInputs"] = {}
-        for enh, inputs in self.enhancersInputs.items():
-            cleaned_data["enhInputs"][enh] = {
-                res: cleaned_data[field] for res, field in inputs.items()
-            }
         for field in self.vyrobaInputs.values():
             del cleaned_data[field]
-        for inputs in self.enhancersInputs.values():
-            for field in inputs.values():
-                del cleaned_data[field]
         return cleaned_data
 
 class VyrobaMove(Action):
@@ -226,13 +190,6 @@ class VyrobaMove(Action):
     def vyrobaInputs(self):
         return self.arguments["vyrobaInputs"]
 
-    @property
-    def enhInputs(self):
-        return self.arguments["enhInputs"]
-
-    def active(self, enhancementId):
-        return enhancementId in self.arguments and self.arguments[enhancementId]
-
     def requiresDice(self, state):
         return self.dots > 0
 
@@ -255,20 +212,6 @@ class VyrobaMove(Action):
             amount = amount * self.volume
             cost[cRes] = cost.get(cRes, 0) + amount
 
-        for enh in self.vyroba.enhancers.all():
-            if not self.active(enh.id):
-                continue
-            for resource, amount in enh.getInputs().items():
-                try:
-                    cRes = ResourceModel.objects.get(id=self.enhInputs[enh.id][resource.id])
-                except ResourceModel.DoesNotExist:
-                    costErrorMessage.append(f"Zdroj {self.enhInputs[enh.id][resource.id]} neexistuje ({enh.label})")
-                except KeyError:
-                    costErrorMessage.append(f"Zdroj {resource.label} nebyl určen ({enh.label})")
-                if not cRes.isSpecializationOf(resource):
-                    costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({enh.label})")
-                amount = amount * self.volume
-                cost[cRes] = cost.get(cRes, 0) + amount
         if costErrorMessage:
             msgBody = "\n".join([f'<li>{x}</li>' for x in costErrorMessage])
             raise InvalidActionException(f'<ul class="list-disc px-4">{msgBody}</ul>')
@@ -309,9 +252,6 @@ class VyrobaMove(Action):
 
     def gain(self):
         gain = self.vyroba.amount
-        for enh in self.vyroba.enhancers.all():
-            if self.active(enh.id):
-                gain += enh.amount
         return self.volume * gain
 
     def increaseTransportCapacityBy(self, amount):
