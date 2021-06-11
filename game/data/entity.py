@@ -145,12 +145,33 @@ class AssignedTask(models.Model):
 
 
 class Direction(enum.Enum):
-    North = 1
-    West = 2
-    South = 3
-    East = 4
+    North = 0
+    West = 1
+    South = 2
+    East = 3
+
+    @property
+    def opposite(self):
+        return Direction((self.value + 2) % 4)
+
+    @property
+    def correspondingDie(self):
+        return {
+            Direction.North: "die-plane",
+            Direction.West: "die-hory",
+            Direction.South: "die-poust",
+            Direction.East: "die-les"
+        }[self.value]
 
 class IslandModel(EntityModel):
     direction = enum.EnumField(Direction)
     distance = models.IntegerField()
     root = models.ForeignKey("TechModel", on_delete=models.CASCADE)
+
+    def isOnCoords(self, direction, distance):
+        if self.distance > 24 or self.distance < 1:
+            raise RuntimeError("Unsupported distance")
+        onOriginal = self.direction == direction and self.distance == distance
+        onAlternate = direction.opposite == self.direction and (24 - distance) == self.distance
+        return onOriginal or onAlternate
+

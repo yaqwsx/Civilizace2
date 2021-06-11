@@ -1,4 +1,5 @@
 from crispy_forms.layout import HTML
+from json import dumps
 
 def jsonDiffEditor(field, json):
     return HTML(f"""
@@ -18,8 +19,8 @@ def jsonDiffEditor(field, json):
         </style>
         <script src="/static/js/jsoneditor.min.js"></script>
         <script>
-            const originalJson = {json};
-            var initialJson = {json};
+            const originalJson = {dumps(json)};
+            var initialJson = {dumps(json)};
             var resultInput = document.getElementById("{field.id_for_label}");
 
             function findNodeInJson(json, path) {{

@@ -22,6 +22,8 @@ from .startTask import StartTaskMove
 from .finishTask import FinishTaskMove
 from .maaraCounter import MaaraMove
 
+from .islandDiscover import IslandDiscoverMove
+
 def buildAction(data):
     """
     Take an associated form data and build the action

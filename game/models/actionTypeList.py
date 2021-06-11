@@ -19,13 +19,13 @@ class ActionType(enum.Enum):
     addWonder = 15
     attack = 20
 
-    discoverIsland = 30,
-    exploreIsland = 31,
-    colonizeIsland = 32,
-    attackIsland = 33,
-    researchIsland = 34,
-    shareIsland = 35,
-    transferIsland = 36,
+    discoverIsland = 30
+    exploreIsland = 31
+    colonizeIsland = 32
+    attackIsland = 33
+    researchIsland = 34
+    shareIsland = 35
+    transferIsland = 36
 
     godmode = 42
     sandbox = 99

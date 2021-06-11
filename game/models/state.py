@@ -61,7 +61,7 @@ class StateManager(PrefetchManager):
         # ManyToMany Field needs to prefetched in order to make immutable models
         # to work intuitively (otherwise the recursive saving does not work as
         # you can get different handles to models)
-        super(StateManager, self).__init__(prefetch_related=("teamStates",), select_related=("action",))
+        super(StateManager, self).__init__(prefetch_related=("teamStates","islandStates"), select_related=("action",))
 
     def createInitial(self, context):
         teamStates = [TeamState.objects.createInitial(team=team, context=context)
@@ -144,6 +144,9 @@ class State(StateModel):
         json.update({
             f"{ts.team.name}({ts.team.id})" : ts.toJson() for ts in self.teamStates.all()
         })
+        json.update({
+            f"{iss.island.label}({iss.island.id})" : iss.toJson() for iss in self.islandStates.all()
+        })
         return json
 
     def godUpdate(self, update):
@@ -151,6 +154,9 @@ class State(StateModel):
         for ts in self.teamStates.all():
             # ToDo: Ignore the team name
             ts.godUpdate(eatUpdatePrefixAll(f"{ts.team.name}({ts.team.id})", update))
+        for iss in self.islandStates.all():
+            # ToDo: Ignore the team name
+            iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.label})", update))
 
 class WorldState(StateModel):
     class WorldStateManager(models.Manager):
@@ -215,7 +221,9 @@ class TeamState(StateModel):
                 techs=TechStorage.objects.createInitial(["build-centrum"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
-                foodSupply=FoodStorage.objects.createInitial(context))
+                foodSupply=FoodStorage.objects.createInitial(context),
+                discoveredIslandsList=[],
+                exploredIslandsList=[])
 
     objects = TeamStateManager()
 
@@ -230,11 +238,34 @@ class TeamState(StateModel):
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
     foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
 
+    discoveredIslandsList = JSONField()
+    exploredIslandsList = JSONField()
+
     def __str__(self):
-        return json.dumps(self._dict)
+        return "<TeamState " + json.dumps(self._dict) + ">"
 
     def nextTurn(self):
         self.turn += 1
+
+    @property
+    def discoveredIslands(self):
+        """ Get models of discovered islands """
+        return [self.context.islands.get(id=id) for id in self.discoveredIslandsList]
+
+    @property
+    def exploredIslands(self):
+        """ Get models of explored islands """
+        return [self.context.islands.get(id=id) for id in self.exploredIslandsList]
+
+    def addDiscoveredIsland(self, island):
+        assert isinstance(island, str)
+        self.discoveredIslandsList.append(island)
+        self.discoveredIslandsList = list(set(self.discoveredIslandsList))
+
+    def addExploredIsland(self, island):
+        assert isinstance(island, str)
+        self.exploredIslandsList.append(island)
+        self.exploredIslandsList = list(set(self.exploredIslandsList))
 
     def toJson(self):
         return {
@@ -246,12 +277,15 @@ class TeamState(StateModel):
             "distances": self.distances.toJson(),
             "achievements": self.achievements.toJson(),
             "foodSupply": self.foodSupply.toJson(),
-            "materials": self.materials.toJson()
+            "materials": self.materials.toJson(),
+            "discoveredIslands": self.discoveredIslandsList,
+            "exploredIslands": self.exploredIslandsList
         }
 
     def godUpdate(self, update):
         fields = ["population", "sandbox", "resources", "techs",
-                  "distances", "achievements", "foodSupply", "materials"]
+                  "distances", "achievements", "foodSupply", "materials",
+                  "discoveredIslands", "exploredIslands"]
         allowKeys(fields + ["turn"], update["change"])
         allowKeys(fields, update["add"])
         allowKeys(fields, update["remove"])
@@ -266,6 +300,10 @@ class TeamState(StateModel):
 
         if "turn" in update["change"]:
             self.turn = update["change"]["turn"]
+        if "discoveredIslands" in update["change"]:
+            self.discoveredIslandsList = update["change"]["discoveredIslands"]
+        if "exploredIslands" in update["change"]:
+            self.exploredIslandsList = update["change"]["exploredIslands"]
 
 class IslandState(StateModel):
     class InslandManager(models.Manager):
@@ -287,6 +325,13 @@ class IslandState(StateModel):
     @property
     def island(self):
         return self.context.islands.get(id=self.islandId)
+
+    def toJson(self):
+        return {
+            "owner": self.owner.id if self.owner else None,
+            "techs": self.techs.toJson(),
+            "defense": self.defense
+        }
 
 
 class TeamAchievements(StateModel):
@@ -529,6 +574,18 @@ class Storage(StateModel):
         """
         return { self.toEntity(id): amount for id, amount in self.items.items() if amount > 0}
 
+    def toJson(self):
+        return self.items
+
+    def godUpdate(self, update):
+        for resource, amount in update["add"].items():
+            self.items[resource] = amount
+
+        for resource, _ in update["remove"].items():
+            del self.items[resource]
+
+        for resource, amount in update["change"].items():
+            self.items[resource] = amount
 
 class FoodStorage(StateModel):
     class FoodStorageManager(models.Manager):
@@ -614,25 +671,12 @@ class FoodStorage(StateModel):
                 self.items.append(item)
 
     def toJson(self):
-        return {
-            r.resource.id: r.amount for r in self.items
-        }
+        # Maara should delete this once he updates food storage
+        return []
 
     def godUpdate(self, update):
-        for resource, amount in update["add"].items():
-            if self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.items.append(FoodStorageItem(resource=self.context.resources.get(id=resource), amount=amount))
-
-        for resource, _ in update["remove"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
-            self.items.remove(self.items.get(resource=resource))
-
-        for resource, amount in update["change"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
-            self.items.get(resource=resource).amount = amount
+        # Maara should delete this once he updates food storage
+        return
 
 class ResourceStorageAbstract(Storage):
     class Meta:
@@ -666,7 +710,7 @@ class ResourceStorageAbstract(Storage):
         return "-"
 
     def __str__(self):
-        list = [x.resource.label + ":" + str(x.amount) for x in self.items]
+        list = [resource.label + ":" + str(label) for resource, label in self.asMap().items()]
         result = ", ".join(list)
         return result
 
@@ -753,27 +797,6 @@ class ResourceStorageAbstract(Storage):
                 results[resource] = amount
         return results
 
-    def toJson(self):
-        return {
-            r.resource.id: r.amount for r in self.items
-        }
-
-    def godUpdate(self, update):
-        for resource, amount in update["add"].items():
-            if self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot add '{resource}' which is already present in the list")
-            self.set(resource, amount)
-
-        for resource, _ in update["remove"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot remove '{resource}' which is not present in the list")
-            self.set(resource, 0)
-
-        for resource, amount in update["change"].items():
-            if not self.items.has(resource=resource):
-                raise InvalidActionException(f"Cannot change '{resource}' which is not present in the list")
-            self.set(resource, amount)
-
     def getPopulation(self):
         return self.get("res-populace")
 
@@ -789,7 +812,7 @@ class ResourceStorage(ResourceStorageAbstract):
 class MaterialStorage(ResourceStorageAbstract):
     class MaterialStorageManager(models.Manager):
         def createInitial(self, context):
-            return self.create(items=[])
+            return self.create(items={})
 
     objects = MaterialStorageManager()
 
@@ -835,7 +858,7 @@ class TechStorage(Storage):
     objects = TechStorageManager()
 
     def __str__(self):
-        list = [entity.label + ": " + status for entity, status in self.asMap().items()]
+        list = [entity.label + ": " + TechStatusEnum(status).label for entity, status in self.asMap().items()]
         result = ", ".join(list)
         return result
 
@@ -911,27 +934,15 @@ class TechStorage(Storage):
     def getBuildings(self):
         return [tech for tech, status in self.asMap().items() if status == TechStatusEnum.OWNED and tech.isBuilding]
 
-    def toJson(self):
-        return {
-            tech.id: status.label for tech, status in self.asMap().items()
-        }
-
     def godUpdate(self, update):
         for techId, status in update["add"].items():
-            if self.items.has(tech=techId):
-                raise InvalidActionException(f"Cannot add '{techId}' which is already present in the list")
-            tech = self.context.techs.get(id=techId)
-            self.set(entity=tech, value=parseTechStatus(status))
+            self.items[techId] = parseTechStatus(status)
 
-        for tech, _ in update["remove"].items():
-            if not self.items.has(tech=tech):
-                raise InvalidActionException(f"Cannot remove '{tech}' which is not present in the list")
-            self.items.remove(self.items.get(tech=tech))
+        for techId, _ in update["remove"].items():
+            del self.items[techId]
 
-        for tech, status in update["change"].items():
-            if not self.items.has(tech=tech):
-                raise InvalidActionException(f"Cannot change '{tech}' which is not present in the list")
-            self.items.get(tech=tech).status = parseTechStatus(status)
+        for techId, status in update["change"].items():
+            self.items[techId] = parseTechStatus(status)
 
 # =================================================
 

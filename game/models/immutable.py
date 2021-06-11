@@ -1,5 +1,6 @@
 # https://stackoverflow.com/questions/1355150/django-when-saving-how-can-you-check-if-a-field-has-changed
 
+from game.models.fields import JSONField
 from django.db import models
 from django.forms.models import model_to_dict
 from copy import deepcopy
@@ -37,6 +38,8 @@ class TrackedModel(models.Model):
                              self._meta.fields])
         # Rather hack for ListField
         for key, value in d.items():
+            if isinstance(self._meta.get_field(key), JSONField):
+                continue
             if not isinstance(value, list):
                 continue
             d[key] = list([
