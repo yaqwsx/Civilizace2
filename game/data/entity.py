@@ -1,5 +1,7 @@
 from django.db import models
+import django_enumfield
 from game.utils import classproperty
+from django_enumfield import enum
 import copy
 import types
 
@@ -142,6 +144,13 @@ class AssignedTask(models.Model):
         ]
 
 
+class Direction(enum.Enum):
+    North = 1
+    West = 2
+    South = 3
+    East = 4
+
 class IslandModel(EntityModel):
-    pass
-    # Maara: You should put anything specific to the island entity here
+    direction = enum.EnumField(Direction)
+    distance = models.IntegerField()
+    root = models.ForeignKey("TechModel", on_delete=models.CASCADE)

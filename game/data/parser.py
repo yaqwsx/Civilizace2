@@ -1,12 +1,12 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
-from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel
+from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel, IslandModel, Direction
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
 
 class Parser():
     SHEET_MAP = {
         "die": 7,
-        "task": 6,
+        "island": 6,
         "type": 4,
         "res": 3,
         "tech": 1,
@@ -126,7 +126,7 @@ class Parser():
         count = 0
 
         for n, line in enumerate(myRaw[1:], start=1):
-            line = line[:11]
+            line = line[:12]
             if line[1] == "":
                 continue
             if len(line) < 8:
@@ -138,6 +138,7 @@ class Parser():
             notes = line[4]
             image = line[3]
             nodeTag = line[7]
+            defenseBonus = line[11]
 
             try:
                 culture = int(line[6])
@@ -153,7 +154,8 @@ class Parser():
             tech = TechModel.manager.create(id=id,
                 label=label, image=image, notes=notes,
                 flavour=flavour, culture=culture, nodeTag=nodeTag,
-                epocha=epocha, version=self.entitiesVersion)
+                epocha=epocha, version=self.entitiesVersion,
+                defenseBonus=defenseBonus)
             count += 1
         print(f"   added {count} technologies")
 
@@ -470,6 +472,35 @@ class Parser():
                     label=label, implementation=implementation,
                     icon=icon, orgMessage=orgMessage, version=self.entitiesVersion)
 
+    def _addIslands(self):
+        print("Parsing islands")
+        myRaw = self.raw[self.SHEET_MAP["island"]]
+        count = 0
+
+        for n, line in enumerate(myRaw[1:], start=1):
+            line = line[:12]
+            if line[1] == "":
+                continue
+            label = line[0]
+            id = line[1]
+            try:
+                direction = {
+                        "N": Direction.North,
+                        "W": Direction.West,
+                        "S": Direction.South,
+                        "E": Direction.East
+                    }[line[2]]
+            except KeyError:
+                raise RuntimeError(f"Unknown direction '{line[2]}'")
+            distance = int(line[3])
+            rootTech = TechModel.manager.get(id=line[4], version=self.entitiesVersion)
+
+            IslandModel.manager.create(id=id,
+                label=label, direction=direction, distance=distance,
+                root=rootTech, version=self.entitiesVersion)
+            count += 1
+        print(f"   added {count} islands")
+
 
     def parse(self, rawData):
         # clear all entities
@@ -498,6 +529,7 @@ class Parser():
         self._addTechs()
         self._addEdges()
         self._addVyrobas()
+        self._addIslands()
         # self._addEnhancements() # TODO: Update enhancement mechanics
         self._addAchievements()
 
