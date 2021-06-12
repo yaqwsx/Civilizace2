@@ -24,15 +24,16 @@
     "postcss-import": "*",
     "postcss-scss": "*",
     "rimraf": "*",
-    "tailwindcss": "*",
+    "tailwindcss": "1",
     "watch": "*"
   },
   "dependencies": {
-    "chart.js": "*",
+    "chart.js": "2",
     "d3": "*",
     "d3plus": "*",
     "dagre-d3": "*",
     "flatpickr": "*",
+    "glob": "^7.1.7",
     "jsoneditor": "^9.0.0",
     "marked": "^2.0.3"
   },
