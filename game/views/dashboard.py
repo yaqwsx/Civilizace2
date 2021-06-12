@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Exists, OuterRef, Count
 from game.models.users import Team
-from game.models.state import State
+from game.models.state import IslandState, State
 from game.models.messageBoard import Message, MessageRead
 
 
@@ -140,6 +140,41 @@ class DashboardStickersView(View):
             "teamStickers": team.sticker_set.order_by('awardedAt').all(),
             "messages": messages.get_messages(request)
         })
+
+def islandKnownBy(islandId, teamStates):
+    """
+    Return a list of all teams that know the island
+    """
+    return [t.team for t in teamStates if islandId in t.exploredIslandsList]
+
+class DashboardIslandsView(View):
+    @method_decorator(login_required)
+    def get(self, request, teamId):
+        user = request.user
+        if user.isPlayer() and user.team().id != teamId:
+            raise PermissionDenied("Cannot view the page")
+        team = get_object_or_404(Team, pk=teamId)
+        state = State.objects.getNewest()
+        teamState = state.teamState(team)
+        ownedIslands = list(filter(lambda x: x.owner == team, state.islandStates.all()))
+        ownedIslands.sort(key=lambda x: x.island.label)
+        knownIslands = [{
+            "state": x,
+            "knownBy": islandKnownBy(x.island.id, state.teamStates.all())}
+                for x in state.islandStates.all()
+                if x.island.id in teamState.exploredIslandsList]
+        knownIslands.sort(key=lambda x: x["state"].island.label)
+        return render(request, 'game/dashBoardIslands.html', {
+            "user": user,
+            "request": request,
+            "myTeam": team,
+            "targetTeam": team,
+            "teams": Team.objects.all(),
+            "ownedIslands": ownedIslands,
+            "knownIslands": knownIslands,
+            "messages": messages.get_messages(request)
+        })
+
 
 class DemoView(View):
     def get(self, request, *args, **kwargs):

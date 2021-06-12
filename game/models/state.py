@@ -63,6 +63,22 @@ class StateManager(PrefetchManager):
         # you can get different handles to models)
         super(StateManager, self).__init__(prefetch_related=("teamStates","islandStates"), select_related=("action",))
 
+    def initialParameters(self):
+        return {
+            "islandExplorePrice": {
+                "mat-sklo": 5,
+                "mat-sroub": 8,
+            },
+            "islandColonizePrice": {
+                "mat-sklo": 5,
+                "mat-sroub": 8,
+            },
+            "islandRepairPrice": {
+                "mat-sklo": 5,
+                "mat-sroub": 8,
+            },
+        }
+
     def createInitial(self, context):
         teamStates = [TeamState.objects.createInitial(team=team, context=context)
                       for team in Team.objects.all()]
@@ -70,7 +86,7 @@ class StateManager(PrefetchManager):
                       for isl in context.islands.all()]
         worldState = WorldState.objects.createInitial(context)
         action = ActionEvent.objects.createInitial(context)
-        state = self.create(action=action, worldState=worldState)
+        state = self.create(action=action, worldState=worldState, parameters=self.initialParameters())
         state.teamStates.set(teamStates)
         state.islandStates.set(islandStates)
         return state
@@ -108,10 +124,11 @@ class StateModel(ImmutableModel):
             "ach-": "achivements",
             "is-": "island",
             "res-": "resources",
+            "mat-": "resources",
             "tech-": "techs",
             "build-": "techs",
             "vyr-": "vyrobas",
-            "edge-": "edges"
+            "edge-": "edges",
         }
         for p, c in prefixes.items():
             if id.startswith(p):
@@ -123,6 +140,8 @@ class State(StateModel):
     worldState = models.ForeignKey("WorldState", on_delete=models.PROTECT)
     teamStates = models.ManyToManyField("TeamState")
     islandStates = models.ManyToManyField("IslandState")
+
+    parameters = JSONField()
 
     objects = StateManager()
 
@@ -147,6 +166,7 @@ class State(StateModel):
         json.update({
             f"{iss.island.label}({iss.island.id})" : iss.toJson() for iss in self.islandStates.all()
         })
+        json["parameters"] = self.parameters
         return json
 
     def godUpdate(self, update):
@@ -155,8 +175,19 @@ class State(StateModel):
             # ToDo: Ignore the team name
             ts.godUpdate(eatUpdatePrefixAll(f"{ts.team.name}({ts.team.id})", update))
         for iss in self.islandStates.all():
-            # ToDo: Ignore the team name
+            # ToDo: Ignore the island name
             iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.label})", update))
+        if "parameters" in update["change"]["parameters"]:
+            self.parameters = update["change"]["parameters"]
+
+    def getPrice(self, name):
+        """
+        Given a name of a price in parameters, return it as a map from entities
+        to amounts.
+        """
+        return { self.toEntity(entId): amount
+            for entId, amount in self.parameters[name].items()}
+
 
 class WorldState(StateModel):
     class WorldStateManager(models.Manager):
@@ -325,6 +356,10 @@ class IslandState(StateModel):
     @property
     def island(self):
         return self.context.islands.get(id=self.islandId)
+
+    @property
+    def maxDefense(self):
+        return sum(map(lambda x: x.defenseBonus, self.techs.getOwnedTechs()))
 
     def toJson(self):
         return {

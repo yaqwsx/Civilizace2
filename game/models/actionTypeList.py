@@ -26,6 +26,7 @@ class ActionType(enum.Enum):
     researchIsland = 34
     shareIsland = 35
     transferIsland = 36
+    repairIsland = 37
 
     godmode = 42
     sandbox = 99
@@ -56,6 +57,7 @@ class ActionType(enum.Enum):
         researchIsland: "OSTROV: Zkoumat technologii",
         shareIsland: "OSTROV: Sdílet polohu",
         transferIsland: "OSTROV: Přenést vlastnictví",
+        repairIsland: "OSTROV: Postav opevenění",
 
         createInitial: "SYSTEM: Vytvořit nový stav",
         nextGeneration: "SYSTEM: Next generation",

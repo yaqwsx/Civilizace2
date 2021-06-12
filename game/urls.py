@@ -12,6 +12,7 @@ urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("dashboard/", dashboard.DashboardIndexView.as_view(), name="dashboardIndex"),
     path("dashboard/<int:teamId>", dashboard.DashboardStatView.as_view(), name="dashboardStat"),
+    path("dashboard/<int:teamId>/islands", dashboard.DashboardIslandsView.as_view(), name="dashboardIslands"),
     path("dashboard/<int:teamId>/messages", dashboard.DashboardMessageView.as_view(), name="dashboardMessages"),
     path("dashboard/<int:teamId>/tasks", dashboard.DashboardTasksView.as_view(), name="dashboardTasks"),
     path("dashboard/<int:teamId>/stickers", dashboard.DashboardStickersView.as_view(), name="dashboardStickers"),

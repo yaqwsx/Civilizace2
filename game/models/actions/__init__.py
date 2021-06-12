@@ -23,6 +23,7 @@ from .finishTask import FinishTaskMove
 from .maaraCounter import MaaraMove
 
 from .islandDiscover import IslandDiscoverMove
+from .islandExplore import IslandExploreMove
 
 def buildAction(data):
     """

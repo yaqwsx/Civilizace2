@@ -32,7 +32,15 @@
             <a href="{% url 'dashboardStat' teamId=targetTeam.id%}"
                 class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
                     {% if 'dashboardStat' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
-                <i class="fas fa-home fa-fw mr-3 text-orange-600"></i><span class="pb-1 md:pb-0 text-sm">Home</span>
+                <i class="fas fa-home fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Home</span>
+            </a>
+        </li>
+
+        <li class="mr-6 my-2 md:my-0">
+            <a href="{% url 'dashboardIslands' teamId=targetTeam.id%}"
+                class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 hover:border-orange-600
+                    {% if 'dashboardIslands' in request.resolver_match.view_name %} text-orange-600 border-orange-600 {% else %} text-gray-500 border-gray-500 {% endif %}">
+                <i class="fas fa-map fa-fw mr-3"></i><span class="pb-1 md:pb-0 text-sm">Ostrovy</span>
             </a>
         </li>
 
