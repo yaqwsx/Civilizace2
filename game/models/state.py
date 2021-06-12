@@ -4,7 +4,7 @@ from django.db.models.fields import related
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
-from game.data.entity import AchievementModel, EntityModel, TaskModel
+from game.data.entity import AchievementModel, EntityModel, IslandModel, TaskModel
 from game.data.parser import Parser
 from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField
@@ -73,6 +73,7 @@ class StateManager(PrefetchManager):
                 "mat-sklo": 5,
                 "mat-sroub": 8,
             },
+            "islandColonizeDots": 42,
             "islandRepairPrice": {
                 "mat-sklo": 5,
                 "mat-sroub": 8,
@@ -153,6 +154,20 @@ class State(StateModel):
                 return ts
         return None
 
+    def teamIslands(self, teamId):
+        if isinstance(teamId, Team):
+            teamId = teamId.id
+        return [iss for iss in self.islandStates.all()
+                    if iss.owner and iss.owner.id == teamId]
+
+    def islandState(self, islandId):
+        if isinstance(islandId, IslandModel):
+            islandId = islandId.id
+        for iss in self.islandStates.all():
+            if iss.island.id == islandId:
+                return iss
+        return None
+
     def __str__(self):
         return json.dumps(self._dict)
 
@@ -180,12 +195,12 @@ class State(StateModel):
         if "parameters" in update["change"]["parameters"]:
             self.parameters = update["change"]["parameters"]
 
-    def getPrice(self, name):
+    def getPrice(self, name, multiplicator=1):
         """
         Given a name of a price in parameters, return it as a map from entities
         to amounts.
         """
-        return { self.toEntity(entId): amount
+        return { self.toEntity(entId): amount * multiplicator
             for entId, amount in self.parameters[name].items()}
 
 

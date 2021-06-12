@@ -312,6 +312,10 @@ class Action(ImmutableModel):
         message += "</ul>"
         return message
 
+    def costMessage(self, resources):
+        rows = [f'<li>{amount}× {res.htmlRepr()}</li>' for res, amount in resources.items()]
+        return f"<ul>{''.join(rows)}</ul>"
+
     def description(self):
         return "{} pro tým {}".format(self.move.label, self.team.name)
 

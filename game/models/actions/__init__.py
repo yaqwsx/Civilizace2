@@ -24,6 +24,7 @@ from .maaraCounter import MaaraMove
 
 from .islandDiscover import IslandDiscoverMove
 from .islandExplore import IslandExploreMove
+from .islandColonize import IslandColonizeMove
 
 def buildAction(data):
     """

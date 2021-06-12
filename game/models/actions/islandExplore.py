@@ -46,16 +46,12 @@ class IslandExploreMove(Action):
             arguments=Action.stripData(data))
         return action
 
-    def costMessage(self, resources):
-        rows = [f'<li>{amount}× {res.htmlRepr()}</li>' for res, amount in resources.items()]
-        return f"<ul>{''.join(rows)}</ul>"
-
     def initiate(self, state):
         teamState = state.teamState(self.team)
         try:
             remainsToPay = teamState.resources.payResources(state.getPrice("islandExplorePrice"))
         except ResourceStorageAbstract.NotEnoughResourcesException as e:
-            message = f'Nedostate zdrojů; chybí: {self.costMessage(e.list)}'
+            message = f'Nedostatek zdrojů; chybí: {self.costMessage(e.list)}'
             return ActionResult.makeFail(message)
 
         message = f"Tým musí zaplatit: {self.costMessage(remainsToPay)}"
