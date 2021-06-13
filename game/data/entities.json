@@ -1474,7 +1474,7 @@
             "5"
         ],
         [
-            "",
+            "Honzova zku\u0161ebn\u00ed technologie",
             "edge-ostrov",
             "tech-ostrov-root",
             "tech-ostrov-pokrocila",
@@ -4482,300 +4482,233 @@
             "Nazev",
             "ID",
             "Typ",
-            "Ikona",
-            ""
+            "Ikona"
         ],
         [
             "Pr\u00e1ce",
             "res-prace",
             "-",
-            "prace-a.svg",
-            ""
+            "prace-a.svg"
         ],
         [
             "Obyvatel\u00e9",
             "res-obyvatel",
             "-",
-            "obyvatel-a.svg",
-            ""
+            "obyvatel-a.svg"
         ],
         [
             "Bobule",
             "mat-bobule",
             "jidlo-2",
-            "jidlo-bobule-2-a.svg",
-            ""
+            "jidlo-bobule-2-a.svg"
         ],
         [
             "Obil\u00ed",
             "mat-obili",
             "jidlo-2",
-            "jidlo-obili-2-a.svg",
-            ""
+            "jidlo-obili-2-a.svg"
         ],
         [
             "Maso",
             "mat-maso",
             "jidlo-3",
-            "jidlo-maso-2-a.svg",
-            ""
+            "jidlo-maso-2-a.svg"
         ],
         [
             "Ovoce",
             "mat-ovoce",
             "jidlo-3",
-            "jidlo-ovoce-3-a.svg",
-            ""
+            "jidlo-ovoce-3-a.svg"
         ],
         [
             "Ryba",
             "mat-ryba",
             "jidlo-4",
-            "jidlo-ryba-4-a.svg",
-            ""
+            "jidlo-ryba-4-a.svg"
         ],
         [
             "Dobytek",
             "mat-dobytek",
             "jidlo-4",
-            "jidlo-dobytek-4-a.svg",
-            ""
+            "jidlo-dobytek-4-a.svg"
         ],
         [
             "Ko\u0159en\u00ed",
             "mat-koreni",
             "jidlo-5",
-            "jidlo-koreni-5-a.svg",
-            ""
+            "jidlo-koreni-5-a.svg"
         ],
         [
             "Cukrovinka",
             "mat-cukr",
             "jidlo-6",
-            "jidlo-cukrovinky-6-a.svg",
-            ""
+            "jidlo-cukrovinky-6-a.svg"
         ],
         [
             "Trus",
             "mat-trus",
             "palivo-2",
-            "palivo-trus-2-a.svg",
-            ""
+            "palivo-trus-2-a.svg"
         ],
         [
             "D\u0159evo",
             "mat-drevo",
             "palivo-3",
-            "palivo-drevo-3-a.svg",
-            ""
+            "palivo-drevo-3-a.svg"
         ],
         [
             "Tuk",
             "mat-tuk",
             "palivo-4",
-            "palivo-tuk-4-a.svg",
-            ""
+            "palivo-tuk-4-a.svg"
         ],
         [
             "Uhl\u00ed",
             "mat-uhli",
             "palivo-5",
-            "palivo-uhli-5-a.svg",
-            ""
+            "palivo-uhli-5-a.svg"
         ],
         [
             "Nafta",
             "mat-nafta",
             "palivo-6",
-            "palivo-nafta-6-a.svg",
-            ""
+            "palivo-nafta-6-a.svg"
         ],
         [
             "J\u00edl",
             "mat-jil",
             "stavivo-2",
-            "stavivo-jil-2-a.svg",
-            ""
+            "stavivo-jil-2-a.svg"
         ],
         [
             "K\u00e1men",
             "mat-kamen",
             "stavivo-3",
-            "stavivo-kamen-3-a.svg",
-            ""
+            "stavivo-kamen-3-a.svg"
         ],
         [
             "Tr\u00e1m",
             "mat-tram",
             "stavivo-4",
-            "stavivo-tramy-4-a.svg",
-            ""
+            "stavivo-tramy-4-a.svg"
         ],
         [
             "Cihla",
             "mat-cihla",
             "stavivo-5",
-            "stavivo-cihly-5-a.svg",
-            ""
+            "stavivo-cihly-5-a.svg"
         ],
         [
             "\u0160rouby",
             "mat-sroub",
             "stavivo-6",
-            "stavivo-sroub-6-a.svg",
-            ""
+            "stavivo-sroub-6-a.svg"
         ],
         [
             "Malta",
             "mat-malta",
             "stavivo-6",
-            "stavivo-malta-6-a.svg",
-            ""
+            "stavivo-malta-6-a.svg"
         ],
         [
             "Kosti",
             "mat-kost",
             "nastroj-2",
-            "nastroj-kosti-2-a.svg",
-            ""
+            "nastroj-kosti-2-a.svg"
         ],
         [
             "Nerosty",
             "mat-nerost",
             "nastroj-3",
-            "nastroj-nerosty-3-a.svg",
-            ""
+            "nastroj-nerosty-3-a.svg"
         ],
         [
             "Lano",
             "mat-lano",
             "nastroj-4",
-            "nastroj-lano-4-a.svg",
-            ""
+            "nastroj-lano-4-a.svg"
         ],
         [
             "Bronz",
             "mat-bronz",
             "nastroj-5",
-            "nastroj-bronz-5-a.svg",
-            ""
+            "nastroj-bronz-5-a.svg"
         ],
         [
             "\u017delezo",
             "mat-zelezo",
             "nastroj-6",
-            "nastroj-zelezo-6-a.svg",
-            ""
+            "nastroj-zelezo-6-a.svg"
         ],
         [
             "K\u016f\u017ee",
             "mat-kuze",
             "luxus-2",
-            "luxus-kuze-2-a.svg",
-            ""
+            "luxus-kuze-2-a.svg"
         ],
         [
             "Textil",
             "mat-textil",
             "luxus-3",
-            "luxus-latka-3-a.svg",
-            ""
+            "luxus-latka-3-a.svg"
         ],
         [
             "Alkohol",
             "mat-alkohol",
             "luxus-3",
-            "luxus-alkohol-3-a.svg",
-            ""
+            "luxus-alkohol-3-a.svg"
         ],
         [
             "Keramika",
             "mat-keramika",
             "luxus-4",
-            "luxus-keramika-4-a.svg",
-            ""
+            "luxus-keramika-4-a.svg"
         ],
         [
             "L\u00e9\u010divo",
             "mat-lek",
             "luxus-5",
-            "luxus-lecivo-5-a.svg",
-            ""
+            "luxus-lecivo-5-a.svg"
         ],
         [
             "\u0160perky",
             "mat-sklo",
             "luxus-6",
-            "luxus-sperky-6-a.svg",
-            ""
+            "luxus-sperky-6-a.svg"
         ],
         [
             "P\u0159epravn\u00ed kapacita",
             "mat-kapacita",
             "ostatni-2",
-            "papyrus-a.svg",
-            ""
+            "papyrus-a.svg"
         ],
         [
             "N\u00e1mo\u0159n\u00ed s\u00edla",
             "mat-sila",
             "ostatni-2",
-            "papyrus-a.svg",
-            ""
+            "papyrus-a.svg"
         ],
         [
             "V\u011bdomosti",
             "mat-vedomost",
             "ostatni-2",
-            "papyrus-a.svg",
-            ""
+            "papyrus-a.svg"
         ],
         [
             "Jemn\u00e1 mechanika",
             "mat-dily",
             "ostatni-2",
-            "papyrus-a.svg",
-            ""
+            "papyrus-a.svg"
         ],
         [
             "Parn\u00ed stroj",
             "mat-para",
             "ostatni-2",
-            "papyrus-a.svg",
-            ""
-        ],
-        [
-            "P\u0159epravn\u00ed kapacita",
-            "res-nosic",
-            "-",
-            "",
-            ""
+            "papyrus-a.svg"
         ],
         [
             "Populace",
             "res-populace",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "Znalosti",
-            "res-vedomosti",
-            "-",
-            "papyrus-a.svg",
-            "model je 0-papir"
-        ],
-        [
-            "Alchymista",
-            "res-ucenec",
-            "-",
-            "",
-            "je to produkce vedomosti"
-        ],
-        [
-            "Bonusov\u00e9 kolo",
-            "res-kolo",
-            "-",
             "-",
             ""
         ],
@@ -4783,155 +4716,13 @@
             "Cesta",
             "res-cesta-1",
             "-",
-            "build-cesta1.png",
-            ""
+            "build-cesta1.png"
         ],
         [
-            "Cesta II",
+            "Silnice",
             "res-cesta-2",
             "-",
-            "build-cesta2.png",
-            ""
-        ],
-        [
-            "Most",
-            "res-most",
-            "-",
-            "build-most.png",
-            ""
-        ],
-        [
-            "1. patro observato\u0159e",
-            "div-observator1",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "2. patro observato\u0159e",
-            "div-observator2",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "3. patro observato\u0159e",
-            "div-observator3",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "4. patro observato\u0159e",
-            "div-observator4",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "1. patro Kolosea",
-            "div-colosseum1",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "2. patro Kolosea",
-            "div-colosseum2",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "3. patro Kolosea",
-            "div-colosseum3",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "4. patro Kolosea",
-            "div-colosseum4",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "1. patro Babylonsk\u00e9 v\u011b\u017ee",
-            "div-vez1",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "2. patro Babylonsk\u00e9 v\u011b\u017ee",
-            "div-vez2",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "3. patro Babylonsk\u00e9 v\u011b\u017ee",
-            "div-vez3",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "4. patro Babylonsk\u00e9 v\u011b\u017ee",
-            "div-vez4",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "1. patro hamaky",
-            "div-hamaka1",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "2. patro hamaky",
-            "div-hamaka2",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "3. patro hamaky",
-            "div-hamaka3",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "4. patro hamaky",
-            "div-hamaka4",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "P\u0159epravn\u00ed kapacita",
-            "lod-kapacita",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "N\u00e1mo\u0159n\u00ed s\u00edla",
-            "lod-sila",
-            "-",
-            "",
-            ""
-        ],
-        [
-            "M\u00edsto v p\u0159\u00edstavu",
-            "lod-misto",
-            "-",
-            "",
-            ""
+            "build-cesta2.png"
         ]
     ],
     [
@@ -13518,14 +13309,14 @@
             "Vy\u0161lecht\u011bn\u00e9 plodiny",
             "enh-obili-2",
             "vyr-obili",
-            "tech-prumysl",
-            "",
-            "",
-            "",
-            "",
-            "",
+            "tech-rostliny",
+            "mat-obili:10",
+            "-",
+            "2",
+            "die-prir:5",
+            "Ml\u00fdn 20 od Obil\u00ed",
             "1",
-            "0",
+            "1",
             "prod-obili:1"
         ],
         [

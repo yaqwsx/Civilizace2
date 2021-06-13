@@ -13,7 +13,7 @@
 {% else %}
 <div class="flex flex-wrap">
     {% for islandState in ownedIslands %}
-        {% card "Kolo" icon="fa-buffer" width="third" color=targetTeam.color %}
+        {% card "Kolo" icon="fa-globe" width="third" color=targetTeam.color %}
             <h3 class="text-xl">{{islandState.island.label}}</h3>
             <p>Obrana: {{islandState.defense}}/{{islandState.maxDefense}}</p>
             <p>Poloha: TBA</p>

@@ -26,6 +26,11 @@ from .islandDiscover import IslandDiscoverMove
 from .islandExplore import IslandExploreMove
 from .islandColonize import IslandColonizeMove
 from .islandAttack import IslandAttackMove
+from .islandResearch import IslandResearchMove
+from .islandShare import IslandShareMove
+from .islandTransfer import IslandTransferMove
+from .islandRepair import IslandRepairMove
+
 
 def buildAction(data):
     """

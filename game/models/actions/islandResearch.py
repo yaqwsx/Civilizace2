@@ -13,13 +13,17 @@ class IslandResearchForm(MoveForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        techs = self.state.teamState(self.teamId).techs
         src = self.getEntity(TechModel)
+        island = src.island
+        islandState = self.state.islandState(island)
+        if islandState.owner.id != self.teamId:
+            raise InvalidActionException("Tady už není co zkoumat (" + src.label + ")")
+
+        techs = islandState.techs
         choices = []
         for edge in src.unlocks_tech.all():
             if techs.getStatus(edge.dst) == TechStatusEnum.UNKNOWN:
                 choices.append((edge.id, edge.label))
-
         if not len(choices):
             raise InvalidActionException("Tady už není co zkoumat (" + src.label + ")")
         self.fields["techSelect"].choices = choices
@@ -42,13 +46,15 @@ class IslandResearchMove(Action):
 
     @staticmethod
     def relevantEntities(state, team):
-        techs = state.teamState(team.id).techs
-        return techs.getOwnedTechs()
+        teamIslands = state.teamIslands(team)
+        techs = []
+        for i in teamIslands:
+            techs.extend(i.techs.getOwnedTechs())
+        return techs
 
     @property
     def edge(self):
-        tech = self.context.edges.get(id=self.arguments["techSelect"])
-        return tech
+        return self.context.edges.get(id=self.arguments["techSelect"])
 
     def requiresDice(self, state):
         return True
@@ -58,7 +64,10 @@ class IslandResearchMove(Action):
 
     def initiate(self, state):
         teamState = self.teamState(state)
-        techs = teamState.techs
+        island = self.edge.src.island
+        islandState = state.islandState(island)
+        techs = islandState.techs
+
         dst = self.edge.dst
 
         if techs.getStatus(self.edge.src) != TechStatusEnum.OWNED:
@@ -73,13 +82,11 @@ class IslandResearchMove(Action):
             print(self.edge.getInputs())
             materials = teamState.resources.payResources(self.edge.getInputs())
             if materials:
-                resMsg = "".join([f'<li>{amount}&times; {res.label}</li>' for res, amount in materials.items()])
-                costMessage = f'Tým musí zaplatit: <ul class="list-disc px-4">{resMsg}</ul>'
+                costMessage = f'Tým musí zaplatit: {self.costMessage(materials)}>'
             else:
                 costMessage = "Tým nic neplatí"
         except ResourceStorage.NotEnoughResourcesException as e:
-            resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
-            message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
+            message = f'Nedostate zdrojů; chybí: {self.costMessage(e.list)}'
             return ActionResult.makeFail(message)
         return ActionResult.makeSuccess(
             f"""
@@ -88,11 +95,18 @@ class IslandResearchMove(Action):
             """)
 
     def commit(self, state):
-        self.teamState(state).techs.setStatus(self.edge.dst, TechStatusEnum.RESEARCHING)
-        return ActionResult.makeSuccess(f"""
-            Zkoumání technologie {self.edge.dst.label} bylo započato.<br>
-        """)
-        # TODO: How to show the new task?
+        dst = self.edge.dst
+        island = dst.island
+        islandState = state.islandState(island)
+        islandState.techs.setStatus(dst, TechStatusEnum.OWNED)
+        message = f"Technologie {dst.label} na ostrově {island.label} byla vyzkoumána."
+        if dst.defenseBonus:
+            islandState.defense += dst.defenseBonus
+            message += f"""<br/>
+                Maximální hodnota ostrova {island.label} byla zvýšena na
+                {islandState.maxDefense}. Aktuální obrana je {islandState.defense}.
+            """
+        return ActionResult.makeSuccess(message)
 
     def abandon(self, state):
         productions = { res: amount for res, amount in self.edge.getInputs().items()

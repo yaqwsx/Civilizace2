@@ -5,6 +5,7 @@ from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult, InvalidActionException
 from game.data.entity import Direction, IslandModel
 from game.data.resource import ResourceModel
+from game.models.state import ResourceStorageAbstract
 from django_enumfield.forms.fields import EnumChoiceField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from crispy_forms.layout import Layout, Fieldset, HTML
@@ -34,7 +35,7 @@ class IslandAttackForm(MoveForm):
         message = f"Vyberte od týmu: <ul>{''.join(rows)}</ul>"
         message += f"""
             <p>Následně budete s týmem házet útočnou kostkou. Každý hod stojí tým
-            1× {ResourceModel.manager.latest().get(id="lod-sila").htmlRepr()}.
+            1× {ResourceModel.manager.latest().get(id="mat-sila").htmlRepr()}.
             Zadejte počet hodů a to jestli tým souboj vyhrál.</p>
             """
 
@@ -69,8 +70,42 @@ class IslandAttackMove(Action):
             arguments=Action.stripData(data))
         return action
 
+    @property
+    def island(self):
+        return self.context.islands.get(id=self.arguments["entity"])
+
     def initiate(self, state):
-        raise NotImplementedError("Honza will implement this...")
+        teamState = state.teamState(self.team)
+        islandState = state.islandState(self.island)
+
+        if islandState.owner == self.team:
+            return ActionResult.makeFail("Není možné útočit na vlastní ostrov")
+        if islandState.defense == 0:
+            return ActionResult.makeFail("Ostrov má již obranu na nule.")
+
+        price = state.getPrice("islandAttackPrice",
+            len(state.teamIslands(self.team)) + 1)
+        price[ResourceModel.manager.latest().get(id="mat-sila")] = self.arguments["diceThrow"]
+
+        try:
+            remainsToPay = teamState.resources.payResources(price)
+        except ResourceStorageAbstract.NotEnoughResourcesException as e:
+            message = f'Nedostatek zdrojů; chybí: {self.costMessage(e.list)}'
+            return ActionResult.makeFail(message)
+
+        message = f"Tým musí zaplatit: {self.costMessage(remainsToPay)}"
+
+        if self.arguments["success"]:
+            islandState.defense -= 1
+            message += f"""
+                Obrana {self.island.label} byla snížena na {islandState.defense}.
+            """
+        else:
+            message += f"""
+                Obrana {self.island.label} nebyla snížena.
+                """
+        return ActionResult.makeSuccess(message)
+
 
     def commit(self, state):
         return ActionResult.makeSuccess()
