@@ -171,7 +171,6 @@ class Parser():
             if len(line) < 8:
                 self._logWarning("Edge." + str(n) + ": Málo parametrů (" + str(len(line)) + "/8)")
                 continue
-            label = line[0]
             id = line[1]
             try:
                 src = TechModel.manager.get(id=line[2], version=self.entitiesVersion)
@@ -183,6 +182,7 @@ class Parser():
             except TechModel.DoesNotExist:
                 self._logWarning("Edge." + str(n) + ": Nezname cilove ID (" + line[3] + ")")
                 continue
+            label = dst.label
 
             try:
                 chunks = line[4].split(":")
