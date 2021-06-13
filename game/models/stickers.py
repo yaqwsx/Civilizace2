@@ -95,17 +95,26 @@ class Sticker(models.Model):
         h1 {
             color: black;
             font-family: helvetica;
-            font-size: 50px;
+            font-size: 40px;
+            display: inline;
+        }
+
+        h2 {
+            color: black;
+            font-family: helvetica;
+            font-size: 30px;
             display: inline;
         }
 
         .sticker {
-            padding: 2px;
+            padding: 1px;
         }
 
         .box {
             display: flex;
             align-items:center;
+            padding: 0px;
+            margin: 0px;
         }
 
         .line {
@@ -116,18 +125,22 @@ class Sticker(models.Model):
         }
 
         .desc {
-            padding: 10px;
+            padding: 5px;
             font-family: helvetica;
-            font-size: 25px;
+            font-size: 20px;
         }
 
         .desc-title {
-            padding: 10px;
+            padding: 5px;
             font-weight:    bold;
         }
 
         .desc-elem {
-            padding: 10px;
+            padding: 5px;
+        }
+
+        ul li {
+            margin: 5px;
         }
     """
 
@@ -135,29 +148,27 @@ class Sticker(models.Model):
         vyrobas = entity.unlock_vyrobas.all()
         if not vyrobas:
             return ""
-        format = '<div><b>Odemyká výrobu:</b><ul>'
+        fmt = '<div><b>Odemyká výrobu:</b><ul>'
         for vyroba in vyrobas:
-            format += f'<li>{vyroba.label}</li>'
-        return format + '</ul></div>'
+            fmt += f'<li>{vyroba.label}</li>'
+        return fmt + '</ul></div>'
 
     def formatEnhancers(self, entity):
         enhancers = entity.unlock_enhancers.all()
         if not enhancers:
             return ""
-        format = '<div><b>Odemyká vylepšení:</b><ul>'
+        fmt = '<div><b>Odemyká vylepšení:</b><ul>'
         for enhance in enhancers:
-            format += f'<li>{enhance.label}</li>'
-        return format + '</ul></div>'
+            fmt += f'<li>{enhance.label}</li>'
+        return fmt + '</ul></div>'
 
     def formatHeader(self, entity):
         code = self.getQRCode(entity.id)
-    
-        return """
-            <div class="box">
-                <img src="{1}" width="120" height="120">
-                <h1>{0}</h1>
-            </div>
-        """.format(entity.label, code)
+        fmt = '<div class="box">'
+        fmt += f'<img src="{code}" width="120" height="120">'
+        fmt += f'<h1>{entity.label}</h1>'
+        fmt += '</div>'
+        return fmt
 
     def formatSharedHeader(self, entity):
         hex_path = os.path.join(os.getcwd(), "./img/flag-hex.png")
@@ -171,13 +182,19 @@ class Sticker(models.Model):
         """.format(entity.label, hex_path)
 
     def formatTechs(self, entity):
-        techs = entity.unlocks_tech.all()
-        if not techs:
+        edges = entity.unlocks_tech.all()
+        if not edges:
             return ""
-        format = '<div><b>Navazující směry bádání:</b><ul>'
-        for tech in techs:
-            format += f'<li>{tech.label}</li>'
-        return format + '</ul></div>'
+        fmt = '<div><b>Navazující směry bádání:</b><ul>'
+        for edge in edges:
+            fmt += f'<li><b>{edge.dst.label}:</b>'
+            fmt += f'<ul>'
+            fmt += f'<li>Kostka: {edge.dots} x {edge.die.label}'
+            for res in edge.resources.all():
+                fmt += f'<li>{res.amount} x {res.resource.label}</li>'
+            fmt += f'</ul>'
+            fmt += '</li>'
+        return fmt + '</ul></div>'
 
     def formatTechDescription(self, entity):
         vyrobas = self.formatVyrobas(entity)
@@ -187,27 +204,39 @@ class Sticker(models.Model):
 
     def regularTechTemplate(self, entity):
         header = f'<div>{self.formatHeader(entity)}</div>'
+                
+        if entity.island:
+            header += f'<div><h2>Ostrov: {entity.island.label}</h2></div>'
+
         return self.techTemplate(entity, header)
 
     def sharedTechTemplate(self, entity):
-        header = f'<div>{self.formatSharedHeader(entity)}</div>'
+        header = self.formatSharedHeader(entity)
         return self.techTemplate(entity, header)
-
-    def techTemplate(self, entity, header):
-        desc = self.formatTechDescription(entity)
-
-        return """
-        <div class="sticker" vertical-align:top>
-            {0}
-            <hr class="line">
-            {1}
-            <em>{2}</em>
-        </div>
-        """.format(header, desc, entity.flavour)
 
     def compactTechTemplate(self, entity):
         header = self.formatHeader(entity)
         return f'<div class="sticker">{header}</div>'
+
+    def techTemplate(self, entity, header):
+        fmt = '<div class="sticker" vertical-align:top>'
+        fmt += header
+        fmt += '<hr class="line">'
+        fmt += self.formatTechDescription(entity)
+        fmt += f'<em>{entity.flavour}</em>'
+        fmt += '</div>'
+        return fmt
+
+    def vyrobaTemplate(self, entity, header):
+        fmt = '<div class="sticker" vertical-align:top>'
+        fmt += header
+        fmt += '<hr class="line">'
+        fmt += '</div>'
+        return fmt
+
+    def regularVyrobaTemplate(self, entity):
+        header = self.formatHeader(entity)
+        return self.vyrobaTemplate(entity, header)
 
     def shortDescription(self):
         """
@@ -216,7 +245,7 @@ class Sticker(models.Model):
         return f"Sticker \nfor team {self.team.id} \nof {self.entity.id}"
 
     def stickerName(self) -> str:
-        return f"sticker_{self.id:04d}_{self.type.name}" 
+        return f"sticker_{self.id:04}_{self.type.name}" 
 
     def getImage(self):
         """
@@ -304,10 +333,16 @@ class Sticker(models.Model):
             return self.renderTechRegular(entity)
 
     def renderBuilding(self, entity):
-        return self.renderInternal(entity)
+        if self.type == StickerType.COMPACT:
+            return self.renderTechCompact(entity)
+        elif self.type == StickerType.SHARED:
+            return self.renderTechShared(entity)
+        else: 
+            return self.renderTechRegular(entity)
 
     def renderVyroba(self, entity):
-        return self.renderInternal(entity)
+        html = self.regularVyrobaTemplate(entity)
+        return self.renderHTML(html, 384, 150)
 
     def renderTechCompact(self, entity):
         html = self.compactTechTemplate(entity)
@@ -315,7 +350,7 @@ class Sticker(models.Model):
     
     def renderTechRegular(self, entity):
         html = self.regularTechTemplate(entity)
-        return self.renderHTML(html, 384, 610, True)
+        return self.renderHTML(html, 384, 768, True)
 
     def renderTechShared(self, entity):
         html = self.sharedTechTemplate(entity)
