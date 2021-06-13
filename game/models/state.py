@@ -130,6 +130,7 @@ class StateModel(ImmutableModel):
             "is-": "island",
             "res-": "resources",
             "mat-": "resources",
+            "prod-": "resources",
             "tech-": "techs",
             "build-": "techs",
             "vyr-": "vyrobas",
@@ -769,10 +770,12 @@ class ResourceStorageAbstract(Storage):
         return result
 
     def set(self, resource, amount):
-        if (resource.id == "res-obyvatel"):
+        if isinstance(resource, EntityModel):
+            resource = resource.id
+        if (resource == "res-obyvatel"):
             diff = self.get(resource) - amount
-            super().add("res-populace", diff)
-        super().set(resource, amount)
+            self.add("res-populace", diff)
+        super(ResourceStorageAbstract, self).set(resource, amount)
 
     def add(self, resource, amount):
         newAmount = self.get(resource) + amount
