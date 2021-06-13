@@ -55,20 +55,20 @@ class ViewTechTree(View):
     def get(self, request):
         return render(request, "service/viewTechtree.html", {
             "request": request,
-            "nodes": TechModel.objects.all(),
-            "edges": TechEdgeModel.objects.all(),
-            "dies": DieModel.objects.all()
+            "nodes": TechModel.manager.latest().all(),
+            "edges": TechEdgeModel.manager.latest().all(),
+            "dies": DieModel.manager.latest().all()
         })
 
 class ViewVyrobas(View):
     def get(self, request):
-        missing = ResourceModel.objects \
+        missing = ResourceModel.manager.latest() \
                 .filter(input_to_vyrobas__isnull=True, output_of_vyroba__isnull=True)
         missingList = ", ".join([x.label for x in missing])
         return render(request, "service/viewVyrobas.html", {
             "request": request,
-            "resources": ResourceModel.objects \
+            "resources": ResourceModel.manager.latest() \
                 .filter(Q(input_to_vyrobas__isnull=False) | Q(output_of_vyroba__isnull=False)),
-            "vyrobas": VyrobaModel.objects.all(),
+            "vyrobas": VyrobaModel.manager.latest().all(),
             "missing": missingList
         })
