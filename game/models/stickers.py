@@ -130,15 +130,6 @@ class Sticker(models.Model):
             font-size: 20px;
         }
 
-        .desc-title {
-            padding: 5px;
-            font-weight:    bold;
-        }
-
-        .desc-elem {
-            padding: 5px;
-        }
-
         ul li {
             margin: 5px;
         }
@@ -172,14 +163,11 @@ class Sticker(models.Model):
 
     def formatSharedHeader(self, entity):
         hex_path = os.path.join(os.getcwd(), "./img/flag-hex.png")
-        print(os.getcwd())
-        print(hex_path)
-        return """
-            <div class="box">
-                <img src="{1}" width="120" height="120">
-                <h1>{0}</h1>
-            </div>
-        """.format(entity.label, hex_path)
+        fmt = '<div class="box">'
+        fmt += f'<img src="{hex_path}" width="120" height="120">'
+        fmt += f'<h1>{entity.label}</h1>'
+        fmt += '</div>'
+        return fmt
 
     def formatTechs(self, entity):
         edges = entity.unlocks_tech.all()
@@ -189,19 +177,28 @@ class Sticker(models.Model):
         for edge in edges:
             fmt += f'<li><b>{edge.dst.label}:</b>'
             fmt += f'<ul>'
-            fmt += f'<li>Kostka: {edge.dots} x {edge.die.label}'
+            fmt += f'<li>{edge.dots} × {edge.die.label} kostka'
             for res in edge.resources.all():
-                fmt += f'<li>{res.amount} x {res.resource.label}</li>'
+                fmt += f'<li>{res.amount} × {res.resource.label}</li>'
             fmt += f'</ul>'
             fmt += '</li>'
         return fmt + '</ul></div>'
 
-    def formatTechDescription(self, entity):
+    def formatTechInfo(self, entity):
         vyrobas = self.formatVyrobas(entity)
         enhancers = self.formatEnhancers(entity)
         techs = self.formatTechs(entity)
         return f'<div class="desc">{vyrobas}{enhancers}{techs}</div>'
-
+    
+    def techTemplate(self, entity, header):
+        fmt = '<div class="sticker" vertical-align:top>'
+        fmt += header
+        fmt += '<hr class="line">'
+        fmt += self.formatTechInfo(entity)
+        fmt += f'<em>{entity.flavour}</em>'
+        fmt += '</div>'
+        return fmt
+    
     def regularTechTemplate(self, entity):
         header = f'<div>{self.formatHeader(entity)}</div>'
                 
@@ -217,26 +214,43 @@ class Sticker(models.Model):
     def compactTechTemplate(self, entity):
         header = self.formatHeader(entity)
         return f'<div class="sticker">{header}</div>'
+    
+    def resource(self, resource):
+        if resource.isProduction:
+            return f'<u>{resource.label.replace("Produkce: ", "")}</u>'
+        return resource.label
 
-    def techTemplate(self, entity, header):
-        fmt = '<div class="sticker" vertical-align:top>'
-        fmt += header
-        fmt += '<hr class="line">'
-        fmt += self.formatTechDescription(entity)
-        fmt += f'<em>{entity.flavour}</em>'
+    def formatVyrobaInfo(self, entity):
+        # Místo
+        fmt = '<div class="desc">'
+        fmt += f'<b>Probíha v:</b> {entity.build.label}'
         fmt += '</div>'
-        return fmt
+        fmt += '<hr class="line">'
+        # Vstupy
+        fmt += '<div class="desc">'
+        fmt += '<b>Vstupy:</b>'
+        fmt += '<ul>'
+        fmt += f'<li>{entity.dots} × {entity.die.label} kostka</li>'
+        for input in entity.inputs.all():
+            fmt += f'<li>{input.amount} × {self.resource(input.resource)}</li>'
+        fmt += f'</ul>'
+        fmt += '</div>'
+        fmt += '<hr class="line">'
+        # Výstup
+        fmt += '<div class="desc">'
+        fmt += f'<b>Výstup:</b> {entity.amount} × {self.resource(entity.output)}'
+        fmt += '</div>'
 
-    def vyrobaTemplate(self, entity, header):
-        fmt = '<div class="sticker" vertical-align:top>'
-        fmt += header
-        fmt += '<hr class="line">'
-        fmt += '</div>'
+        # TODO image        
         return fmt
 
     def regularVyrobaTemplate(self, entity):
-        header = self.formatHeader(entity)
-        return self.vyrobaTemplate(entity, header)
+        fmt = '<div class="sticker" vertical-align:top>'
+        fmt += self.formatHeader(entity)
+        fmt += '<hr class="line">'
+        fmt += self.formatVyrobaInfo(entity)
+        fmt += '</div>'
+        return fmt
 
     def shortDescription(self):
         """
@@ -302,7 +316,7 @@ class Sticker(models.Model):
         buffer.seek(0)
         return buffer.getvalue()
 
-    def renderHTML(self, html, width, height, rotate = False):
+    def renderHTML(self, html, width, height):
         """
         Render the sticker into PNG file returned as bytes
         """
@@ -342,7 +356,7 @@ class Sticker(models.Model):
 
     def renderVyroba(self, entity):
         html = self.regularVyrobaTemplate(entity)
-        return self.renderHTML(html, 384, 150)
+        return self.renderHTML(html, 384, 768)
 
     def renderTechCompact(self, entity):
         html = self.compactTechTemplate(entity)
@@ -350,10 +364,10 @@ class Sticker(models.Model):
     
     def renderTechRegular(self, entity):
         html = self.regularTechTemplate(entity)
-        return self.renderHTML(html, 384, 768, True)
+        return self.renderHTML(html, 384, 768)
 
     def renderTechShared(self, entity):
         html = self.sharedTechTemplate(entity)
-        return self.renderHTML(html, 384, 610, True)
+        return self.renderHTML(html, 384, 768)
 
 
