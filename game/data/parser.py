@@ -143,7 +143,7 @@ class Parser():
             try:
                 culture = int(line[6])
             except Exception:
-                self._logWarning("Tech." + str(n) + ": Kultura není číslo (" + str(line[6]) + ")")
+                self._logWarning(f"Tech." + str(n) + ": Kultura není číslo (" + str(line[6]) + ")")
                 continue
 
             try:
@@ -472,6 +472,28 @@ class Parser():
                     label=label, implementation=implementation,
                     icon=icon, orgMessage=orgMessage, version=self.entitiesVersion)
 
+    def _cloneIslandTechTree(self, island, suffix, root):
+        """
+        Assuming a tree, clone it and add island properties
+        """
+        edges = root.unlocks_tech.all()
+        root.pk = None
+        root.syntheticId = None
+        root.id = root.id + suffix
+        root.island = island
+        root.save()
+
+        for edge in edges:
+            newDst = self._cloneIslandTechTree(island, suffix, edge.dst)
+            edge.pk = None
+            edge.syntheticId = None
+            edge.id = edge.id + suffix
+            edge.src = root
+            edge.dst = newDst
+            edge.save()
+
+        return root
+
     def _addIslands(self):
         print("Parsing islands")
         myRaw = self.raw[self.SHEET_MAP["island"]]
@@ -493,11 +515,13 @@ class Parser():
             except KeyError:
                 raise RuntimeError(f"Unknown direction '{line[2]}'")
             distance = int(line[3])
-            rootTech = TechModel.manager.get(id=line[4], version=self.entitiesVersion)
 
-            IslandModel.manager.create(id=id,
+            island = IslandModel.manager.create(id=id,
                 label=label, direction=direction, distance=distance,
-                root=rootTech, version=self.entitiesVersion)
+                root=None, version=self.entitiesVersion)
+            rootTech = TechModel.manager.get(id=line[4], version=self.entitiesVersion)
+            island.root = self._cloneIslandTechTree(island, f"-{id[4:]}", rootTech)
+            island.save()
             count += 1
         print(f"   added {count} islands")
 

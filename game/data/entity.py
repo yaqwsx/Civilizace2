@@ -67,10 +67,10 @@ class DieModel(EntityModel):
     def color(self):
         """ Return color for the die in hex code string """
         colors = {
-            "die-plane": "2884c9", # Blue
-            "die-hory": "949494", # Gray
-            "die-poust": "e3b510", # Orange
-            "die-les": "4e9c00", # Green
+            "die-tech": "2884c9", # Blue
+            "die-spol": "949494", # Gray
+            "die-sila": "e3b510", # Orange
+            "die-prir": "4e9c00", # Green
             "die-any": "000000" # Black
         }
         return colors[self.id]
@@ -166,7 +166,7 @@ class Direction(enum.Enum):
 class IslandModel(EntityModel):
     direction = enum.EnumField(Direction)
     distance = models.IntegerField()
-    root = models.ForeignKey("TechModel", on_delete=models.CASCADE)
+    root = models.ForeignKey("TechModel", on_delete=models.CASCADE, null=True)
 
     def isOnCoords(self, direction, distance):
         if self.distance > 24 or self.distance < 1:

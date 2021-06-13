@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.layout import Layout, Fieldset, HTML
 
-from game.forms.action import MoveForm
+from game.forms.action import MoveForm, AutoAdvanceForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult
 from game.models.state import ResourceStorageAbstract
@@ -11,17 +11,9 @@ from django_enumfield.forms.fields import EnumChoiceField
 DOTS_REQUIRED_MAX = 12
 MAX_DISTANCE = 24
 
-class IslandColonizeForm(MoveForm):
+class IslandColonizeForm(AutoAdvanceForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(
-            self.commonLayout,
-            HTML(r"""
-            <script>
-                document.getElementsByTagName("FORM")[0].submit();
-            </script>
-            """)
-        )
         self.getEntity(IslandModel)
 
 class IslandColonizeMove(Action):

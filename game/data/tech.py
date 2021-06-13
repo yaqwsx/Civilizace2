@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entity import EntityModel, DieModel, TaskModel, TaskMapping
+from .entity import EntityModel, DieModel, IslandModel, TaskModel, TaskMapping
 
 
 class TechModel(EntityModel):
@@ -12,6 +12,8 @@ class TechModel(EntityModel):
     image = models.TextField()
     nodeTag = models.TextField()
     epocha = models.IntegerField()
+    island = models.ForeignKey(IslandModel, null=True, on_delete=models.CASCADE,
+        default=None, related_name="techs")
     defenseBonus = models.IntegerField()
 
     @property

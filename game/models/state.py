@@ -74,6 +74,10 @@ class StateManager(PrefetchManager):
                 "mat-sroub": 8,
             },
             "islandColonizeDots": 42,
+            "islandAttackPrice": {
+                "mat-sklo": 5,
+                "mat-sroub": 8,
+            },
             "islandRepairPrice": {
                 "mat-sklo": 5,
                 "mat-sroub": 8,

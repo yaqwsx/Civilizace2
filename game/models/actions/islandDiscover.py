@@ -56,7 +56,7 @@ class IslandDiscoverMove(Action):
 
         message += f"<li>hodí <b>aslespoň {dotsRequired}</b> potvrď akci a řekni mu, že "
         if len(islands) > 0:
-            message += f"objevil ostrov <b>{islands[0].label}</b>."
+            message += f"objevil ostrov."
         else:
             message += "<b>neobjevil nic</b>."
         message += "</li>"
