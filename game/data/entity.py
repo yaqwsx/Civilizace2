@@ -166,7 +166,7 @@ class Direction(enum.Enum):
 class IslandModel(EntityModel):
     direction = enum.EnumField(Direction)
     distance = models.IntegerField()
-    root = models.ForeignKey("TechModel", on_delete=models.CASCADE)
+    root = models.ForeignKey("TechModel", on_delete=models.CASCADE, null=True)
 
     def isOnCoords(self, direction, distance):
         if self.distance > 24 or self.distance < 1:

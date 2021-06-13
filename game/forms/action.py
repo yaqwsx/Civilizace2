@@ -8,7 +8,8 @@ from django_enumfield.forms.fields import EnumChoiceField
 from game.models.users import Team
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field
+from crispy_forms.layout import Layout, Field, HTML
+
 
 class DiceThrowForm(forms.Form):
     dice = forms.ChoiceField(label="Použitá kostka")
@@ -96,3 +97,15 @@ class MoveForm(MoveInitialForm):
             raise InvalidActionException(f"Vámi zadaná entita s ID <i>{self.entityId}</i> neexistuje")
 
 
+
+class AutoAdvanceForm(MoveForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(
+            self.commonLayout,
+            HTML(r"""
+            <script>
+                document.getElementsByTagName("FORM")[0].submit();
+            </script>
+            """)
+        )

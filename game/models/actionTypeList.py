@@ -55,7 +55,7 @@ class ActionType(enum.Enum):
         colonizeIsland: "OSTROV: Kolonizovat",
         attackIsland: "OSTROV: Zaútočit",
         researchIsland: "OSTROV: Zkoumat technologii",
-        shareIsland: "OSTROV: Sdílet polohu",
+        shareIsland: "OSTROV: Nasdílet mapu",
         transferIsland: "OSTROV: Přenést vlastnictví",
         repairIsland: "OSTROV: Postav opevenění",
 
