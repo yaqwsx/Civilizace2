@@ -173,7 +173,7 @@
             {% for action, filter in form.entityFilter.items %}
                 {{action.CiviMeta.move.value}}: {
                     {% for team, entities in filter.items %}
-                        {{team.id}}: new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
+                        "{{team.id}}": new Set([{% for entity in entities %} "{{entity.id}}", {% endfor %}]),{% endfor %}
                 },{% endfor %}
         }
     </script>
