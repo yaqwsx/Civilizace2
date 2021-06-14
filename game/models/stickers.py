@@ -138,13 +138,19 @@ class Sticker(models.Model):
             margin: 5px;
         }
 
-        .icon {
+        .image_container {
             display: flex;
             align-items:center;
             padding: 0px;
             margin: 0px;
             height: 370px;
             width: 370px;
+            transform: translate(0,-40px);
+        }
+
+        .vyroba {
+            width: 50%;
+            margin:10px auto;
         }
 
         .fit {
@@ -292,10 +298,21 @@ class Sticker(models.Model):
 
     def renderBuildingImage(self, entity):
         path = os.path.join(os.getcwd(), f"./game/data/build/{entity.id}.png")
-        fmt = '<div class="icon">'
+        fmt = '<div class="image_container">'
         fmt += f'<img class="fit" src="{path}">'
         fmt += '</div>'
-        return fmt 
+        return fmt
+    
+    def renderVyrobaImage(self, entity):
+        if entity.output.icon and entity.output.icon != "-":
+            path = os.path.join(os.getcwd(), f"./game/data/icons/{entity.output.icon}")
+            fmt = '<div class="image_container">'
+            fmt += '<div class="vyroba">'
+            fmt += f'<img class="fit" src="{path}">'
+            fmt += '</div>'
+            fmt += '</div>'
+            return fmt
+        return ""
 
     def shortDescription(self):
         """
@@ -401,6 +418,7 @@ class Sticker(models.Model):
 
     def renderVyroba(self, entity):
         html = self.regularVyrobaTemplate(entity)
+        html += self.renderVyrobaImage(entity)
         return self.renderHTML(html, 384, 768)
 
     def renderTechCompact(self, entity):
