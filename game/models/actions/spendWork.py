@@ -3,7 +3,7 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 from django import forms
 
 from game.forms.action import MoveForm
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 from game.models.actionTypeList import ActionType
 from game.models.state import ResourceStorage
 
@@ -41,9 +41,9 @@ class SpendWorkMove(Action):
 
         try:
             team.resources.spendWork(work)
-            return True, "Zaplatí se " + str(self.arguments['spendWork']) + " Práce"
+            return ActionResult.makeSuccess("Zaplatí se " + str(self.arguments['spendWork']) + " Práce")
         except ResourceStorage.NotEnoughResourcesException:
-            return False, "Nemáte dostatek práce"
+            return ActionResult.makeFail("Nemáte dostatek práce")
 
     def commit(self, state):
-        return True, ""
+        return ActionResult.makeSuccess("")

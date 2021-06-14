@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from game.data import ResourceModel
 from game.forms.action import MoveForm
-from game.models.actionBase import Action
+from game.models.actionBase import Action, ActionResult
 from game.models.actionTypeList import ActionType
 
 
@@ -18,9 +18,9 @@ class WithdrawForm(MoveForm):
 
         fields = [f"Můžete vyzvednout až {team.resources.getWork()} jednotek materiálů"]
 
-        for item in resources.items:
-            resource = item.resource
-            amount = item.amount
+        for item in resources.asMap().items():
+            resource = item[0]
+            amount = item[1]
             if amount < 0:
                 self.fields[resource.id] = forms.IntegerField(
                     label=f"{resource.htmlRepr()} (max. 0&times;)",
@@ -32,21 +32,6 @@ class WithdrawForm(MoveForm):
                     validators=[MinValueValidator(0), MaxValueValidator(amount)],
                     initial=0)
             fields.append(resource.id)
-
-        resources = team.resources
-        resource = ResourceModel.objects.get(id="res-vedomosti")
-        amount = resources.getVedomosti()
-        if amount < 0:
-            self.fields[resource.id] = forms.IntegerField(
-                label=f"{resource.htmlRepr()} (max. 0&times;)",
-                validators=[MinValueValidator(0), MaxValueValidator(0)],
-                initial=0)
-        else:
-            self.fields[resource.id] = forms.IntegerField(
-                label=f"{resource.htmlRepr()} (max. {amount}&times;)",
-                validators=[MinValueValidator(0), MaxValueValidator(amount)],
-                initial=0)
-        fields.append(resource.id)
 
         layoutData = [self.commonLayout]
         layoutData.append(Fieldset(*fields))
@@ -82,25 +67,18 @@ class WithdrawMove(Action):
         for key in filter(lambda x: x[:4] in  ["mat-"], self.arguments.keys()):
             if not self.arguments[key]:
                 continue
-            resource = ResourceModel.objects.get(id=key)
+            resource = self.context.resources.get(id=key)
             amount = self.arguments[key]
             materials[resource] = amount
             spentWork += amount
             message.append(f"  {amount}x {resource.htmlRepr()}")
-
-        if "res-vedomosti" in self.arguments and self.arguments["res-vedomosti"] > 0:
-            resource = ResourceModel.objects.get(id="res-vedomosti")
-            amount = self.arguments["res-vedomosti"]
-            spentWork += amount
-            message.append(f"  {amount}x {resource.htmlRepr()}")
-            team.resources.payResources({resource: amount})
 
         team.materials.payResources(materials)
         team.resources.spendWork(spentWork)
         message.append(f"Výběr materiálu stojí <b>{spentWork}&times; Práce</b>")
 
         self.arguments["team"] = None
-        return True, "<br>".join(message)
+        return ActionResult.makeSuccess( "<br>".join(message))
 
     def commit(self, state):
-        return True, ""
+        return ActionResult.makeSuccess("")
