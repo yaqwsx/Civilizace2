@@ -1,4 +1,4 @@
-from game.data.entity import AssignedTask, TaskMapping
+from game.data.task import AssignedTask, TaskMapping
 from django.views import View
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -11,7 +11,8 @@ from django.forms import formset_factory
 from django.utils import timezone
 
 
-from game.data.tech import TaskModel, TechModel
+from game.data.tech import TechModel
+from game.data.task import TaskModel
 
 class TaskForm(forms.Form):
     name = forms.CharField(label="Název úkolu")
@@ -159,7 +160,7 @@ class TaskMappingIndexView(View):
         })
 
     def updateMapping(self, tech, activeTasksIds):
-        mappings = TaskMapping.objects.filter(tech=tech).all()
+        mappings = TaskMapping.objects.filter(techId=tech.id).all()
         existingSet = set()
         for m in mappings:
             m.active = m.task.id in activeTasksIds
@@ -169,17 +170,17 @@ class TaskMappingIndexView(View):
             if t in existingSet:
                 continue
             TaskMapping.objects.create(
-                tech=tech,
+                techId=tech.id,
                 task=TaskModel.objects.get(pk=t))
 
     def buildTechsData(self):
         return [
             {
                 "tech": t,
-                "completedBy": AssignedTask.objects.filter(tech=t.id, completedAt__isnull=False).all(),
-                "assigned": AssignedTask.objects.filter(tech=t.id, completedAt__isnull=True).all(),
+                "completedBy": AssignedTask.objects.filter(techId=t.id, completedAt__isnull=False).all(),
+                "assigned": AssignedTask.objects.filter(techId=t.id, completedAt__isnull=True).all(),
                 "mappingForm": TechTaskMappingForm(initial={"tech": t.id}),
                 "assignementForm": TaskAssignmentFormset(initial=[
-                    {"task": m.task.id} for m in TaskMapping.objects.filter(tech=t, active=True).all()])
+                    {"task": m.task.id} for m in TaskMapping.objects.filter(techId=t, active=True).all()])
             } for t in TechModel.manager.latest().all()
         ]

@@ -4,7 +4,7 @@ from django.db.models.fields import related
 from django_enumfield import enum
 
 from game.data import TechModel, ResourceModel, ResourceTypeModel
-from game.data.entity import AchievementModel, EntityModel, IslandModel, TaskModel
+from game.data.entity import AchievementModel, EntityModel, IslandModel
 from game.data.parser import Parser
 from game.parameters import INITIAL_POPULATION, MAX_DISTANCE
 from .fields import JSONField, ListField

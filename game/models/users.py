@@ -5,6 +5,8 @@ from guardian.shortcuts import get_objects_for_user
 
 from game.models.actionBase import Action, ActionPhase
 
+from game.data.task import AssignedTask
+
 
 class Team(models.Model):
     name = models.CharField("Name", max_length=100, null=False)

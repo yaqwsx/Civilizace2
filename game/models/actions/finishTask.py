@@ -3,7 +3,7 @@ from django import forms
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult
-from game.data.entity import TaskModel
+from game.data.task import TaskModel
 
 class FinishTaskForm(MoveForm):
     def __init__(self, *arg, **kwarg):

@@ -16,7 +16,7 @@ from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionEvent, ActionPhase, InvalidActionException
 from game.models.users import User, Team
 from game.models.state import State
-from game.data.entity import AssignedTask, DieModel
+from game.data.task import AssignedTask
 
 from game.forms.action import MoveInitialForm, DiceThrowForm
 
