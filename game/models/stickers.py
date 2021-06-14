@@ -106,6 +106,10 @@ class Sticker(models.Model):
             display: inline;
         }
 
+        .dashed {
+            border-top: 2px dashed gray;
+        }
+
         .sticker {
             padding: 1px;
         }
@@ -133,6 +137,20 @@ class Sticker(models.Model):
         ul li {
             margin: 5px;
         }
+
+        .icon {
+            display: flex;
+            align-items:center;
+            padding: 0px;
+            margin: 0px;
+            height: 370px;
+            width: 370px;
+        }
+
+        .fit {
+            max-width: 100%;
+            max-height: 100%;
+        }
     """
 
     def formatVyrobas(self, entity):
@@ -154,7 +172,7 @@ class Sticker(models.Model):
         return fmt + '</ul></div>'
 
     def formatHeader(self, entity):
-        code = self.getQRCode(entity.id)
+        code = self.getQRCode(self.team.id + " " + entity.id)
         fmt = '<div class="box">'
         fmt += f'<img src="{code}" width="120" height="120">'
         fmt += f'<h1>{entity.label}</h1>'
@@ -162,7 +180,7 @@ class Sticker(models.Model):
         return fmt
 
     def formatSharedHeader(self, entity):
-        hex_path = os.path.join(os.getcwd(), "./img/flag-hex.png")
+        hex_path = os.path.join(os.getcwd(), "./game/data/icons/flag-hex.png")
         fmt = '<div class="box">'
         fmt += f'<img src="{hex_path}" width="120" height="120">'
         fmt += f'<h1>{entity.label}</h1>'
@@ -179,7 +197,7 @@ class Sticker(models.Model):
             fmt += f'<ul>'
             fmt += f'<li>{edge.dots} × {edge.die.label} kostka'
             for res in edge.resources.all():
-                fmt += f'<li>{res.amount} × {res.resource.label}</li>'
+                fmt += f'<li>{res.amount} × {self.resource(res.resource)}</li>'
             fmt += f'</ul>'
             fmt += '</li>'
         return fmt + '</ul></div>'
@@ -188,10 +206,28 @@ class Sticker(models.Model):
         vyrobas = self.formatVyrobas(entity)
         enhancers = self.formatEnhancers(entity)
         techs = self.formatTechs(entity)
-        return f'<div class="desc">{vyrobas}{enhancers}{techs}</div>'
+        
+        fmt = ""
+        if vyrobas:
+            fmt += '<div class="desc">'
+            fmt += vyrobas
+            fmt += '</div>'
+            fmt += '<hr class="line">'
+        if enhancers:
+            fmt += '<div class="desc">'
+            fmt += enhancers
+            fmt += '</div>'
+            fmt += '<hr class="line">'
+        if techs:
+            fmt += '<div class="desc">'
+            fmt += techs 
+            fmt += '</div>'
+            fmt += '<hr class="line">'
+        return fmt
     
     def techTemplate(self, entity, header):
-        fmt = '<div class="sticker" vertical-align:top>'
+        fmt = '<hr class="dashed">'
+        fmt += '<div class="sticker" vertical-align:top>'
         fmt += header
         fmt += '<hr class="line">'
         fmt += self.formatTechInfo(entity)
@@ -213,7 +249,9 @@ class Sticker(models.Model):
 
     def compactTechTemplate(self, entity):
         header = self.formatHeader(entity)
-        return f'<div class="sticker">{header}</div>'
+        fmt = '<hr class="dashed">'
+        fmt +=  f'<div class="sticker">{header}</div>'
+        return fmt    
     
     def resource(self, resource):
         if resource.isProduction:
@@ -241,16 +279,23 @@ class Sticker(models.Model):
         fmt += f'<b>Výstup:</b> {entity.amount} × {self.resource(entity.output)}'
         fmt += '</div>'
 
-        # TODO image        
         return fmt
 
     def regularVyrobaTemplate(self, entity):
-        fmt = '<div class="sticker" vertical-align:top>'
+        fmt = '<hr class="dashed">'
+        fmt += '<div class="sticker" vertical-align:top>'
         fmt += self.formatHeader(entity)
         fmt += '<hr class="line">'
         fmt += self.formatVyrobaInfo(entity)
         fmt += '</div>'
         return fmt
+
+    def renderBuildingImage(self, entity):
+        path = os.path.join(os.getcwd(), f"./game/data/build/{entity.id}.png")
+        fmt = '<div class="icon">'
+        fmt += f'<img class="fit" src="{path}">'
+        fmt += '</div>'
+        return fmt 
 
     def shortDescription(self):
         """
@@ -348,11 +393,11 @@ class Sticker(models.Model):
 
     def renderBuilding(self, entity):
         if self.type == StickerType.COMPACT:
-            return self.renderTechCompact(entity)
+            return self.renderBuildingCompact(entity)
         elif self.type == StickerType.SHARED:
-            return self.renderTechShared(entity)
+            return self.renderBuildingShared(entity)
         else: 
-            return self.renderTechRegular(entity)
+            return self.renderBuildingRegular(entity)
 
     def renderVyroba(self, entity):
         html = self.regularVyrobaTemplate(entity)
@@ -368,6 +413,20 @@ class Sticker(models.Model):
 
     def renderTechShared(self, entity):
         html = self.sharedTechTemplate(entity)
+        return self.renderHTML(html, 384, 768)
+
+    def renderBuildingCompact(self, entity):
+        html = self.compactTechTemplate(entity)
+        return self.renderHTML(html, 384, 150)
+    
+    def renderBuildingRegular(self, entity):
+        html = self.regularTechTemplate(entity)
+        html += self.renderBuildingImage(entity)
+        return self.renderHTML(html, 384, 768)
+
+    def renderBuildingShared(self, entity):
+        html = self.sharedTechTemplate(entity)
+        html += self.renderBuildingImage(entity)
         return self.renderHTML(html, 384, 768)
 
 
