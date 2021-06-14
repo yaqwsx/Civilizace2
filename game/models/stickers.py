@@ -106,6 +106,10 @@ class Sticker(models.Model):
             display: inline;
         }
 
+        .dashed {
+            border-top: 2px dashed gray;
+        }
+
         .sticker {
             padding: 1px;
         }
@@ -189,21 +193,27 @@ class Sticker(models.Model):
         enhancers = self.formatEnhancers(entity)
         techs = self.formatTechs(entity)
         
-        fmt = '<div class="desc">'
+        fmt = ""
         if vyrobas:
+            fmt += '<div class="desc">'
             fmt += vyrobas
+            fmt += '</div>'
             fmt += '<hr class="line">'
         if enhancers:
+            fmt += '<div class="desc">'
             fmt += enhancers
+            fmt += '</div>'
             fmt += '<hr class="line">'
         if techs:
+            fmt += '<div class="desc">'
             fmt += techs 
+            fmt += '</div>'
             fmt += '<hr class="line">'
-        fmt += '</div>'
         return fmt
     
     def techTemplate(self, entity, header):
-        fmt = '<div class="sticker" vertical-align:top>'
+        fmt = '<hr class="dashed">'
+        fmt += '<div class="sticker" vertical-align:top>'
         fmt += header
         fmt += '<hr class="line">'
         fmt += self.formatTechInfo(entity)
@@ -225,7 +235,9 @@ class Sticker(models.Model):
 
     def compactTechTemplate(self, entity):
         header = self.formatHeader(entity)
-        return f'<div class="sticker">{header}</div>'
+        fmt = '<hr class="dashed">'
+        fmt +=  f'<div class="sticker">{header}</div>'
+        return fmt    
     
     def resource(self, resource):
         if resource.isProduction:
@@ -257,7 +269,8 @@ class Sticker(models.Model):
         return fmt
 
     def regularVyrobaTemplate(self, entity):
-        fmt = '<div class="sticker" vertical-align:top>'
+        fmt = '<hr class="dashed">'
+        fmt += '<div class="sticker" vertical-align:top>'
         fmt += self.formatHeader(entity)
         fmt += '<hr class="line">'
         fmt += self.formatVyrobaInfo(entity)
