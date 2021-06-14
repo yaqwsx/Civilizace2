@@ -179,7 +179,7 @@ class Sticker(models.Model):
             fmt += f'<ul>'
             fmt += f'<li>{edge.dots} × {edge.die.label} kostka'
             for res in edge.resources.all():
-                fmt += f'<li>{res.amount} × {res.resource.label}</li>'
+                fmt += f'<li>{res.amount} × {self.resource(res.resource)}</li>'
             fmt += f'</ul>'
             fmt += '</li>'
         return fmt + '</ul></div>'
@@ -188,7 +188,19 @@ class Sticker(models.Model):
         vyrobas = self.formatVyrobas(entity)
         enhancers = self.formatEnhancers(entity)
         techs = self.formatTechs(entity)
-        return f'<div class="desc">{vyrobas}{enhancers}{techs}</div>'
+        
+        fmt = '<div class="desc">'
+        if vyrobas:
+            fmt += vyrobas
+            fmt += '<hr class="line">'
+        if enhancers:
+            fmt += enhancers
+            fmt += '<hr class="line">'
+        if techs:
+            fmt += techs 
+            fmt += '<hr class="line">'
+        fmt += '</div>'
+        return fmt
     
     def techTemplate(self, entity, header):
         fmt = '<div class="sticker" vertical-align:top>'
