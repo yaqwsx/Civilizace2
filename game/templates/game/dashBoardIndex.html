@@ -131,7 +131,7 @@
     {% endcard %}
     {% card "Materiály ve skladu" icon="fa-warehouse" width="third" color=targetTeam.color %}
         <ul class="text-left">
-        {% for r, a in teamState.materials.getAll.items %}
+        {% for r, a in teamState.materials.asMap.items %}
             <li>{{a}}× {{r.htmlRepr|safe}}</li>
         {% endfor %}
         </ul>

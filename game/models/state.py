@@ -772,9 +772,6 @@ class ResourceStorageAbstract(Storage):
     def set(self, resource, amount):
         if isinstance(resource, EntityModel):
             resource = resource.id
-        if (resource == "res-obyvatel"):
-            diff = self.get(resource) - amount
-            self.add("res-populace", diff)
         super(ResourceStorageAbstract, self).set(resource, amount)
 
     def add(self, resource, amount):

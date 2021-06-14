@@ -21,7 +21,7 @@ class NextTurnForm(MoveForm):
 
         missingItems = team.foodSupply.getMissingItems(
             self.state.worldState.getCastes(),
-            team.resources.getAmount("res-populace"),
+            team.resources.get("res-populace"),
             self.state.worldState.foodValue)
 
         layout = [self.commonLayout]
@@ -89,7 +89,7 @@ class NextTurn(Action):
         # Vyhodnoceni mnozeni obyvatel
         missingItems = team.foodSupply.getMissingItems(
             state.worldState.getCastes(),
-            team.resources.getAmount("res-populace"),
+            team.resources.get("res-populace"),
             state.worldState.foodValue)
 
         foodProvided = self.arguments["foodTotal"]
@@ -105,20 +105,20 @@ class NextTurn(Action):
             if satisfied: prirustek += 1
             if luxus: prirustek += 2
 
-        praceLeft = storage.getAmount("res-prace")
-        obyvatele = storage.getAmount("res-obyvatel")
+        praceLeft = storage.get("res-prace")
+        obyvatele = storage.get("res-obyvatel")
         obyvateleUpdated = obyvatele + prirustek
 
-        storage.setAmount("res-obyvatel", obyvateleUpdated)
+        storage.set("res-obyvatel", obyvateleUpdated)
         prace = obyvateleUpdated + math.floor(praceLeft/2)
-        storage.setAmount("res-prace", prace)
+        storage.set("res-prace", prace)
 
         # Produkce materialu
         materials = {}
         for resource, amount in team.resources.getResourcesByType().items():
             matId = "mat-" + resource.id[6:]
             print("matId: " + str(matId))
-            material = ResourceModel.objects.get(id="mat-" + resource.id[5:])
+            material = self.context.resources.get(id="mat-" + resource.id[5:])
             materials[material] = amount
         team.materials.receiveMaterials(materials, state.worldState.storageLimit)
 
