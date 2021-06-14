@@ -27,34 +27,42 @@ TEAMS = {
                 "password": "password",
             }
         ],
+        "id": "tym-cerni",
         "color": "gray-600"
     },
     "Červení": {
         "players": [],
+        "id": "tym-cerveni",
         "color": "red-600"
     },
     "Oranžoví": {
         "players": [],
+        "id": "tym-oranzovi",
         "color": "orange-500"
     },
     "Žlutí": {
         "players": [],
+        "id": "tym-zluti",
         "color": "yellow-500"
     },
     "Zelení": {
         "players": [],
+        "id": "tym-zeleni",
         "color": "green-600"
     },
     "Modří": {
         "players": [],
+        "id": "tym-modri",
         "color": "blue-600"
     },
     "Fialoví": {
         "players": [],
+        "id": "tym-fialovi",
         "color": "purple-500"
     },
     "Růžoví": {
         "players": [],
+        "id": "tym-ruzovi",
         "color": "pink-600"
     }
 }
@@ -102,7 +110,8 @@ class Command(BaseCommand):
             # There can be more than one team with the name - do not use get
             team = Team.objects.all().filter(name=teamName).first()
             if not team:
-                team = Team.objects.create(name=teamName, color=teamParams["color"])
+                team = Team.objects.create(id=teamParams["id"], name=teamName,
+                    color=teamParams["color"])
                 print("Creating team: " + str(team))
             for userParams in teamParams["players"]:
                 user = Command.create_or_get_user(
