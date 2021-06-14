@@ -154,7 +154,7 @@ class Sticker(models.Model):
         return fmt + '</ul></div>'
 
     def formatHeader(self, entity):
-        code = self.getQRCode(entity.id)
+        code = self.getQRCode(self.team.id + " " + entity.id)
         fmt = '<div class="box">'
         fmt += f'<img src="{code}" width="120" height="120">'
         fmt += f'<h1>{entity.label}</h1>'
