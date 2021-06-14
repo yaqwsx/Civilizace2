@@ -155,67 +155,6 @@
         </ul>
     {% endcard %}
 
-    {% card "Vzdálenosti budov" icon="fa-compass" width="third" color=targetTeam.color %}
-        <select id="build-source" class="select my-1">
-            {% for building in teamState.techs.getBuildings%}
-                <option value="{{building.id}}">{{building.label}}</option>
-            {% endfor %}
-        </select>
-        <select id="build-target" class="select my-1">
-            {% for building in teamState.techs.getBuildings%}
-                <option value="{{building.id}}">{{building.label}}</option>
-            {% endfor %}
-        </select>
-        Vzálenost: <span id="build-distance">Neznámá</span>
-        <script>
-            var distances = [
-                {% for pair, distance in teamState.distances.allBuildingDistances.items %}
-                    ["{{ pair.0 }}", "{{ pair.1 }}", {{distance}}],
-                {% endfor %}
-            ];
-            var source = document.getElementById("build-source");
-            var target = document.getElementById("build-target");
-            var distance = document.getElementById("build-distance");
-            function update() {
-                var src = source.value;
-                var tgt = target.value;
-                if (src == tgt) {
-                    distance.innerHTML = 0;
-                    return;
-                }
-                for (var i = 0; i != distances.length; i++ ) {
-                    var item = distances[i];
-                    if ( (item[0] == src && item[1] == tgt) || (item[1] == src && item[0] == tgt)) {
-                        distance.innerHTML = item[2];
-                        return;
-                    }
-                }
-                distance.innerHTML = "Neznámá";
-            }
-            source.addEventListener("change", update);
-            target.addEventListener("change", update);
-            update();
-        </script>
-    {% endcard %}
-
-    {% card "Vzdálenosti týmů" icon="fa-compass" width="third" color=targetTeam.color %}
-        <table class="text-left">
-            {% for team, distance in teamState.distances.allTeamDistances.items %}
-                {% if team.id != targetTeam.id %}
-                    <tr><td class="pr-5">{{team.name}}:</td>
-                        <td>
-                        {% if distance is None %}
-                            Neznámá
-                        {% else %}
-                            {{distance}}
-                        {% endif %}
-                        </td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
-    {% endcard %}
-
     {% card "Zásobování města" icon="fa-warehouse" width="third" color=targetTeam.color %}
         <ul class="text-left">
         {% for r, a in teamState.foodSupply.getFoodSupply.items %}
@@ -227,21 +166,6 @@
         {% empty %}
             <span class="text-center">Nemáte žádný automatizovaný luxus</span>{% endfor %}
         </ul>
-    {% endcard %}
-
-    {% card "Vědění" icon="fa-lightbulb" width="third" color=targetTeam.color %}
-        <ul class="text-left">
-        {% if teamState.resources.getUcenec %}
-            Máte {{teamState.resources.getUcenec}} učenců.
-        {% else %}
-            Nemáte žádné učence.
-        {% endif %}
-        <br>
-        {% if teamState.resources.getVedomosti %}
-            Máte {{teamState.resources.getVedomosti}} znalostí.
-        {% else %}
-            Nemáte žádné znalosti.
-        {% endif %}
     {% endcard %}
 
 </div>
