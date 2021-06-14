@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from .resource import ResourceModel
-from .entity import EntityModel, DieModel, IslandModel, TaskModel, TaskMapping
+from .entity import EntityModel, DieModel, IslandModel
 
 
 class TechModel(EntityModel):

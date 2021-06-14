@@ -40,10 +40,9 @@
     var scanner = null;
     var allCameras = null;
     var camera = null;
-    var currentKeyword = null;
+    var currentKeywords = [];
 
     document.addEventListener('input', function (event) {
-        console.log(event);
         if (event.target.id !== 'qrCameraSelect') return;
         var idx = event.target.value;
         camera = allCameras[idx];
@@ -64,8 +63,8 @@
         if (scanner == null) {
             await initScanner();
         }
-        currentKeyword = null;
-        showKeyword(currentKeyword);
+        currentKeywords = [];
+        showKeyword(currentKeywords);
         document.getElementById("qrScannerButton").innerText = "Zavřít skener";
         qrScanner.classList.remove("hidden");
         cameraSelector.classList.remove("hidden");
@@ -118,32 +117,35 @@
     }
 
     function applyWord() {
-        // Try to assign it to active element
-        if (assignToElement(document.activeElement, currentKeyword)) {
-            stopScanner();
-            return;
-        }
-        for (form of document.getElementsByTagName("form")) {
-            for (element of form.elements) {
-                if (assignToElement(element, currentKeyword)) {
-                    stopScanner();
-                    return;
+        currentKeywords.forEach(currentKeyword => {
+            // Try to assign it to active element
+            if (assignToElement(document.activeElement, currentKeyword)) {
+                stopScanner();
+                return;
+            }
+            for (form of document.getElementsByTagName("form")) {
+                for (element of form.elements) {
+                    if (assignToElement(element, currentKeyword)) {
+                        stopScanner();
+                        return;
+                    }
                 }
             }
-        }
-        alert("Nepodařilo se přiřadit hodnotu '" + currentKeyword + "'");
+            alert("Nepodařilo se přiřadit hodnotu '" + currentKeyword + "'");
+        });
     }
 
-    function showKeyword(keyword) {
-        if (!keyword) {
+    function showKeyword(keywords) {
+        if (!keywords) {
             document.getElementById("qrScannerDesc").innerText = "";
             document.getElementById("qrScannerKeyword").innerText = "";
             document.getElementById("qrScannerApply").disabled = true;
             document.getElementById("qrScannerApply").classList.add("hidden");
             return;
         }
-        document.getElementById("qrScannerDesc").innerText = getValue(keyword);
-        document.getElementById("qrScannerKeyword").innerText = keyword;
+        let values = keywords.map(k => getValue(k));
+        document.getElementById("qrScannerDesc").innerText = values.join(", ");
+        document.getElementById("qrScannerKeyword").innerText = keywords.join(", ");
         document.getElementById("qrScannerApply").disabled = false;
         document.getElementById("qrScannerApply").classList.remove("hidden");
     }
@@ -156,8 +158,8 @@
                 return;
             } {% endcomment %}
 
-            currentKeyword = content;
-            showKeyword(currentKeyword);
+            currentKeywords = content.split(/\s+/);
+            showKeyword(currentKeywords);
         });
         await Instascan.Camera.getCameras().then(function (cameras) {
             allCameras = cameras;

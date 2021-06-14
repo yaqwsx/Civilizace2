@@ -9,8 +9,7 @@ from .immutable import ImmutableModel
 from .fields import JSONField
 from game.models.actionTypeList import ActionType
 from game.data.entity import (
-    EntitiesVersion, EntityModel, DieModel, AchievementModel, TaskModel,
-    IslandModel)
+    EntitiesVersion, EntityModel, DieModel, AchievementModel, IslandModel)
 from game.data.resource import ResourceModel, ResourceTypeModel
 from game.data.tech import TechModel, TechEdgeModel
 from game.data.vyroba import VyrobaModel, EnhancementModel

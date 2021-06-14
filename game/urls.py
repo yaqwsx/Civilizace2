@@ -11,15 +11,15 @@ from game.views import printing
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("dashboard/", dashboard.DashboardIndexView.as_view(), name="dashboardIndex"),
-    path("dashboard/<int:teamId>", dashboard.DashboardStatView.as_view(), name="dashboardStat"),
-    path("dashboard/<int:teamId>/islands", dashboard.DashboardIslandsView.as_view(), name="dashboardIslands"),
-    path("dashboard/<int:teamId>/messages", dashboard.DashboardMessageView.as_view(), name="dashboardMessages"),
-    path("dashboard/<int:teamId>/tasks", dashboard.DashboardTasksView.as_view(), name="dashboardTasks"),
-    path("dashboard/<int:teamId>/stickers", dashboard.DashboardStickersView.as_view(), name="dashboardStickers"),
+    path("dashboard/<str:teamId>", dashboard.DashboardStatView.as_view(), name="dashboardStat"),
+    path("dashboard/<str:teamId>/islands", dashboard.DashboardIslandsView.as_view(), name="dashboardIslands"),
+    path("dashboard/<str:teamId>/messages", dashboard.DashboardMessageView.as_view(), name="dashboardMessages"),
+    path("dashboard/<str:teamId>/tasks", dashboard.DashboardTasksView.as_view(), name="dashboardTasks"),
+    path("dashboard/<str:teamId>/stickers", dashboard.DashboardStickersView.as_view(), name="dashboardStickers"),
 
     path("action/", ActionIndexView.as_view(), name="actionIndex"),
-    path("action/team/<int:teamId>/makemove/<int:moveId>", ActionInitiateView.as_view(), name="actionInitiate"),
-    path("action/team/<int:teamId>/commitmove/<int:moveId>", ActionConfirmView.as_view(), name="actionConfirm"),
+    path("action/team/<str:teamId>/makemove/<int:moveId>", ActionInitiateView.as_view(), name="actionInitiate"),
+    path("action/team/<str:teamId>/commitmove/<int:moveId>", ActionConfirmView.as_view(), name="actionConfirm"),
     path("action/throwdice/<int:actionId>", ActionDiceThrow.as_view(), name="actionDiceThrow"),
 
     path("messageBoard/", messageBoard.IndexView.as_view(), name="messageBoardIndex"),
