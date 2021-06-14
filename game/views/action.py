@@ -13,7 +13,7 @@ from django.utils import timezone
 from game import models
 from game.models.actions import *
 from game.models.actionTypeList import ActionType
-from game.models.actionBase import Action, ActionEvent, ActionPhase, InvalidActionException
+from game.models.actionBase import Action, ActionContext, ActionEvent, ActionPhase, InvalidActionException
 from game.models.users import User, Team
 from game.models.state import State
 from game.data.task import AssignedTask
@@ -98,6 +98,7 @@ class ActionIndexView(ActionView):
             messages.warning(request, self.unfinishedMessage(unfinishedAction))
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         state = State.objects.getNewest()
+        state.setContext(ActionContext.latests())
         form = MoveInitialForm(state=state, user=request.user)
         return render(request, "game/actionIndex.html", {
             "request": request,
@@ -111,6 +112,7 @@ class ActionIndexView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
+        state.setContext(ActionContext.latests())
         form = MoveInitialForm(data=request.POST, state=state, user=request.user)
         if form.is_valid():
             return redirect(reverse('actionInitiate', kwargs={
@@ -136,6 +138,7 @@ class ActionInitiateView(ActionView):
             return redirect('actionDiceThrow', actionId=unfinishedAction.id)
         try:
             state = State.objects.getNewest()
+            state.setContext(ActionContext.latests())
             formClass = formForActionType(moveId)
             form = formClass(team=teamId, action=moveId, user=request.user, entity=request.GET.get("entity"), state=state)
             return render(request, "game/actionInitiate.html", {
@@ -154,6 +157,7 @@ class ActionInitiateView(ActionView):
         if not request.user.isOrg():
             raise PermissionDenied("Cannot view the page")
         state = State.objects.getNewest()
+        state.setContext(ActionContext.latests())
         team = get_object_or_404(Team, pk=teamId)
         form = formForActionType(moveId)(data=request.POST.copy(), # copy, so we can change the cancelled field
              state=state, team=teamId, user=request.user)
@@ -203,6 +207,7 @@ class ActionConfirmView(ActionView):
             raise PermissionDenied("Cannot view the page")
         try:
             state = State.objects.getNewest()
+            state.setContext(ActionContext.latests())
             team = get_object_or_404(Team, pk=teamId)
             form = formForActionType(moveId)(data=request.POST, state=state, team=teamId, user=request.user)
             if form.is_valid(): # Should be always unless someone plays with API directly
