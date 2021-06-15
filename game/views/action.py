@@ -50,7 +50,7 @@ def handleNewTasks(request, state, team, newTasks, finishedTasks, commit=False):
     for task, tech in newTasks:
         if commit:
             AssignedTask.objects.create(
-                task=task, team=team, tech=tech,
+                task=task, team=team, techId=tech.id,
                 assignedAt = timezone.now(),
                 completedAt = None)
         messages.append(render_to_string("game/fragments/awardedTask.html", {
@@ -61,7 +61,9 @@ def handleNewTasks(request, state, team, newTasks, finishedTasks, commit=False):
 
     if commit:
         for t in finishedTasks:
-            taskAssignment = team.assignedTasks.get(task=t)
+            taskAssignment = AssignedTask.objects.get(
+                team=team,
+                task=t)
             taskAssignment.completedAt = timezone.now()
             taskAssignment.save()
 
