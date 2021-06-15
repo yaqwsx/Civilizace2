@@ -20,8 +20,6 @@ class ResearchForm(MoveForm):
 
     def taskLabel(self, task):
         label = f"{task.name} ({task.activeCount}/{task.capacity})"
-        if task.fullfilledBy(Team.objects.get(pk=self.teamId)):
-            label += " - JIŽ SPLNILI"
         return label
 
     def jsMagic(self, mapping):
@@ -42,7 +40,7 @@ class ResearchForm(MoveForm):
                     TaskMapping.objects.filter(
                         techId=edge.dst.id,
                         active=True)
-                    if not t.task.fullfilledBy(Team.objects.get(pk=self.teamId))]
+                    if not t.task.assignedTo(Team.objects.get(pk=self.teamId))]
 
         if not len(choices):
             raise InvalidActionException("Tady už není co zkoumat (" + src.label + ")")
@@ -53,9 +51,11 @@ class ResearchForm(MoveForm):
             candidateTasks.update(v)
         candidateTasks = [(t.id, self.taskLabel(t)) for t in candidateTasks]
         candidateTasks.sort(key=lambda x: x[1])
+        candidateTasks.append(("", "Bez plnění úkolu"))
         self.fields["taskSelect"].choices = candidateTasks
 
-        allTasks = [(t.id, self.taskLabel(t)) for t in TaskModel.objects.all()]
+        allTasks = [(t.id, self.taskLabel(t)) for t in TaskModel.objects.all()
+            if not t.assignedTo(Team.objects.get(pk=self.teamId))]
         allTasks.sort(key=lambda x: x[1])
         allTasks = [(None, "Nic nevybráno")] + allTasks
         self.fields["allTaskSelect"].choices = allTasks
@@ -118,10 +118,13 @@ class ResearchMove(Action):
         techs = teamState.techs
         dst = self.edge.dst
 
-        try:
-            task = TaskModel.objects.get(pk=self.arguments["task"])
-        except TaskModel.DoesNotExist as e:
-            return ActionResult.makeFail(f"Vybrán neexistující úkol")
+        if not self.arguments["task"]:
+            task = None
+        else:
+            try:
+                task = TaskModel.objects.get(pk=self.arguments["task"])
+            except TaskModel.DoesNotExist as e:
+                return ActionResult.makeFail(f"Vybrán neexistující úkol")
 
 
         if techs.getStatus(self.edge.src) != TechStatusEnum.OWNED:
@@ -152,12 +155,16 @@ class ResearchMove(Action):
 
     def commit(self, state):
         self.teamState(state).techs.setStatus(self.edge.dst, TechStatusEnum.RESEARCHING)
-        task = TaskModel.objects.get(pk=self.arguments["task"])
+        message = f"Zkoumání technologie {self.edge.dst.label} bylo započato."
+        if not self.arguments["task"]:
+            task = None
+            message += "<br/>Tým nemusí plnit žádný úkol. Přejděte rovnou na akci 'Dokončení výzkumu'"
+        else:
+            task = TaskModel.objects.get(pk=self.arguments["task"])
 
-        result = ActionResult.makeSuccess(f"""
-            Zkoumání technologie {self.edge.dst.label} bylo započato.<br>
-        """)
-        result.startTask(task, self.edge.dst)
+        result = ActionResult.makeSuccess(message)
+        if task:
+            result.startTask(task, self.edge.dst)
         return result
 
     def abandon(self, state):

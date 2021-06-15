@@ -36,6 +36,12 @@ class TaskModel(models.Model):
             team=team,
             completedAt__lte=timezone.now()).exists()
 
+    def assignedTo(self, team):
+        return AssignedTask.objects.filter(
+            task=self,
+            team=team,
+            assignedAt__lte=timezone.now()).exists()
+
     def getAvailableTasks(self, team):
         """
         Given a team, return a list of available tasks they can complete.
