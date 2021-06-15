@@ -272,7 +272,7 @@ class TeamState(StateModel):
                 techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-mlyn"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
-                foodSupply=FoodStorage.objects.createInitial(context),
+                foodSupply=FoodStorage.objects.createInitial(team, context),
                 discoveredIslandsList=[],
                 exploredIslandsList=[])
 
@@ -813,7 +813,7 @@ class FoodStorage(ResourceStorageAbstract):
                 Parser.romeLevel(kasta[0]), # Roman letter of the Kasta level
                 kasta[0], # kasta level int
                 kasta[1], # kasta population
-                -foodMissing, # Punfed members of the caste
+                -foodMissing, # unfed members of the caste
                 math.ceil(max(foodMissing, 0)/foodValue), # food required fto feed this caste
                 -qualityMissing, # caste members not fed by appropriate food
                 math.ceil(max(qualityMissing, 0)/foodValue), # Quality food required to feed this caste
@@ -826,9 +826,9 @@ class FoodStorage(ResourceStorageAbstract):
     def getSupply(self, type):
         result = {}
 
-        for item in self.items:
-            if item.resource.type == type:
-                result[item.resource] = item.amount
+        for item, amount in self.asMap().items():
+            if item.type == type:
+                result[item] = amount
         return result
 
     def getFoodSupply(self):
@@ -840,12 +840,7 @@ class FoodStorage(ResourceStorageAbstract):
     def addSupply(self, resources):
         item = None
         for resource, amount in resources.items():
-            try:
-                item = self.items.get(resource=resource)
-                item.amount += amount
-            except FoodStorageItem.DoesNotExist:
-                item = FoodStorageItem(resource=resource, amount=amount)
-                self.items.append(item)
+            self.add(resource, amount)
 
 class ResourceStorage(ResourceStorageAbstract):
     pass
