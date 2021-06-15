@@ -10,17 +10,12 @@ from .vyroba import VyrobaMove
 from .sandbox import SandboxMove
 from .godmode import GodmodeForm
 from .foodSupply import FoodSupplyMove
-from .setBuildingDistance import SetBuildingDistanceMove
-from .setTeamDistance import SetTeamDistanceMove
 from .withdraw import WithdrawMove
 from .trade import TradeMove
 from .spendWork import SpendWorkMove
-from .addWonder import AddWonderMove
-from .attack import AttackMove
 from .addSticker import AddStickerMove
 from .startTask import StartTaskMove
 from .finishTask import FinishTaskMove
-from .maaraCounter import MaaraMove
 
 from .islandDiscover import IslandDiscoverMove
 from .islandExplore import IslandExploreMove
