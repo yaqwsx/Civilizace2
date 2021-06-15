@@ -35,7 +35,8 @@ class PrintersView(View):
         Printer.objects.prune()
         return JsonResponse({"printers": [{
             "name": p.name,
-            "id": p.pk
+            "id": p.pk,
+            "address": p.address
         } for p in Printer.objects.all()]})
 
 @method_decorator(csrf_exempt, name='dispatch')

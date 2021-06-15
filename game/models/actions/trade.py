@@ -87,7 +87,7 @@ class TradeMove(Action):
         for key in filter(lambda x: x[:5] == "prod-", self.arguments.keys()):
             if not self.arguments[key]:
                 continue
-            resource = ResourceModel.objects.get(id=key)
+            resource = self.context.resources.get(id=key)
             amount = self.arguments[key]
             resources[resource] = amount
             message.append(f"  {amount}x {resource.htmlRepr()}")

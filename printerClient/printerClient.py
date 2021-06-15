@@ -13,6 +13,7 @@ from flask import Flask, request, abort
 
 app = Flask(__name__)
 app.use_reloader=False
+app.host = "0.0.0.0"
 
 printQueue = Queue()
 
@@ -80,7 +81,7 @@ def printImage(image, port, speed, intensity):
     setIntensity(port, 100)
     setSpeed(port, 15)
     sendImage(port, image)
-    feedForward(port, 8)
+    feedForward(port, 10)
 
 
 @click.command()
@@ -94,7 +95,7 @@ def printImage(image, port, speed, intensity):
     help="Server IP address")
 def run(device, name, speed, intensity, server):
     with serial.Serial(port=device, baudrate=57600, rtscts=True) as port:
-        threading.Thread(target=app.run).start()
+        threading.Thread(target=lambda: app.run(host="0.0.0.0", port=5000)).start()
         while True:
             requests.post(f"{server}/printers", data={
                 "name": name

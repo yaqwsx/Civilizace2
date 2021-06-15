@@ -249,7 +249,7 @@ class VyrobaMove(Action):
 
     def retrieveCost(self):
         return {
-            ResourceModel.objects.get(id=res): amount for res, amount in self.arguments["cost"].items()
+            self.context.resources.get(id=res): amount for res, amount in self.arguments["cost"].items()
         }
 
     def initiate(self, state):
