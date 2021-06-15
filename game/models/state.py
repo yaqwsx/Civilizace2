@@ -269,7 +269,7 @@ class TeamState(StateModel):
                 turn=0,
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
-                techs=TechStorage.objects.createInitial(["build-centrum"], context),
+                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-mlyn"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(context),
@@ -642,97 +642,6 @@ class Storage(StateModel):
         for resource, amount in update["change"].items():
             self.items[resource] = amount
 
-class FoodStorage(StateModel):
-    class FoodStorageManager(models.Manager):
-        def createInitial(self, context):
-            return self.create(items=[])
-    objects = FoodStorageManager()
-    items = ListField(model_type=FoodStorageItem)
-
-    def getMissingItems(foodStorage, kasty, population, foodValue):
-        populaceKast = []
-        kasty.sort(reverse=True)
-
-        floor = math.floor(population/len(kasty))
-        extras = population - (floor*len(kasty))
-
-        for lvl in kasty:
-            if extras:
-                populaceKast.append((lvl, floor+1))
-                extras -= 1
-            else:
-                populaceKast.append( (lvl, floor))
-
-        supplyAmounts = [0,0,0,0,0,0,0]
-        luxusAmounts = [0,0,0,0,0,0,0]
-
-        for food, amount in foodStorage.getFoodSupply().items():
-            supplyAmounts[food.level] += amount*foodValue
-        for luxus, amount in foodStorage.getLuxusSupply().items():
-            luxusAmounts[luxus.level] += amount*foodValue
-
-
-        popSum = 0
-        foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
-        luxusSums = [sum(luxusAmounts[n:]) for n in range(7)]
-        result = []
-
-        for kasta in populaceKast:
-            popSum += kasta[1]
-            foodSupply = foodSums[0]
-            qualitySupply = foodSums[kasta[0]]
-            luxusSupply = luxusSums[kasta[0]]
-            foodMissing = popSum - foodSupply
-            qualityMissing = popSum - qualitySupply
-            luxusMissing = popSum - luxusSupply
-
-            # I know it's ugly. But it works with templates
-            result.append((
-                Parser.romeLevel(kasta[0]), # Roman letter of the Kasta level
-                kasta[0], # kasta level int
-                kasta[1], # kasta population
-                -foodMissing, # Punfed members of the caste
-                math.ceil(max(foodMissing, 0)/foodValue), # food required fto feed this caste
-                -qualityMissing, # caste members not fed by appropriate food
-                math.ceil(max(qualityMissing, 0)/foodValue), # Quality food required to feed this caste
-                -luxusMissing, # unsatisfie caste members
-                math.ceil(max(luxusMissing, 0)/foodValue) # luxus required to feed this caste
-            ))
-
-        return result
-
-    def getSupply(self, type):
-        result = {}
-
-        for item in self.items:
-            if item.resource.type == type:
-                result[item.resource] = item.amount
-        return result
-
-    def getFoodSupply(self):
-        return self.getSupply(self.context.resourceTypes.get(id="type-jidlo"))
-
-    def getLuxusSupply(self):
-        return self.getSupply(self.context.resourceTypes.get(id="type-luxus"))
-
-    def addSupply(self, resources):
-        item = None
-        for resource, amount in resources.items():
-            try:
-                item = self.items.get(resource=resource)
-                item.amount += amount
-            except FoodStorageItem.DoesNotExist:
-                item = FoodStorageItem(resource=resource, amount=amount)
-                self.items.append(item)
-
-    def toJson(self):
-        # Maara should delete this once he updates food storage
-        return []
-
-    def godUpdate(self, update):
-        # Maara should delete this once he updates food storage
-        return
-
 class ResourceStorageAbstract(Storage):
     class Meta:
         abstract = True
@@ -859,6 +768,83 @@ class ResourceStorageAbstract(Storage):
 
     def getObyvatel(self):
         return self.get("res-obyvatel")
+
+class FoodStorage(ResourceStorageAbstract):
+    def getMissingItems(foodStorage, kasty, population, foodValue):
+        populaceKast = []
+        kasty.sort(reverse=True)
+
+        floor = math.floor(population/len(kasty))
+        extras = population - (floor*len(kasty))
+
+        for lvl in kasty:
+            if extras:
+                populaceKast.append((lvl, floor+1))
+                extras -= 1
+            else:
+                populaceKast.append( (lvl, floor))
+
+        supplyAmounts = [0,0,0,0,0,0,0]
+        luxusAmounts = [0,0,0,0,0,0,0]
+
+        for food, amount in foodStorage.getFoodSupply().items():
+            supplyAmounts[food.level] += amount*foodValue
+        for luxus, amount in foodStorage.getLuxusSupply().items():
+            luxusAmounts[luxus.level] += amount*foodValue
+
+
+        popSum = 0
+        foodSums = [sum(supplyAmounts[n:]) for n in range(7)]
+        luxusSums = [sum(luxusAmounts[n:]) for n in range(7)]
+        result = []
+
+        for kasta in populaceKast:
+            popSum += kasta[1]
+            foodSupply = foodSums[0]
+            qualitySupply = foodSums[kasta[0]]
+            luxusSupply = luxusSums[kasta[0]]
+            foodMissing = popSum - foodSupply
+            qualityMissing = popSum - qualitySupply
+            luxusMissing = popSum - luxusSupply
+
+            # I know it's ugly. But it works with templates
+            result.append((
+                Parser.romeLevel(kasta[0]), # Roman letter of the Kasta level
+                kasta[0], # kasta level int
+                kasta[1], # kasta population
+                -foodMissing, # Punfed members of the caste
+                math.ceil(max(foodMissing, 0)/foodValue), # food required fto feed this caste
+                -qualityMissing, # caste members not fed by appropriate food
+                math.ceil(max(qualityMissing, 0)/foodValue), # Quality food required to feed this caste
+                -luxusMissing, # unsatisfie caste members
+                math.ceil(max(luxusMissing, 0)/foodValue) # luxus required to feed this caste
+            ))
+
+        return result
+
+    def getSupply(self, type):
+        result = {}
+
+        for item in self.items:
+            if item.resource.type == type:
+                result[item.resource] = item.amount
+        return result
+
+    def getFoodSupply(self):
+        return self.getSupply(self.context.resourceTypes.get(id="type-jidlo"))
+
+    def getLuxusSupply(self):
+        return self.getSupply(self.context.resourceTypes.get(id="type-luxus"))
+
+    def addSupply(self, resources):
+        item = None
+        for resource, amount in resources.items():
+            try:
+                item = self.items.get(resource=resource)
+                item.amount += amount
+            except FoodStorageItem.DoesNotExist:
+                item = FoodStorageItem(resource=resource, amount=amount)
+                self.items.append(item)
 
 class ResourceStorage(ResourceStorageAbstract):
     pass
