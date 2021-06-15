@@ -40,7 +40,7 @@ TEAMS = {
         "color": "yellow-500"
     },
     "Zelení": {
-        "players": teamPlayers("zeleni", "pruhlednyhrnek"),
+        "players": teamPlayers("zeleny", "pruhlednyhrnek"),
         "id": "tym-zeleni",
         "color": "green-600"
     },
