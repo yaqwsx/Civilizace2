@@ -21,7 +21,8 @@ class ResourceModel(EntityModel):
 
     def concreteResources(self):
         if self.isMeta:
-            return ResourceModel.objects.concreteResources(self)
+            return ResourceModel.manager.fixVersionManger(self.version) \
+                                .concreteResources(self)
         return [self]
 
     def isSpecializationOf(self, meta):
@@ -61,7 +62,8 @@ class ResourceModel(EntityModel):
 
     def getMaterial(self):
         assert self.isProduction
-        return ResourceModel.objects.get(id=self.id.replace("prod-", "mat-"))
+        return ResourceModel.manager.fixVersionManger(self.version) \
+                            .get(id=self.id.replace("prod-", "mat-"))
 
     def htmlRepr(self):
         if self.isProduction:
