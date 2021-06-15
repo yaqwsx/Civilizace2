@@ -477,6 +477,8 @@ class Parser():
         Assuming a tree, clone it and add island properties
         """
         edges = root.unlocks_tech.all()
+        vyrobas = root.unlock_vyrobas.all()
+        enhancements = root.unlock_enhancers.all()
         root.pk = None
         root.syntheticId = None
         root.id = root.id + suffix
@@ -491,6 +493,20 @@ class Parser():
             edge.src = root
             edge.dst = newDst
             edge.save()
+
+        for vyroba in vyrobas:
+            vyroba.pk = None
+            vyroba.syntheticId = None
+            vyroba.id = edge.id + suffix
+            vyroba.tech = root
+            vyroba.save()
+
+        for enh in enhancements:
+            enh.pk = None
+            enh.syntheticId = None
+            enh.id = edge.id + suffix
+            enh.tech = root
+            enh.save()
 
         return root
 
