@@ -14,6 +14,7 @@ class PrinterManager(models.Manager):
 class Printer(models.Model):
     name = models.CharField(max_length=200)
     address = models.CharField(max_length=200)
+    port = models.IntegerField()
     registeredAt = models.DateTimeField()
 
     objects = PrinterManager()

@@ -113,7 +113,7 @@ class TradeMove(Action):
             team.resources.receiveResources({self.context.resources.get(id="res-nosic"): traderActions*20})
             availableTrade = team.resources.getAmount("res-nosic")
             print("availableTrade: " + str(availableTrade))
-            message.append(f"Bylo vyrobeno {traderActions*20} nosičů (cena: <b>{traderActions*2}x {ResourceModel.objects.get(id='res-obyvatel').htmlRepr()}</b>)")
+            message.append(f"Bylo vyrobeno {traderActions*20} nosičů (cena: <b>{traderActions*2}x {self.context.resources.get(id='res-obyvatel').htmlRepr()}</b>)")
 
         team.resources.payResources({self.context.resources.get(id="res-nosic"): requiredTrade})
 

@@ -93,16 +93,21 @@ def printImage(image, port, speed, intensity):
 @click.option("--intensity", type=int, default=200)
 @click.option("--server", type=str, required=True,
     help="Server IP address")
-def run(device, name, speed, intensity, server):
-    with serial.Serial(port=device, baudrate=57600, rtscts=True) as port:
-        threading.Thread(target=lambda: app.run(host="0.0.0.0", port=5000)).start()
+@click.option("--port", type=int, default=5000)
+def run(device, name, speed, intensity, server, port):
+    with serial.Serial(port=device, baudrate=57600, rtscts=True) as serialPort:
+        threading.Thread(target=lambda: app.run(host="0.0.0.0", port=port)).start()
         while True:
-            requests.post(f"{server}/printers", data={
-                "name": name
-            })
+            try:
+                requests.post(f"{server}/printers", data={
+                    "name": name,
+                    "port": port
+                })
+            except Exception as e:
+                print(f"WARNING: Cannot connect to server: {e}")
             try:
                 img = printQueue.get(timeout=30)
-                printImage(img, port, speed, intensity)
+                printImage(img, serialPort, speed, intensity)
             except Empty:
                 pass
 
