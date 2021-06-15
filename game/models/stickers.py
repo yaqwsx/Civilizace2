@@ -305,7 +305,10 @@ class Sticker(models.Model):
 
     def renderVyrobaImage(self, entity):
         if entity.output.icon and entity.output.icon != "-":
-            path = os.path.join(os.getcwd(), f"./game/data/icons/{entity.output.icon}")
+            name = entity.output.icon
+            if entity.id.endswith("-mat"):
+                name = name.replace("-a.svg", "-b.svg")
+            path = os.path.join(os.getcwd(), f"./game/data/icons/{name}")
             fmt = '<div class="image_container">'
             fmt += '<div class="vyroba">'
             fmt += f'<img class="fit" src="{path}">'
