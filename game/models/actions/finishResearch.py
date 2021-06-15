@@ -15,13 +15,17 @@ class FinishResearchForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         tech = self.getEntity(TechModel)
-        assignment = AssignedTask.objects.get(
-            techId=tech.id,
-            team=self.teamId,
-        )
+        try:
+            assignment = AssignedTask.objects.get(
+                techId=tech.id,
+                team=self.teamId,
+            )
+            message = f"""Zkontrolujte, že tým dokončil úkol '{assignment.task.name}'"""
+        except AssignedTask.DoesNotExist:
+            message = "Tým nemusel splnit žádný úkol, pokračujte."
         self.helper.layout = Layout(
             self.commonLayout,
-            HTML(f"""Zkontrolujte, že tým dokončil úkol '{assignment.task.name}'""")
+            HTML(message)
         )
 
 class FinishResearchMove(Action):
@@ -54,10 +58,13 @@ class FinishResearchMove(Action):
     def commit(self, state):
         tech = self.context.techs.get(id=self.arguments["entity"])
         techs = self.teamState(state).techs
-        assignment = AssignedTask.objects.get(
-            techId=tech.id,
-            team=self.team,
-        )
+        try:
+            assignment = AssignedTask.objects.get(
+                techId=tech.id,
+                team=self.team,
+            )
+        except AssignedTask.DoesNotExist:
+            assignment = None
 
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
@@ -67,7 +74,8 @@ class FinishResearchMove(Action):
         techs.setStatus(tech, TechStatusEnum.OWNED)
 
         result = ActionResult.makeSuccess(f"""Technologie {tech.label} bude dozkoumána.""")
-        result.finishTask(assignment.task)
+        if assignment:
+            result.finishTask(assignment.task)
         result.addSticker(Sticker(entity=tech, type=StickerType.REGULAR))
         for vyroba in tech.unlock_vyrobas.all():
             result.addSticker(Sticker(entity=vyroba, type=StickerType.REGULAR))

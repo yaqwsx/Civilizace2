@@ -99,10 +99,10 @@ class Direction(enum.Enum):
     @property
     def correspondingDie(self):
         return {
-            Direction.North: "die-plane",
-            Direction.West: "die-hory",
-            Direction.South: "die-poust",
-            Direction.East: "die-les"
+            Direction.North: "die-sila",
+            Direction.West: "die-prir",
+            Direction.South: "die-spol",
+            Direction.East: "die-tech"
         }[self.value]
 
 class IslandModel(EntityModel):

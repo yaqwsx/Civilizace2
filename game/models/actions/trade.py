@@ -87,7 +87,7 @@ class TradeMove(Action):
         for key in filter(lambda x: x[:5] == "prod-", self.arguments.keys()):
             if not self.arguments[key]:
                 continue
-            resource = ResourceModel.objects.get(id=key)
+            resource = self.context.resources.get(id=key)
             amount = self.arguments[key]
             resources[resource] = amount
             message.append(f"  {amount}x {resource.htmlRepr()}")
@@ -109,13 +109,13 @@ class TradeMove(Action):
 
         if availableTrade < requiredTrade:
             traderActions = math.ceil((requiredTrade-availableTrade) / 20)
-            team.resources.payResources({ResourceModel.objects.get(id="res-obyvatel"): traderActions*2})
-            team.resources.receiveResources({ResourceModel.objects.get(id="res-nosic"): traderActions*20})
+            team.resources.payResources({self.context.resources.get(id="res-obyvatel"): traderActions*2})
+            team.resources.receiveResources({self.context.resources.get(id="res-nosic"): traderActions*20})
             availableTrade = team.resources.getAmount("res-nosic")
             print("availableTrade: " + str(availableTrade))
-            message.append(f"Bylo vyrobeno {traderActions*20} nosičů (cena: <b>{traderActions*2}x {ResourceModel.objects.get(id='res-obyvatel').htmlRepr()}</b>)")
+            message.append(f"Bylo vyrobeno {traderActions*20} nosičů (cena: <b>{traderActions*2}x {self.context.resources.get(id='res-obyvatel').htmlRepr()}</b>)")
 
-        team.resources.payResources({ResourceModel.objects.get(id="res-nosic"): requiredTrade})
+        team.resources.payResources({self.context.resources.get(id="res-nosic"): requiredTrade})
 
         self.arguments["team"] = None
         return True, "<br>".join(message)

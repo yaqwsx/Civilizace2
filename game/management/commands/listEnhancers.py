@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        for vyroba in VyrobaModel.objects.all():
+        for vyroba in VyrobaModel.manager.latest().all():
             if not vyroba.output.isProduction:
                 continue
 
@@ -27,6 +27,6 @@ class Command(BaseCommand):
             print()
             print(f"{vyroba.id} : {vyroba.label}")
             print(f"   {vyroba.amount}x {vyroba.output.label}")
-            
+
             for enhancer in vyroba.enhancers.all():
                 print(f"  +{enhancer.amount}x : {enhancer.label}  {enhancer.tech.label} ({enhancer.tech.epocha})")

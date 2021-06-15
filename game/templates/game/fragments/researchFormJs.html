@@ -11,6 +11,7 @@
 
     techSelect.onchange = function() {
         let allowed = new Set(mapping[techSelect.value]);
+        allowed.add("")
         filterOptions(taskSelect, allowed);
         allTaskSelect.value = "";
     }

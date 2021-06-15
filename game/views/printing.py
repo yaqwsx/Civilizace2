@@ -13,17 +13,17 @@ from game.models.stickers import Sticker
 import requests
 import io
 
-CLIENT_PORT = 5000
-
 @method_decorator(csrf_exempt, name='dispatch')
 class PrintersView(View):
     def post(self, request):
         name = request.POST["name"]
+        port = request.POST["port"]
         clientIp, _ = get_client_ip(request)
         if clientIp is None:
             return HttpResponse("Cannot trace client", status=403)
         Printer.objects.update_or_create(name=name, defaults={
             "address": clientIp,
+            "port": port,
             "registeredAt": timezone.now()
         })
         return HttpResponse("")
@@ -35,7 +35,7 @@ class PrintersView(View):
         Printer.objects.prune()
         return JsonResponse({"printers": [{
             "name": p.name,
-            "id": p.pk
+            "id": p.pk,
         } for p in Printer.objects.all()]})
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -53,7 +53,7 @@ class PrintStickerView(View):
             return HttpResponse("Taková samolepka neexistuje", status=404)
 
         try:
-            printerUrl = f"http://{printer.address}:{CLIENT_PORT}/print"
+            printerUrl = f"http://{printer.address}:{printer.port}/print"
             r = requests.post(printerUrl, files={
                 "image": io.BytesIO(sticker.getImage())
             })
