@@ -1,6 +1,7 @@
 from game.data.tech import TechModel
 from game.data.entity import FakeEntityManager
 from django.db import models
+from django.utils import timezone
 
 
 class TaskModel(models.Model):
@@ -22,6 +23,18 @@ class TaskModel(models.Model):
 
     def htmlRepr(self):
         return f"Úkol: <b>{self.label}</b><br><i>{self.text}</i>"
+
+    @property
+    def activeCount(self):
+        return AssignedTask.objects.filter(
+            task=self,
+            completedAt=None).count()
+
+    def fullfilledBy(self, team):
+        return AssignedTask.objects.filter(
+            task=self,
+            team=team,
+            completedAt__lte=timezone.now()).exists()
 
     def getAvailableTasks(self, team):
         """

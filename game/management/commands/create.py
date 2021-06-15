@@ -15,61 +15,56 @@ from game.data.update import Update, UpdateError
 
 GROUPS = ["super", "org"]
 
+def teamPlayers(name, password):
+    return [{"username": f"{name}{i+1}", "password": password} for i in range(4)]
+
 TEAMS = {
     "Černí": {
-        "players": [
-            {
-                "username": "cerny1",
-                "password": "password",
-            },
-            {
-                "username": "cerny2",
-                "password": "password",
-            }
-        ],
+        "players": teamPlayers("cerny", "zlutevejce"),
         "id": "tym-cerni",
         "color": "gray-600"
     },
     "Červení": {
-        "players": [],
+        "players": teamPlayers("cerveny", "modrypomeranc"),
         "id": "tym-cerveni",
         "color": "red-600"
     },
     "Oranžoví": {
-        "players": [],
+        "players": teamPlayers("oranzovy", "hladkypapir"),
         "id": "tym-oranzovi",
         "color": "orange-500"
     },
     "Žlutí": {
-        "players": [],
+        "players": teamPlayers("zluty", "kluzkystrom"),
         "id": "tym-zluti",
         "color": "yellow-500"
     },
     "Zelení": {
-        "players": [],
+        "players": teamPlayers("zeleni", "pruhlednyhrnek"),
         "id": "tym-zeleni",
         "color": "green-600"
     },
     "Modří": {
-        "players": [],
+        "players": teamPlayers("modry", "zelenaspona"),
         "id": "tym-modri",
         "color": "blue-600"
     },
     "Fialoví": {
-        "players": [],
+        "players": teamPlayers("fialovy", "kvetoucistrom"),
         "id": "tym-fialovi",
         "color": "purple-500"
     },
     "Růžoví": {
-        "players": [],
+        "players": teamPlayers("ruzovy", "nevyrovanyuhel"),
         "id": "tym-ruzovi",
         "color": "pink-600"
     }
 }
 
 
-SUPER_USERS = ["maara", "honza", "system"]
-ORG = ["abbe", "jupi", "efka", "kaja", "darwin", "martin", "liska", "tinka", "ivka", "tom", "zaloha"]
+SUPER_USERS = ["maara", "honza", "heno", "system"]
+ORG = ["jupi", "efka", "darwin", "martin", "zuzka", "maruska", "stouri",
+       "liska", "tinka", "ivka", "tom", "timan", "zaloha"]
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):

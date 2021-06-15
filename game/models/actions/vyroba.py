@@ -87,6 +87,7 @@ class VyrobaForm(MoveForm):
         self.vyroba = obtainVyrobaInfo(self.state, self.teamId, entity.id)
 
         techs = self.state.teamState(self.teamId).techs
+        resources = self.state.teamState(self.teamId).resources
         if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
             raise InvalidActionException(
                 f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i>, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
@@ -116,9 +117,18 @@ class VyrobaForm(MoveForm):
             typeId = self.vyroba.id + "-" + resource.id
             label = f'{resource.label} (potřeba {scalableAmount(amount)}&times;)'
             choices = [(x.id, x.label) for x in resource.concreteResources()]
+            choicesExtended = []
+            for id, myLabel in choices:
+                available = resources.get(id)
+                if available >= amount:
+                    choicesExtended.append((id, f'{myLabel} ({available}x)'))
             self.fields[typeId] = \
-                forms.ChoiceField(choices=choices, label=label)
+                forms.ChoiceField(choices=choicesExtended, label=label)
             self.vyrobaInputs[resource.id] = typeId
+            if resource.id == "res-obyvatel" or resource.id == "res-obyvatel":
+                self.fields[typeId].widget = forms.HiddenInput()
+                self.fields[typeId].initial = choices[0][0]
+
             inputsLayout.append(typeId)
         inputsLayout.append(HTML(f'</div>'))
 
@@ -202,15 +212,17 @@ class VyrobaMove(Action):
         costErrorMessage = []
         for resource, amount in self.vyroba.getInputs().items():
             try:
+                tmp = self.vyrobaInputs[resource.id]
                 cRes = self.context.resources.get(id=self.vyrobaInputs[resource.id])
+                if not cRes.isSpecializationOf(resource):
+                    costErrorMessage.append(
+                        f"Materiál {cRes.label} není specializací {resource.label} ({self.vyroba.label})")
+                amount = amount * self.volume
+                cost[cRes] = cost.get(cRes, 0) + amount
             except ResourceModel.DoesNotExist:
                 costErrorMessage.append(f"Zdroj {self.vyrobaInputs[resource.id]} neexistuje ({self.vyroba.label})")
             except KeyError:
                 costErrorMessage.append(f"Zdroj {resource.label} nebyl určen ({self.vyroba.label})")
-            if not cRes.isSpecializationOf(resource):
-                costErrorMessage.append(f"Materiál {cRes.label} není specializací {resource.label} ({self.vyroba.label})")
-            amount = amount * self.volume
-            cost[cRes] = cost.get(cRes, 0) + amount
 
         if costErrorMessage:
             msgBody = "\n".join([f'<li>{x}</li>' for x in costErrorMessage])

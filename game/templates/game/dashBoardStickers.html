@@ -11,31 +11,36 @@
 
 <div class="w-full flex flex-wrap">
     {% for sticker in teamStickers %}
-        <div class="flex-auto m-2 p-2 rounded shadow bg-white">
-            <a href="{% url "stickerView" sticker.id %}">
-                <img src="{% url "stickerView" sticker.id %}"
-                    class="mx-auto"/>
-            </a>
-            <div class="w-full text-center">
-                {{sticker.shortDescription}}
+        <div class="flex flex-col items-stretch flex-auto m-2 p-2 rounded shadow bg-white flex">
+            <div class="self-stretch">
+                <a href="{% url "stickerView" sticker.id %}">
+                    <img src="{% url "stickerView" sticker.id %}"
+                        class="mx-auto"
+                        style="max-width: 200px"/>
+                </a>
             </div>
-            <div class="w-full text-center text-gray-600 text-sm">
-                Uděleno: {{sticker.awardedAt}}
-            </div>
-            {% if user.isOrg %}
-                <div class="flex flex-wrap">
-                    <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-                            type="button"
-                            onclick="return onButtonPrint{{sticker.id}}()">
-                        Vytisknout
-                    </button>
-                    <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded "
-                            type="button"
-                            disabled>
-                        Aktualizovat
-                    </button>
+            <div class="w-full self-end">
+                <div class="w-full text-center">
+                    {{sticker.shortDescription}}
                 </div>
-            {% endif %}
+                <div class="w-full text-center text-gray-600 text-sm">
+                    Uděleno: {{sticker.awardedAt}}
+                </div>
+                {% if user.isOrg %}
+                    <div class="flex flex-wrap">
+                        <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                                type="button"
+                                onclick="return onButtonPrint{{sticker.id}}()">
+                            Vytisknout
+                        </button>
+                        {% comment %} <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                                type="button"
+                                disabled>
+                            Aktualizovat
+                        </button> {% endcomment %}
+                    </div>
+                {% endif %}
+            </div>
         </div>
         <script>
             function onButtonPrint{{sticker.id}}() {

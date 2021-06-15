@@ -394,36 +394,37 @@ class TeamAchievements(StateModel):
         def createInitial(self, context):
             return self.create(list=[])
 
-    list = ListField(model_type=AchievementModel)
+    list = JSONField()
     objects = TeamAchievementsManager()
 
     def awardNewAchievements(self, state, team):
         """ Checks if new achievements should be awarded, if so, return their list """
         newAchievements = []
         for achievement in self.context.achievements.all():
-            if self.list.has(id=achievement.id): # Skip already awarded achievements
+            if achievement.id in self.list: # Skip already awarded achievements
                 continue
             if achievement.achieved(state, team):
                 newAchievements.append(achievement)
-                self.list.append(achievement)
+                self.list.append(achievement.id)
         return newAchievements
 
     def toJson(self):
-        return [ ach.id for ach in self.list ]
+        return self.list
 
     def godUpdate(self, update):
         allowKeys([], update["change"])
         for id in update["add"].get("", []):
             try:
-                if self.list.has(id=id):
+                self.context.achievement.get(id=id)
+                if id in self.list:
                     continue
-                self.list.append(self.context.achievements.get(id=id))
+                self.list.append(id)
             except AchievementModel.DoesNotExist:
                 raise InvalidActionException(f"Unknown id '{id}'")
         for id in update["remove"].get("", []):
-            if not self.list.has(id=id):
+            if id not in self.list:
                 raise InvalidActionException(f"Cannot remove '{id}' which is not present in the list")
-            self.list.remove(self.list.get(id=id))
+            self.list.remove(id)
 
 
 class DistanceItemBuilding(StateModel):

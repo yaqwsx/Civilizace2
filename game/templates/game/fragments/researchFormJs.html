@@ -1,0 +1,67 @@
+<script>
+    var techSelect = document.getElementById("id_techSelect");
+    var taskSelect = document.getElementById("id_taskSelect");
+    var allTaskSelect = document.getElementById("id_allTaskSelect");
+
+    let mapping = {
+        {% for k, v in mapping.items %}
+            "{{k}}": [{% for x in v %}"{{x.pk}}", {% endfor %}],
+        {% endfor %}
+    };
+
+    techSelect.onchange = function() {
+        let allowed = new Set(mapping[techSelect.value]);
+        filterOptions(taskSelect, allowed);
+        allTaskSelect.value = "";
+    }
+    techSelect.onchange();
+
+    allTaskSelect.onchange = function() {
+        taskSelect.value = null;
+    }
+
+    function unwrap(node) {
+        node.replaceWith(...node.childNodes);
+    }
+
+    function wrap(node, wrapper) {
+        var w = document.createElement(wrapper);
+        node.parentNode.insertBefore(w, node);
+        w.appendChild(node);
+    }
+
+    function showAllOptions(select) {
+        for (var i = 0; i < select.children.length; i++) {
+            var option = select.children[i];
+            if (option.tagName == "SPAN") {
+                option.firstChild.selected = false;
+                unwrap(option);
+            }
+            else {
+                option.selected = false
+            }
+        }
+    }
+
+    function filterOptions(select, allowed) {
+        for (var i = 0; i < select.children.length; i++) {
+            var option = select.children[i];
+            if (option.tagName == "SPAN") {
+                option.firstChild.selected = false;
+                var hidden = !allowed.has(option.firstChild.value);
+                if (hidden) {
+                    continue;
+                }
+                unwrap(option);
+            }
+            else {
+                option.selected = false
+                var hidden = !allowed.has(option.value);
+                if (!hidden) {
+                    continue;
+                }
+                wrap(option, "span");
+            }
+        }
+    }
+</script>

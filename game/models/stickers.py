@@ -64,7 +64,7 @@ class FileCache:
             with open(file, "wb") as f:
                 f.write(content)
             return content
-    
+
     def cacheFile(self, ident):
         cwd = os.getcwd()
         return os.path.join(cwd, self.cacheDirectory, self.name(ident))
@@ -212,7 +212,7 @@ class Sticker(models.Model):
         vyrobas = self.formatVyrobas(entity)
         enhancers = self.formatEnhancers(entity)
         techs = self.formatTechs(entity)
-        
+
         fmt = ""
         if vyrobas:
             fmt += '<div class="desc">'
@@ -226,11 +226,11 @@ class Sticker(models.Model):
             fmt += '<hr class="line">'
         if techs:
             fmt += '<div class="desc">'
-            fmt += techs 
+            fmt += techs
             fmt += '</div>'
             fmt += '<hr class="line">'
         return fmt
-    
+
     def techTemplate(self, entity, header):
         fmt = '<hr class="dashed">'
         fmt += '<div class="sticker" vertical-align:top>'
@@ -240,10 +240,10 @@ class Sticker(models.Model):
         fmt += f'<em>{entity.flavour}</em>'
         fmt += '</div>'
         return fmt
-    
+
     def regularTechTemplate(self, entity):
         header = f'<div>{self.formatHeader(entity)}</div>'
-                
+
         if entity.island:
             header += f'<div><h2>Ostrov: {entity.island.label}</h2></div>'
 
@@ -257,8 +257,8 @@ class Sticker(models.Model):
         header = self.formatHeader(entity)
         fmt = '<hr class="dashed">'
         fmt +=  f'<div class="sticker">{header}</div>'
-        return fmt    
-    
+        return fmt
+
     def resource(self, resource):
         if resource.isProduction:
             return f'<u>{resource.label.replace("Produkce: ", "")}</u>'
@@ -302,7 +302,7 @@ class Sticker(models.Model):
         fmt += f'<img class="fit" src="{path}">'
         fmt += '</div>'
         return fmt
-    
+
     def renderVyrobaImage(self, entity):
         if entity.output.icon and entity.output.icon != "-":
             path = os.path.join(os.getcwd(), f"./game/data/icons/{entity.output.icon}")
@@ -318,10 +318,10 @@ class Sticker(models.Model):
         """
         Return a pretty short string description of the sticker
         """
-        return f"Sticker \nfor team {self.team.id} \nof {self.entity.id}"
+        return f"{self.entity.label} pro {self.team.name}"
 
     def stickerName(self) -> str:
-        return f"sticker_{self.id:04}_{self.type.name}" 
+        return f"sticker_{self.id:04}_{self.type.name}"
 
     def getImage(self):
         """
@@ -405,7 +405,7 @@ class Sticker(models.Model):
             return self.renderTechCompact(entity)
         elif self.type == StickerType.SHARED:
             return self.renderTechShared(entity)
-        else: 
+        else:
             return self.renderTechRegular(entity)
 
     def renderBuilding(self, entity):
@@ -413,7 +413,7 @@ class Sticker(models.Model):
             return self.renderBuildingCompact(entity)
         elif self.type == StickerType.SHARED:
             return self.renderBuildingShared(entity)
-        else: 
+        else:
             return self.renderBuildingRegular(entity)
 
     def renderVyroba(self, entity):
@@ -424,7 +424,7 @@ class Sticker(models.Model):
     def renderTechCompact(self, entity):
         html = self.compactTechTemplate(entity)
         return self.renderHTML(html, 384, 150)
-    
+
     def renderTechRegular(self, entity):
         html = self.regularTechTemplate(entity)
         return self.renderHTML(html, 384, 768)
@@ -436,7 +436,7 @@ class Sticker(models.Model):
     def renderBuildingCompact(self, entity):
         html = self.compactTechTemplate(entity)
         return self.renderHTML(html, 384, 150)
-    
+
     def renderBuildingRegular(self, entity):
         html = self.regularTechTemplate(entity)
         html += self.renderBuildingImage(entity)
