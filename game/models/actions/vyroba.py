@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from crispy_forms.layout import Layout, Fieldset, HTML
 
 from game.data import ResourceModel
-from game.data.vyroba import VyrobaModel, EnhancementModel
+from game.data.vyroba import VyrobaModel
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException, ActionResult
 from game.models.actionTypeList import ActionType

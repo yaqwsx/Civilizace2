@@ -12,7 +12,8 @@ from game.data.entity import (
     EntitiesVersion, EntityModel, DieModel, AchievementModel, IslandModel)
 from game.data.resource import ResourceModel, ResourceTypeModel
 from game.data.tech import TechModel, TechEdgeModel
-from game.data.vyroba import VyrobaModel, EnhancementModel
+from game.data.vyroba import VyrobaModel
+from game.data.enhancer import EnhancerModel
 from game.models.stickers import Sticker
 from ground.models import GitRevision
 
@@ -189,7 +190,8 @@ class ActionContext:
             "resourceTypes": ResourceTypeModel,
             "techs": TechModel,
             "vyrobas": VyrobaModel,
-            "edges": TechEdgeModel
+            "edges": TechEdgeModel,
+            "enhancers": EnhancerModel
         }
         for name, model in managers.items():
             setattr(self, name, model.manager.fixVersionManger(entitiesVersion))

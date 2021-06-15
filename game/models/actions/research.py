@@ -146,7 +146,7 @@ class ResearchMove(Action):
             return ActionResult.makeFail(message)
         return ActionResult.makeSuccess(
             f"""
-                Pro vyzkoumání <i>{self.edge.dst.label}</i> skrze <i>{self.edge.label}</i> je třeba hodit: {self.edge.dots}&times; {self.edge.die.label}<br>
+                Pro vyzkoumání <i>{self.edge.dst.label}</i> je třeba hodit: {self.edge.dots}&times; {self.edge.die.label}<br>
                 {costMessage}<br>
             """)
 

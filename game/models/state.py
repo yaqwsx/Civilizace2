@@ -135,6 +135,7 @@ class StateModel(ImmutableModel):
             "build-": "techs",
             "vyr-": "vyrobas",
             "edge-": "edges",
+            "enh-": "enhancers"
         }
         for p, c in prefixes.items():
             if id.startswith(p):
@@ -269,12 +270,13 @@ class TeamState(StateModel):
                 turn=0,
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
-                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-mlyn"], context),
+                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-pastvina"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(team, context),
                 discoveredIslandsList=[],
-                exploredIslandsList=[])
+                exploredIslandsList=[],
+                enhancers=EnhancerStorage.objects.createInitial([], context))
 
     objects = TeamStateManager()
 
@@ -288,6 +290,7 @@ class TeamState(StateModel):
     distances = models.ForeignKey("DistanceLogger", on_delete=models.PROTECT)
     achievements = models.ForeignKey("TeamAchievements", on_delete=models.PROTECT)
     foodSupply = models.ForeignKey("FoodStorage", on_delete=models.PROTECT)
+    enhancers = models.ForeignKey("EnhancerStorage", on_delete=models.PROTECT, related_name="enhancers")
 
     discoveredIslandsList = JSONField()
     exploredIslandsList = JSONField()
@@ -860,7 +863,6 @@ class MaterialStorage(ResourceStorageAbstract):
             targetAmount = min(self.get(resource) + amount, capacity)
             self.set(resource, targetAmount)
 
-
 class TechStatusEnum(enum.Enum):
     UNKNOWN = 0 # used only for status check; Never stored in DB
     RESEARCHING = 2
@@ -885,7 +887,10 @@ def parseTechStatus(s):
     if s == "OWNED":
         return TechStatusEnum.OWNED
 
-class TechStorage(Storage):
+class TechStorageAbstract(Storage):
+    class Meta:
+        abstract = True
+
     class TechStorageManager(models.Manager):
         def createInitial(self, initialTechs, context):
             result = self.create(items={techId: TechStatusEnum.OWNED for techId in initialTechs})
@@ -970,6 +975,15 @@ class TechStorage(Storage):
     def getBuildings(self):
         return [tech for tech, status in self.asMap().items() if status == TechStatusEnum.OWNED and tech.isBuilding]
 
+    def getEnhancers(self):
+        results = []
+
+        for tech in self.getOwnedTechs():
+            results.extend(tech.unlock_enhancers.all())
+
+        return results
+
+
     def godUpdate(self, update):
         for techId, status in update["add"].items():
             self.items[techId] = parseTechStatus(status)
@@ -979,6 +993,22 @@ class TechStorage(Storage):
 
         for techId, status in update["change"].items():
             self.items[techId] = parseTechStatus(status)
+
+class TechStorage(TechStorageAbstract):
+    pass
+
+class EnhancerStatusEnum(enum.Enum):
+    NOT_KNOWN: 0
+    KNOWN: 2
+    OWNED: 3
+
+
+class EnhancerStorage(TechStorageAbstract):
+    def getOwnedEnhancers(self):
+        return [self.toEntity(enh) for enh, status
+                    in self.items.items()
+                    if status == 1]
+
 
 # =================================================
 

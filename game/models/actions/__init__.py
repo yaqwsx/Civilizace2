@@ -7,6 +7,7 @@ from .startRound import StartRoundMove
 from .research import ResearchMove
 from .finishResearch import FinishResearchMove
 from .vyroba import VyrobaMove
+from .enhancer import EnhancerMove
 from .sandbox import SandboxMove
 from .godmode import GodmodeForm
 from .foodSupply import FoodSupplyMove

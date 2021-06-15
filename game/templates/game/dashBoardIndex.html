@@ -74,6 +74,17 @@
             </p>
         {% endcard %}
 
+        {% card "Pouzivane vylepseni" width="full" %}
+            <p class="text-left">
+                Tým má {{teamState.enhancers.getOwnedEnhancers | length}} vylepšení.
+            </p>
+            <p class="text-left">
+                {% for e in teamState.enhancers.getOwnedEnhancers %}
+                    {{e.label | safe}},
+                {% endfor %}
+            </p>
+        {% endcard %}
+
         {% card "Kolik krmení bude potřeba" icon="fa-warehouse" width="third" color=targetTeam.color %}
             Potřebujete zaplatit <b>{{foodSupplyTokens}}×</b> jídlo (přebytek {{ foodSupplySurplus }})
             <ul class="text-left">

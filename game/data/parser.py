@@ -1,4 +1,5 @@
-from game.data.vyroba import VyrobaModel, VyrobaInputModel, EnhancementInputModel, EnhancementModel
+from game.data.vyroba import VyrobaModel, VyrobaInputModel
+from game.data.enhancer import EnhancerInputModel, EnhancerModel
 from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel, IslandModel, Direction
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
@@ -399,17 +400,29 @@ class Parser():
                     addMatInput(chunk.strip())
 
 
-    def _addEnhancements(self):
+    def _addEnhancers(self):
         print("Parsing enhancements")
         myRaw = self.raw[self.SHEET_MAP["enh"]]
 
         for n, line in enumerate(myRaw[2:], start=2):
-            line = line[:10]
+            line = line[:9]
             if line[1] == "":
                 continue
+            print(str(line))
 
             id = line[1]
             label = line[0]
+
+            try:
+                chunks = line[7].split(":")
+                die = DieModel.manager.get(id=chunks[0], version=self.entitiesVersion)
+                dots = int(chunks[1])
+            except DieModel.DoesNotExist:
+                self._logWarning("Vyroba." + str(n) + ": Neznámé ID kostky (" + line[2] + ")")
+                continue
+            except ValueError:
+                self._logWarning("Vyroba." + str(n) + ": Chyba v počtu bodů na kostce (" + line[2] + ")")
+                continue
 
             try:
                 vyroba = VyrobaModel.manager.get(id=line[2], version=self.entitiesVersion)
@@ -424,13 +437,16 @@ class Parser():
                 continue
 
             try:
-                amount = int(line[5])
+                amount = int(line[6])
             except Exception:
                 self._logWarning("Vylepšení ." + str(n) + ".: Bonus musí být číslo (" + line[5] + ")")
                 return None
 
-            enhancement = EnhancementModel.manager.create(id=id,
-                label=label, tech=tech, vyroba=vyroba, amount=amount, version=self.entitiesVersion)
+            detail = line[8]
+
+            enhancer = EnhancerModel.manager.create(id=id,
+                label=label, tech=tech, vyroba=vyroba, amount=amount,
+                die=die, dots=dots, detail=detail, version=self.entitiesVersion)
 
             def addInput(entry):
                 chunks = entry.split(":")
@@ -451,8 +467,8 @@ class Parser():
                     self._logWarning("Vylepšení." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input = EnhancementInputModel.objects.create(
-                    parent=enhancement, resource=res, amount=amount)
+                input = EnhancerInputModel.objects.create(
+                    parent=enhancer, resource=res, amount=amount)
                 return input
 
             if line[4] != "" and line[4] != "-":
@@ -554,7 +570,7 @@ class Parser():
         self._addEdges()
         self._addVyrobas()
         self._addIslands()
-        # self._addEnhancements() # TODO: Update enhancement mechanics
+        self._addEnhancers()
         self._addAchievements()
 
         warnings = self.warnings

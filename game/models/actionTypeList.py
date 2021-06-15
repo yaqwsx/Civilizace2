@@ -14,6 +14,7 @@ class ActionType(enum.Enum):
     withdraw = 11
     trade = 12
     spendWork = 13
+    enhancer = 14
 
     discoverIsland = 30
     exploreIsland = 31
@@ -42,6 +43,7 @@ class ActionType(enum.Enum):
         withdraw: "Vybrat materiály ze skladu",
         trade: "Obchod",
         spendWork: "Zaplatit práci",
+        enhancer: "Vylepšit výrobu",
 
         discoverIsland: "OSTROV: Hledat",
         exploreIsland: "OSTROV: Prozkoumat",
