@@ -178,6 +178,9 @@ class VyrobaMove(Action):
         results = []
         results.extend(techs.getVyrobas())
 
+        for island in state.teamIslands(team):
+             results.extend(island.techs.getVyrobas())
+
         return results
 
     @property
