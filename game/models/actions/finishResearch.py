@@ -1,3 +1,4 @@
+from game.data.task import AssignedTask
 from django import forms
 from crispy_forms.layout import Layout, Fieldset, HTML
 
@@ -7,20 +8,21 @@ from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, InvalidActionException, ActionResult
 from game.models.state import TechStatusEnum
+from game.models.stickers import StickerType, Sticker
 
 
 class FinishResearchForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        tech = self.getEntity(TechModel)
+        assignment = AssignedTask.objects.get(
+            techId=tech.id,
+            team=self.teamId,
+        )
         self.helper.layout = Layout(
             self.commonLayout,
-            HTML(r"""
-            <script>
-                document.getElementsByTagName("FORM")[0].submit();
-            </script>
-            """)
+            HTML(f"""Zkontrolujte, že tým dokončil úkol '{assignment.task.name}'""")
         )
-        self.getEntity(TechModel)
 
 class FinishResearchMove(Action):
     class Meta:
@@ -52,19 +54,21 @@ class FinishResearchMove(Action):
     def commit(self, state):
         tech = self.context.techs.get(id=self.arguments["entity"])
         techs = self.teamState(state).techs
+        assignment = AssignedTask.objects.get(
+            techId=tech.id,
+            team=self.team,
+        )
+
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
             return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní')
         if status == TechStatusEnum.UNKNOWN:
             return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, jelikož se ještě nezačala zkoumat')
         techs.setStatus(tech, TechStatusEnum.OWNED)
-        stickers = [tech] + \
-            [x for x in tech.unlock_vyrobas.all()]
-        stickerDescriptions = [tech.label] + \
-            [f'Výroba: <i>{x.label}</i>' for x in tech.unlock_vyrobas.all()]
 
-        stickerMsg = "".join([f'<li>{x}</li>' for x in stickerDescriptions])
-        return ActionResult.makeSuccess(f"""Technologie {tech.label} bude dozkoumána.<br><br>
-                    TODO: Tech task description<br><br>
-                    Vydej týmu následující samolepky:
-                    <ul class="list-disc px-4">{stickerMsg}</ul>""")
+        result = ActionResult.makeSuccess(f"""Technologie {tech.label} bude dozkoumána.""")
+        result.finishTask(assignment.task)
+        result.addSticker(Sticker(entity=tech, type=StickerType.REGULAR))
+        for vyroba in tech.unlock_vyrobas.all():
+            result.addSticker(Sticker(entity=vyroba, type=StickerType.REGULAR))
+        return result
