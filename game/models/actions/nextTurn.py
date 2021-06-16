@@ -37,7 +37,7 @@ class NextTurnForm(MoveForm):
 
         layout.append(HTML("""<hr class="border-2 border-black my-2">"""))
         self.fields["foodTotal"] = forms.IntegerField(
-            label=f"Kolik jídla jste vybrali (doporučeno {missingItems[-1][4]})")
+            label=f"Kolik jídla jste vybrali (doporučeno {missingItems[-1][4]})", initial=missingItems[-1][4])
         layout.append(Fieldset('Celkové množství jídla', 'foodTotal'))
 
         layout.append(HTML("""<hr class="border-2 border-black my-2">"""))
