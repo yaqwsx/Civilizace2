@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from crispy_forms.layout import Layout, Fieldset, HTML
 
 from game.data import ResourceModel
-from game.data.vyroba import VyrobaModel
+from game.data.vyroba import VyrobaModel, VyrobaEnhancedImage
 from game.forms.action import MoveForm
 from game.models.actionBase import Action, InvalidActionException, ActionResult
 from game.models.actionTypeList import ActionType
@@ -55,7 +55,7 @@ def scalableAmounts(field):
 def scalableAmount(amount):
     return f'<span class="vyrobaAmount" data-amount="{amount}">{amount}</span>'
 
-def obtainVyrobaInfo(state, teamId, vyrobaId):
+def vyrobaEnhanced(state, teamId, vyrobaId):
     """
     Return vyroba with its enhancers if available to the team
     """
@@ -64,7 +64,9 @@ def obtainVyrobaInfo(state, teamId, vyrobaId):
     vyroba = VyrobaModel.manager.latest().get(id=vyrobaId)
     if vyroba not in techs.availableVyrobas():
         raise InvalidActionException("Tým nevlastní tuto výrobu.")
-    return vyroba
+
+    enhancers = state.teamState(teamId).enhancers.getOwnedEnhancers(vyrobaId)
+    return VyrobaEnhancedImage(vyroba, enhancers)
 
 def inputsLabel(inputs):
     return ", ".join([f"{scalableAmount(amount)}&times; {res.label}" for res, amount in inputs.items()])
@@ -84,7 +86,7 @@ class VyrobaForm(MoveForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         entity = self.getEntity(VyrobaModel)
-        self.vyroba = obtainVyrobaInfo(self.state, self.teamId, entity.id)
+        self.vyroba = vyrobaEnhanced(self.state, self.teamId, entity.id)
 
         techs = self.state.teamState(self.teamId).techs
         resources = self.state.teamState(self.teamId).resources
@@ -188,10 +190,6 @@ class VyrobaMove(Action):
         return self.arguments["volumeSelect"]
 
     @property
-    def vyroba(self):
-        return self.context.vyrobas.get(id=self.arguments["entity"])
-
-    @property
     def die(self):
         return self.vyroba.die
 
@@ -203,11 +201,15 @@ class VyrobaMove(Action):
     def vyrobaInputs(self):
         return self.arguments["vyrobaInputs"]
 
+    def precomputeVyroba(self, state):
+        self.vyroba = vyrobaEnhanced(state, self.team.id, self.arguments["entity"])
+
     def requiresDice(self, state):
+        self.precomputeVyroba(state)
         return self.dots > 0
 
     def dotsRequired(self, state):
-        print("self.dots: " + str(self.dots))
+        self.precomputeVyroba(state)
         return {self.die: self.dots}
 
     def computeCost(self):
@@ -256,6 +258,7 @@ class VyrobaMove(Action):
         self.state = state
         teamState = state.teamState(self.team.id)
         techs = teamState.techs
+        self.precomputeVyroba(state)
 
         if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
             return ActionResult.makeFail(f'Nemůžu provádět výrobu, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
@@ -282,6 +285,7 @@ class VyrobaMove(Action):
         return ActionResult.makeSuccess(message)
 
     def commit(self, state):
+        self.precomputeVyroba(state)
         teamState =  state.teamState(self.team.id)
         resources = {self.vyroba.output: self.gain()}
         materials = teamState.resources.receiveResources(resources)
@@ -291,6 +295,7 @@ class VyrobaMove(Action):
         return ActionResult.makeSuccess(message)
 
     def abandon(self, state):
+        self.precomputeVyroba(state)
         productions = { res: amount for res, amount in self.retrieveCost().items()
             if res.isProduction or res.isHumanResource }
 
@@ -303,6 +308,7 @@ class VyrobaMove(Action):
         return ActionResult.makeSuccess(message)
 
     def cancel(self, state):
+        self.precomputeVyroba(state)
         teamState =  state.teamState(self.team.id)
         materials = teamState.resources.returnResources(self.retrieveCost())
 

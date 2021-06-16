@@ -49,7 +49,7 @@ class EnhancerMove(Action):
         teamState = self.teamState(state)
 
         try:
-            materials = teamState.resources.payResources(self.enhancer.getInputs())
+            materials = teamState.resources.payResources(self.enhancer.getDeployInputs())
             if materials:
                 resMsg = "".join([f'<li>{amount}&times; {res.label}</li>' for res, amount in materials.items()])
                 costMessage = f'Tým musí zaplatit: <ul class="list-disc px-4">{resMsg}</ul>'

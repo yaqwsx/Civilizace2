@@ -1004,10 +1004,19 @@ class EnhancerStatusEnum(enum.Enum):
 
 
 class EnhancerStorage(TechStorageAbstract):
-    def getOwnedEnhancers(self):
-        return [self.toEntity(enh) for enh, status
+    def getOwnedEnhancers(self, vyroba=None):
+        owned = [self.toEntity(enh) for enh, status
                     in self.items.items()
                     if status == 1]
+
+        if vyroba == None:
+            return owned
+
+        if isinstance(vyroba, EntityModel):
+            vyroba = vyroba.id
+        assert isinstance(vyroba, str)
+
+        return [x for x in owned if x.vyroba.id == vyroba]
 
 
 # =================================================

@@ -13115,7 +13115,7 @@
         ],
         [
             "Velk\u00e9 po\u010d\u00edtadlo",
-            "ach-pocitadlo",
+            "",
             "greatCounter",
             "zat\u00edm \u017e\u00e1dn\u00e1",
             "",
@@ -13123,7 +13123,7 @@
         ],
         [
             "U\u0159ezan\u00e9 prsty",
-            "arch-prsty",
+            "",
             "fingers",
             "zat\u00edm \u017e\u00e1dn\u00e1",
             "",
@@ -13235,7 +13235,7 @@
             "vyr-dobytek",
             "build-pastvina",
             "prod-bobule:1, mat-drevo:2",
-            "-",
+            "mat-obili:1",
             "1",
             "die-spol:5",
             "Pastvina 50 od Dobytek",

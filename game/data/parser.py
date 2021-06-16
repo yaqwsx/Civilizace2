@@ -1,5 +1,5 @@
 from game.data.vyroba import VyrobaModel, VyrobaInputModel
-from game.data.enhancer import EnhancerInputModel, EnhancerModel
+from game.data.enhancer import EnhancerModel, EnhancerDeployInputModel, EnhancerUseInputModel
 from .entity import EntityModel, EntitiesVersion, DieModel, AchievementModel, IslandModel, Direction
 from .resource import ResourceTypeModel, ResourceModel
 from .tech import TechModel, TechEdgeModel, TechEdgeInputModel
@@ -448,7 +448,7 @@ class Parser():
                 label=label, tech=tech, vyroba=vyroba, amount=amount,
                 die=die, dots=dots, detail=detail, version=self.entitiesVersion)
 
-            def addInput(entry):
+            def addDeployInput(entry):
                 chunks = entry.split(":")
 
                 if len(chunks) < 2:
@@ -467,14 +467,42 @@ class Parser():
                     self._logWarning("Vylepšení." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
                     return None
 
-                input = EnhancerInputModel.objects.create(
+                input = EnhancerDeployInputModel.objects.create(
                     parent=enhancer, resource=res, amount=amount)
                 return input
 
             if line[4] != "" and line[4] != "-":
                 chunks = line[4].split(",")
                 for chunk in chunks:
-                    addInput(chunk.strip())
+                    addDeployInput(chunk.strip())
+
+            def addUseInput(entry):
+                chunks = entry.split(":")
+
+                if len(chunks) < 2:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Nepodarilo se zpracovat vstup (" + entry + ")")
+                    return None
+
+                try:
+                    res = ResourceModel.manager.get(id=chunks[0], version=self.entitiesVersion)
+                except ResourceModel.DoesNotExist:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Nezname ID vstupu (" + entry + ")")
+                    return None
+
+                try:
+                    amount = int(chunks[1])
+                except Exception:
+                    self._logWarning("Vylepšení." + str(n) + ".vstup: Spatne formatovany pocet jednotek (" + entry + ")")
+                    return None
+
+                input = EnhancerUseInputModel.objects.create(
+                    parent=enhancer, resource=res, amount=amount)
+                return input
+
+            if line[5] != "" and line[5] != "-":
+                chunks = line[5].split(",")
+                for chunk in chunks:
+                    addUseInput(chunk.strip())
 
 
     def _addAchievements(self):
