@@ -66,6 +66,14 @@ class FinishResearchMove(Action):
         except AssignedTask.DoesNotExist:
             assignment = None
 
+        isFirst = True
+        teamStates = list(state.teamStates.all())
+        for team in teamStates:
+            statusThem = team.techs.getStatus(tech)
+            if statusThem == TechStatusEnum.OWNED:
+                isFirst = False
+                break
+
         status = techs.getStatus(tech)
         if status == TechStatusEnum.OWNED:
             return ActionResult.makeFail(f'Technologii {tech.label} nelze dozkoumat, tým ji již vlastní')
@@ -77,6 +85,9 @@ class FinishResearchMove(Action):
         if assignment:
             result.finishTask(assignment.task)
         result.addSticker(Sticker(entity=tech, type=StickerType.REGULAR))
+        result.addSticker(Sticker(entity=tech, type=StickerType.COMPACT))
+        if isFirst:
+            result.addSticker(Sticker(entity=tech, type=StickerType.SHARED))
         for vyroba in tech.unlock_vyrobas.all():
             result.addSticker(Sticker(entity=vyroba, type=StickerType.REGULAR))
         return result

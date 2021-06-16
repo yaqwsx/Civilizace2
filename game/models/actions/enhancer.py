@@ -1,14 +1,30 @@
 from django import forms
+from crispy_forms.layout import Layout, HTML
 
 from game.forms.action import MoveForm
 from game.models.actionTypeList import ActionType
 from game.models.actionBase import Action, ActionResult
-from game.data.entity import DieModel
+from game.data.enhancer import EnhancerModel
 from game.models.state import ResourceStorage, EnhancerStatusEnum
+from game.models.stickers import Sticker, StickerType
 
 
 class EnhancerForm(MoveForm):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        enhancer = self.getEntity(EnhancerModel)
+
+        layout = [self.commonLayout]
+
+        if enhancer.detail != "":
+            layout.append(HTML(f"""<br><b>Zkontroluj podmínku: {enhancer.detail}</b> a až potom dej Odeslat<br><br>"""))
+        else:
+            layout.append(HTML(f"""<br>Vylepšení nemá žádnou podmínku, můžeš rovnou Odeslat"""))
+
+        self.helper.layout = Layout(
+            *layout
+        )
 
 class EnhancerMove(Action):
     class Meta:
@@ -59,17 +75,21 @@ class EnhancerMove(Action):
             resMsg = "\n".join([f'{res.label}: {amount}' for res, amount in e.list.items()])
             message = f'Nedostate zdrojů; chybí: <ul class="list-disc px-4">{resMsg}</ul>'
             return ActionResult.makeFail(message)
-        return ActionResult.makeSuccess(
-            f"""
+        message = f"""
                 Pro zavedení vylepšení <i>{self.enhancer.label}</i> je třeba hodit: {self.enhancer.dots}&times; {self.enhancer.die.label}<br>
                 {costMessage}<br>
-            """)
+            """
+        if self.enhancer.detail != "":
+            message += f"""Podmínka akce: <b>{self.enhancer.detail}</b>"""
+        return ActionResult.makeSuccess(message)
 
     def commit(self, state):
         self.teamState(state).enhancers.set(self.enhancer, 1)
-        return ActionResult.makeSuccess(f"""
+        result = ActionResult.makeSuccess(f"""
                 Vylepšení <i>{self.enhancer.label}</i> bylo úspěšně zavedeno do provozu<br>
             """)
+        result.addSticker((Sticker(entity=self.enhancer.vyroba, type=StickerType.REGULAR)))
+        return result
 
     def abandon(self, state):
         return self.makeAbandon()
