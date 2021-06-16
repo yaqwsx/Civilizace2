@@ -1,3 +1,4 @@
+from game.data.entity import EntityModel
 from django.views import View
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.template.loader import render_to_string
@@ -143,11 +144,16 @@ class ActionInitiateView(ActionView):
             state.setContext(ActionContext.latests())
             formClass = formForActionType(moveId)
             form = formClass(team=teamId, action=moveId, user=request.user, entity=request.GET.get("entity"), state=state)
+            try:
+                entityLabel = state.context.entities.get(id=request.GET.get("entity")).label
+            except EntityModel.DoesNotExist:
+                entityLabel = ""
             return render(request, "game/actionInitiate.html", {
                 "request": request,
                 "form": form,
                 "team": get_object_or_404(Team, pk=teamId),
                 "action": ActionType(moveId),
+                "entityLabel": entityLabel,
                 "messages": messages.get_messages(request)
             })
         except InvalidActionException as e:

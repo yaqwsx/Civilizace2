@@ -5,7 +5,10 @@
 
 {% block content %}
 <div class="w-full border-l-8 border-{{team.color}} pl-2">
-    <h1>{{action.move.label}} pro tým {{team.name}}</h1>
+    <h1>
+        {{action.move.label}} pro tým {{team.name}}
+        {% if action.entityLabel %} ({{action.entityLabel}}) {% endif %}
+    </h1>
 
     {% if moveValid %}
         <div class="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md my-4" role="alert">

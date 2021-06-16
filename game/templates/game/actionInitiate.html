@@ -5,7 +5,10 @@
 
 {% block content %}
     <div class="w-full border-l-8 border-{{team.color}} pl-2">
-        <h1>{{action.label}} pro tým {{team.name}}</h1>
+        <h1>
+            {{action.label}} pro tým {{team.name}}
+            {% if entityLabel %} ({{entityLabel}}) {% endif %}
+        </h1>
         <p>Vyplňte zbývající parametry:</p>
         <form method="post">
             {% csrf_token %}

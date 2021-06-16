@@ -216,6 +216,12 @@ class Action(ImmutableModel):
             self.entitiesVersion = EntitiesVersion.objects.getNewest()
         self.context = ActionContext(self.entitiesVersion)
 
+    @property
+    def entityLabel(self):
+        if self.arguments["entity"]:
+            return self.context.entities.get(id=self.arguments["entity"]).label
+        return ""
+
     @staticmethod
     def stripData(data):
         data = copy.copy(data)
