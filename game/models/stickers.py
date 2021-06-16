@@ -134,8 +134,9 @@ class Sticker(models.Model):
             font-size: 20px;
         }
 
-        ul li {
-            margin: 5px;
+        ul {
+            list-style-position: inside;
+            padding-left: 0;
         }
 
         .image_container {
@@ -163,19 +164,19 @@ class Sticker(models.Model):
         vyrobas = entity.unlock_vyrobas.all()
         if not vyrobas:
             return ""
-        fmt = '<div><b>Odemyká výrobu:</b><ul>'
-        for vyroba in vyrobas:
-            fmt += f'<li>{vyroba.label}</li>'
-        return fmt + '</ul></div>'
+        fmt = '<div><b>Odemyká výrobu: </b>'
+        labels = [vyroba.label for vyroba in vyrobas]
+        fmt += ", ".join(labels)
+        return fmt + '</div>'
 
     def formatEnhancers(self, entity):
         enhancers = entity.unlock_enhancers.all()
         if not enhancers:
             return ""
-        fmt = '<div><b>Odemyká vylepšení:</b><ul>'
-        for enhance in enhancers:
-            fmt += f'<li>{enhance.label}</li>'
-        return fmt + '</ul></div>'
+        fmt = '<div><b>Odemyká vylepšení: </b>'
+        labels = [enhance.label for enhance in enhancers]
+        fmt += ", ".join(labels)
+        return fmt + '</div>'
 
     def formatHeader(self, entity):
         code = self.getQRCode(self.team.id + " " + entity.id)
@@ -199,12 +200,9 @@ class Sticker(models.Model):
             return ""
         fmt = '<div><b>Navazující směry bádání:</b><ul>'
         for edge in edges:
-            fmt += f'<li><b>{edge.dst.label}:</b>'
-            fmt += f'<ul>'
-            fmt += f'<li>{edge.dots} × {edge.die.label} kostka'
-            for res in edge.resources.all():
-                fmt += f'<li>{res.amount} × {self.resource(res.resource)}</li>'
-            fmt += f'</ul>'
+            fmt += f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} kostka'
+            labels = [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
+            fmt += '<div>' + ', '.join(labels) + '</div>'
             fmt += '</li>'
         return fmt + '</ul></div>'
 
