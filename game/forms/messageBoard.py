@@ -29,5 +29,5 @@ class MessageForm(forms.Form):
                 }, *args, **kwargs)
 
 class TeamVisibilityForm(forms.Form):
-    team = forms.IntegerField(widget=forms.HiddenInput())
+    team = forms.CharField(widget=forms.HiddenInput())
     visible = forms.BooleanField(required=False)
