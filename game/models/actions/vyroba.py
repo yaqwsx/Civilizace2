@@ -297,7 +297,7 @@ class VyrobaMove(Action):
         teamState = state.teamState(self.team.id)
         teamState.resources.returnResources(productions)
 
-        message = self.abandonMessage()
+        message = "Týmu se nepodařilo naházet dostatek puntíků<br>"
         message += "<br>"
         message += "Tým nedostane zpátky žádné materiály"
         return ActionResult.makeSuccess(message)
@@ -306,7 +306,7 @@ class VyrobaMove(Action):
         teamState =  state.teamState(self.team.id)
         materials = teamState.resources.returnResources(self.retrieveCost())
 
-        message = self.cancelMessage()
+        message = "Akce byla zrušena<br>"
         message += "<br>"
         message += "Vraťte týmu materiály: " + ResourceStorage.asHtml(materials)
 
