@@ -541,7 +541,7 @@ class Parser():
         for vyroba in vyrobas:
             vyroba.pk = None
             vyroba.syntheticId = None
-            vyroba.id = edge.id + suffix
+            vyroba.id = vyroba.id + suffix
             vyroba.tech = root
             vyroba.save()
 
