@@ -25,6 +25,8 @@ class ActionType(enum.Enum):
     transferIsland = 36
     repairIsland = 37
 
+    initialStickers = 40
+
     godmode = 42
     sandbox = 99
 
@@ -53,6 +55,8 @@ class ActionType(enum.Enum):
         shareIsland: "OSTROV: Nasdílet mapu",
         transferIsland: "OSTROV: Přenést vlastnictví",
         repairIsland: "OSTROV: Postav opevenění",
+
+        initialStickers: "Udělit úvodní samolepky",
 
         createInitial: "SYSTEM: Vytvořit nový stav",
         nextGeneration: "SYSTEM: Next generation",
