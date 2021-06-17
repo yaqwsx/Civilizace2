@@ -58,6 +58,11 @@ TEAMS = {
         "players": teamPlayers("ruzovy", "nevyrovnanyuhel"),
         "id": "tym-ruzovi",
         "color": "pink-600"
+    },
+    "Protinožci": {
+        "players": [{"username": "protinozec", "password": "zemekoule"}],
+        "id": "tym-protinozci",
+        "color": "white"
     }
 }
 
@@ -107,6 +112,9 @@ class Command(BaseCommand):
             if not team:
                 team = Team.objects.create(id=teamParams["id"], name=teamName,
                     color=teamParams["color"])
+                if team.id == "tym-protinozci":
+                    team.visible = False
+                    team.save()
                 print("Creating team: " + str(team))
             for userParams in teamParams["players"]:
                 user = Command.create_or_get_user(
