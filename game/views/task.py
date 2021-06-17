@@ -94,8 +94,9 @@ class EditTaskView(View):
             raise PermissionDenied("Cannot view the page")
         task = get_object_or_404(TaskModel, pk=taskId)
         if task.assignedtask_set.filter(assignedAt__lte=timezone.now()).exists():
-            messages.warning(request,
-                "Snažíš se upravit úkol, který už byl někomu přidělen! Opravdu to chceš dělat?")
+            messages.warning(request, """
+                <span class="text-xl">Snažíš se upravit úkol, který už byl
+                někomu přidělen! Opravdu to chceš dělat?</span>""")
         taskForm = TaskForm(initial={
             "name": task.name,
             "capacity": task.capacity,
