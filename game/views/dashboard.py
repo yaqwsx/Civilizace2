@@ -128,7 +128,7 @@ class DashboardStickersView(View):
     @method_decorator(login_required)
     def get(self, request, teamId):
         user = request.user
-        if user.isPlayer() and user.team().id != teamId:
+        if not user.isOrg():
             raise PermissionDenied("Cannot view the page")
         team = get_object_or_404(Team, pk=teamId)
         return render(request, 'game/dashBoardStickers.html', {
