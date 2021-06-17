@@ -52,19 +52,10 @@ class IslandDiscoverMove(Action):
         if len(islands) > 0:
             state.teamState(self.team).addDiscoveredIsland(islands[0].id)
         die = self.context.dies.get(id=self.direction.correspondingDie)
-        message = f"Vyzvi tým k tomu, aby hodil kostkou '{die.label}'. Pokud:<ul>"
+        message = f"Vyzvi tým k tomu, aby hodil kostkou '{die.label}'. "
+        message += f"Na zadaném políčku se " + ("✓ nachází" if len(islands) > 0 else "<b>✘ NE</b>nachází") + " ostrov."
+        message += f"Tuto informaci týmu sděl pouze pokud hodí <b>aslespoň {dotsRequired}</b>."
 
-        message += f"<li>hodí <b>aslespoň {dotsRequired}</b> potvrď akci a řekni mu, že "
-        if len(islands) > 0:
-            message += f"objevil ostrov."
-        else:
-            message += "<b>neobjevil nic</b>."
-        message += "</li>"
-
-        message += f"""<li>hodí <b>méně než {dotsRequired}</b> zruš akci a
-                           řekni mu, že neuspěl v hledání</li>"""
-
-        message += "</ul>"
         return ActionResult.makeSuccess(message)
 
     def commit(self, state):

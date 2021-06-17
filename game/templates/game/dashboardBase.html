@@ -9,20 +9,22 @@
 
     <ul class="w-full list-reset lg:flex flex-1 items-center px-4 md:px-0 border-gray-600 border-b-2 lg:border-none">
     {% for t in teams %}
-        {% if t.id == targetTeam.id %}
-            <li class="mr-6 my-2 md:my-0">
-                <a href="{% url 'dashboardStat' teamId=t.id %}"
-                    class="block py-1 md:py-2 pl-1 align-middle text-orange-600 no-underline hover:text-gray-900 border-b-2 border-orange-600 hover:border-orange-600">
-                    <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
-                </a>
-            </li>
-        {% else %}
-            <li class="mr-6 my-2 md:my-0">
-                <a href="{% url 'dashboardStat' teamId=t.id %}"
-                    class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
-                    <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
-                </a>
-            </li>
+        {% if t.visible %}
+            {% if t.id == targetTeam.id %}
+                <li class="mr-6 my-2 md:my-0">
+                    <a href="{% url 'dashboardStat' teamId=t.id %}"
+                        class="block py-1 md:py-2 pl-1 align-middle text-orange-600 no-underline hover:text-gray-900 border-b-2 border-orange-600 hover:border-orange-600">
+                        <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="mr-6 my-2 md:my-0">
+                    <a href="{% url 'dashboardStat' teamId=t.id %}"
+                        class="block py-1 md:py-2 pl-1 align-middle text-gray-500 no-underline hover:text-gray-900 border-b-2 border-white hover:border-pink-500">
+                        <span class="pb-1 md:pb-0 text-sm">{{ t.name }}</span>
+                    </a>
+                </li>
+            {% endif %}
         {% endif %}
     {% endfor %}
     </ul>
