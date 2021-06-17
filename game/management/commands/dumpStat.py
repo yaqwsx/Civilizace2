@@ -7,10 +7,8 @@ from game.models.actionBase import ActionPhase, ActionEvent, Action
 from game.models.actionTypeList import ActionType
 from game.models.users import Team
 
-def isRoundEnd(prevState, state):
-    oldWork = prevState.resources.getAmount("res-prace")
-    newWork = state.resources.getAmount("res-prace")
-    return newWork > oldWork and newWork >= state.resources.getAmount("res-obyvatel")
+def isRoundEnd(state):
+    return state.action.move == ActionType.nextTurn
 
 def teamStat(team):
     stat = []
@@ -34,9 +32,7 @@ def teamStat(team):
                 "productions": prod,
                 "prodSum": prodSum
             })
-        prevState = tState
     return stat
-
 
 class Command(BaseCommand):
     help = "Dump base per-team stat into several CSV files"
