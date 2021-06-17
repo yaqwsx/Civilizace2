@@ -98,6 +98,7 @@ class Direction(enum.Enum):
 
     @property
     def correspondingDie(self):
+        # If you change this, change __labels__!
         return {
             Direction.North: "die-sila",
             Direction.West: "die-prir",
@@ -105,15 +106,28 @@ class Direction(enum.Enum):
             Direction.East: "die-tech"
         }[self.value]
 
+    # Python can't reference the class within class, so let's hardcode this
+    __labels__ = {
+        North: "Síla",
+        West: "Přírodní",
+        South: "Společenská",
+        East: "Technologická"
+    }
+
+
 class IslandModel(EntityModel):
     direction = enum.EnumField(Direction)
     distance = models.IntegerField()
     root = models.ForeignKey("TechModel", on_delete=models.CASCADE, null=True)
 
     def isOnCoords(self, direction, distance):
-        if self.distance > 24 or self.distance < 1:
+        if self.distance > 12 or self.distance < 0:
             raise RuntimeError("Unsupported distance")
+        if distance == 6 and self.distance == 6:
+            return True
+        if distance == 0 and self.distance == 0:
+            return True
         onOriginal = self.direction == direction and self.distance == distance
-        onAlternate = direction.opposite == self.direction and (24 - distance) == self.distance
+        onAlternate = direction.opposite == self.direction and (12 - distance) == self.distance
         return onOriginal or onAlternate
 
