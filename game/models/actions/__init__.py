@@ -27,6 +27,8 @@ from .islandShare import IslandShareMove
 from .islandTransfer import IslandTransferMove
 from .islandRepair import IslandRepairMove
 
+from .initialStickers import InitialStickersMove
+
 
 def buildAction(data):
     """
