@@ -135,8 +135,7 @@ class Sticker(models.Model):
         }
 
         ul {
-            list-style-position: inside;
-            padding-left: 0;
+            list-style-position: outside;
         }
 
         .image_container {
@@ -144,9 +143,9 @@ class Sticker(models.Model):
             align-items:center;
             padding: 0px;
             margin: 0px;
-            height: 370px;
-            width: 370px;
-            transform: translate(0,-40px);
+            height: 310px;
+            width: 310px;
+            margin: 30px;
         }
 
         .vyroba {
@@ -173,9 +172,15 @@ class Sticker(models.Model):
         enhancers = entity.unlock_enhancers.all()
         if not enhancers:
             return ""
-        fmt = '<div><b>Odemyká vylepšení: </b>'
-        labels = [enhance.label for enhance in enhancers]
-        fmt += ", ".join(labels)
+        fmt = '<div><b>Odemyká vylepšení:</b><br>'
+        fmt += "<ul>"
+        for enhancer in enhancers:
+            enhancer_format  = enhancer.label + " " +  enhancer.vyroba.label + "<br>"
+            if enhancer.detail:
+                enhancer_format += "<em>" + enhancer.detail + "</em><br>"
+            enhancer_format += ", ".join(enhancer.getDeployInputs())
+            fmt += "<li>" + enhancer_format + "</li>"
+        fmt += "</ul>"
         return fmt + '</div>'
 
     def formatHeader(self, entity):
@@ -200,7 +205,7 @@ class Sticker(models.Model):
             return ""
         fmt = '<div><b>Navazující směry bádání:</b><ul>'
         for edge in edges:
-            fmt += f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} kostka'
+            fmt += f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} &#x1f3b2;'
             labels = [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
             fmt += '<div>' + ', '.join(labels) + '</div>'
             fmt += '</li>'
@@ -272,7 +277,7 @@ class Sticker(models.Model):
         fmt += '<div class="desc">'
         fmt += '<b>Vstupy:</b>'
         fmt += '<ul>'
-        fmt += f'<li>{entity.dots} × {entity.die.label} kostka</li>'
+        fmt += f'<li>{entity.dots} × {entity.die.label} &#x1f3b2;</li>'
         for input in entity.inputs.all():
             fmt += f'<li>{input.amount} × {self.resource(input.resource)}</li>'
         fmt += f'</ul>'
@@ -296,7 +301,8 @@ class Sticker(models.Model):
 
     def renderBuildingImage(self, entity):
         path = os.path.join(os.getcwd(), f"./game/data/build/{entity.id}.png")
-        fmt = '<div class="image_container">'
+        move = 100 if entity.id != "build-hut" else 50
+        fmt  = f'<div class="image_container" style="transform: translate(0,-{move}px)">'
         fmt += f'<img class="fit" src="{path}">'
         fmt += '</div>'
         return fmt
