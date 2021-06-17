@@ -38,7 +38,7 @@ def jsonDiffEditor(field, json):
             }}
 
             function flattenRec(o, root, result) {{
-                if (!(o.constructor == Object)) {{
+                if (o === null || !(o.constructor == Object)) {{
                     result[root] = o;
                     return;
                 }}

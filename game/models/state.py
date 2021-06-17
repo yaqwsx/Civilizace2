@@ -198,7 +198,7 @@ class State(StateModel):
         for iss in self.islandStates.all():
             # ToDo: Ignore the island name
             iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.label})", update))
-        if "parameters" in update["change"]["parameters"]:
+        if "parameters" in update["change"]:
             self.parameters = update["change"]["parameters"]
 
     def getPrice(self, name, multiplicator=1):
@@ -390,6 +390,13 @@ class IslandState(StateModel):
             "techs": self.techs.toJson(),
             "defense": self.defense
         }
+
+    def godUpdate(self, update):
+        self.techs.godUpdate(eatUpdatePrefixAll("techS", update))
+        if "owner" in update["change"]:
+            self.owner = Team.objects.get(pk=update["change"]["owner"])
+        if "defense" in update["change"]:
+            self.defense = int(pk=update["change"]["defense"])
 
 
 class TeamAchievements(StateModel):
@@ -868,6 +875,13 @@ class TechStatusEnum(enum.Enum):
     RESEARCHING = 2
     OWNED = 3
 
+    def toName(self):
+        return {
+            TechStatusEnum.UNKNOWN: "UNKNOWN",
+            TechStatusEnum.RESEARCHING: "RESERARCHING",
+            TechStatusEnum.OWNED: "OWNED"
+        }[self.value]
+
     __labels__ = {
         UNKNOWN: "Neznámý",
         RESEARCHING: "Zkoumá se",
@@ -983,6 +997,8 @@ class TechStorageAbstract(Storage):
 
         return results
 
+    def toJson(self):
+        return { k: TechStatusEnum(v).toName() for k, v in self.items.items()}
 
     def godUpdate(self, update):
         for techId, status in update["add"].items():

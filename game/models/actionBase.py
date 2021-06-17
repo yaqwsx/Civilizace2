@@ -218,7 +218,7 @@ class Action(ImmutableModel):
 
     @property
     def entityLabel(self):
-        if self.arguments["entity"]:
+        if "entity" in self.arguments and self.arguments["entity"]:
             return self.context.entities.get(id=self.arguments["entity"]).label
         return ""
 
