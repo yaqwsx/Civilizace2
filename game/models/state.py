@@ -270,7 +270,7 @@ class TeamState(StateModel):
                 turn=0,
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
-                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-pastvina"], context),
+                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-pastvina", "tech-astronomie"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(team, context),
