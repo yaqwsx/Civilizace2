@@ -354,8 +354,8 @@ class Parser():
                 continue
 
 
-            id = id + "-material"
-            label = "Materiál: " + label
+            id = id + "-mat"
+            label = label + " (mat)"
 
             vyr = VyrobaModel.manager.create(id=id,
                 label=label, flavour=flavour, tech=tech, build=centrum,
