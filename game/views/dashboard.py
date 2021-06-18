@@ -137,7 +137,7 @@ class DashboardStickersView(View):
             "myTeam": team,
             "targetTeam": team,
             "teams": Team.objects.all(),
-            "teamStickers": team.sticker_set.order_by('awardedAt').all(),
+            "teamStickers": team.sticker_set.order_by('-awardedAt').all(),
             "messages": messages.get_messages(request)
         })
 

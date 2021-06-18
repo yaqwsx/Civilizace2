@@ -175,11 +175,11 @@ class Sticker(models.Model):
         fmt = '<div><b>Odemyká vylepšení:</b><br>'
         fmt += "<ul>"
         for enhancer in enhancers:
-            enhancer_format  = enhancer.label + " " +  enhancer.vyroba.label + "<br>"
-            if enhancer.detail:
-                enhancer_format += "<em>" + enhancer.detail + "</em><br>"
-            enhancer_format += ", ".join(enhancer.getDeployInputs())
-            fmt += "<li>" + enhancer_format + "</li>"
+            enhancer_format  = f"{enhancer.label} ({enhancer.vyroba.label})"
+            labels = [f"<li><b>{enhancer_format}: </b></li> {enhancer.dots} × {enhancer.die.label} &#x1f3b2;"]
+            labels += [f"{res.amount} × {self.resource(res.resource)}" for res in enhancer.deploy_inputs.all()]
+            fmt += ", ".join(labels)
+            fmt += f"<br><em> + {enhancer.amount} × {self.resource(enhancer.vyroba.output)}</em>"
         fmt += "</ul>"
         return fmt + '</div>'
 
@@ -205,8 +205,8 @@ class Sticker(models.Model):
             return ""
         fmt = '<div><b>Navazující směry bádání:</b><ul>'
         for edge in edges:
-            fmt += f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} &#x1f3b2;'
-            labels = [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
+            labels = [f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} &#x1f3b2;']
+            labels += [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
             fmt += '<div>' + ', '.join(labels) + '</div>'
             fmt += '</li>'
         return fmt + '</ul></div>'
@@ -268,6 +268,8 @@ class Sticker(models.Model):
         return resource.label
 
     def formatVyrobaInfo(self, entity):
+        from game.models.actions.vyroba import vyrobaEnhanced
+        entity = vyrobaEnhanced(self.state, self.team, entity)
         # Místo
         fmt = '<div class="desc">'
         fmt += f'<b>Probíha v:</b> {entity.build.label}'
@@ -278,8 +280,8 @@ class Sticker(models.Model):
         fmt += '<b>Vstupy:</b>'
         fmt += '<ul>'
         fmt += f'<li>{entity.dots} × {entity.die.label} &#x1f3b2;</li>'
-        for input in entity.inputs.all():
-            fmt += f'<li>{input.amount} × {self.resource(input.resource)}</li>'
+        for resource, amount in entity.inputs.items():
+            fmt += f'<li>{amount} × {self.resource(resource)}</li>'
         fmt += f'</ul>'
         fmt += '</div>'
         fmt += '<hr class="line">'
@@ -321,14 +323,21 @@ class Sticker(models.Model):
             return fmt
         return ""
 
+    def stickerType(self):
+        return {
+            StickerType.REGULAR: "Obyčejná",
+            StickerType.SHARED: "Do stromu",
+            StickerType.COMPACT: "Malá"
+        }[self.type]
+
     def shortDescription(self):
         """
         Return a pretty short string description of the sticker
         """
-        return f"{self.entity.label} pro {self.team.name}"
+        return f"{self.entity.label} pro {self.team.name} ({self.stickerType()})"
 
     def stickerName(self) -> str:
-        return f"sticker_{self.id:04}_{self.type.name}"
+        return f"sticker_{self.id:04}_t{self.type.name}_s{self.state.id}"
 
     def getImage(self):
         """
@@ -363,6 +372,9 @@ class Sticker(models.Model):
         """
         Render the sticker into PNG file returned as bytes
         """
+        from game.models.state import State
+        self.state = State.objects.get(id=self.state.id)
+        self.state.setContext(self.state.action.action.context)
         choices = {
             "build-": (TechModel, self.renderBuilding),
             "tech-": (TechModel, self.renderTech),

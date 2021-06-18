@@ -229,11 +229,6 @@ class ActionConfirmView(ActionView):
                     res.append(commitRes)
                     awardAchievements(request, state, team)
                 message = res.message
-                if res.success:
-                    message += "<br>" + awardStickers(request, state, team,
-                        res.stickers, res.success)
-                    message += "<br>" + handleNewTasks(request, state, team,
-                        res.startedTasks, res.finishedTasks, res.success)
 
                 if not res.success:
                     form.data["canceled"] = True
@@ -251,6 +246,11 @@ class ActionConfirmView(ActionView):
                 if not requiresDice:
                     commitStep.save()
                 state.save()
+                if res.success:
+                    message += "<br>" + awardStickers(request, state, team,
+                        res.stickers, res.success)
+                    message += "<br>" + handleNewTasks(request, state, team,
+                        res.startedTasks, res.finishedTasks, res.success)
                 if requiresDice:
                     messages.success(request,
                         f"Akce {action.description()} započata s efektem: <br/> {message}")
@@ -335,13 +335,13 @@ class ActionDiceThrow(ActionView):
             if not res.success:
                 messages.error(res.message)
                 return redirect('actionDiceThrow', actionId=action.id)
-            message = awardStickers(request, state, team, res.stickers, True)
-            message += "<br>" + handleNewTasks(request, state, team,
-                res.startedTasks, res.finishedTasks, True)
             awardAchievements(request, state, team)
             action.save()
             step.save()
             state.save()
+            message = awardStickers(request, state, team, res.stickers, True)
+            message += "<br>" + handleNewTasks(request, state, team,
+                res.startedTasks, res.finishedTasks, True)
             if len(res.message) > 0:
                 channel(request, res.message + "<br>" + message)
             return redirect('actionIndex')

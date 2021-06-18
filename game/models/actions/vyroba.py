@@ -61,7 +61,7 @@ def vyrobaEnhanced(state, teamId, vyrobaId):
     """
     teamState = state.teamState(teamId)
     techs = teamState.techs
-    vyroba = VyrobaModel.manager.latest().get(id=vyrobaId)
+    vyroba = state.context.vyrobas.get(id=vyrobaId)
     if vyroba not in techs.availableVyrobas():
         raise InvalidActionException("Tým nevlastní tuto výrobu.")
 
