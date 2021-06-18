@@ -270,7 +270,7 @@ class TeamState(StateModel):
                 turn=0,
                 resources=ResourceStorage.objects.createInitial(team, context),
                 materials=MaterialStorage.objects.createInitial(context),
-                techs=TechStorage.objects.createInitial(["build-centrum", "build-pila", "build-pastvina", "tech-astronomie"], context),
+                techs=TechStorage.objects.createInitial(["build-centrum"], context),
                 distances=DistanceLogger.objects.createInitial(team, context),
                 achievements=TeamAchievements.objects.createInitial(context),
                 foodSupply=FoodStorage.objects.createInitial(team, context),
@@ -664,7 +664,7 @@ class ResourceStorageAbstract(Storage):
 
     class ResourceStorageManager(models.Manager):
         def createInitial(self, team, context):
-            initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", INITIAL_POPULATION), ("res-populace", INITIAL_POPULATION)]
+            initialResources = [("res-obyvatel", INITIAL_POPULATION), ("res-prace", 0), ("res-populace", INITIAL_POPULATION)]
             items = {}
             for id, amount in initialResources:
                 items[id] = amount
