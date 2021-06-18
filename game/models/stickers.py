@@ -175,11 +175,11 @@ class Sticker(models.Model):
         fmt = '<div><b>Odemyká vylepšení:</b><br>'
         fmt += "<ul>"
         for enhancer in enhancers:
-            enhancer_format  = enhancer.label + " " +  enhancer.vyroba.label + "<br>"
-            if enhancer.detail:
-                enhancer_format += "<em>" + enhancer.detail + "</em><br>"
-            enhancer_format += ", ".join(enhancer.getDeployInputs())
-            fmt += "<li>" + enhancer_format + "</li>"
+            enhancer_format  = f"{enhancer.label} ({enhancer.vyroba.label})"
+            labels = [f"<li><b>{enhancer_format}: </b></li> {enhancer.dots} × {enhancer.die.label} &#x1f3b2;"]
+            labels += [f"{res.amount} × {self.resource(res.resource)}" for res in enhancer.deploy_inputs.all()]
+            fmt += ", ".join(labels)
+            fmt += f"<br><em> + {enhancer.amount} × {self.resource(enhancer.vyroba.output)}</em>"
         fmt += "</ul>"
         return fmt + '</div>'
 
@@ -205,8 +205,8 @@ class Sticker(models.Model):
             return ""
         fmt = '<div><b>Navazující směry bádání:</b><ul>'
         for edge in edges:
-            fmt += f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} &#x1f3b2;'
-            labels = [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
+            labels = [f'<li><b>{edge.dst.label}: </b>{edge.dots} × {edge.die.label} &#x1f3b2;']
+            labels += [f'{res.amount} × {self.resource(res.resource)}' for res in edge.resources.all()]
             fmt += '<div>' + ', '.join(labels) + '</div>'
             fmt += '</li>'
         return fmt + '</ul></div>'
