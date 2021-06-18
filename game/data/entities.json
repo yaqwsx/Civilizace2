@@ -13223,7 +13223,7 @@
             "-",
             "1",
             "die-tech:5",
-            "Pila max. 50 od zdroje D\u0159evo",
+            "",
             "1",
             "1",
             "prod-drevo:1"
@@ -13237,7 +13237,7 @@
             "-",
             "1",
             "die-spol:5",
-            "Pastvina max. 50 od zdroje Dobytek",
+            "",
             "1",
             "1",
             "prod-dobytek:1"
@@ -13251,7 +13251,7 @@
             "-",
             "1",
             "die-sila:5",
-            "Pozemn\u00ed d\u016fl max. 50 od K\u00e1men",
+            "",
             "1",
             "1",
             "prod-kamen:1"
@@ -13265,7 +13265,7 @@
             "-",
             "1",
             "die-prir:5",
-            "Ml\u00fdn max. 50 od Obil\u00ed",
+            "",
             "1",
             "1",
             "prod-obili:1"
@@ -13279,7 +13279,7 @@
             "-",
             "1",
             "die-tech:10",
-            "Hlubinn\u00fd d\u016fl 20 od Nerost\u016f",
+            "",
             "1",
             "1",
             "prod-nerost:1"
@@ -13293,7 +13293,7 @@
             "-",
             "2",
             "die-prir:10",
-            "Ml\u00fdn 20 od Obil\u00ed",
+            "",
             "1",
             "1",
             "prod-obili:1"
@@ -13307,7 +13307,7 @@
             "-",
             "2",
             "die-sila:20",
-            "Hu\u0165 20 od Povrchov\u00e9ho dolu",
+            "",
             "1",
             "1",
             "prod-uhli:1"
@@ -13391,7 +13391,7 @@
             "",
             "3",
             "die-any:30",
-            "Ryb\u00e1rna max. 10 od P\u0159\u00edstavu",
+            "",
             "1",
             "1",
             "prod-maso:4"
@@ -13405,7 +13405,7 @@
             "",
             "2",
             "die-any:30",
-            "Pastvina max. 10 od zdroje Dobytek",
+            "",
             "1",
             "1",
             "prod-maso:2"
