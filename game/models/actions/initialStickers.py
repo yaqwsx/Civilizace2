@@ -37,12 +37,12 @@ class InitialStickersMove(Action):
         return ActionResult.makeSuccess("")
 
     def commit(self, state):
+        tech = self.context.techs.get(id="build-centrum")
         result = ActionResult.makeSuccess("Týmu budou uděleny počáteční samolepky")
-        result.addSticker(
-            Sticker(entity=self.context.techs.get(id="build-centrum"),
-                    type=StickerType.REGULAR))
 
-        result.addSticker(
-            Sticker(entity=self.context.vyrobas.get(id="vyr-jil"),
-                    type=StickerType.REGULAR))
+        result.addSticker(Sticker(entity=tech, type=StickerType.REGULAR))
+        result.addSticker(Sticker(entity=tech, type=StickerType.COMPACT))
+        for vyroba in tech.unlock_vyrobas.all():
+            result.addSticker(Sticker(entity=vyroba, type=StickerType.REGULAR))
+
         return result
