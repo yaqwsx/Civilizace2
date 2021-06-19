@@ -21,6 +21,10 @@ class TaskModel(models.Model):
         """
         return self.name
 
+    @property
+    def dropdownLabel(self):
+        return f"Úkol {self.name}"
+
     def htmlRepr(self):
         return f"Úkol: <b>{self.label}</b><br><i>{self.text}</i>"
 
