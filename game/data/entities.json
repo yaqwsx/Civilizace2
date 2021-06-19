@@ -1047,7 +1047,7 @@
             "-",
             "edge-ostrov-stavivo-2",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1063,7 +1063,7 @@
             "-",
             "edge-ostrov-luxus-2",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1079,7 +1079,7 @@
             "-",
             "edge-ostrov-ropa-2",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1095,7 +1095,7 @@
             "edge-ostrov-jidlo-5",
             "-",
             "1",
-            "0",
+            "2",
             "vyr-ost-slon",
             "-"
         ],
@@ -1127,7 +1127,7 @@
             "-",
             "-",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1143,7 +1143,7 @@
             "-",
             "-",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1159,7 +1159,7 @@
             "edge-ostrov-stavivo-4",
             "edge-ostrov-stavivo-5",
             "1",
-            "0",
+            "2",
             "vyr-ost-cihla",
             "-"
         ],
@@ -1175,7 +1175,7 @@
             "edge-ostrov-stavivo-5",
             "-",
             "1",
-            "0",
+            "2",
             "vyr-ost-sklo",
             "-"
         ],
@@ -1207,7 +1207,7 @@
             "-",
             "-",
             "1",
-            "0",
+            "2",
             "-",
             "-"
         ],
@@ -1223,7 +1223,7 @@
             "edge-ostrov-luxus-3",
             "edge-ostrov-luxus-4",
             "1",
-            "0",
+            "2",
             "vyr-ost-ovoce",
             "-"
         ],
@@ -1239,7 +1239,7 @@
             "edge-ostrov-luxus-4",
             "edge-ostrov-luxus-5",
             "1",
-            "0",
+            "2",
             "vyr-ost-preclik",
             "-"
         ],
@@ -1255,7 +1255,7 @@
             "edge-ostrov-luxus-5",
             "-",
             "1",
-            "0",
+            "2",
             "vyr-ost-byliny",
             "-"
         ],
@@ -1287,7 +1287,7 @@
             "edge-ostrov-ropa-2",
             "edge-ostrov-ropa-3",
             "1",
-            "0",
+            "2",
             "vyr-ost-drevo",
             "-"
         ],
@@ -1303,7 +1303,7 @@
             "edge-ostrov-ropa-3",
             "edge-ostrov-ropa-4",
             "1",
-            "0",
+            "2",
             "vyr-ost-tram, vyr-ost-keramika-drevo",
             "-"
         ],
@@ -1319,7 +1319,7 @@
             "edge-ostrov-ropa-4",
             "edge-ostrov-ropa-5",
             "1",
-            "0",
+            "2",
             "vyr-ost-ropa-mat",
             "-"
         ],
@@ -1335,7 +1335,7 @@
             "edge-ostrov-ropa-5",
             "-",
             "1",
-            "0",
+            "2",
             "vyr-ost-ropa",
             "-"
         ],
@@ -12531,109 +12531,102 @@
     ],
     [
         [
-            "Jm\u00e9no",
+            "",
             "ID",
             "Sm\u011br (N, W, S, E)",
             "Vzd\u00e1lenost",
             "Tech root"
         ],
         [
-            "TBA",
+            "A",
             "ost-a",
             "N",
-            "1",
+            "2",
             "tech-ostrov-jidlo"
         ],
         [
-            "Nov\u00fd ostrov",
-            "ost-novy",
-            "N",
-            "1",
-            "tech-ostrov-jidlo"
-        ],
-        [
-            "TBA",
+            "B",
             "ost-b",
             "S",
-            "3",
+            "5",
             "tech-ostrov-jidlo"
         ],
         [
-            "TBA",
+            "C",
             "ost-c",
             "W",
-            "6",
+            "0",
             "tech-ostrov-jidlo"
         ],
         [
-            "TBA",
+            "D",
             "ost-d",
             "E",
             "2",
             "tech-ostrov-stavivo"
         ],
         [
-            "TBA",
+            "E",
             "ost-e",
             "N",
-            "3",
+            "4",
             "tech-ostrov-stavivo"
         ],
         [
-            "TBA",
+            "F",
             "ost-f",
             "S",
-            "6",
+            "0",
             "tech-ostrov-stavivo"
         ],
         [
-            "TBA",
+            "G",
             "ost-g",
             "W",
-            "1",
+            "2",
             "tech-ostrov-luxus"
         ],
         [
-            "TBA",
+            "H",
             "ost-h",
             "E",
             "4",
             "tech-ostrov-luxus"
         ],
         [
-            "TBA",
+            "I",
             "ost-i",
             "N",
             "5",
             "tech-ostrov-luxus"
         ],
         [
-            "TBA",
+            "J",
             "ost-j",
             "S",
+            "1",
+            "tech-ostrov-ropa"
+        ],
+        [
+            "K",
+            "ost-k",
+            "W",
+            "3",
+            "tech-ostrov-ropa"
+        ],
+        [
+            "L",
+            "ost-l",
+            "E",
             "2",
             "tech-ostrov-ropa"
         ],
         [
-            "TBA",
-            "ost-k",
-            "W",
-            "4",
-            "tech-ostrov-ropa"
-        ],
-        [
-            "TBA",
-            "ost-l",
-            "E",
-            "5",
-            "tech-ostrov-ropa"
-        ],
-        [
-            "",
-            "",
-            "",
-            "",
-            ""
+            "Protino\u017eci",
+            "ost-p",
+            "N",
+            "6",
+            "tech-ostrov-jidlo"
         ],
         [
             "",

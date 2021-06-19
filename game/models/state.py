@@ -190,6 +190,14 @@ class State(StateModel):
         json["parameters"] = self.parameters
         return json
 
+    def paramGodUpdate(self, parameter, update):
+        for key in update["add"]:
+            self.parameters[parameter][key] = update["add"][key]
+        for key in update["change"]:
+            self.parameters[parameter][key] = update["change"][key]
+        for key in update["remove"]:
+            del self.parameters[parameter][key]
+
     def godUpdate(self, update):
         self.worldState.godUpdate(eatUpdatePrefixAll("worldState", update))
         for ts in self.teamStates.all():
@@ -198,8 +206,19 @@ class State(StateModel):
         for iss in self.islandStates.all():
             # ToDo: Ignore the island name
             iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.label})", update))
-        if "parameters" in update["change"]:
-            self.parameters = update["change"]["parameters"]
+        if "parameters.islandColonizeDots" in update["change"]:
+            self.parameters["islandColonizeDots"] = update["change"]["parameters.islandColonizeDots"]
+        dictParams = [
+            "islandExplorePrice",
+            "islandColonizePrice",
+            "islandAttackPrice",
+            "islandRepairPrice",
+        ]
+        pUpdate = eatUpdatePrefixAll("parameters", update)
+        for dp in dictParams:
+            eaten = eatUpdatePrefixAll(dp, pUpdate)
+            # eaten = eatUpdatePrefixAll(dp, eaten)
+            self.paramGodUpdate(dp, eaten)
 
     def getPrice(self, name, multiplicator=1):
         """
