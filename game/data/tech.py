@@ -23,6 +23,12 @@ class TechModel(EntityModel):
     def htmlRepr(self):
         return self.label
 
+    @property
+    def dropdownLabel(self):
+        if self.island is not None:
+            return f"{self.label}: {self.island.label} ({self.id})"
+        return super().dropdownLabel
+
     def getAvailableTasks(self, team):
         """
         Return a list of all tasks that are available for this technology and

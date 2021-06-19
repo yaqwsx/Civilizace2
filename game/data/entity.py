@@ -63,6 +63,10 @@ class EntityModel(models.Model):
     def __str__(self):
         return self.id
 
+    @property
+    def dropdownLabel(self):
+        return f"{self.label} ({self.id})"
+
 class DieModel(EntityModel):
     def color(self):
         """ Return color for the die in hex code string """

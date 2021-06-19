@@ -57,7 +57,7 @@ class MoveInitialForm(forms.Form):
                 self.allEntities.update(entities)
             self.entityFilter[action] = teamFilter
         entities = list(dict.fromkeys(
-            [(entity.id, entity.label) for entity in self.allEntities]))
+            [(entity.id, entity.dropdownLabel) for entity in self.allEntities]))
         entities.sort(key=lambda x: x[1])
         self.fields["entity"].choices = [('', '-----------')] + entities
         self.fields["action"].choices = [('', '-----------')] + [(move.value, move.label) for move in allowedActions]
