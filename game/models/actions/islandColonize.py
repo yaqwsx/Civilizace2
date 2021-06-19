@@ -78,11 +78,13 @@ class IslandColonizeMove(Action):
         islandState = state.islandState(self.island)
         previous = islandState.owner
         islandState.owner = self.team
+        islandState.defense = 2
         message = f"Týmu se podařilo kolonizovat {islandState.island.label}."
         if previous is None:
             message += "Vydej týmu příslušnou kartu ostrova."
         else:
             message += f"Kartu ostrova mají {previous.name}, pošli tým za nimi, aby si převzal kartu ostrova"
+        message += "<br/><b>Zkontrolujte, že ostrov má 2 věže.</b>"
         return ActionResult.makeSuccess(message)
 
     def abandon(self, state):

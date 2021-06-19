@@ -382,7 +382,7 @@ class IslandState(StateModel):
 
     @property
     def maxDefense(self):
-        return sum(map(lambda x: x.defenseBonus, self.techs.getOwnedTechs()))
+        return 2 + sum(map(lambda x: x.defenseBonus, self.techs.getOwnedTechs()))
 
     def toJson(self):
         return {

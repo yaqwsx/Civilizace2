@@ -62,10 +62,12 @@ def vyrobaEnhanced(state, teamId, vyrobaId):
     teamState = state.teamState(teamId)
     techs = teamState.techs
     vyroba = state.context.vyrobas.get(id=vyrobaId)
-    if vyroba not in techs.availableVyrobas():
-        raise InvalidActionException("Tým nevlastní tuto výrobu.")
-
-    enhancers = state.teamState(teamId).enhancers.getOwnedEnhancers(vyrobaId)
+    if vyroba.tech.island is None:
+        if vyroba not in techs.availableVyrobas():
+            raise InvalidActionException("Tým nevlastní tuto výrobu.")
+        enhancers = state.teamState(teamId).enhancers.getOwnedEnhancers(vyrobaId)
+    else:
+        enhancers = []
     return VyrobaEnhancedImage(vyroba, enhancers)
 
 def inputsLabel(inputs):

@@ -184,7 +184,10 @@ class Sticker(models.Model):
         return fmt + '</div>'
 
     def formatHeader(self, entity):
-        code = self.getQRCode(self.team.id + " " + entity.id)
+        if isinstance(entity, VyrobaModel) and entity.tech.island:
+            code = self.getQRCode(entity.id)
+        else:
+            code = self.getQRCode(self.team.id + " " + entity.id)
         fmt = '<div class="box">'
         fmt += f'<img src="{code}" width="120" height="120">'
         fmt += f'<h1>{entity.label}</h1>'
@@ -217,6 +220,11 @@ class Sticker(models.Model):
         techs = self.formatTechs(entity)
 
         fmt = ""
+        if entity.island:
+            fmt += '<div class="desc">'
+            fmt += f"Patří k ostrovu {entity.island.label} (obr +{entity.defenseBonus})"
+            fmt += '</div>'
+            fmt += '<hr class="line">'
         if vyrobas:
             fmt += '<div class="desc">'
             fmt += vyrobas
@@ -269,10 +277,13 @@ class Sticker(models.Model):
 
     def formatVyrobaInfo(self, entity):
         from game.models.actions.vyroba import vyrobaEnhanced
+        originalEntity = entity
         entity = vyrobaEnhanced(self.state, self.team, entity)
         # Místo
         fmt = '<div class="desc">'
         fmt += f'<b>Probíha v:</b> {entity.build.label}'
+        if originalEntity.tech.island:
+            fmt += f' na ostrově {entity.tech.island.label}'
         fmt += '</div>'
         fmt += '<hr class="line">'
         # Vstupy

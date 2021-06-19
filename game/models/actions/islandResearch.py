@@ -1,3 +1,4 @@
+from game.models.stickers import Sticker, StickerType
 from django import forms
 
 from game.data.tech import TechEdgeModel, TechModel
@@ -106,7 +107,13 @@ class IslandResearchMove(Action):
                 Maximální hodnota ostrova {island.label} byla zvýšena na
                 {islandState.maxDefense}. Aktuální obrana je {islandState.defense}.
             """
-        return ActionResult.makeSuccess(message)
+        result = ActionResult.makeSuccess(message)
+
+        result.addSticker(Sticker(entity=dst, type=StickerType.REGULAR))
+        for vyroba in dst.unlock_vyrobas.all():
+            result.addSticker(Sticker(entity=vyroba, type=StickerType.REGULAR))
+
+        return result
 
     def abandon(self, state):
         productions = { res: amount for res, amount in self.edge.getInputs().items()
