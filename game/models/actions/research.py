@@ -48,7 +48,9 @@ class ResearchForm(MoveForm):
 
         candidateTasks = set()
         for v in techMapping.values():
-            candidateTasks.update(v)
+            for t in v:
+                if t.activeCount < t.capacity:
+                    candidateTasks.add(t)
         candidateTasks = [(t.id, self.taskLabel(t)) for t in candidateTasks]
         candidateTasks.sort(key=lambda x: x[1])
         candidateTasks.append(("", "Bez plnění úkolu"))
