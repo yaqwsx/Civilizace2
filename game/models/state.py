@@ -105,6 +105,10 @@ class StateModel(ImmutableModel):
     class Meta:
         abstract = True
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.context = None
+
     def setContext(self, context):
         self.context = context
         relevantFields = []
@@ -205,7 +209,7 @@ class State(StateModel):
             ts.godUpdate(eatUpdatePrefixAll(f"{ts.team.name}({ts.team.id})", update))
         for iss in self.islandStates.all():
             # ToDo: Ignore the island name
-            iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.label})", update))
+            iss.godUpdate(eatUpdatePrefixAll(f"{iss.island.label}({iss.island.id})", update))
         if "parameters.islandColonizeDots" in update["change"]:
             self.parameters["islandColonizeDots"] = update["change"]["parameters.islandColonizeDots"]
         dictParams = [
@@ -415,7 +419,7 @@ class IslandState(StateModel):
         if "owner" in update["change"]:
             self.owner = Team.objects.get(pk=update["change"]["owner"])
         if "defense" in update["change"]:
-            self.defense = int(pk=update["change"]["defense"])
+            self.defense = update["change"]["defense"]
 
 
 class TeamAchievements(StateModel):

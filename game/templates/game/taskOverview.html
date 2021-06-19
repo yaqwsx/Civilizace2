@@ -12,7 +12,7 @@
             <ul>
                 {% if teamTasks %}
                     {% for t in teamTasks %}
-                        <li>{{t.task.name}} ({{t.tech.label}})</li>
+                        <li>{{t.task.name}} ({{t.tech.label}}, zadáno {{t.assignedAt}})</li>
                     {% endfor %}
                 {% else %}
                     Tým neplní žádné úkoly

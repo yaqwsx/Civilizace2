@@ -34,7 +34,7 @@ class IslandAttackForm(MoveForm):
         rows = [f'<li>{amount}× {res.htmlRepr()}</li>' for res, amount in price.items()]
         message = f"Vyberte od týmu: <ul>{''.join(rows)}</ul>"
         message += f"""
-            <p>Následně budete s týmem házet útočnou kostkou. Každý hod stojí tým
+            <p>Následně budete s týmem házet útočnou kostkou. Každé 2 hody stojí tým
             1× {ResourceModel.manager.latest().get(id="mat-sila").htmlRepr()}.
             Zadejte počet hodů a to jestli tým souboj vyhrál.</p>
             """

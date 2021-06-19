@@ -8,26 +8,27 @@ from game.models.actionTypeList import ActionType
 from game.models.users import Team
 
 def isRoundEnd(state):
-    return state.action.move == ActionType.nextTurn
+    return state.action.action.move == ActionType.nextTurn
 
-def teamStat(team):
+def teamStat(team, states):
     stat = []
-    states = State.objects.all()
-    prevState = states[0].teamState(team)
     prodSum = 0
-    for state in states[1:]:
-        tState = state.teamState(team)
-        if isRoundEnd(prevState, tState):
+    for state in states:
+        print(f"Walking state {state.id}")
+        if isRoundEnd(state):
+            if state.context is None:
+                state.setContext(state.action.action.context)
+            tState = state.teamState(team)
             prod = 0
-            for item in tState.resources.items:
-                if item.resource.isProduction:
-                    prod += item.amount
-            for item  in tState.foodSupply.items:
-                prod += item.amount
+            for resource, amount in tState.resources.asMap().items():
+                if resource.isProduction:
+                    prod += amount
+            for resource, amount  in tState.foodSupply.asMap().items():
+                prod += amount
             prodSum += prod
             stat.append({
-                "obyvatele": tState.resources.getAmount("res-obyvatel"),
-                "populace": tState.resources.getAmount("res-populace"),
+                "obyvatele": tState.resources.get("res-obyvatel"),
+                "populace": tState.resources.get("res-populace"),
                 "techy": len(tState.techs.getOwnedTechs()),
                 "productions": prod,
                 "prodSum": prodSum
@@ -43,13 +44,14 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # outputDir = kwargs.get("output", "stats")
         outputDir = "stats"
+        states = list(State.objects.all())
 
         for team in Team.objects.all():
             print(f"Statistiky pro tým {team.name}")
             fname = os.path.join(outputDir, team.name + ".csv")
             print(fname)
             with open(fname, "w") as f:
-                stat = teamStat(team)
+                stat = teamStat(team, states)
                 f.write("populace, obvyatele, techy, produkce, materialy\n")
                 for l in stat:
                     f.write(f'{l["populace"]}, {l["obyvatele"]}, {l["techy"]}, {l["productions"]}, {l["prodSum"]}\n')
