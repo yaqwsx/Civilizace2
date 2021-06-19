@@ -107,9 +107,12 @@ class NextTurn(Action):
 
         praceLeft = storage.get("res-prace")
         obyvatele = storage.get("res-obyvatel")
+        populace = storage.get("res-populace")
         obyvateleUpdated = obyvatele + prirustek
+        populaceUpdated = populace + prirustek
 
         storage.set("res-obyvatel", obyvateleUpdated)
+        storage.set("res-populace", populaceUpdated)
         prace = obyvateleUpdated + math.floor(praceLeft/2)
         storage.set("res-prace", prace)
 
