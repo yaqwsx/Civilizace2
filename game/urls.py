@@ -16,6 +16,7 @@ urlpatterns = [
     path("dashboard/<str:teamId>/messages", dashboard.DashboardMessageView.as_view(), name="dashboardMessages"),
     path("dashboard/<str:teamId>/tasks", dashboard.DashboardTasksView.as_view(), name="dashboardTasks"),
     path("dashboard/<str:teamId>/stickers", dashboard.DashboardStickersView.as_view(), name="dashboardStickers"),
+    path("dashboard/<str:teamId>/update/<int:stickerId>", dashboard.DashboardStickerUpdateView.as_view(), name="dashboardUpdateStickers"),
 
     path("action/", ActionIndexView.as_view(), name="actionIndex"),
     path("action/team/<str:teamId>/makemove/<int:moveId>", ActionInitiateView.as_view(), name="actionInitiate"),
@@ -36,6 +37,7 @@ urlpatterns = [
     path("generation/announcement", generation.AnnouncementView.as_view(), name="generationAnnouncement"),
 
     path("tasks", task.TaskIndexView.as_view(), name="taskTaskIndex"),
+    path("tasks/overview", task.TaskOverviewView.as_view(), name="taskOverview"),
     path("tasks/new", task.NewTaskView.as_view(), name="taskTaskNew"),
     path("tasks/<int:taskId>/edit", task.EditTaskView.as_view(), name="taskTaskEdit"),
     path("tasks/mapping", task.TaskMappingIndexView.as_view(), name="taskMappingIndex"),

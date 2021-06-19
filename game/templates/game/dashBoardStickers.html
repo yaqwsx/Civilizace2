@@ -33,11 +33,13 @@
                                 onclick="return onButtonPrint{{sticker.id}}()">
                             Vytisknout
                         </button>
-                        {% comment %} <button class="flex-auto m-2 shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
-                                type="button"
-                                disabled>
-                            Aktualizovat
-                        </button> {% endcomment %}
+                        <a href="{% url "dashboardUpdateStickers" targetTeam.pk sticker.pk %}"
+                            <button class="flex-auto m-2 shadow text-center bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded"
+                                    type="button"
+                                    disabled>
+                                Aktualizovat
+                            </button>
+                        </a>
                     </div>
                 {% endif %}
             </div>

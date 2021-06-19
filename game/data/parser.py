@@ -539,11 +539,18 @@ class Parser():
             edge.save()
 
         for vyroba in vyrobas:
+            originalInputs = [x for x in vyroba.inputs.all()]
             vyroba.pk = None
             vyroba.syntheticId = None
             vyroba.id = vyroba.id + suffix
             vyroba.tech = root
             vyroba.save()
+
+            for x in originalInputs:
+                print(f"Cloning input {x.pk}")
+                x.pk = None
+                x.parent = vyroba
+                x.save()
 
         for enh in enhancements:
             enh.pk = None

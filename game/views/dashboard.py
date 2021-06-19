@@ -9,6 +9,7 @@ from django.db.models import Exists, OuterRef, Count
 from game.models.users import Team
 from game.models.state import IslandState, State
 from game.models.messageBoard import Message, MessageRead
+from game.models.stickers import Sticker
 
 
 class DashboardIndexView(View):
@@ -140,6 +141,21 @@ class DashboardStickersView(View):
             "teamStickers": team.sticker_set.order_by('-awardedAt').all(),
             "messages": messages.get_messages(request)
         })
+
+class DashboardStickerUpdateView(View):
+    @method_decorator(login_required)
+    def get(self, request, teamId, stickerId):
+        user = request.user
+        if not user.isOrg():
+            raise PermissionDenied("Cannot view the page")
+        team = get_object_or_404(Team, pk=teamId)
+        sticker = get_object_or_404(Sticker, pk=stickerId)
+        state = State.objects.getNewest()
+        sticker.pk = None
+        sticker.state = state
+        sticker.save()
+
+        return redirect("dashboardStickers", teamId)
 
 def islandKnownBy(islandId, teamStates):
     """

@@ -46,5 +46,5 @@ class StartTaskMove(Action):
         if self.team.assignedTasks.filter(pk=task.pk).exists():
             return ActionResult.makeFail(f"Tým už má úkol '{task.name}' přiřazen!")
         result = ActionResult.makeSuccess("Akce se povedla")
-        result.startTask(task, None)
+        result.startTask(task, state.context.techs.get(id="build-centrum"))
         return result

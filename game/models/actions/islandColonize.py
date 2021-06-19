@@ -7,6 +7,7 @@ from game.models.actionBase import Action, ActionResult
 from game.models.state import ResourceStorageAbstract
 from game.data.entity import Direction, IslandModel
 from django_enumfield.forms.fields import EnumChoiceField
+from game.models.stickers import StickerType, Sticker
 
 DOTS_REQUIRED_MAX = 12
 MAX_DISTANCE = 24
@@ -79,13 +80,18 @@ class IslandColonizeMove(Action):
         previous = islandState.owner
         islandState.owner = self.team
         islandState.defense = 2
+        stickers = []
         message = f"Týmu se podařilo kolonizovat {islandState.island.label}."
         if previous is None:
+            stickers.append(Sticker(entity=islandState.island.root, type=StickerType.REGULAR))
             message += "Vydej týmu příslušnou kartu ostrova."
         else:
             message += f"Kartu ostrova mají {previous.name}, pošli tým za nimi, aby si převzal kartu ostrova"
         message += "<br/><b>Zkontrolujte, že ostrov má 2 věže.</b>"
-        return ActionResult.makeSuccess(message)
+        result = ActionResult.makeSuccess(message)
+        for s in stickers:
+            result.addSticker(s)
+        return result
 
     def abandon(self, state):
         return self.makeAbandon()

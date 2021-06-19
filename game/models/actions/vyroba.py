@@ -92,13 +92,13 @@ class VyrobaForm(MoveForm):
 
         techs = self.state.teamState(self.teamId).techs
         resources = self.state.teamState(self.teamId).resources
-        if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
-            raise InvalidActionException(
-                f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i>, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
+        # if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
+        #     raise InvalidActionException(
+        #         f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i>, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
 
-        if techs.getStatus(self.vyroba.tech) != TechStatusEnum.OWNED:
-            raise InvalidActionException(
-                f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i> jelikož ji tým nevlastní. Výrobu odemyká <i>{self.vyroba.tech.label}</i>')
+        # if techs.getStatus(self.vyroba.tech) != TechStatusEnum.OWNED:
+        #     raise InvalidActionException(
+        #         f'Nemůžu provádět výrobu <i>{self.vyroba.label}</i> jelikož ji tým nevlastní. Výrobu odemyká <i>{self.vyroba.tech.label}</i>')
 
         inputsLayout = []
         self.vyrobaInputs = {}
@@ -262,10 +262,13 @@ class VyrobaMove(Action):
         techs = teamState.techs
         self.precomputeVyroba(state)
 
-        if techs.getStatus(self.vyroba.build) != TechStatusEnum.OWNED:
-            return ActionResult.makeFail(f'Nemůžu provádět výrobu, jelikož tým nemá budovu <i>{self.vyroba.build.label}</i>')
+        hasParent = techs.getStatus(self.vyroba.tech) == TechStatusEnum.OWNED
+        islandHasParent = any([
+            x.techs.getStatus(self.vyroba.tech) == TechStatusEnum.OWNED
+            for x in state.teamIslands(self.team)
+        ])
 
-        if techs.getStatus(self.vyroba.tech) != TechStatusEnum.OWNED:
+        if not (hasParent or islandHasParent):
             return ActionResult.makeFail(f'Nemůžu provádět výrobu, jelikož tým tuto výrobu (<i>{self.vyroba.label}</i>) nevlastní. Výrobu odemyká <i>{self.vyroba.tech.label}</i>')
 
         cost = self.computeCost()

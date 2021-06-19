@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from game.data.tech import TechModel
 from game.data.task import TaskModel
+from game.models.users import Team
 
 class TaskForm(forms.Form):
     name = forms.CharField(label="Název úkolu")
@@ -53,6 +54,23 @@ class TaskIndexView(View):
             "request": request,
             "messages": messages.get_messages(request),
             "tasks": TaskModel.objects.all()
+        })
+
+class TaskOverviewView(View):
+    @method_decorator(login_required)
+    def get(self, request):
+        if not request.user.isOrg():
+            raise PermissionDenied("Cannot view the page")
+
+        tasks = {
+            team: AssignedTask.objects.filter(team=team, completedAt=None)
+                for team in Team.objects.all()
+        }
+
+        return render(request, "game/taskOverview.html", {
+            "request": request,
+            "messages": messages.get_messages(request),
+            "tasks": tasks
         })
 
 class NewTaskView(View):
