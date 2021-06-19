@@ -28,6 +28,7 @@ class ActionType(enum.Enum):
     initialStickers = 40
 
     godmode = 42
+    ensureEntitiyState = 43
     sandbox = 99
 
     addSticker = 100
@@ -70,4 +71,6 @@ class ActionType(enum.Enum):
         finishTask: "DEBUG: Dokončit úkol",
 
         maaraCounter: "MAARA: Debug counter",
+
+        ensureEntitiyState: "Přidej iniciální stavy nových entit",
     }

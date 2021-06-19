@@ -29,6 +29,8 @@ from .islandRepair import IslandRepairMove
 
 from .initialStickers import InitialStickersMove
 
+from .ensureEntityStates import EnsureEntityStatesMove
+
 
 def buildAction(data):
     """
