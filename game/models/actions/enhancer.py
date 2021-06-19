@@ -32,7 +32,7 @@ class EnhancerMove(Action):
     class CiviMeta:
         move = ActionType.enhancer
         form = EnhancerForm
-        allowed = ["super"]
+        allowed = ["super", "org"]
 
     @staticmethod
     def relevantEntities(state, team):
