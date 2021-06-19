@@ -34,6 +34,7 @@ class EnsureEntityStatesMove(Action):
         for island in state.context.islands.all():
             if state.islandStates.filter(islandId=island.id).exists():
                 continue
+            # This is dangerous! It saves something to DB!
             iss = IslandState.objects.createInitial(islandId=island.id, context=state.context)
             state.islandStates.add(iss)
             items.append(f"Adding state for island {island.id}")
