@@ -28,8 +28,9 @@ class IslandAttackForm(MoveForm):
 
         self.fields["diceThrow"] = forms.IntegerField(label="Počet hodů kostkou",
             validators=[MinValueValidator(1)])
-        self.fields["success"] = forms.ChoiceField(label="Povedl se útok?",
-            choices=[(False, "Ne"), (True, "Ano")])
+        self.fields["success"] = forms.IntegerField(label="Kolik útoků se povedlo?",
+            initial=0,
+            validators=[MinValueValidator(0), MaxValueValidator(islandState.defense)])
 
         rows = [f'<li>{amount}× {res.htmlRepr()}</li>' for res, amount in price.items()]
         message = f"Vyberte od týmu: <ul>{''.join(rows)}</ul>"
@@ -96,7 +97,7 @@ class IslandAttackMove(Action):
         message = f"Tým musí zaplatit: {self.costMessage(remainsToPay)}"
 
         if self.arguments["success"]:
-            islandState.defense -= 1
+            islandState.defense -= self.arguments["success"]
             message += f"""
                 Obrana {self.island.label} byla snížena na {islandState.defense}.
             """

@@ -405,6 +405,8 @@ class IslandState(StateModel):
 
     @property
     def maxDefense(self):
+        if self.island.id == "ost-p":
+            return 100
         return 2 + sum(map(lambda x: x.defenseBonus, self.techs.getOwnedTechs()))
 
     def toJson(self):
@@ -1019,7 +1021,7 @@ class TechStorageAbstract(Storage):
         results = []
 
         for tech in self.getOwnedTechs():
-            results.extend(tech.unlock_enhancers.all())
+            results.extend(list(tech.unlock_enhancers.all()))
 
         return results
 

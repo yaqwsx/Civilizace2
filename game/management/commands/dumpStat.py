@@ -7,15 +7,15 @@ from game.models.actionBase import ActionPhase, ActionEvent, Action
 from game.models.actionTypeList import ActionType
 from game.models.users import Team
 
-def isRoundEnd(state):
-    return state.action.action.move == ActionType.nextTurn
+def isRoundEnd(state, team):
+    return state.action.action.team == team and state.action.action.move == ActionType.nextTurn
 
 def teamStat(team, states):
     stat = []
     prodSum = 0
     for state in states:
         print(f"Walking state {state.id}")
-        if isRoundEnd(state):
+        if isRoundEnd(state, team):
             if state.context is None:
                 state.setContext(state.action.action.context)
             tState = state.teamState(team)
@@ -24,7 +24,8 @@ def teamStat(team, states):
                 if resource.isProduction:
                     prod += amount
             for resource, amount  in tState.foodSupply.asMap().items():
-                prod += amount
+                if resource.isProduction:
+                    prod += amount
             prodSum += prod
             stat.append({
                 "obyvatele": tState.resources.get("res-obyvatel"),
