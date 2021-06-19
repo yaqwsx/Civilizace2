@@ -138,6 +138,7 @@
         {% for r, a in teamState.resources.getResourcesByType.items %}
             <li>{{a}}× {{r.htmlRepr|safe}}</li>
         {% endfor %}
+        Počet míst v přístavu: {{teamState.resources.getPristav}}
         </ul>
     {% endcard %}
     {% card "Materiály ve skladu" icon="fa-warehouse" width="third" color=targetTeam.color %}

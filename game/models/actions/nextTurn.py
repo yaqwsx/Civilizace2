@@ -122,6 +122,12 @@ class NextTurn(Action):
             materials[material] = amount
         team.materials.receiveMaterials(materials, state.worldState.storageLimit)
 
+        pristav = self.context.resources.get(id="res-pristav")
+        amount = team.resources.get(pristav) + 1
+        if amount > 2:
+            amount = 2
+        team.resources.set(pristav, amount)
+
         team.nextTurn()
         message = "<br>".join([
             f"Začalo kolo {team.turn}",

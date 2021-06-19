@@ -780,6 +780,9 @@ class ResourceStorageAbstract(Storage):
     def getObyvatel(self):
         return self.get("res-obyvatel")
 
+    def getPristav(self):
+        return self.get("res-pristav")
+
 class FoodStorage(ResourceStorageAbstract):
     def getMissingItems(foodStorage, kasty, population, foodValue):
         populaceKast = []
