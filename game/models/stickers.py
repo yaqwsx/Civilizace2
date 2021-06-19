@@ -317,7 +317,8 @@ class Sticker(models.Model):
             path = os.path.join(os.getcwd(), f"./game/data/icons/{name}")
             fmt = '<div class="image_container">'
             fmt += '<div class="vyroba">'
-            fmt += f'<img class="fit" src="{path}">'
+            if self.entity.id not in ["vyr-cesta", "vyr-silnice"]:
+                fmt += f'<img class="fit" src="{path}">'
             fmt += '</div>'
             fmt += '</div>'
             return fmt

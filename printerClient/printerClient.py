@@ -78,7 +78,7 @@ def findEdge(port):
 def printImage(image, port, speed, intensity):
     image = resizeToFit(image)
     image = image.convert('1') # convert image to black and white
-    setIntensity(port, 100)
+    setIntensity(port, 240)
     setSpeed(port, 15)
     sendImage(port, image)
     feedForward(port, 10)
@@ -89,8 +89,8 @@ def printImage(image, port, speed, intensity):
     help="Name or a path of printer COM port")
 @click.option("--name", type=str, required=True,
     help="Name of the printer in the system")
-@click.option("--speed", type=int, default=15)
-@click.option("--intensity", type=int, default=200)
+@click.option("--speed", type=int, default=20)
+@click.option("--intensity", type=int, default=255)
 @click.option("--server", type=str, required=True,
     help="Server IP address")
 @click.option("--port", type=int, default=5000)

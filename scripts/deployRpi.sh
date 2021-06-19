@@ -8,4 +8,4 @@ rsync -a --progress \
     --exclude db.sqlite3 \
     --exclude _static \
     --exclude '*__pycache__*' \
-    ./ 192.168.1.10:Civilizace2
+    ./ 192.168.1.11:Civilizace2
