@@ -10,6 +10,8 @@ from game.models.users import Team
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, HTML
 
+from timeit import default_timer as timer
+
 
 class DiceThrowForm(forms.Form):
     dice = forms.ChoiceField(label="Použitá kostka")
@@ -33,7 +35,7 @@ class MoveInitialForm(forms.Form):
     entity = forms.ChoiceField(required=False, label="Entita")
     canceled = forms.BooleanField(widget=forms.HiddenInput(), required=False, initial=False)
 
-    def __init__(self, user, data=None, state=None, **kwargs):
+    def __init__(self, user, data=None, state=None, inherited=False, **kwargs):
         from game.models.actions import allowedActionTypes
         if data:
             super().__init__(data)
@@ -42,6 +44,17 @@ class MoveInitialForm(forms.Form):
 
         self.helper = FormHelper()
         self.helper.form_tag = False
+
+        if inherited and data is not None:
+            self.fields["action"].choices = [(data["action"], "")]
+            self.fields["entity"].choices = [(data["entity"], "")]
+            self.commonLayout = Layout(
+                Field('team'),
+                Field('action'),
+                Field('entity'),
+                Field('canceled')
+            )
+            return
 
         allowedActions = allowedActionTypes(user)
         teams = Team.objects.all()
@@ -76,14 +89,14 @@ class MoveForm(MoveInitialForm):
         self.teamId = team
         self.state = state
         if data:
-            super(MoveForm, self).__init__(data=data, user=user, state=state)
+            super(MoveForm, self).__init__(data=data, user=user, state=state, inherited=True)
             self.entityId = data.get("entity")
         else:
             super(MoveForm, self).__init__(initial={
                     "action": action,
                     "team": team,
                     "entity": entity,
-                }, state=state, user=user)
+                }, state=state, user=user, inherited=True)
             self.entityId = entity
         for fieldName in ["action", "team", "entity"]:
             self.fields[fieldName].widget = forms.HiddenInput()

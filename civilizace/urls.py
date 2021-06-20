@@ -16,9 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+# import debug_toolbar
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('service/', include('service.urls')),
     path('', include('game.urls')),
-    path('accounts/', include("django.contrib.auth.urls"))
+    path('accounts/', include("django.contrib.auth.urls")),
+    # path('__debug__/', include(debug_toolbar.urls))
 ]

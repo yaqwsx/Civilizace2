@@ -26,6 +26,7 @@ SECRET_KEY = '-1s^71$thvv$!)t1)73a#a*u^n*yf10o84$)ki((e^9y+ryln8'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+INTERNAL_IPS = ["127.0.0.1"]
 
 
 # Application definition
@@ -47,7 +48,9 @@ INSTALLED_APPS = [
     'service.apps.ServiceConfig',
 
     'crispy_forms',
-    'markdownify.apps.MarkdownifyConfig'
+    'markdownify.apps.MarkdownifyConfig',
+
+    # 'debug_toolbar'
 ]
 
 MIDDLEWARE = [
@@ -58,7 +61,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'game.models.generationTick.generationUpdateMiddleware'
+    'game.models.generationTick.generationUpdateMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'civilizace.urls'

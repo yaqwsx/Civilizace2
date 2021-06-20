@@ -8,6 +8,8 @@ from game.data.enhancer import EnhancerModel
 from game.models.state import ResourceStorage, EnhancerStatusEnum
 from game.models.stickers import Sticker, StickerType
 
+from timeit import default_timer as timer
+
 
 class EnhancerForm(MoveForm):
     def __init__(self, *args, **kwargs):
@@ -38,7 +40,6 @@ class EnhancerMove(Action):
     def relevantEntities(state, team):
         techs = state.teamState(team.id).techs
         enhancers = set(techs.getEnhancers()) - set(state.teamState(team.id).enhancers.getOwnedEnhancers())
-
         vyrobas = state.teamState(team.id).techs.availableVyrobas()
 
         # TODO: Test: if vyroba not available, filter out enhancer

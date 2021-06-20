@@ -17,6 +17,8 @@ from game.data.enhancer import EnhancerModel
 from game.models.stickers import Sticker
 from ground.models import GitRevision
 
+from timeit import default_timer as timer
+
 class ActionPhase(enum.Enum):
     initiate = 0
     commit = 1
@@ -196,6 +198,23 @@ class ActionContext:
         for name, model in managers.items():
             setattr(self, name, model.manager.fixVersionManger(entitiesVersion))
         self.entitiesVersion = entitiesVersion
+
+        self._techCache = None
+        self._enhancerCache = None
+
+    @property
+    def techCache(self):
+        if self._techCache is None:
+            self._techCache = {x.id: x for x in self.techs.all() \
+                .prefetch_related("unlock_vyrobas")
+                .prefetch_related("unlock_enhancers")}
+        return self._techCache
+
+    @property
+    def enhancerCache(self):
+        if self._enhancerCache is None:
+            self._enhancerCache = {x.id: x for x in self.enhancers.all()}
+        return self._enhancerCache
 
     @staticmethod
     def latests():

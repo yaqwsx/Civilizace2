@@ -20,6 +20,8 @@ from game.models.actionBase import ActionEvent, InvalidActionException
 from game.models.users import Team
 from game import parameters
 
+from timeit import default_timer as timer
+
 def removeFirstPart(text):
     idx = text.find(".")
     if idx == -1:
@@ -940,6 +942,11 @@ class TechStorageAbstract(Storage):
 
     objects = TechStorageManager()
 
+    def toEntity(self, id):
+        if id in self.context.techCache:
+            return self.context.techCache[id]
+        return super().toEntity(id)
+
     def __str__(self):
         list = [entity.label + ": " + TechStatusEnum(status).label for entity, status in self.asMap().items()]
         result = ", ".join(list)
@@ -976,10 +983,10 @@ class TechStorageAbstract(Storage):
 
     def availableVyrobas(self):
         vyrobas = []
-        for tech, status in self.asMap().items():
+        for tech, status in self.items.items():
             if status != TechStatusEnum.OWNED:
                 continue
-            vyrobas += tech.unlock_vyrobas.all()
+            vyrobas.extend(self.toEntity(tech).unlock_vyrobas.all())
         return vyrobas
 
     def getTechsUnderResearch(self):
@@ -1021,7 +1028,7 @@ class TechStorageAbstract(Storage):
         results = []
 
         for tech in self.getOwnedTechs():
-            results.extend(list(tech.unlock_enhancers.all()))
+            results.extend(tech.unlock_enhancers.all())
 
         return results
 
@@ -1061,6 +1068,11 @@ class EnhancerStorage(TechStorageAbstract):
         assert isinstance(vyroba, str)
 
         return [x for x in owned if x.vyroba.id == vyroba]
+
+    def toEntity(self, id):
+        if id in self.context.enhancerCache:
+            return self.context.enhancerCache[id]
+        return super().toEntity(id)
 
 
 # =================================================
