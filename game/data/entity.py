@@ -129,8 +129,6 @@ class IslandModel(EntityModel):
             raise RuntimeError("Unsupported distance")
         if distance == 6 and self.distance == 6:
             return True
-        if distance == 0 and self.distance == 0:
-            return True
         onOriginal = self.direction == direction and self.distance == distance
         onAlternate = direction.opposite == self.direction and (12 - distance) == self.distance
         return onOriginal or onAlternate

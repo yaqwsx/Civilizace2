@@ -126,9 +126,9 @@ class NextTurn(Action):
         team.materials.receiveMaterials(materials, state.worldState.storageLimit)
 
         pristav = self.context.resources.get(id="res-pristav")
-        amount = team.resources.get(pristav) + 1
-        if amount > 2:
-            amount = 2
+        amount = team.resources.get(pristav) + 2
+        if amount > 4:
+            amount = 4
         team.resources.set(pristav, amount)
 
         team.nextTurn()

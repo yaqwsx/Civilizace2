@@ -12,7 +12,7 @@ MAX_DISTANCE = 24
 
 class IslandExploreForm(MoveForm):
     direction = EnumChoiceField(Direction, label="Směr")
-    distance = forms.IntegerField(label="Vzdálenost", min_value=1, max_value=MAX_DISTANCE)
+    distance = forms.IntegerField(label="Vzdálenost", min_value=0, max_value=MAX_DISTANCE)
 
 class IslandExploreMove(Action):
     class Meta:
