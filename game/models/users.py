@@ -21,6 +21,19 @@ class Team(models.Model):
     def label(self):
         return self.name
 
+    @property
+    def hexColor(self):
+        return {
+            "gray-600": "#718096",
+            "red-600": "#E53E3E",
+            "orange-500": "#ED8936",
+            "yellow-500": "#ECC94B",
+            "green-600": "#38A169",
+            "blue-600": "#3182CE",
+            "purple-500": "#9F7AEA",
+            "pink-600": "#D53F8C"
+        }[self.color]
+
     def unfinishedAction(self):
         """ Return an action for the team which is initiated but not committed, abandoned or canceled """
         unfinished = Action.objects \

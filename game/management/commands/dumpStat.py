@@ -43,6 +43,7 @@ def isRoundEnd(state, team):
 def teamStat(team, states):
     stat = []
     prodSum = 0
+    weightedSum = 0
     for state in states:
         print(f"Walking state {state.id}")
         if isRoundEnd(state, team):
@@ -50,19 +51,24 @@ def teamStat(team, states):
                 state.setContext(state.action.action.context)
             tState = state.teamState(team)
             prod = 0
+            wprod = 0
             for resource, amount in tState.resources.asMap().items():
                 if resource.isProduction:
                     prod += amount
+                    wprod += resource.level * amount
             for resource, amount  in tState.foodSupply.asMap().items():
                 if resource.isProduction:
                     prod += amount
+                    wprod += resource.level * amount
             prodSum += prod
+            weightedSum += wprod
             stat.append({
                 "obyvatele": tState.resources.get("res-obyvatel"),
                 "populace": tState.resources.get("res-populace"),
                 "techy": len(tState.techs.getOwnedTechs()),
                 "productions": prod,
-                "prodSum": prodSum
+                "prodSum": prodSum,
+                "weightedSum": weightedSum
             })
     return stat
 
@@ -222,6 +228,107 @@ def plotTeamGraph(team, overview):
             </body>
         """)
 
+def plotSummary(overview):
+    pio.templates.default = "plotly"
+    fig = make_subplots(rows=6, cols=1,
+        subplot_titles=(
+            "Vývoj populace",
+            "Procento nespecializovaných",
+            "Počet vyzkoumaných technologií",
+            "Aktivní produkce",
+            "Kumulativní počet vyprodukovaných materiálů",
+            "Kumulativní počet vyprodukovaných materiálů vážený úrovní materiálu"),
+        horizontal_spacing=0.025,
+        vertical_spacing=0.025)
+
+    for t, o in overview.items():
+        if t.id == "tym-protinozci":
+            continue
+        l = o["stat"]
+        turns = [x + 1 for x in range(len(l))]
+
+        populace = go.Scatter(
+            x=turns,
+            y=[x["populace"] for x in l],
+            mode='lines+markers',
+            name=f'Populace {t.name}',
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="1",)
+        obyvatele = go.Scatter(
+            x=turns,
+            y=[int(x["obyvatele"] / x["populace"] * 100) for x in l],
+            mode='lines+markers',
+            name=f'Procento nespecializovaných {t.name}',
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="2")
+        techs = go.Scatter(
+            x=turns,
+            y=[x["techy"] for x in l],
+            mode="lines+markers",
+            name=f"Počet vyzkoumaných technologíí {t.name}",
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="3"
+        )
+        prods = go.Scatter(
+            x=turns,
+            y=[x["productions"] for x in l],
+            mode="lines+markers",
+            name=f"Aktivní produkce {t.name}",
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="4"
+        )
+        prodSum = go.Scatter(
+            x=turns,
+            y=[x["prodSum"] for x in l],
+            mode="lines+markers",
+            name=f"Vyprodukované materiály {t.name}",
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="5"
+        )
+
+        wprodSum = go.Scatter(
+            x=turns,
+            y=[x["weightedSum"] for x in l],
+            mode="lines+markers",
+            name=f"Vyprodukovaný potenciál materiálů {t.name}",
+            line=dict(color=t.hexColor, dash='solid'),
+            legendgroup="6"
+        )
+
+        fig.add_trace(populace, row=1, col=1)
+        fig.add_trace(obyvatele, row=2, col=1)
+
+        fig.add_trace(techs, row=3, col=1)
+
+        fig.add_trace(prods, row=4, col=1)
+        fig.add_trace(prodSum, row=5, col=1)
+
+        fig.add_trace(wprodSum, row=6, col=1)
+
+
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=20, b=20),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        legend_tracegroupgap=180,
+        height=5000,
+    )
+
+    for row in range(6):
+        fig.update_xaxes(
+            tickmode='linear', tick0=0, dtick=1,
+            title_text="Kolo",
+            range=[turns[0], turns[-1]],
+            row=row + 1, col=1)
+
+    fig.write_html("stats/summary.html")
+
+
 class Command(BaseCommand):
     help = "Dump base per-team stat into several CSV files"
 
@@ -252,6 +359,8 @@ class Command(BaseCommand):
             overview[action.team]["interactions"] = overview[action.team].get("interactions", 0) + 1
             if action.move == ActionType.attackIsland:
                 overview[action.team]["attacks"] = overview[action.team].get("attacks", 0) + 1
+
+        plotSummary(overview)
 
         for t, overview in overview.items():
             if "stat" not in overview:
