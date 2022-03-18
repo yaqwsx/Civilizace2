@@ -1,11 +1,19 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import authSlice from "../store/slices/auth";
+import {fetcher} from "../utils/axios";
+import useSWR from 'swr';
+import { RootState } from "../store";
+import { UserResponse } from "../types";
 
 const Profile = () => {
+    const account = useSelector((state: RootState) => state.auth.account);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    const userId = account?.user?.id;
+    const user = useSWR<UserResponse>(`/user/${userId}/`, fetcher)
 
     const handleLogout = () => {
         dispatch(authSlice.actions.logout());
@@ -21,9 +29,14 @@ const Profile = () => {
                 Odhlásit se
             </button>
         </div>
-            <div className="w-full h-full text-center items-center">
-                <p className="self-center my-auto">Welcome</p>
-            </div>
+        {
+            user.data ?
+                <div className="w-full h-full text-center items-center">
+                    <p className="self-center my-auto">Welcome, {user.data?.username}</p>
+                </div>
+                :
+                <p className="text-center items-center">Loading ...</p>
+        }
         </div>
     );
 };

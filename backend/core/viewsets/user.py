@@ -15,11 +15,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.requests.user.is_superuser:
             return User.objects.all()
+        return User.objects.filter(pk=self.requests.user.pk)
 
     def get_object(self):
         lookupFieldValue = self.kwargs[self.lookup_field]
 
-        obj = User.objects.get(lookup_field_value)
-        self.check_object_premissions(self.request, obj)
+        obj = User.objects.get(pk=lookupFieldValue)
+        self.check_object_permissions(self.request, obj)
 
         return obj

@@ -7,3 +7,8 @@ export interface AccountResponse {
   access: string;
   refresh: string;
 }
+
+export interface UserResponse {
+  id: string;
+  username: string;
+}
