@@ -1,6 +1,5 @@
 import axios from 'axios';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
-import { assert } from 'console';
 import store from '../store';
 import authSlice from '../store/slices/auth';
 
@@ -30,8 +29,12 @@ axiosService.interceptors.response.use(
         return Promise.resolve(res);
     },
     (err) => {
+        // if (err.response && err.response.status === 401 ) {
+        //     store.dispatch(authSlice.actions.logout());
+        //     console.log("Token not valid, ")
+        // }
         console.debug(
-            '[Response]',
+            '[Response error]',
             err.config.baseURL + err.config.url,
             err.response.status,
             err.response.data
@@ -42,6 +45,7 @@ axiosService.interceptors.response.use(
 
 // @ts-ignore
 const refreshAuthLogic = async (failedRequest) => {
+    console.log("Refresh auth logic");
     const { refreshToken } = store.getState().auth;
     if (refreshToken !== null) {
         return axios
@@ -63,6 +67,7 @@ const refreshAuthLogic = async (failedRequest) => {
             })
             .catch((err) => {
                 if (err.response && err.response.status === 401) {
+                    console.log("Logging out")
                     store.dispatch(authSlice.actions.logout());
                 }
             });

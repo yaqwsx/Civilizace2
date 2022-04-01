@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, username, password):
         """
         Create and return a `User` with superuser (admin) permissions.
         """
@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
         if username is None:
             raise TypeError('Superusers must have an username.')
 
-        user = self.create_user(username, email, password)
+        user = self.create_user(username, password)
         user.is_superuser = True
         user.save(using=self._db)
 
@@ -30,12 +30,23 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(db_index=True, max_length=255, unique=True)
-    # TBA there will be a link to Team; if no team is associated, the user
-    # is org
-
+    team = models.ForeignKey("core.team", on_delete=models.PROTECT,
+                             default=None, null=True)
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    @property
+    def isPlayer(self):
+        return not self.isOrg()
+
+    @property
+    def isOrg(self):
+        return self.team is None
+
+    @property
+    def isSuperUser(self):
+        return self.is_superuser
 

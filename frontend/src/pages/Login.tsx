@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import authSlice from "../store/slices/auth";
+import { ThreeDots } from "react-loader-spinner"
 
 function Login() {
     const [message, setMessage] = useState("");
@@ -24,11 +25,17 @@ function Login() {
                 );
                 dispatch(authSlice.actions.setAccount(res.data));
                 setLoading(false);
-                navigate("/");
+                setMessage("");
+                navigate("/", { replace: true });
             })
             .catch((err) => {
-                setMessage(err.toString());
-                // setMessage(err.response.data.detail.toString());
+                setLoading(false);
+                if (err.response && err.response.status === 401) {
+                    setMessage("Nesprávné jméno nebo heslo");
+                }
+                else {
+                    setMessage("Neočekávaná chyba: " + err.toString());
+                }
             });
     };
 
@@ -45,58 +52,79 @@ function Login() {
             username: Yup.string().trim().required("Uživatelské jméno je vyžadováno"),
             password: Yup.string().trim().required("Heslo je vyžadováno"),
         }),
+        validateOnChange: false,
+        validateOnBlur: false
     });
 
-  return (
-    <div className="h-screen flex bg-gray-bg1">
-      <div className="w-full max-w-md m-auto bg-white rounded-lg border border-primaryBorder shadow-default py-10 px-16">
-        <h1 className="text-2xl font-medium text-primary mt-4 mb-12 text-center">
-          Log in to your account 🔐
-        </h1>
-        <form onSubmit={formik.handleSubmit}>
-          <div className="space-y-4">
-            <input
-              className="border-b border-gray-300 w-full px-2 h-8 rounded focus:border-blue-500"
-              id="username"
-              type="text"
-              placeholder="Uživatelské jméno"
-              name="username"
-              value={formik.values.username}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-            {formik.errors.username ? <div>{formik.errors.username} </div> : null}
-            <input
-              className="border-b border-gray-300 w-full px-2 h-8 rounded focus:border-blue-500"
-              id="password"
-              type="password"
-              placeholder="Heslo"
-              name="password"
-              value={formik.values.password}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-            />
-            {formik.errors.password ? (
-              <div>{formik.errors.password} </div>
-            ) : null}
-          </div>
-          <div className="text-danger text-center my-2" hidden={false}>
-            {message}
-          </div>
+    return (<div className="w-full md:w-1/2 mx-auto">
+        <div className="bg-white border rounded shadow">
+            <div className="border-b p-3">
+                <h5 className="font-bold uppercase text-gray-600">Přihlásit se</h5>
+            </div>
+            <div className="p-5">
+                <form onSubmit={formik.handleSubmit}>
 
-          <div className="flex justify-center items-center mt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded border-gray-300 p-2 w-32 bg-blue-700 text-white"
-            >
-              Login
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+
+                    <div id="div_id_username" className="md:flex md:items-center mb-6">
+                        <div className="md:w-1/3">
+                            <label htmlFor="id_username" className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4 requiredField">
+                                Uživatelské jméno
+                            </label>
+                            {formik.errors.username ? <div className="text-right text-sm pr-4 text-red-700">{formik.errors.username} </div> : null}
+                        </div>
+                        <div className="field md:w-2/3">
+                            <input
+                                id="username"
+                                type="text"
+                                placeholder="Uživatelské jméno"
+                                name="username"
+                                value={formik.values.username}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur} />
+                        </div>
+                    </div>
+                    <div id="div_id_password" className="md:flex md:items-center mb-6">
+                        <div className="md:w-1/3">
+                            <label htmlFor="id_password" className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4 requiredField">
+                                Heslo
+                            </label>
+                            {formik.errors.password ? (
+                                <div className="text-right text-sm pr-4 text-red-700">{formik.errors.password} </div>
+                            ) : null}
+                        </div>
+                        <div className="field md:w-2/3">
+                            <input
+                                id="password"
+                                type="password"
+                                placeholder="Heslo"
+                                name="password"
+                                value={formik.values.password}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur} />
+                        </div>
+                    </div>
+
+                    {
+                    message
+                        ? <div className="my-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                            {message}
+                          </div>
+                        : null
+                    }
+
+                    <button className="w-full shadow bg-purple-500 hover:bg-purple-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
+                        <div className="mx-auto inline-block">
+                        {
+                            loading
+                                ? <ThreeDots height="100%" color="white"/>
+                                : "Přihlásit se"
+                        }
+                        </div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>);
 }
 
 export default Login;
