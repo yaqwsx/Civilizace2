@@ -21,6 +21,7 @@
     "axios": "^0.26.0",
     "axios-auth-refresh": "^3.2.2",
     "babel-plugin-macros": "^3.1.0",
+    "classnames": "^2.3.1",
     "formik": "^2.2.9",
     "postcss": "^8.0.0",
     "postcss-import": "^14.0.2",
@@ -61,5 +62,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "prettier": "^2.6.1",
+    "prettier-plugin-tailwindcss": "^0.1.8"
   }
 }

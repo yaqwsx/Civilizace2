@@ -6,6 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router";
 import authSlice from "../store/slices/auth";
 import { ThreeDots } from "react-loader-spinner"
+import {ErrorMessage} from "../elements/messages"
 
 function Login() {
     const [message, setMessage] = useState("");
@@ -106,9 +107,7 @@ function Login() {
 
                     {
                     message
-                        ? <div className="my-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                            {message}
-                          </div>
+                        ? <ErrorMessage>{message}</ErrorMessage>
                         : null
                     }
 

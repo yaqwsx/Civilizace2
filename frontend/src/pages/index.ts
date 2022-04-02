@@ -1,4 +1,3 @@
-import Login from "./Login";
-import Profile from "./Profile";
+import Login from "./login";
 
-export { Login, Profile };
+export { Login };

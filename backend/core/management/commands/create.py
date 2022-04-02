@@ -66,7 +66,7 @@ class Command(BaseCommand):
     help = "usage: create [entities|users|state]+"
 
     @staticmethod
-    def create_or_get_user(username, password, superuser=False):
+    def create_or_get_user(username, password, superuser=False, team=None):
         try:
             return User.objects.get(username=username)
         except User.DoesNotExist:
@@ -75,7 +75,8 @@ class Command(BaseCommand):
                                                      password=password)
             else:
                 return User.objects.create_user(username=username,
-                                                password=password)
+                                                password=password,
+                                                team=team)
 
     def add_arguments(self, parser):
         parser.add_argument('what', nargs='+', type=str)
@@ -104,7 +105,8 @@ class Command(BaseCommand):
             for userParams in teamParams["players"]:
                 user = Command.create_or_get_user(
                         username=userParams["username"],
-                        password=userParams["password"],)
+                        password=userParams["password"],
+                        team=team)
         for username in ORG:
             user = Command.create_or_get_user(
                             username=username,

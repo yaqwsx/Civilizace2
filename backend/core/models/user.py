@@ -2,10 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, password=None):
+    def create_user(self, username, password=None, team=None):
         if username is None:
             raise TypeError('Users must have a username.')
-        user = self.model(username=username)
+        user = self.model(username=username, team=team)
         user.set_password(password)
         user.save(using=self._db)
 
