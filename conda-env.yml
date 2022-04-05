@@ -1,0 +1,16 @@
+---
+name: civilizace
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - nodejs=16.13.1
+  - pip
+  - pip:
+    - Django==4.0.*
+    - djangorestframework==3.13.*
+    - djangorestframework-simplejwt==5.1.*
+    - gspread==5.*
+    - django-extensions==3.1.*
+    - django-cors-headers>=3.10.*
