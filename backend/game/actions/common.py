@@ -3,9 +3,9 @@ from __future__ import annotations
 from decimal import Decimal
 from game.state import TeamId
 from game.entities import EntityId
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Generator, Callable
 from pydantic import BaseModel
-from collections import UserDict
+import contextlib
 
 class MessageBuilder(BaseModel):
     """
@@ -19,7 +19,20 @@ class MessageBuilder(BaseModel):
         return self
 
     def add(self, message: str) -> None:
-        self.message += "\n\n" + message
+        if len(self.message) > 0:
+            self.message += "\n\n"
+        self.message += message
+
+    @contextlib.contextmanager
+    def startList(self, header: str) -> Generator[Callable[[str], None], None, None]:
+        lines = []
+        try:
+            yield lambda x: lines.append(x)
+        finally:
+            if len(lines) > 0:
+                self.add(header)
+                self.addList(lines)
+
 
     def addList(self, items: List[str]) -> None:
         self.add("\n".join(["- " + x for x in items]))
