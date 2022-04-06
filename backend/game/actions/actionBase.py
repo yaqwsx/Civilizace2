@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from backend.game.actions.common import ActionException
+from game.actions.common import ActionException
 from game.actions.common import ActionCost, ActionCost, MessageBuilder
 from game.entities import Entities
 

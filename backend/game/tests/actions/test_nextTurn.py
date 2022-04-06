@@ -1,7 +1,7 @@
-from backend.game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
-from backend.game.entities import Entities
-from backend.game.state import GameState
-from backend.game.tests.actions.common import TEST_ENTITIES, TEST_TEAMS
+from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
+from game.entities import Entities
+from game.state import GameState
+from game.tests.actions.common import TEST_ENTITIES, TEST_TEAMS
 
 import pytest
 

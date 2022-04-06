@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional, Iterable, Union
 from decimal import Decimal
 
-from backend.game.entities import Tech
+from game.entities import Tech
 
 # Type Aliases
 TeamId = str # intentionally left weak
@@ -11,7 +11,6 @@ TeamId = str # intentionally left weak
 class TeamState(BaseModel):
     redCounter: Decimal
     blueCounter: Decimal
-    techs: set[Tech] = []
 
     @classmethod
     def createInitial(cls, teamId: TeamId) -> TeamState:

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from argparse import ArgumentError
 
 from decimal import Decimal
 from game.state import TeamId
@@ -64,9 +63,7 @@ class ActionCost(BaseModel):
         self.validate()
 
     def validate(self) -> None:
-        if (self.requiredDots == 0) != (len(self.allowedDice) == 0):
-            raise ArgumentError("Requiring " + self.requiredDots + " dots on dice " + self.allowedDice)
-        
+        pass
 
 
 class GlobalActionArgs(BaseModel):

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from backend.game.actions.actionBase import ActionBase
-from backend.game.actions.common import ActionCost
+from game.actions.actionBase import ActionBase
+from game.actions.common import ActionCost
 
 class ActionNextTurnArgs(BaseModel):
     pass
