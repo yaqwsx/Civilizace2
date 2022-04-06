@@ -6,7 +6,6 @@ from game.state import GameState, TeamId
 
 
 class ActionBase(BaseModel):
-    teamId: TeamId
     entities: Entities
     state: GameState
 
