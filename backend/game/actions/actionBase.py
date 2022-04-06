@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from backend.game.actions.common import ActionException
 from game.actions.common import ActionCost, ActionCost, MessageBuilder
 from game.entities import Entities
 
@@ -17,6 +18,9 @@ class ActionBase(BaseModel):
 
     def commit(self) -> str:
         self.apply()
+        if not self.errors.empty:
+            raise ActionException(self.errors)
+        return self.info.message
 
     def apply(self) -> None:
         raise NotImplementedError("ActionBae is an interface")

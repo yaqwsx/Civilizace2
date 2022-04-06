@@ -3,12 +3,15 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional, Iterable, Union
 from decimal import Decimal
 
+from backend.game.entities import Tech
+
 # Type Aliases
 TeamId = str # intentionally left weak
 
 class TeamState(BaseModel):
     redCounter: Decimal
     blueCounter: Decimal
+    techs: set[Tech] = []
 
     @classmethod
     def createInitial(cls, teamId: TeamId) -> TeamState:
@@ -17,15 +20,14 @@ class TeamState(BaseModel):
             blueCounter=0
         )
 
-
 class GameState(BaseModel):
-    round: int
+    turn: int
     teamStates: Dict[TeamId, TeamState]
 
     @classmethod
     def createInitial(cls, teamIds: Iterable[TeamId]) -> GameState:
         return GameState(
-            round=0,
+            turn=0,
             teamStates={id: TeamState.createInitial(id) for id in teamIds}
         )
 

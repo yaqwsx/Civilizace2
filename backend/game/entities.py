@@ -2,7 +2,7 @@ from __future__ import annotations
 from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
-from typing import Union, Iterable
+from typing import Union, Iterable, Dict
 
 EntityId = str
 
@@ -26,9 +26,10 @@ class Resource(EntityBase):
     def isProduction(self) -> bool:
         return self.id.startswith("prod-")
 
-class Tech(EntityId):
-    pass
-
+class Tech(EntityBase):
+    cost: Dict[str, int]
+    diePoints: int
+    techs: Dict[Tech, str]
 
 # Common type of all available entities
 Entity = Union[Resource, Tech]
