@@ -20,3 +20,6 @@ class ActionBase(BaseModel):
 
     def apply(self) -> None:
         raise NotImplementedError("ActionBae is an interface")
+
+    def delayedEffect(self) -> str:
+        pass

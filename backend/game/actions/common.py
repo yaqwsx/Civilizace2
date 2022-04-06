@@ -51,7 +51,20 @@ class ActionException(Exception):
         else:
             super().__init__(msg)
 
-ActionCost = Dict[EntityId, Decimal]
+
+class ActionCost(BaseModel):
+    allowedDice: set[str] = set()
+    requiredDots: int = 0
+    postpone: int = 0
+    resources: Dict[EntityId, Decimal]
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.validate()
+
+    def validate(self) -> None:
+        pass
+
 
 class GlobalActionArgs(BaseModel):
     pass
