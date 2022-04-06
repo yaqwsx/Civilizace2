@@ -1,18 +1,23 @@
 from pydantic import BaseModel
+from game.actions.common import ActionCost, ActionCost, MessageBuilder
+from game.entities import Entities
 
-class ActionBase:
+from game.state import GameState, TeamId
+
+
+class ActionBase(BaseModel):
 	teamId: TeamId
 	entities: Entities
 	state: GameState
 
-	errors: MessageBuilder
-	info: MessageBuilder
+	errors: MessageBuilder = MessageBuilder()
+	info: MessageBuilder = MessageBuilder()
 
-	def cost() -> ActionCost:
-	    raise NotImplementedError("ActionBase is an interface")
+	def cost(self) -> ActionCost:
+        raise NotImplementedError("ActionBase is an interface")
 
-	def commit() -> str:
-		self.apply()
+    def commit(self) -> str:
+        self.apply()
 
-	def apply() -> None:
-		raise NotImplementedError("ActionBae is an interface")
+	def apply(self) -> None:
+        raise NotImplementedError("ActionBae is an interface")

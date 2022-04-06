@@ -9,6 +9,7 @@ dependencies:
   - pip
   - pip:
     - mypy
+    - autopep8
     - pylint
     - Django==4.0.*
     - djangorestframework==3.13.*
