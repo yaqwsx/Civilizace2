@@ -1,8 +1,9 @@
 from __future__ import annotations
+from decimal import Decimal
 from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
-from typing import Union, Iterable, Dict
+from typing import Union, Iterable, Dict, List
 
 EntityId = str
 
@@ -34,8 +35,25 @@ class Tech(EntityBase):
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
 
+class Vyroba(EntityBase):
+    cost: Dict[Resource, int]
+    diePoints: int
+    die: str
+    reward: Resource
+    rewardAmount: Decimal
+
+class NaturalResource(EntityBase):
+    pass
+
+class MapTile(EntityBase):
+    x: str
+    y: int
+    parcelCount: int
+    naturalResources: List[NaturalResource]
+    richness: int
+
 # Common type of all available entities
-Entity = Union[Resource, Tech]
+Entity = Union[Resource, Tech, Vyroba, NaturalResource, MapTile]
 
 class Entities(frozendict):
     """

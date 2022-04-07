@@ -1,5 +1,6 @@
+from html import entities
 from game.entities import Resource, Entities, Tech
-from game.state import TeamId
+from game.state import GameState, TeamId
 from decimal import Decimal
 from typing import List
 
@@ -9,13 +10,17 @@ TEST_DATA_RESOURCES = {
     ("res-prace", "Práce"),
     ("res-obyvatel", "Obyvatelé"),
     ("mat-drevo", "Dřevo"),
-    ("mat-kamen", "Kámen")
+    ("mat-kamen", "Kámen"),
+    ("prod-drevo", "Dřevorubec"),
+    ("prod-kamen", "Kameník")
 }
 
 TEST_DATA_TECH = [
-    ("tech-start", 10, {"tech-a" : "die-hory", "tech-b": "die-les"}),
+    ("tech-start", 10, {"tech-a" : "die-hory", "tech-b": "die-les", "tech-c": "die-plan"}),
     ("tech-a", 20, {"tech-b": "die-hory"}),
-    ("tech-b", 30, {})
+    ("tech-b", 30, {}),
+    ("tech-c", 40, {"tech-d": "die-plan"}),
+    ("tech-d", 42, {})
 ]
 
 def getResources(data = TEST_DATA_RESOURCES):
@@ -43,6 +48,13 @@ def getTechs(data = TEST_DATA_TECH):
 TEST_ENTITIES = Entities(
         getResources() 
         + list(getTechs(TEST_DATA_TECH)))
+
+TEST_TEAM_ID = "tym-zeleny"
+
+def createTestInitState(entities = TEST_ENTITIES):
+    state = GameState.createInitial(TEST_TEAMS, entities)
+    state.teamStates[TEST_TEAM_ID].researching.add(entities["tech-c"])
+    return state
 
 
 TEST_TEAMS: List[TeamId] = ["tym-zeleny", "tym-modry"]

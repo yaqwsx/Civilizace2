@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from game.actions.common import ActionException
+from game.actions.common import ActionFailedException
 from game.actions.common import ActionCost, ActionCost, MessageBuilder
 from game.entities import Entities
 
-from game.state import GameState, TeamId
+from game.state import GameState, TeamId, TeamState
 
 class ActionBase(BaseModel):
     class Config:
@@ -23,7 +23,7 @@ class ActionBase(BaseModel):
     def commit(self) -> str:
         self.apply()
         if not self.errors.empty:
-            raise ActionException(self.errors)
+            raise ActionFailedException(self.errors)
         return self.info.message
 
     def apply(self) -> None:
@@ -31,3 +31,11 @@ class ActionBase(BaseModel):
 
     def delayedEffect(self) -> str:
         pass
+
+class TeamActionBase(ActionBase):
+    teamId: TeamId
+    
+    @property
+    def team(self) -> TeamState:
+        return self.state.teamStates[self.teamId]
+

@@ -44,20 +44,34 @@ class MessageBuilder(BaseModel):
     def empty(self) -> bool:
         return len(self.message) == 0
 
-class ActionException(Exception):
+class CivilizationException(Exception):
+    """Generic type for an error in Civilization logic."""
+    pass
+
+class ActionArgumentException(CivilizationException):
+    """
+    Thrown when an action receives invalid or unexpected arguments.
+    If thrown by commit, the action should be abandoned.
+    """
+    pass
+
+class ActionFailedException(CivilizationException):
+    """
+    Thrown when action yields a result different to expectation.
+    If thrown by commit, the action should be cancelled.
+    """
     def __init__(self, msg: Union[str, MessageBuilder]) -> None:
         if isinstance(msg, MessageBuilder):
             super().__init__(msg.message)
         else:
             super().__init__(msg)
 
-
 class ActionCost(BaseModel):
     allowedDice: Set[str] = set()
     requiredDots: int = 0
     postpone: int = 0
-    resources: Dict[EntityId, Decimal]
-
+    resources: Dict[EntityId, Decimal] = {}
+    
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:
         ALLOWED_DICE = ["die-hory", "die-les", "die-plan"]

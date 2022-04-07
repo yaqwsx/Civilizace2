@@ -1,7 +1,7 @@
 from decimal import Decimal
 from game.state import GameState, TeamId
 from game.entities import Resource, Entities
-from game.actions.common import ActionCost, TeamActionArgs, ActionException, MessageBuilder
+from game.actions.common import ActionCost, TeamActionArgs, ActionFailedException, MessageBuilder
 from typing import Optional
 
 # This action is a demonstration of action implementation. Basically you can say
@@ -33,7 +33,7 @@ def commitCounterCost(args: IncreaseCounterArgs,
         error += "Hráči nemohou obětovat lidi - chtěli jste obětovat 1× <<mat-clovek>>"
 
     if not error.empty:
-        raise ActionException(error)
+        raise ActionFailedException(error)
 
     state.teamStates[args.teamId].redCounter += args.red
     if args.resource is not None:

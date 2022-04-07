@@ -1,6 +1,6 @@
 from game.tests.actions.common import TEST_TEAMS, TEST_ENTITIES
 from game.state import GameState
-from game.actions.common import ActionException
+from game.actions.common import ActionFailedException
 from game.actions.increaseCounter import increaseCounterCost, IncreaseCounterArgs, commitCounterCost
 
 import pytest
@@ -47,7 +47,7 @@ def test_tooMany():
         red=12,
         resource=None
     )
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(ActionFailedException) as einfo:
         commitCounterCost(arg, TEST_ENTITIES, state)
     assert "zvýšit" in str(einfo.value)
 

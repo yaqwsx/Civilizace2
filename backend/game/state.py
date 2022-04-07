@@ -13,7 +13,7 @@ class TeamState(BaseModel):
     blueCounter: Decimal
 
     techs: Set[Tech]
-    researching: Set[Tech] = []
+    researching: Set[Tech] = set()
 
     @classmethod
     def createInitial(cls, teamId: TeamId, entities: Entities) -> TeamState:
