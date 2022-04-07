@@ -9,10 +9,10 @@ class ActionNextTurn(ActionBase):
     args: ActionNextTurnArgs
 
     def cost(self) -> ActionCost:
-        return ActionCost([])
+        return ActionCost(resources={})
 
     def apply(self) -> str:
         currentTurn = self.state.turn
         self.state.turn += 1
 
-        self.info.add("Začalo kolo " + (currentTurn+1))
+        self.info.add(f"Začalo kolo {currentTurn+1}")

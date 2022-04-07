@@ -7,6 +7,11 @@ from game.state import GameState, TeamId
 
 
 class ActionBase(BaseModel):
+    class Config:
+        # Action can have attributes that doesn't follow strict
+        # type checking in via Pydantic - i.e., entities.
+        arbitrary_types_allowed=True
+
     entities: Entities
     state: GameState
 

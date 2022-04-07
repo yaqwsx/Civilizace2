@@ -3,8 +3,8 @@ from __future__ import annotations
 from decimal import Decimal
 from game.state import TeamId
 from game.entities import EntityId
-from typing import Dict, List, Any, Union, Generator, Callable, Set
-from pydantic import BaseModel
+from typing import Dict, List, Any, Union, Generator, Callable, Set, Iterable
+from pydantic import BaseModel, root_validator, validator
 import contextlib
 
 class MessageBuilder(BaseModel):
@@ -58,12 +58,27 @@ class ActionCost(BaseModel):
     postpone: int = 0
     resources: Dict[EntityId, Decimal]
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.validate()
+    @validator("allowedDice")
+    def validateDice(cls, v: Iterable[str]) -> Set[str]:
+        ALLOWED_DICE = ["dice-hory", "dice-dopln-si"]
+        dice = set(v)
+        for d in dice:
+            if d not in ALLOWED_DICE:
+                raise ValueError(f"Kostka {d} není dovolena. Dovolené kostky: {','.join(ALLOWED_DICE)}")
+        return dice
 
-    def validate(self) -> None:
-        pass
+
+    @root_validator
+    def validate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        allowedDice = values.get("allowedDice", [])
+        requiredDots = values.get("requiredDots", 0)
+        if requiredDots < 0:
+            raise ValueError("Nemůžu chtít záporně mnoho puntíků")
+        if requiredDots == 0 and len(allowedDice) > 0:
+            raise ValueError("Nemůžu mít povolené kostky a chtít 0 puntíků")
+        if requiredDots > 0 and len(allowedDice) == 0:
+            raise ValueError("Nemůžu chtít puntíky a nespecifikovat kostky")
+        return values
 
 
 class GlobalActionArgs(BaseModel):

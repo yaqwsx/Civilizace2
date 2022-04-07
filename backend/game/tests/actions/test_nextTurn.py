@@ -7,13 +7,13 @@ import pytest
 
 def test_singleTurn():
     state = GameState.createInitial(TEST_TEAMS)
-    entities = Entities(TEST_ENTITIES)
+    entities = TEST_ENTITIES
     args = ActionNextTurnArgs()
 
     action = ActionNextTurn(state = state, entities = entities, args = args)
 
     cost = action.cost()
-    assert len(cost) == 0 
+    assert len(cost.resources) == 0
 
     action.commit()
     assert state.turn == 1
