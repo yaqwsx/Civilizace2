@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 from game.state import TeamId
 from game.entities import EntityId
-from typing import Dict, List, Any, Union, Generator, Callable
+from typing import Dict, List, Any, Union, Generator, Callable, Set
 from pydantic import BaseModel
 import contextlib
 
@@ -53,7 +53,7 @@ class ActionException(Exception):
 
 
 class ActionCost(BaseModel):
-    allowedDice: set[str] = set()
+    allowedDice: Set[str] = set()
     requiredDots: int = 0
     postpone: int = 0
     resources: Dict[EntityId, Decimal]
