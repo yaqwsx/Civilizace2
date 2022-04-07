@@ -6,7 +6,7 @@ from game.actions.increaseCounter import increaseCounterCost, IncreaseCounterArg
 import pytest
 
 def test_withoutResources():
-    state = GameState.createInitial(TEST_TEAMS)
+    state = GameState.createInitial(TEST_TEAMS, TEST_ENTITIES)
     cost = increaseCounterCost("tym-zeleny", TEST_ENTITIES, state)
     assert cost["res-prace"] == 10
     assert cost["mat-drevo"] == 5
@@ -25,7 +25,7 @@ def test_withoutResources():
     assert t.blueCounter == prev
 
 def test_withResources():
-    state = GameState.createInitial(TEST_TEAMS)
+    state = GameState.createInitial(TEST_TEAMS, TEST_ENTITIES)
     arg = IncreaseCounterArgs(
         teamId="tym-zeleny",
         red=5,
@@ -40,7 +40,7 @@ def test_withResources():
     assert t.blueCounter == 1
 
 def test_tooMany():
-    state = GameState.createInitial(TEST_TEAMS)
+    state = GameState.createInitial(TEST_TEAMS, TEST_ENTITIES)
 
     arg = IncreaseCounterArgs(
         teamId="tym-zeleny",

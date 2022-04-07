@@ -11,7 +11,7 @@ class ActionNextTurn(ActionBase):
     def cost(self) -> ActionCost:
         return ActionCost(resources={})
 
-    def apply(self) -> str:
+    def apply(self) -> None:
         currentTurn = self.state.turn
         self.state.turn += 1
 

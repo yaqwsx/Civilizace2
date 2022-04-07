@@ -3,20 +3,20 @@ import pytest
 
 def test_validator():
     ActionCost(
-        allowedDice=["dice-hory"],
+        allowedDice=["die-hory"],
         requiredDots=10,
         resources={}
     )
 
     with pytest.raises(ValueError):
         ActionCost(
-            allowedDice=["dice-h"],
+            allowedDice=["die-h"],
             requiredDots=10,
             resources={})
 
     with pytest.raises(ValueError):
         ActionCost(
-            allowedDice=["dice-hory"],
+            allowedDice=["die-hory"],
             requiredDots=0,
             resources={})
 

@@ -5,15 +5,19 @@ from game.tests.actions.common import TEST_ENTITIES, TEST_TEAMS
 
 import pytest
 
-def test_singleTurn():
-    state = GameState.createInitial(TEST_TEAMS)
+def test_turnCounter():
     entities = TEST_ENTITIES
+    state = GameState.createInitial(TEST_TEAMS, entities)
     args = ActionNextTurnArgs()
 
     action = ActionNextTurn(state = state, entities = entities, args = args)
 
     cost = action.cost()
     assert len(cost.resources) == 0
-
     action.commit()
     assert state.turn == 1
+
+    for i in range(20):
+        action = ActionNextTurn(state = state, entities = entities, args = args)
+        action.commit()
+        assert state.turn == i+2

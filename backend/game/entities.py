@@ -29,7 +29,10 @@ class Resource(EntityBase):
 class Tech(EntityBase):
     cost: Dict[str, int]
     diePoints: int
-    techs: Dict[Tech, str]
+    edges: Dict[Tech, str] # tech -> dieId
+
+    def __str__(self) -> str:
+        return self.name + "("+ self.id + ")"
 
 # Common type of all available entities
 Entity = Union[Resource, Tech]

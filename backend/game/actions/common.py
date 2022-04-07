@@ -60,7 +60,7 @@ class ActionCost(BaseModel):
 
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:
-        ALLOWED_DICE = ["dice-hory", "dice-dopln-si"]
+        ALLOWED_DICE = ["die-hory", "die-les", "die-plan"]
         dice = set(v)
         for d in dice:
             if d not in ALLOWED_DICE:
