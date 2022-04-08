@@ -1,11 +1,16 @@
-from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
-from game.entities import Entities
-from game.state import GameState
-from game.tests.actions.common import TEST_ENTITIES, TEST_TEAMS
+from testing import PYTEST_COLLECT, reimport
 
-import pytest
+if not PYTEST_COLLECT:
+    from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
+    from game.entities import Entities
+    from game.state import GameState
+    from game.tests.actions.common import TEST_ENTITIES, TEST_TEAMS
+
 
 def test_turnCounter():
+    reimport(__name__)
+
+    state = GameState.createInitial(TEST_TEAMS)
     entities = TEST_ENTITIES
     state = GameState.createInitial(TEST_TEAMS, entities)
     args = ActionNextTurnArgs()
