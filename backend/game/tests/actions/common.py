@@ -1,5 +1,5 @@
 from html import entities
-from game.entities import Resource, Entities, Tech
+from game.entities import Resource, Entities, Tech, Vyroba
 from game.state import GameState, TeamId
 from decimal import Decimal
 from typing import List
@@ -16,24 +16,44 @@ TEST_DATA_RESOURCES = {
 }
 
 TEST_DATA_TECH = [
-    ("tech-start", 10, {"tech-a" : "die-hory", "tech-b": "die-les", "tech-c": "die-plan"}),
+    ("tech-start", 10, {"tech-a": "die-hory", "tech-b": "die-les", "tech-c": "die-plan"}),
     ("tech-a", 20, {"tech-b": "die-hory"}),
     ("tech-b", 30, {}),
     ("tech-c", 40, {"tech-d": "die-plan"}),
     ("tech-d", 42, {})
 ]
 
-def getResources(data = TEST_DATA_RESOURCES):
-    return [Resource(id=entry[0], name=entry[1]) for entry in data]
+TEST_DATA_VYROBA = [
+    ("vyr-drevo", {"res-prace": 10}, "mat-drevo", 2, "die-les", 5),
+    ("vyr-drevo-prod", {"res-prace": 10, "res-obyvatel": 5}, "prod-drevo", 2, "die-les", 10)
+]
 
-def getTechs(data = TEST_DATA_TECH):
+
+def addResources(entities, data=TEST_DATA_RESOURCES):
+    return {entry[0] : Resource(id=entry[0], name=entry[1]) for entry in data}
+
+
+def addVyrobas(entities, data=TEST_DATA_VYROBA):
+    vyrobas = []
+    for vyroba in data:
+        id = vyroba[0]
+        reward = entities[vyroba[2]]
+        amount = vyroba[3]
+        cost = {entities[item[0]]: item[1] for item in vyroba[1].items()}
+        vyrobas.append(Vyroba(id=id, name=id.upper(), cost=cost, 
+                              die=vyroba[4], diePoints=vyroba[5], 
+                              reward=reward, rewardAmount=amount))
+    entities.update({v.id : v for v in vyrobas})
+    return entities
+
+def addTechs(entities, data=TEST_DATA_TECH):
     techs = {}
     for techData in data:
         techs[techData[0]] = Tech(
-            id=techData[0], 
-            name=techData[0].upper(), 
-            cost={}, 
-            diePoints=techData[1], 
+            id=techData[0],
+            name=techData[0].upper(),
+            cost={},
+            diePoints=techData[1],
             edges={})
 
     for techData in data:
@@ -43,15 +63,17 @@ def getTechs(data = TEST_DATA_TECH):
             tech.edges[target] = edge[1]
 
     print("Techs: " + str(techs))
-    return techs.values()
+    entities.update(techs)
+    return entities
+
 
 TEST_ENTITIES = Entities(
-        getResources() 
-        + list(getTechs(TEST_DATA_TECH)))
+    addTechs(addVyrobas(addResources({}))).values())
 
 TEST_TEAM_ID = "tym-zeleny"
 
-def createTestInitState(entities = TEST_ENTITIES):
+
+def createTestInitState(entities=TEST_ENTITIES):
     state = GameState.createInitial(TEST_TEAMS, entities)
     state.teamStates[TEST_TEAM_ID].researching.add(entities["tech-c"])
     return state
