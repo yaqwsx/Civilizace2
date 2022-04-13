@@ -14,6 +14,11 @@ class EntityBase(BaseModel):
     def __hash__(self) -> int:
         return self.id.__hash__()
 
+class ResourceType(EntityBase):
+    productionName: str
+    colorName: str
+    colorVal: int
+
 class Resource(EntityBase):
     @property
     def isResource(self) -> bool:
@@ -53,7 +58,7 @@ class MapTile(EntityBase):
     richness: int
 
 # Common type of all available entities
-Entity = Union[Resource, Tech, Vyroba, NaturalResource, MapTile]
+Entity = Union[Resource, Tech, Vyroba, NaturalResource, MapTile, ResourceType]
 
 class Entities(frozendict):
     """
