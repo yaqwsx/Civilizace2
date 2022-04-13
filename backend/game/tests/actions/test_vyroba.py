@@ -16,13 +16,6 @@ def test_vyroba_initial():
     entities = TEST_ENTITIES
     state = createTestInitState()
     
-    drevo = entities["vyr-drevo"]
-    assert drevo.name == drevo.id.upper()
-
-    prod = entities["vyr-drevo-prod"]
-    assert prod.name == prod.id.upper()
+    prod = entities["vyr-drevo1Pro"]
     assert entities["res-obyvatel"] in prod.cost
-    assert prod.cost[entities["res-obyvatel"]] == 5
-
-    e = {item[0] : item[1] for item in entities.items()}
-    assert 0 == 0
+    assert prod.cost[entities["res-obyvatel"]] == 2

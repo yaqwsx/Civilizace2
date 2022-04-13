@@ -14,7 +14,9 @@ class ActionResearchStart(TeamActionBase):
     def _lookupDice(self) -> List[str]:
         dice = []
         for tech in self.team.techs:
+            print(tech.id)
             if self.args.tech in tech.edges.keys():
+                print("  OK")
                 dice.append(tech.edges[self.args.tech])
         return dice
 

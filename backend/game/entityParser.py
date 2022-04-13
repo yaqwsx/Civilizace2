@@ -2,10 +2,11 @@ from collections import Counter
 from decimal import Decimal
 import json
 
+from game.actions.common import DIE_IDS
+
 from .entities import Entities, NaturalResource, Resource, ResourceGeneric, ResourceType, Tech, Vyroba
 
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
-DIE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
 
 class EntityParser():
     entities = {}
@@ -97,7 +98,7 @@ class EntityParser():
         tech = self.entities[line[0]]
         chunks = [x.strip().split(":") for x in line[5].split(",")]
         data = map(lambda x: (x[0].strip(), x[1].strip()), chunks)
-        edges = {self.entities[x[0]]: x[1] for x in chunks}
+        edges = {self.entities[x[0]]: x[1] for x in data}
         tech.edges = edges
 
 
@@ -169,6 +170,7 @@ class EntityParser():
         print()
         if (len(self.errors)) > 0:
             print("ERROR: Failed to parse file " + self.fileName + ". Errors are listed above")
+            return None
         else:
             c = Counter([x[:3] for x in entities.keys()])
             for x in ["natuaral resources", "types of resourcesa", "materials", "resourses", "productions", "techs", "vyrobas"]:

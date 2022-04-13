@@ -20,7 +20,7 @@ class TeamState(BaseModel):
         return TeamState(
             redCounter=0,
             blueCounter=0,
-            techs=[entities["tech-start"]]
+            techs=[entities["tec-start"]]
         )
 
 class GameState(BaseModel):

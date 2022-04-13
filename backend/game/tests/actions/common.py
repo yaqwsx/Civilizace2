@@ -1,4 +1,5 @@
 from html import entities
+from game import entityParser
 from game.entities import Resource, Entities, Tech, Vyroba
 from game.state import GameState, TeamId
 from decimal import Decimal
@@ -67,16 +68,18 @@ def addTechs(entities, data=TEST_DATA_TECH):
     return entities
 
 
-TEST_ENTITIES = Entities(
-    addTechs(addVyrobas(addResources({}))).values())
+#TEST_ENTITIES = Entities(
+#    addTechs(addVyrobas(addResources({}))).values())
 
 TEST_TEAM_ID = "tym-zeleny"
 
+TEST_ENTITIES = entityParser.EntityParser("backend\\testEntities.json").parse()
 
 def createTestInitState(entities=TEST_ENTITIES):
     state = GameState.createInitial(TEST_TEAMS, entities)
-    state.teamStates[TEST_TEAM_ID].researching.add(entities["tech-c"])
+    state.teamStates[TEST_TEAM_ID].researching.add(entities["tec-c"])
     return state
 
 
 TEST_TEAMS: List[TeamId] = ["tym-zeleny", "tym-modry"]
+

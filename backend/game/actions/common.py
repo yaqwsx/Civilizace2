@@ -7,6 +7,8 @@ from typing import Dict, List, Any, Union, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
 
+DIE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
+
 class MessageBuilder(BaseModel):
     """
     The goal is to simplify building markdown messages and not thinking about
@@ -74,7 +76,7 @@ class ActionCost(BaseModel):
     
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:
-        ALLOWED_DICE = ["die-hory", "die-les", "die-plan"]
+        ALLOWED_DICE = DIE_IDS
         dice = set(v)
         for d in dice:
             if d not in ALLOWED_DICE:

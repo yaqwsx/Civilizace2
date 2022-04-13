@@ -1,3 +1,4 @@
+from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
@@ -10,9 +11,9 @@ if not PYTEST_COLLECT:
 def test_turnCounter():
     reimport(__name__)
 
-    state = GameState.createInitial(TEST_TEAMS)
+    state = createTestInitState()
     entities = TEST_ENTITIES
-    state = GameState.createInitial(TEST_TEAMS, entities)
+    state = createTestInitState()
     args = ActionNextTurnArgs()
 
     action = ActionNextTurn(state = state, entities = entities, args = args)
