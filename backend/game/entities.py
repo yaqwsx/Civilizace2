@@ -3,7 +3,7 @@ from decimal import Decimal
 from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
-from typing import Union, Iterable, Dict, List
+from typing import Optional, Tuple, Union, Iterable, Dict, List
 
 EntityId = str
 
@@ -14,12 +14,20 @@ class EntityBase(BaseModel):
     def __hash__(self) -> int:
         return self.id.__hash__()
 
+    def __str___(self) -> str:
+        return self.id + "(" + type(self).name + ")"
+
+
 class ResourceType(EntityBase):
     productionName: str
     colorName: str
     colorVal: int
 
+
 class Resource(EntityBase):
+    typ: Optional[Tuple[ResourceType, int]]=None
+    produces: Optional[Resource]=None
+
     @property
     def isResource(self) -> bool:
         return self.isMaterial or self.isProduction
@@ -30,7 +38,8 @@ class Resource(EntityBase):
 
     @property
     def isProduction(self) -> bool:
-        return self.id.startswith("prod-")
+        return self.produces != None
+
 
 class Tech(EntityBase):
     cost: Dict[str, int]
@@ -40,6 +49,7 @@ class Tech(EntityBase):
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
 
+
 class Vyroba(EntityBase):
     cost: Dict[Resource, int]
     diePoints: int
@@ -47,8 +57,10 @@ class Vyroba(EntityBase):
     reward: Resource
     rewardAmount: Decimal
 
+
 class NaturalResource(EntityBase):
     pass
+
 
 class MapTile(EntityBase):
     x: str
@@ -56,6 +68,7 @@ class MapTile(EntityBase):
     parcelCount: int
     naturalResources: List[NaturalResource]
     richness: int
+
 
 # Common type of all available entities
 Entity = Union[Resource, Tech, Vyroba, NaturalResource, MapTile, ResourceType]
