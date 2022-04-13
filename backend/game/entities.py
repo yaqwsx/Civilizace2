@@ -40,11 +40,18 @@ class Resource(EntityBase):
     def isProduction(self) -> bool:
         return self.produces != None
 
+    def __str__(self) -> str:
+        return self.id
+
+
+class ResourceGeneric(Resource):
+    None
+
 
 class Tech(EntityBase):
-    cost: Dict[str, int]
+    cost: Dict[Resource, int]
     diePoints: int
-    edges: Dict[Tech, str] # tech -> dieId
+    edges: Dict[Tech, str]={} # tech -> dieId
 
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
