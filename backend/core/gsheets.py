@@ -12,8 +12,5 @@ def getService():
                            f"pro Google Sheets: '{os.path.realpath(credentialPath)}'.")
     return gspread.service_account(filename=credentialPath)
 
-def getEntitiesSheets():
-    return getService().open_by_key("1BNdnhzJoF9oSLHvpX_UsEPEROZ6U_nHNLsqNerNWIoA")
-
-def getTechsSheet():
-    return getService().open_by_key("1LV3BXTTIKQ6RsOOlZIocXCPBeLD726uE0Hz-KBa0E1E")
+def getSheets(id):
+    return getService().open_by_key(id)

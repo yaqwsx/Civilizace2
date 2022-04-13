@@ -1,2 +1,5 @@
 .vscode
 
+gauth.json
+backend/entities.json
+backend/testEntities.json
