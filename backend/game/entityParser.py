@@ -92,7 +92,7 @@ class EntityParser():
 
 
     def parseLineTechStep2(self, line):
-        if len(line[5]) <= 1:
+        if line[5].find(":") < 0:
             return
 
         tech = self.entities[line[0]]
