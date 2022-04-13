@@ -1,9 +1,11 @@
 from collections import Counter
+from decimal import Decimal
 import json
 
-from .entities import Entities, NaturalResource, Resource, ResourceGeneric, ResourceType, Tech
+from .entities import Entities, NaturalResource, Resource, ResourceGeneric, ResourceType, Tech, Vyroba
 
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
+DIE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
 
 class EntityParser():
     entities = {}
@@ -25,7 +27,7 @@ class EntityParser():
     def parseCostSingle(self, s):
         chunks = [x.strip() for x in s.strip().split(":")]
         if chunks[0].count("-") == 1:
-            return (self.entities[chunks[0]], int(chunks[1]))
+            return (self.entities[chunks[0]], Decimal(chunks[1]))
         
         id = chunks[0]
         typData = self.parseTypString("typ" + id[3:])
@@ -35,13 +37,18 @@ class EntityParser():
         name += " " + LEVEL_SYMBOLS_ROMAN[typData[1]]
 
         res = ResourceGeneric(id=chunks[0], name=name, typ=typData)
-        return (res, int(chunks[1]))
+        return (res, Decimal(chunks[1]))
 
     
     def parseCost(self, s):
-        if s == None or len(s) <= 2:
+        if s.find(":") < 0:
             return {}
         return {x[0]: x[1] for x in map(self.parseCostSingle, s.split(","))}
+
+
+    def parseDieCost(self, s):
+        assert s.split(":")[0] in DIE_IDS, "Unknown die id: " + s.split(":")[0]
+        return (s.split(":")[0], int(s.split(":")[1]))
 
 
     def parseLineGeneric(self, c, line):
@@ -78,7 +85,7 @@ class EntityParser():
     
     def parseLineTechStep1(self, line):
         cost = self.parseCost(line[4])
-        cost[self.entities["res-prace"]] = int(line[3])
+        cost[self.entities["res-prace"]] = Decimal(line[3])
         tech = Tech(id=line[0], name=line[1], diePoints=int(line[2]), cost=cost)
         self.entities[line[0]] = tech
 
@@ -92,6 +99,24 @@ class EntityParser():
         data = map(lambda x: (x[0].strip(), x[1].strip()), chunks)
         edges = {self.entities[x[0]]: x[1] for x in chunks}
         tech.edges = edges
+
+
+    def parseLineVyroba(self, line):
+        cost = self.parseCost(line[5])
+        cost[self.entities["res-prace"]] = Decimal(line[3])
+        cost[self.entities["res-obyvatel"]] = Decimal(line[4])
+        reward = self.parseCostSingle(line[6])
+        assert type(reward[0]) is not ResourceGeneric, "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
+        die = self.parseDieCost(line[2])
+
+        techs = []
+        for x in line[7].split(","):
+            x = x.strip()
+            tech = self.entities[x]
+            assert tech != None, "Unknown unlocking tech " + x
+            techs.append(tech)
+        vyroba = Vyroba(id=line[0], name=line[1], die=die, cost=cost, reward=reward, techs=techs)
+        self.entities[line[0]] = vyroba
 
 
     def parseSheet(self, sheetId, dataOffset, parser, prefixes, asserts=True):
@@ -127,15 +152,17 @@ class EntityParser():
         self.parseSheet("tech", 1, lambda x: self.parseLineTechStep1(x), ["tec"])
         self.parseSheet("tech", 1, lambda x: self.parseLineTechStep2(x), ["tec"], asserts=False)
 
+    def parseVyrobas(self):
+        self.parseSheet("vyroba", 2, lambda x: self.parseLineVyroba(x), ["vyr"])
+    
+
 
     def parse(self) -> Entities:
-
-
         self.parseTypes()
         self.parseMaterials()
         self.parseNaturalResources()
-
         self.parseTechs()
+        self.parseVyrobas()
 
         entities = Entities(self.entities.values())
 

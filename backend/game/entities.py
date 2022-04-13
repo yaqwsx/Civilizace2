@@ -49,7 +49,7 @@ class ResourceGeneric(Resource):
 
 
 class Tech(EntityBase):
-    cost: Dict[Resource, int]
+    cost: Dict[Resource, Decimal]
     diePoints: int
     edges: Dict[Tech, str]={} # tech -> dieId
 
@@ -58,11 +58,10 @@ class Tech(EntityBase):
 
 
 class Vyroba(EntityBase):
-    cost: Dict[Resource, int]
-    diePoints: int
-    die: str
-    reward: Resource
-    rewardAmount: Decimal
+    cost: Dict[Resource, Decimal]
+    die: Tuple[str, int]
+    reward: Tuple[Resource, Decimal]
+    techs: List[Tech]=[]
 
 
 class NaturalResource(EntityBase):
