@@ -5,7 +5,10 @@ from functools import cached_property
 from pydantic import BaseModel
 from typing import Optional, Tuple, Union, Iterable, Dict, List
 
+# Type Aliases
 EntityId = str
+TeamId = str # intentionally left weak
+
 
 class EntityBase(BaseModel):
     id: EntityId
@@ -14,8 +17,12 @@ class EntityBase(BaseModel):
     def __hash__(self) -> int:
         return self.id.__hash__()
 
-    def __str___(self) -> str:
-        return self.id + "(" + type(self).name + ")"
+    def __repr__(self) -> str:
+        return "{}({})".format(self.id, type(self).name)
+
+
+class Team(EntityBase):
+    None
 
 
 class ResourceType(EntityBase):
@@ -40,11 +47,9 @@ class Resource(EntityBase):
     def isProduction(self) -> bool:
         return self.produces != None
 
-    def __str__(self) -> str:
-        return self.id
-
 
 class ResourceGeneric(Resource):
+    ### Represents action cost using ResourceType rather than material itself ###
     None
 
 
@@ -64,20 +69,27 @@ class Vyroba(EntityBase):
     techs: List[Tech]=[]
 
 
-class NaturalResource(EntityBase):
+class TileFeature(EntityBase):
     pass
 
 
-class MapTile(EntityBase):
-    x: str
-    y: int
+class NaturalResource(TileFeature):
+    pass
+
+
+class Building(TileFeature):
+    requiredFeatures: List[TileFeature]
+
+
+class MapTileEntity(EntityBase): # used to import data for initial state
+    index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
-    richness: int
+    richness: int=0
 
 
 # Common type of all available entities
-Entity = Union[Resource, Tech, Vyroba, NaturalResource, MapTile, ResourceType]
+Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity, ResourceType]
 
 class Entities(frozendict):
     """
@@ -96,19 +108,26 @@ class Entities(frozendict):
 
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, Resource) and v.isResource})
 
     @cached_property
     def materials(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, Resource) and v.isMaterial})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, Resource) and v.isProduction})
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
-        return frozendict({k: v for k, v in self if isinstance(v, Tech)})
+        return frozendict({k: v for k, v in self.items() 
+            if isinstance(v, Tech)})
+
+
+    @cached_property
+    def teams(self) -> frozendict[EntityId, Team]:
+        return frozendict({k: v for k, v in self.items() 
+            if isinstance(v, Team)})

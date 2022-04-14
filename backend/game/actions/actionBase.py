@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from game.actions.common import ActionFailedException
 from game.actions.common import ActionCost, ActionCost, MessageBuilder
-from game.entities import Entities
+from game.entities import Entities, Team
 
 from game.state import GameState, TeamId, TeamState
 
@@ -33,9 +33,9 @@ class ActionBase(BaseModel):
         pass
 
 class TeamActionBase(ActionBase):
-    teamId: TeamId
+    teamEntity: Team
     
     @property
-    def team(self) -> TeamState:
-        return self.state.teamStates[self.teamId]
+    def teamState(self) -> TeamState:
+        return self.state.teamStates[self.teamEntity]
 

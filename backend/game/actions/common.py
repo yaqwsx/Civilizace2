@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from game.state import TeamId
-from game.entities import EntityId
+from game.entities import EntityId, Team
 from typing import Dict, List, Any, Union, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
@@ -99,7 +99,4 @@ class ActionCost(BaseModel):
 
 class GlobalActionArgs(BaseModel):
     pass
-
-class TeamActionArgs(BaseModel):
-    teamId: TeamId
 

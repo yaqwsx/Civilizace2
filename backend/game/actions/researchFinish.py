@@ -10,10 +10,10 @@ class ActionResearchFinish(TeamActionBase):
     args: ActionResearchArgs
 
     def _checkPrerequisites(self) -> None:
-        if self.args.tech in self.team.techs:
+        if self.args.tech in self.teamState.techs:
             raise ActionArgumentException("Technologie <<" + self.args.tech.id + ">> je již vyzkoumána.")
 
-        if not self.args.tech in self.team.researching:
+        if not self.args.tech in self.teamState.researching:
             raise ActionArgumentException("Výzkum technologie <<" + self.args.tech.id + ">> aktuálně neprobíhá, takže ji nelze dokončit.")
 
     def cost(self) -> ActionCost:
@@ -22,7 +22,7 @@ class ActionResearchFinish(TeamActionBase):
 
     def apply(self) -> None:
         self._checkPrerequisites()
-        self.team.researching.remove(self.args.tech)
-        self.team.techs.add(self.args.tech)
+        self.teamState.researching.remove(self.args.tech)
+        self.teamState.techs.add(self.args.tech)
         self.info += "Výzkum technologie <<" + self.args.tech.id + ">> byl dokončen."
         # TODO: Přidat samolepky

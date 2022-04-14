@@ -13,7 +13,7 @@ class ActionResearchStart(TeamActionBase):
 
     def _lookupDice(self) -> List[str]:
         dice = []
-        for tech in self.team.techs:
+        for tech in self.teamState.techs:
             print(tech.id)
             if self.args.tech in tech.edges.keys():
                 print("  OK")
@@ -21,10 +21,10 @@ class ActionResearchStart(TeamActionBase):
         return dice
 
     def _checkPrerequisites(self) -> None:
-        if self.args.tech in self.team.techs:
+        if self.args.tech in self.teamState.techs:
             raise ActionArgumentException("Technologie <<" + self.args.tech.id + ">> je již vyzkoumána")
 
-        if self.args.tech in self.team.researching:
+        if self.args.tech in self.teamState.researching:
             raise ActionArgumentException("Výzkum technologie <<" + self.args.tech.id + ">> již probíhá")
 
         dice = self._lookupDice()
@@ -38,5 +38,5 @@ class ActionResearchStart(TeamActionBase):
 
     def apply(self) -> None:
         self._checkPrerequisites()
-        self.team.researching.add(self.args.tech)
+        self.teamState.researching.add(self.args.tech)
         self.info += "Výzkum technologie <<" + self.args.tech.id + ">> začal."

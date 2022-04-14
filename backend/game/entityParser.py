@@ -4,7 +4,7 @@ import json
 
 from game.actions.common import DIE_IDS
 
-from .entities import Entities, NaturalResource, Resource, ResourceGeneric, ResourceType, Tech, Vyroba
+from .entities import Entities, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, Vyroba
 
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 
@@ -58,11 +58,8 @@ class EntityParser():
 
 
     def parseLineTyp(self, line):
-        assert line[0][0:4] == "typ-", "Invalid id-prefix: \"" + line[0][0:4] + "\" (expected \"typ-\")"
-
         typ = ResourceType(id=line[0], name=line[1], productionName=line[2],
             colorName=line[3], colorVal=int(line[4], 0))
-
         self.entities[line[0]] = typ
 
 
@@ -120,7 +117,19 @@ class EntityParser():
         self.entities[line[0]] = vyroba
 
 
-    def parseSheet(self, sheetId, dataOffset, parser, prefixes, asserts=True):
+    def parseLineTile(self, line, lineId):
+        assert len(line[0]) == 1, "Map tiles should have single letter tag"
+        id = "map-tile" + line[0].upper()
+        assert not id in self.entities, "Id already exists: " + id
+        index = lineId-2
+        name = line[0].upper()
+        resources = [self.entities[x.strip()] for x in line[1].split(",")]
+        tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources, 
+                            parcelCount=int(line[2]), richness=int(line[3]))
+        self.entities[id] = tile
+
+
+    def parseSheet(self, sheetId, dataOffset, parser, prefixes, asserts=True, includeIndex=False):
         if (len(self.errors) > 0):
             print("Skipping " + sheetId + " parsing")
             return
@@ -131,7 +140,7 @@ class EntityParser():
                     assert not line[0] in self.entities, "Id already exists: " + line[0]
                     assert line[0][3] == '-', "Id prefix must be 3 chars long, got \"" + line[0] + "\""
                     assert line[0][:3] in prefixes, "Invalid id prefix: \"" + line[0][:3] + "\" (allowed prefixes: " + prefixes + ")"
-                parser(line)
+                parser(line, lineId) if includeIndex else parser(line)
 
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
@@ -139,6 +148,9 @@ class EntityParser():
         for e in self.errors:
             print("  " + e)
 
+
+    def parseTeams(self):
+        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(Team, x), ["tym"])
 
     def parseTypes(self):
         self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
@@ -155,14 +167,22 @@ class EntityParser():
 
     def parseVyrobas(self):
         self.parseSheet("vyroba", 2, lambda x: self.parseLineVyroba(x), ["vyr"])
+
+    def parseTiles(self):
+        self.parseSheet("tiles", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)
     
 
 
     def parse(self) -> Entities:
+        if len(self.entities) > 0:
+            raise RuntimeError("Entities already parsed")
+
+        self.parseTeams()
         self.parseTypes()
         self.parseMaterials()
         self.parseNaturalResources()
         self.parseTechs()
+        self.parseTiles()
         self.parseVyrobas()
 
         entities = Entities(self.entities.values())
@@ -173,7 +193,7 @@ class EntityParser():
             return None
         else:
             c = Counter([x[:3] for x in entities.keys()])
-            for x in ["natuaral resources", "types of resourcesa", "materials", "resourses", "productions", "techs", "vyrobas"]:
+            for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "materials", "resourses", "productions", "techs", "vyrobas"]:
                 print("    " + x + ": " + str(c[x[:3]]))
             print("SUCCESS: Created " + str(len(entities)) + " entities from " + self.fileName)
 
