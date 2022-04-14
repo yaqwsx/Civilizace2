@@ -1,4 +1,5 @@
-from html import entities
+import os
+from django.conf import settings
 from game import entityParser
 from game.entities import Resource, Entities, Tech, Vyroba
 from game.state import GameState, TeamId
@@ -41,8 +42,8 @@ def addVyrobas(entities, data=TEST_DATA_VYROBA):
         reward = entities[vyroba[2]]
         amount = vyroba[3]
         cost = {entities[item[0]]: item[1] for item in vyroba[1].items()}
-        vyrobas.append(Vyroba(id=id, name=id.upper(), cost=cost, 
-                              die=vyroba[4], diePoints=vyroba[5], 
+        vyrobas.append(Vyroba(id=id, name=id.upper(), cost=cost,
+                              die=vyroba[4], diePoints=vyroba[5],
                               reward=reward, rewardAmount=amount))
     entities.update({v.id : v for v in vyrobas})
     return entities
@@ -73,7 +74,7 @@ def addTechs(entities, data=TEST_DATA_TECH):
 
 TEST_TEAM_ID = "tym-zeleny"
 
-TEST_ENTITIES = entityParser.EntityParser("backend\\testEntities.json").parse()
+TEST_ENTITIES = entityParser.EntityParser(os.path.join(settings.BASE_DIR, "testEntities.json")).parse()
 
 def createTestInitState(entities=TEST_ENTITIES):
     state = GameState.createInitial(TEST_TEAMS, entities)

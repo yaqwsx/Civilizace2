@@ -13,7 +13,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     ordering = ["-id"]
 
     def get_queryset(self):
-        if self.requests.user.isOrg:
+        if self.request.user.isOrg:
             return Team.objects.all()
         return Team.objects.filter(visible=True)
 

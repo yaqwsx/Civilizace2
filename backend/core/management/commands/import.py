@@ -1,12 +1,15 @@
 import json
+import os
 from django.core.management import BaseCommand
 
 from core.gsheets import getSheets
 from game.entityParser import EntityParser
+from django.conf import settings
 
 ENTITY_SETS = {
     #"GAME": ("1BNdnhzJoF9oSLHvpX_UsEPEROZ6U_nHNLsqNerNWIoA", "entities.json"),
-    "TEST": ("1_6Niwfwu896v6qi2B6l4436HzQ2lVwwlwmS1Xo0izQs", "testEntities.json")}
+    "TEST": ("1_6Niwfwu896v6qi2B6l4436HzQ2lVwwlwmS1Xo0izQs",
+             os.path.join(settings.BASE_DIR, "testEntities.json"))}
 
 
 def importEntities(id):
@@ -15,7 +18,7 @@ def importEntities(id):
 
     with open(id[1], "w") as file:
         json.dump(data, file)
-    
+
 class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
