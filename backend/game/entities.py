@@ -131,3 +131,8 @@ class Entities(frozendict):
     def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items() 
             if isinstance(v, Team)})
+
+    @cached_property
+    def tiles(self) -> frozendict[EntityId, MapTileEntity]:
+        return frozendict({k: v for k, v in self.items() 
+            if isinstance(v, MapTileEntity)})

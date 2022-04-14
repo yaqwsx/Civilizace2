@@ -5,13 +5,59 @@ from decimal import Decimal
 from game.entities import *
 
 
-class MapTile(MapTileEntity): # Game state elemnent
+class MapTile(BaseModel): # Game state elemnent
+    name: str
+    index: int
+    parcelCount: int
+    naturalResources: List[NaturalResource]
+    richness: int=0
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
-    roadsTo: List[TeamId]=[]
 
     @property
     def features(self) -> List[TileFeature]:
         return self.naturalResources + self.buildings.keys()
+
+    @classmethod
+    def createInitial(cls, tile: MapTileEntity) -> MapTile:
+        return MapTile(name=tile.name,
+                       index=tile.index,
+                       parcelCount=tile.parcelCount,
+                       richness=tile.richness,
+                       naturalResources = List(tile.naturalResources))
+
+
+
+class HomeTile(MapTile):
+    teamEntity: Team
+    roadsTo: List[MapTile]=[]
+
+    @classmethod
+    def createInitial(cls, team: Team, entities: Entities) -> HomeTile:
+        return HomeTile(name="Domovské pole " + team.name,
+                       index=-1,
+                       parcelCount=3,
+                       richness=0,
+                       naturalResources = entities["nat-voda"])
+
+
+class MapState(BaseModel):
+    wildTiles: Dict[int, MapTile]
+    homeTiles: List[HomeTile]
+
+    @property
+    def tiles(self):
+        # TODO: how to cache this?
+        return self.wildTiles.values() + self.homeTiles 
+
+
+    @classmethod
+    def createInitial(cls, entities: Entities) -> MapState:
+        wildTiles = {tile.index: MapTile.createInitial(tile) for tile in entities.tiles}
+        homeTiles = []
+        return TeamState(
+            wildTiles=wildTiles,
+            homeTiles=homeTiles
+        )
 
 
 class TeamState(BaseModel):
@@ -30,6 +76,7 @@ class TeamState(BaseModel):
             blueCounter=0,
             techs=[entities["tec-start"]]
         )
+
 
 class GameState(BaseModel):
     turn: int

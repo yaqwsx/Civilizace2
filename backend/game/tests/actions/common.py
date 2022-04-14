@@ -13,6 +13,3 @@ def createTestInitState(entities=TEST_ENTITIES):
     state = GameState.createInitial(entities)
     state.teamStates[TEST_TEAM].researching.add(entities["tec-c"])
     return state
-
-
-

@@ -7,6 +7,7 @@ from game.actions.common import DIE_IDS
 from .entities import Entities, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, Vyroba
 
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
+GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni"]
 
 class EntityParser():
     entities = {}
@@ -175,8 +176,9 @@ class EntityParser():
 
     def parse(self) -> Entities:
         if len(self.entities) > 0:
-            raise RuntimeError("Entities already parsed")
+            raise RuntimeError("Entities already parsed (" + str(len(self.entities)) + " entities)")
 
+        raise RuntimeError("Catch me!")
         self.parseTeams()
         self.parseTypes()
         self.parseMaterials()
@@ -184,6 +186,10 @@ class EntityParser():
         self.parseTechs()
         self.parseTiles()
         self.parseVyrobas()
+
+        for id in GUARANTEED_IDS:
+            if not id in self.entities:
+                self.errors.add("Missing required id \"" + id + "\"")
 
         entities = Entities(self.entities.values())
 
