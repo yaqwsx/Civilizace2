@@ -31,7 +31,10 @@ class ResourceType(EntityBase):
     colorVal: int
 
 
-class Resource(EntityBase):
+class ResourceBase(EntityBase):
+    ### Any resource, base class for Resource, GenericResource; 
+    #   Do not instantiate 
+    #   TODO: Is there a simple way to disable __init__ for this base class? ###
     typ: Optional[Tuple[ResourceType, int]]=None
     produces: Optional[Resource]=None
 
@@ -48,13 +51,17 @@ class Resource(EntityBase):
         return self.produces != None
 
 
-class ResourceGeneric(Resource):
-    ### Represents action cost using ResourceType rather than material itself ###
+class Resource(ResourceBase):
+    ### Represents a specific resource (e.g., mat-drevo) ###
+    None
+
+class ResourceGeneric(ResourceBase):
+    ### Represents action cost using ResourceType rather than material itself (e.g., mat-palivo-3) ###
     None
 
 
 class Tech(EntityBase):
-    cost: Dict[Resource, Decimal]
+    cost: Dict[ResourceBase, Decimal]
     diePoints: int
     edges: Dict[Tech, str]={} # tech -> dieId
 
@@ -63,7 +70,7 @@ class Tech(EntityBase):
 
 
 class Vyroba(EntityBase):
-    cost: Dict[Resource, Decimal]
+    cost: Dict[ResourceBase, Decimal]
     die: Tuple[str, int]
     reward: Tuple[Resource, Decimal]
     techs: List[Tech]=[]

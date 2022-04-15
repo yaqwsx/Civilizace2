@@ -1,9 +1,8 @@
 from typing import List, Dict
 from pydantic import BaseModel
-from backend.game.entities import Resource
 from game.actions.actionBase import ActionBase, TeamActionBase
 from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
-from game.entities import Vyroba, Resource, ResourceGeneric
+from game.entities import Vyroba, ResourceBase, ResourceGeneric, Resource
 from game.state import TeamId, TeamState
 
 class ActionVyrobaArgs(BaseModel):

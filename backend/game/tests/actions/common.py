@@ -1,7 +1,7 @@
 import os
 from django.conf import settings
 from game import entityParser
-from game.entities import Resource, Entities, Tech, Vyroba
+from game.entities import Entities, Tech, Vyroba
 from game.state import GameState, TeamId
 from decimal import Decimal
 from typing import List
