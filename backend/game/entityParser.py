@@ -10,13 +10,11 @@ LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni"]
 
 class EntityParser():
-    entities = {}
-    errors = []
-
-
     def __init__(self, fileName):
+        self.entities = {}
+        self.errors = []
         with open(fileName) as file:
-            self.data = json.load(file)        
+            self.data = json.load(file)
         self.fileName = fileName
 
 
@@ -30,7 +28,7 @@ class EntityParser():
         chunks = [x.strip() for x in s.strip().split(":")]
         if chunks[0].count("-") == 1:
             return (self.entities[chunks[0]], Decimal(chunks[1]))
-        
+
         id = chunks[0]
         typData = self.parseTypString("typ" + id[3:])
         typ = typData[0]
@@ -41,7 +39,7 @@ class EntityParser():
         res = ResourceGeneric(id=chunks[0], name=name, typ=typData)
         return (res, Decimal(chunks[1]))
 
-    
+
     def parseCost(self, s):
         if s.find(":") < 0:
             return {}
@@ -81,7 +79,7 @@ class EntityParser():
         pro = Resource(id=id, name=line[2], typ=typData, produces=mat)
         self.entities[id] = pro
 
-    
+
     def parseLineTechStep1(self, line):
         cost = self.parseCost(line[4])
         cost[self.entities["res-prace"]] = Decimal(line[3])
@@ -125,7 +123,7 @@ class EntityParser():
         index = lineId-2
         name = line[0].upper()
         resources = [self.entities[x.strip()] for x in line[1].split(",")]
-        tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources, 
+        tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources,
                             parcelCount=int(line[2]), richness=int(line[3]))
         self.entities[id] = tile
 
@@ -171,7 +169,7 @@ class EntityParser():
 
     def parseTiles(self):
         self.parseSheet("tiles", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)
-    
+
 
 
     def parse(self) -> Entities:
