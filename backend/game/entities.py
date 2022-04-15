@@ -60,20 +60,22 @@ class ResourceGeneric(ResourceBase):
     None
 
 
-class Tech(EntityBase):
+class EntityWithCost(EntityBase):
     cost: Dict[ResourceBase, Decimal]
-    diePoints: int
+    points: int
+    unlockedBy: List[Tuple[EntityWithCost, str]]
+
+
+class Tech(EntityWithCost):
     edges: Dict[Tech, str]={} # tech -> dieId
 
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
 
 
-class Vyroba(EntityBase):
-    cost: Dict[ResourceBase, Decimal]
-    die: Tuple[str, int]
+class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
-    techs: List[Tech]=[]
+    requiredFeatures: List[TileFeature]
 
 
 class TileFeature(EntityBase):
@@ -84,7 +86,7 @@ class NaturalResource(TileFeature):
     pass
 
 
-class Building(TileFeature):
+class Building(EntityWithCost, TileFeature):
     requiredFeatures: List[TileFeature]
 
 

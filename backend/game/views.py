@@ -14,6 +14,9 @@ from game.entities import ResourceBase, Tech, Vyroba, Entity
 # simple views, often with constant data or driven by static variables. No fancy
 # stuff like ViewSets. There is also no auth
 
+# from game.entities import Entity
+# TEST_ENTITIES = {}
+
 try:
     from game.tests.actions.common import TEST_ENTITIES
     from game.entities import Entity
@@ -76,7 +79,6 @@ class EntityEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 def typeFilter(typespec, x):
-    @Honza: Zkontroluj si prosim, jestli chces pouzivat Resource(pouze zdroj) nebo ResourceBase(povoluje i genericke materialy). Pak tohle smaz :)
     return (typespec is None) or \
            (typespec == "resource" and isinstance(x, ResourceBase)) or \
            (typespec == "tech" and isinstance(x, Tech)) or \
