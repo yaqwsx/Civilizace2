@@ -176,7 +176,6 @@ class EntityParser():
         if len(self.entities) > 0:
             raise RuntimeError("Entities already parsed (" + str(len(self.entities)) + " entities)")
 
-        raise RuntimeError("Catch me!")
         self.parseTeams()
         self.parseTypes()
         self.parseMaterials()

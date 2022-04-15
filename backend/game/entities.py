@@ -18,7 +18,7 @@ class EntityBase(BaseModel):
         return self.id.__hash__()
 
     def __repr__(self) -> str:
-        return "{}({})".format(self.id, type(self).name)
+        return "{}({})".format(self.id, self.name)
 
 
 class Team(EntityBase):
@@ -123,16 +123,16 @@ class Entities(frozendict):
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
-        return frozendict({k: v for k, v in self.items() 
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, Tech)})
 
 
     @cached_property
     def teams(self) -> frozendict[EntityId, Team]:
-        return frozendict({k: v for k, v in self.items() 
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, Team)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
-        return frozendict({k: v for k, v in self.items() 
+        return frozendict({k: v for k, v in self.items()
             if isinstance(v, MapTileEntity)})

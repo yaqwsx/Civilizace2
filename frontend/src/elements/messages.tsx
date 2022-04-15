@@ -12,7 +12,7 @@ export function ErrorMessage(props: MessageProps) {
     );
 
     if (props.className) {
-        className += props.className;
+        className += " " + props.className;
     }
     return <div className={className}>{props.children}</div>;
 }

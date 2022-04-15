@@ -23,6 +23,8 @@
     "babel-plugin-macros": "^3.1.0",
     "classnames": "^2.3.1",
     "formik": "^2.2.9",
+    "jotai": "^1.6.3",
+    "onscan.js": "^1.5.2",
     "postcss": "^8.0.0",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-import": "^14.0.2",
@@ -66,6 +68,7 @@
     ]
   },
   "devDependencies": {
+    "@types/onscan.js": "^1.5.2",
     "prettier": "^2.6.1",
     "prettier-plugin-tailwindcss": "^0.1.8"
   }

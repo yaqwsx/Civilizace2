@@ -45,7 +45,7 @@ axiosService.interceptors.response.use(
 
 // @ts-ignore
 const refreshAuthLogic = async (failedRequest) => {
-    console.log("Refresh auth logic");
+    console.log(store.getState().auth);
     const { refreshToken } = store.getState().auth;
     if (refreshToken !== null) {
         return axios
@@ -72,6 +72,8 @@ const refreshAuthLogic = async (failedRequest) => {
                 }
             });
     }
+    // There is no token, logout
+    store.dispatch(authSlice.actions.logout());
 };
 
 createAuthRefreshInterceptor(axiosService, refreshAuthLogic);

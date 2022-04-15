@@ -7,7 +7,7 @@ import json
 import decimal
 from pydantic import BaseModel
 
-from game.entities import Resource, Tech, Vyroba
+from game.entities import Resource, Tech, Vyroba, Entity
 
 # This is only a mock of proposed API for the game frontend. Therefore, we use
 # simple views, often with constant data or driven by static variables. No fancy
@@ -46,8 +46,17 @@ def serialize(r: Entity,
 def entityFieldSerializer(e: Entity, field: str, value: Any) -> Any:
     if field == "produces":
         return value.id if value is not None else None
+    if field == "reward":
+        return (value[0].id, value[1])
     if field == "typ":
-        return None # TBA
+        if value is None:
+            return None
+        t, l = value
+        return {
+            "level": l,
+            "name": t.name,
+            "prodName": t.productionName
+        }
     if field == "cost":
         return {r.id: v for r, v in value.items()}
     if field == "edges":
@@ -100,4 +109,8 @@ class TeamEntityView(View):
 
     @staticmethod
     def enrich(teamId, entity):
+        if isinstance(entity, Resource):
+            return {
+                "available": 5
+            }
         return {}

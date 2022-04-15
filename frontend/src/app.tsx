@@ -20,11 +20,14 @@ import {
     faCity,
     faChartLine,
     faHistory,
+    faIndustry
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { ScannerDispatcher } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
 import { Generation, GenerationMenu } from "./pages/generation";
+import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
 import "./index.css";
 
 import { Forbidden } from "./pages/forbidden";
@@ -196,6 +199,7 @@ function OrgMenu() {
         <MenuRow>
             <MenuItem name="Přehled týmů" icon={faChartLine} path="dashboard" />
             <MenuItem name="Generace" icon={faHistory} path="generations" />
+            <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
         </MenuRow>
     );
 }
@@ -205,8 +209,9 @@ function ApplicationMenu() {
         <>
             <OrgMenu />
             <Routes>
-                <Route path="/dashboard" element={<DashboardMenu />}></Route>
-                <Route path="/generations" element={<GenerationMenu />}></Route>
+                <Route path="/dashboard" element={<DashboardMenu />} />
+                <Route path="/generations" element={<GenerationMenu />} />
+                <Route path="/vyrobas" element={<VyrobaMenu/>} />
             </Routes>
         </>
     );
@@ -277,6 +282,7 @@ export default function App() {
             <PersistGate persistor={persistor} loading={null}>
                 <Router>
                     <AppFrame>
+                        <ScannerDispatcher/>
                         <Routes>
                             <Route path="/login" element={<Login />} />
                             <Route path="/forbidden" element={<Forbidden />} />
@@ -299,6 +305,14 @@ export default function App() {
                                 element={
                                     <RequireAuth>
                                         <Dashboard />
+                                    </RequireAuth>
+                                }
+                            />
+                            <Route
+                                path="/vyrobas"
+                                element={
+                                    <RequireAuth>
+                                        <Vyroba />
                                     </RequireAuth>
                                 }
                             />
