@@ -117,8 +117,8 @@ class TeamEntityView(View):
                 s = "researching"
 
             extra = {"status": s}
-            if  s == "available":
-                extra.update({"task": {
+            if  s == "researching":
+                extra.update({"assignedTask": {
                     "id": "task_42",
                     "name": "Hezký úkol",
                     "teamDescription": "Řekni a!",

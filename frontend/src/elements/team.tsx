@@ -120,6 +120,6 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
 export function TeamRowIndicator(props: {team?: Team}) {
     if (!props.team)
         return null;
-    let className = classNames("w-full", "rounded", "h-4", `bg-${props.team.color}`)
+    let className = classNames("w-full", "rounded", "h-4", "my-4", `bg-${props.team.color}`)
     return <div className={className}/>
 }

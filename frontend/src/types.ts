@@ -1,3 +1,5 @@
+import { EntityId } from "@reduxjs/toolkit";
+
 export interface Team {
     id: string;
     name: string;
@@ -35,6 +37,8 @@ export interface EntityWithCost extends EntityBase {
 
 export interface EntityVyroba extends EntityWithCost {
     reward: [ResourceId, number];
+    points: number;
+    unlockedBy: [EntityId, DieId][];
     techs: TechId[];
 }
 
