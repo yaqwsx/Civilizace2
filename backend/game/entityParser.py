@@ -5,7 +5,7 @@ from typing import List
 
 from game.actions.common import DIE_IDS
 
-from .entities import Building, Entities, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
+from .entities import Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
@@ -51,16 +51,12 @@ class EntityParser():
         return {x[0]: x[1] for x in map(self.parseCostSingle, s.split(","))}
 
 
-    def getEdgesFromLine(self, line):
-        if len(line[5]) < 4:
+    def getEdgesFromField(self, field, checkTypes = None):
+        if len(field) < 4:
             return []
 
-        chunks = [x.strip() for x in line[5].split(",")]
+        chunks = [x.strip() for x in field.split(",")]
         result = []
-        try:
-            unlockedByList = [(chunk[0].strip(), chunk[1].strip()) for chunk in map(lambda x: [y.strip() for y in x.split(":")], chunks)]
-        except Exception as e:
-            raise RuntimeError("Failed to parse unlocking dice: " + line[5]) from e
         for chunk in chunks:
             split = chunk.split(":")
             assert len(split) == 2, "Invalid edge: " + chunk
@@ -123,7 +119,12 @@ class EntityParser():
     def parseLineTechAddUnlocks(self, line):
         tech = self.entities[line[0]]
         assert isinstance(tech, Tech)
-        tech.unlockedBy = self.getEdgesFromLine(line)
+        unlocks = self.getEdgesFromField(line[5]) + self.getEdgesFromField(line[6])
+        for unlock in unlocks:
+            target = unlock[0]
+            assert isinstance(target, EntityWithCost), "Cannot unlock entity without a cost: " + target
+            target.unlockedBy.append((tech, unlock[1]))
+        tech.unlockedBy = unlocks
 
 
     def getFeaturesFromField(self, field, onlyNaturals = False):
@@ -137,7 +138,7 @@ class EntityParser():
             if onlyNaturals:
                 assert isinstance(feature, NaturalResource), "Feature \"" + x + "\" is not a natural resource, but a " + type(x).name
             result.append(feature)
-        return []
+        return result
 
 
     def parseLineBuilding(self, line):
@@ -151,7 +152,7 @@ class EntityParser():
         requiredFeatures = self.getFeaturesFromField(line[8])
         vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
-        vyroba.cost[self.entities["res-obyvatel"]] = Decimal(line[6])
+        vyroba.cost[self.entities["res-obyvatel"]] = Decimal(line[6]) if len(line[6]) > 0 else 0
         self.entities[line[0]] = vyroba
 
 
@@ -205,7 +206,7 @@ class EntityParser():
         self.parseSheet("building", 1, lambda x: self.parseLineBuilding(x), ["bui"])
 
     def parseVyrobas(self):
-        self.parseSheet("vyroba", 2, lambda x: self.parseLineVyroba(x), ["vyr"])
+        self.parseSheet("vyroba", 1, lambda x: self.parseLineVyroba(x), ["vyr"])
 
     def parseTiles(self):
         self.parseSheet("tile", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)

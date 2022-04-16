@@ -18,6 +18,10 @@ class EntityBase(BaseModel):
     def __hash__(self) -> int:
         return self.id.__hash__()
 
+    def __str__(self) -> str:
+        return "{}({})".format(self.id, self.name)
+
+
     def __repr__(self) -> str:
         return "{}({})".format(self.id, self.name)
 
@@ -68,10 +72,8 @@ class EntityWithCost(EntityBase):
 
 
 class Tech(EntityWithCost):
-    unlocks: List[Entity, DieId]
+    unlocks: List[Entity, DieId]=[]
 
-    def __str__(self) -> str:
-        return self.name + "("+ self.id + ")"
 
 class TileFeature(EntityBase):
     pass
