@@ -1,9 +1,10 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import useSWR from "swr";
 import { Team, UserResponse } from "../types";
 import { fetcher } from "../utils/axios";
 import { ThreeDots } from "react-loader-spinner";
 import classNames from "classnames";
+import ReactMarkdown from "react-markdown";
 
 // Avoid purging team background colors
 let teamColorPlaceholder = [
@@ -165,5 +166,91 @@ export function Button(props: {
         <button className={className} onClick={props.onClick}>
             {props.label}
         </button>
+    );
+}
+
+export function CiviMarkdown(props: any) {
+    return <ReactMarkdown {...props} />;
+}
+
+export function CloseButton(props: {
+    onClick: () => void;
+    className?: string;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={props.onClick}
+            className={classNames(
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "rounded-md",
+                "bg-white",
+                "p-2",
+                "text-gray-400",
+                "hover:bg-gray-100",
+                "hover:text-gray-500",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-inset",
+                "focus:ring-indigo-500",
+                props.className
+            )}
+        >
+            <span className="sr-only">Close</span>
+            <svg
+                className="h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                />
+            </svg>
+        </button>
+    );
+}
+
+export function Dialog(props: { children: any; onClose: () => void }) {
+    useEffect(() => {
+        document.documentElement.style.overflow = "hidden";
+        return () => {
+            document.documentElement.style.overflow = "scroll";
+        };
+    });
+
+    return (
+        <>
+            <div className="fixed inset-0 z-30 h-screen w-screen bg-black opacity-50"></div>
+            <div
+                className="fixed inset-0 z-50 h-screen w-screen py-5 px-2 grid place-items-center"
+                onClick={props.onClose}
+            >
+                <div
+                    className="container mx-auto flex max-h-full flex-col rounded bg-white p-5"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                    }}
+                >
+                    <div className="flex w-full flex-none flex-row-reverse">
+                        <CloseButton
+                            onClick={props.onClose}
+                            className="flex-none"
+                        />
+                    </div>
+                    <hr className="my-2 h-1 rounded bg-gray-300 shadow" />
+                    <div className="w-full flex-1 overflow-y-auto">
+                        {props.children}
+                    </div>
+                </div>
+            </div>
+        </>
     );
 }
