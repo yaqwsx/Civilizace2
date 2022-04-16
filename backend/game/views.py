@@ -109,4 +109,20 @@ class TeamEntityView(View):
             return {
                 "available": 5
             }
+        if isinstance(entity, Tech):
+            s = "available"
+            if entity.id == "tec-start":
+                s = "owned"
+            if entity.id == "tec-a":
+                s = "researching"
+
+            extra = {"status": s}
+            if  s == "available":
+                extra.update({"task": {
+                    "id": "task_42",
+                    "name": "Hezký úkol",
+                    "teamDescription": "Řekni a!",
+                    "orgDescription": "Zadej jim to!"
+                }})
+            return extra
         return {}

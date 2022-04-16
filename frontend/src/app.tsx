@@ -20,7 +20,8 @@ import {
     faCity,
     faChartLine,
     faHistory,
-    faIndustry
+    faIndustry,
+    faFlask
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
 import "./index.css";
 
 import { Forbidden } from "./pages/forbidden";
+import { Tech, TechMenu } from "./pages/techs";
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -200,6 +202,7 @@ function OrgMenu() {
             <MenuItem name="Přehled týmů" icon={faChartLine} path="dashboard" />
             <MenuItem name="Generace" icon={faHistory} path="generations" />
             <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
+            <MenuItem name="Technologie" icon={faFlask} path="techs" />
         </MenuRow>
     );
 }
@@ -212,6 +215,7 @@ function ApplicationMenu() {
                 <Route path="/dashboard" element={<DashboardMenu />} />
                 <Route path="/generations" element={<GenerationMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu/>} />
+                <Route path="/techs" element={<TechMenu/>}/>
             </Routes>
         </>
     );
@@ -313,6 +317,14 @@ export default function App() {
                                 element={
                                     <RequireAuth>
                                         <Vyroba />
+                                    </RequireAuth>
+                                }
+                            />
+                            <Route
+                                path="/techs"
+                                element={
+                                    <RequireAuth>
+                                        <Tech />
                                     </RequireAuth>
                                 }
                             />

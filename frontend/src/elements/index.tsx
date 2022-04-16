@@ -98,3 +98,23 @@ export function SpinboxInput(props: SpinboxInputType) {
         </div>
     )
 }
+
+
+export function LoadingOrError(props: {
+    loading: boolean,
+    error?: any,
+    message: string}
+) {
+    if (props.loading) {
+        return <InlineSpinner />;
+    }
+    if (props.error) {
+        return (
+            <ComponentError>
+                <p>{props.message}</p>
+                <p>{props.error.toString()}</p>
+            </ComponentError>
+        );
+    }
+    return null;
+}

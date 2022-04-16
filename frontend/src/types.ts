@@ -28,11 +28,36 @@ export interface TeamEntityResource extends EntityResource {
     availabe: number
 }
 
-export interface EntityVyroba extends EntityBase {
+export interface EntityWithCost extends EntityBase {
     cost: Record<ResourceId, number>;
-    die: [DieId, number];
+    points: number;
+}
+
+export interface EntityVyroba extends EntityWithCost {
     reward: [ResourceId, number];
     techs: TechId[];
+}
+
+export enum TechStatus {
+    Owned = "owned",
+    Researching = "researching",
+    Available = "available"
+}
+
+export interface Task {
+    id: string;
+    name: string;
+    teamDescription: string;
+    orgDescription?: string; // Available only for orgs
+}
+
+export interface EntityTech extends EntityWithCost {
+    edges: Record<TechId, DieId>;
+}
+
+export interface TeamEntityTech extends EntityTech {
+    status: TechStatus;
+    assignedTask?: Task;
 }
 
 export type Entity =
