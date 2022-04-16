@@ -142,17 +142,17 @@ class EntityParser():
 
 
     def parseLineBuilding(self, line):
-        build = Building(requiredFeatures=self.getFeaturesFromField(line[6], onlyNaturals=True), **self.kwargsEntityWithCost(line))
+        build = Building(requiredFeatures=self.getFeaturesFromField(line[5], onlyNaturals=True), **self.kwargsEntityWithCost(line))
         self.entities[line[0]] = build
 
 
     def parseLineVyroba(self, line):
-        reward = self.parseCostSingle(line[7])
+        reward = self.parseCostSingle(line[6])
         assert not isinstance(reward[0], ResourceGeneric), "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
-        requiredFeatures = self.getFeaturesFromField(line[8])
+        requiredFeatures = self.getFeaturesFromField(line[7])
         vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
-        vyroba.cost[self.entities["res-obyvatel"]] = Decimal(line[6]) if len(line[6]) > 0 else 0
+        vyroba.cost[self.entities["res-obyvatel"]] = Decimal(line[5]) if len(line[5]) > 0 else 0
         self.entities[line[0]] = vyroba
 
 
