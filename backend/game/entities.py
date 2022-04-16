@@ -33,8 +33,8 @@ class ResourceType(EntityBase):
 
 
 class ResourceBase(EntityBase):
-    ### Any resource, base class for Resource, GenericResource; 
-    #   Do not instantiate 
+    ### Any resource, base class for Resource, GenericResource;
+    #   Do not instantiate
     #   TODO: Is there a simple way to disable __init__ for this base class? ###
     typ: Optional[Tuple[ResourceType, int]]=None
     produces: Optional[Resource]=None
@@ -68,18 +68,15 @@ class EntityWithCost(EntityBase):
 
 
 class Tech(EntityWithCost):
-
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
 
+class TileFeature(EntityBase):
+    pass
 
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
     requiredFeatures: List[TileFeature]
-
-
-class TileFeature(EntityBase):
-    pass
 
 
 class NaturalResource(TileFeature):

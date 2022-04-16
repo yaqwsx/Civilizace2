@@ -7,26 +7,12 @@ import json
 import decimal
 from pydantic import BaseModel
 
-from game.entities import Resource, Tech, Vyroba, Entity
+from game.entities import Resource, Tech, Vyroba, Entity, EntityBase
 from game.entities import ResourceBase, Tech, Vyroba, Entity
 
 # This is only a mock of proposed API for the game frontend. Therefore, we use
 # simple views, often with constant data or driven by static variables. No fancy
 # stuff like ViewSets. There is also no auth
-
-# from game.entities import Entity
-# TEST_ENTITIES = {}
-
-try:
-    from game.tests.actions.common import TEST_ENTITIES
-    from game.entities import Entity
-except FileNotFoundError as e:
-    if "testEntities.json" not in str(e):
-        raise e from None
-    import sys
-    sys.stderr.write("WARNING: Missing testEntities.json, silently ignoring\n")
-    TEST_ENTITIES = {}
-
 
 def serialize(r: Entity,
               serializeField: Callable[[Entity, str, Any], Any],
@@ -47,11 +33,22 @@ def serialize(r: Entity,
     res.update(enrichEntity(r))
     return res
 
+def shallowEntity(e: Any) -> Any:
+    """
+    Given an entity, or a tuple of entities, make them shalow - represent them
+    only by ID
+    """
+    if isinstance(e, EntityBase):
+        return e.id
+    if isinstance(e, tuple):
+        return tuple(map(shallowEntity, e))
+    if isinstance(e, list):
+        return list(map(shallowEntity, e))
+    if isinstance(e, dict):
+        return {shallowEntity(k): shallowEntity(v) for k, v in e.items()}
+    return e
+
 def entityFieldSerializer(e: Entity, field: str, value: Any) -> Any:
-    if field == "produces":
-        return value.id if value is not None else None
-    if field == "reward":
-        return (value[0].id, value[1])
     if field == "typ":
         if value is None:
             return None
@@ -61,17 +58,10 @@ def entityFieldSerializer(e: Entity, field: str, value: Any) -> Any:
             "name": t.name,
             "prodName": t.productionName
         }
-    if field == "cost":
-        return {r.id: v for r, v in value.items()}
-    if field == "edges":
-        return {t.id: v for t, v in value.items()}
-    if field == "techs":
-        return [t.id for t in value]
-    return value
+    return shallowEntity(value)
 
 class EntityEncoder(json.JSONEncoder):
     def default(self, obj):
-        print(obj)
         if isinstance(obj, BaseModel):
             return obj.dict()
         if isinstance(obj, decimal.Decimal):
@@ -90,6 +80,7 @@ def typeFilter(typespec, x):
 # - type: resource | tech | vyroba
 class EntityView(View):
     def get(self, request):
+        from game.tests.actions.common import TEST_ENTITIES
         typespec = request.GET.get("type", None)
         return JsonResponse({
             id: serialize(val, entityFieldSerializer, lambda x: {})
@@ -103,13 +94,14 @@ class EntityView(View):
 # - type: resource | tech | vyroba
 class TeamEntityView(View):
     def get(self, request, teamId):
-        # TBA filter
+        from game.tests.actions.common import TEST_ENTITIES
         typespec = request.GET.get("type", None)
-        return JsonResponse({
+        data = {
             id: serialize(val, entityFieldSerializer, lambda x: self.enrich(teamId, x))
             for id, val in TEST_ENTITIES.items()
             if typeFilter(typespec, val)
-        }, encoder=EntityEncoder)
+        }
+        return JsonResponse(data, encoder=EntityEncoder)
 
     @staticmethod
     def enrich(teamId, entity):

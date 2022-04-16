@@ -1,7 +1,6 @@
 from collections import Counter
 from decimal import Decimal
 import json
-from msilib.schema import Error
 from typing import List
 
 from game.actions.common import DIE_IDS
@@ -71,17 +70,17 @@ class EntityParser():
             assert techId in self.entities, "Unknown unlocking tech id \"" + techId + ("\"" if techId[3] == "-" else "\": Id is not exactly 3 symbols long")
             tech = self.entities[techId]
             assert isinstance(tech, Tech), "Unlocking entity is not a tech: " + techId + ", but a " + type(tech).name
-            result.append((tech, die))        
+            result.append((tech, die))
         return result
 
 
     def kwargsEntityWithCost(self, line, includeEdges = True):
         cost = self.parseCost(line[3])
         cost[self.entities["res-prace"]] = Decimal(line[2])
-        return {'id': line[0], 
-                'name':line[1], 
-                'cost':cost, 
-                'points': Decimal(line[4]), 
+        return {'id': line[0],
+                'name':line[1],
+                'cost':cost,
+                'points': Decimal(line[4]),
                 "unlockedBy": self.getEdgesFromLine(line) if includeEdges else []}
 
 
