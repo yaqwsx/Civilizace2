@@ -8,6 +8,7 @@ from typing import Optional, Tuple, Union, Iterable, Dict, List
 # Type Aliases
 EntityId = str
 TeamId = str # intentionally left weak
+DieId = str
 
 
 class EntityBase(BaseModel):
@@ -63,11 +64,10 @@ class ResourceGeneric(ResourceBase):
 class EntityWithCost(EntityBase):
     cost: Dict[ResourceBase, Decimal]
     points: int
-    unlockedBy: List[Tuple[EntityWithCost, str]]
+    unlockedBy: List[Tuple[EntityWithCost, DieId]]
 
 
 class Tech(EntityWithCost):
-    edges: Dict[Tech, str]={} # tech -> dieId
 
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
