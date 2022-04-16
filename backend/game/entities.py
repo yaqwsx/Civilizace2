@@ -64,10 +64,12 @@ class ResourceGeneric(ResourceBase):
 class EntityWithCost(EntityBase):
     cost: Dict[ResourceBase, Decimal]
     points: int
-    unlockedBy: List[Tuple[EntityWithCost, DieId]]
+    unlockedBy: List[Tuple[EntityWithCost, DieId]]=[]
 
 
 class Tech(EntityWithCost):
+    unlocks: List[Entity, DieId]
+
     def __str__(self) -> str:
         return self.name + "("+ self.id + ")"
 

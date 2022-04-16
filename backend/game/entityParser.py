@@ -64,24 +64,22 @@ class EntityParser():
         for chunk in chunks:
             split = chunk.split(":")
             assert len(split) == 2, "Invalid edge: " + chunk
-            techId = split[0]
+            targetId = split[0]
             die = split[1]
             assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
-            assert techId in self.entities, "Unknown unlocking tech id \"" + techId + ("\"" if techId[3] == "-" else "\": Id is not exactly 3 symbols long")
-            tech = self.entities[techId]
-            assert isinstance(tech, Tech), "Unlocking entity is not a tech: " + techId + ", but a " + type(tech).name
-            result.append((tech, die))
+            assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
+            targetEntity = self.entities[targetId]
+            result.append((targetEntity, die))        
         return result
 
 
     def kwargsEntityWithCost(self, line, includeEdges = True):
         cost = self.parseCost(line[3])
         cost[self.entities["res-prace"]] = Decimal(line[2])
-        return {'id': line[0],
-                'name':line[1],
-                'cost':cost,
-                'points': Decimal(line[4]),
-                "unlockedBy": self.getEdgesFromLine(line) if includeEdges else []}
+        return {'id': line[0], 
+                'name':line[1], 
+                'cost':cost, 
+                'points': Decimal(line[4])}
 
 
     def parseDieCost(self, s):
@@ -117,12 +115,12 @@ class EntityParser():
         self.entities[id] = pro
 
 
-    def parseLineTechStep1(self, line):
+    def parseLineTechCreateEntity(self, line):
         tech = Tech(**self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
 
-    def parseLineTechStep2(self, line):
+    def parseLineTechAddUnlocks(self, line):
         tech = self.entities[line[0]]
         assert isinstance(tech, Tech)
         tech.unlockedBy = self.getEdgesFromLine(line)
@@ -139,7 +137,7 @@ class EntityParser():
             if onlyNaturals:
                 assert isinstance(feature, NaturalResource), "Feature \"" + x + "\" is not a natural resource, but a " + type(x).name
             result.append(feature)
-        return result
+        return []
 
 
     def parseLineBuilding(self, line):
@@ -203,10 +201,6 @@ class EntityParser():
     def parseNaturalResources(self):
         self.parseSheet("naturalResource", 1, lambda x: self.parseLineGeneric(NaturalResource, x), ["nat"])
 
-    def parseTechs(self):
-        self.parseSheet("tech", 1, lambda x: self.parseLineTechStep1(x), ["tec"])
-        self.parseSheet("tech", 1, lambda x: self.parseLineTechStep2(x), ["tec"], asserts=False)
-
     def parseBuildings(self):
         self.parseSheet("building", 1, lambda x: self.parseLineBuilding(x), ["bui"])
 
@@ -216,6 +210,9 @@ class EntityParser():
     def parseTiles(self):
         self.parseSheet("tile", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)
 
+    def parseTechs(self):
+        self.parseSheet("tech", 1, lambda x: self.parseLineTechCreateEntity(x), ["tec"])
+        self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), ["tec"], asserts=False)
 
 
     def parse(self) -> Entities:
@@ -225,10 +222,10 @@ class EntityParser():
         self.parseTypes()
         self.parseMaterials()
         self.parseNaturalResources()
-        self.parseTechs()
         self.parseBuildings()
         self.parseTiles()
         self.parseVyrobas()
+        self.parseTechs()
 
         for id in GUARANTEED_IDS:
             if not id in self.entities:
