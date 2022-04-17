@@ -160,11 +160,11 @@ class EntityParser():
         assert len(line[0]) == 1, "Map tiles should have single letter tag"
         id = "map-tile" + line[0].upper()
         assert not id in self.entities, "Id already exists: " + id
-        index = lineId-2
+        index = int(line[1])
         name = line[0].upper()
-        resources = [self.entities[x.strip()] for x in line[1].split(",")]
+        resources = [self.entities[x.strip()] for x in line[2].split(",")]
         tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources,
-                            parcelCount=int(line[2]), richness=int(line[3]))
+                            parcelCount=int(line[3]), richness=int(line[4]))
         self.entities[id] = tile
 
 
@@ -184,8 +184,6 @@ class EntityParser():
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
-                print(message)
-                raise e
         for e in self.errors:
             print("  " + e)
 
@@ -216,6 +214,22 @@ class EntityParser():
         self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), ["tec"], asserts=False)
 
 
+    def checkMap(self, entities):
+        if len(entities.teams) * 3 != len(entities.tiles):
+            self.errors.append("World size is wrong: There are {} tiles and {} teams (expecting 3 tiles per team)".format(
+                    len(entities.tiles), 
+                    len(entities.teams)))
+            return
+
+        tiles = entities.tiles
+        for i in range(len(tiles)):
+            count = sum(1 for x in tiles.values() if x.index == i)
+            if count > 1:
+                self.errors.append("Tile index {} occured {} times".format(i, count))
+            if count < 1:
+                self.errors.append("Tile index {} missing".format(i))
+
+
     def parse(self) -> Entities:
         self.entities = {}
 
@@ -233,12 +247,15 @@ class EntityParser():
                 self.errors.append("Missing required id \"" + id + "\"")
 
         entities = Entities(self.entities.values())
+        self.checkMap(entities)
 
-        print()
         if (len(self.errors)) > 0:
+            for message in self.errors:
+                print("  " + message)
             print("ERROR: Failed to parse file " + self.fileName + ". Errors are listed above")
             return None
         else:
+            print()
             c = Counter([x[:3] for x in entities.keys()])
             for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "materials", "buildings", "resourses", "productions", "techs", "vyrobas"]:
                 print("    " + x + ": " + str(c[x[:3]]))

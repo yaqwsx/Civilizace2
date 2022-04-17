@@ -68,7 +68,7 @@ class ResourceGeneric(ResourceBase):
 class EntityWithCost(EntityBase):
     cost: Dict[ResourceBase, Decimal]
     points: int
-    unlockedBy: List[Tuple[EntityWithCost, DieId]]=[]
+    unlockedBy: List[Tuple[EntityWithCost, DieId]]=[] # duplicates: items in Tech.unlocks
 
     # The default deduced equality is a strong-value based one. However, since
     # there are loops in fields (via unlockedBy), the equality check never ends.
