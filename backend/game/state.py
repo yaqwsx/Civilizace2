@@ -5,12 +5,29 @@ from decimal import Decimal
 from game.entities import *
 
 
+class Army(BaseModel):
+    team: Team # duplicates: items in Team.armies
+    prestige: int
+    equipment: int # number of weapons the army carries
+    boost: int # boost added by die throw
+    tile: Optional[MapTile]
+    
+    @property
+    def strength(self):
+        return self.strength + self.boost + 5
+
+    @property
+    def isMarching(self):
+        return self.tile == None
+
+
 class MapTile(BaseModel): # Game state elemnent
     name: str
     index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
     richness: int=0
+    occupiedBy: Optional[Army]
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
@@ -67,6 +84,7 @@ class TeamState(BaseModel):
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
+    armies: Set[Army]
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
