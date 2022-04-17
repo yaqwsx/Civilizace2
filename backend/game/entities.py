@@ -26,7 +26,7 @@ class EntityBase(BaseModel):
         return "{}({})".format(self.id, self.name)
 
 
-class TeamEntity(EntityBase):
+class Team(EntityBase):
     None
 
 
@@ -152,9 +152,9 @@ class Entities(frozendict):
 
 
     @cached_property
-    def teams(self) -> frozendict[EntityId, TeamEntity]:
+    def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, TeamEntity)})
+            if isinstance(v, Team)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:

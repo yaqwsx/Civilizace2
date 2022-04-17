@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from game.entities import EntityId, TeamEntity
+from game.entities import EntityId, Team
 from typing import Dict, List, Any, Union, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib

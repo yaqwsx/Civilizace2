@@ -1,10 +1,10 @@
 from typing import Set
 from game.actions.actionBase import TeamActionBase, TeamActionArgs
 from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
-from game.entities import Tech, TeamEntity
+from game.entities import Tech, Team
 
 class ActionResearchArgs(TeamActionArgs):
-    teamEntity: TeamEntity
+    team: Team
     tech: Tech
 
 class ActionResearchStart(TeamActionBase):

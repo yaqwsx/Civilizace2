@@ -13,7 +13,7 @@ TILE_DISTANCES_RELATIVE = {0: Decimal(0),
 
 
 class Army(BaseModel):
-    team: TeamEntity # duplicates: items in Team.armies
+    team: Team # duplicates: items in Team.armies
     prestige: int
     equipment: int=0 # number of weapons the army currently carries
     boost: int=0 # boost added by die throw
@@ -39,11 +39,11 @@ class MapTile(BaseModel): # Game state elemnent
 
 
 class HomeTile(MapTile):
-    team: TeamEntity
+    team: Team
     roadsTo: List[MapTile]=[]
 
     @classmethod
-    def createInitial(cls, team: TeamEntity, tile: MapTileEntity, entities: Entities) -> HomeTile:
+    def createInitial(cls, team: Team, tile: MapTileEntity, entities: Entities) -> HomeTile:
         return HomeTile(name="Domovské pole " + team.name,
                        index=tile.index,
                        parcelCount=3,
@@ -53,28 +53,37 @@ class HomeTile(MapTile):
 
 class MapState(BaseModel):
     wildTiles: Dict[int, MapTile]
-    homeTiles: List[HomeTile]
+    homeTiles: Dict[Team, HomeTile]
 
-    def getRawDistance(self, team: TeamState, tile: MapTile):
+    def getRawDistance(self, team: TeamState, tile: MapTile) -> Decimal:
         assert team.homeTile.index >= 0
         teamTile = team.homeTile.index - tile.index
+        return 0
+
+    def getTile(self, index:int) -> MapTile:
+        return self.wildTiles[index]
+
+
+    def getHomeTile(self, team: Team) -> MapTile:
+        return None
+
 
     @property
     def tiles(self):
         # TODO: how to cache this?
-        return self.wildTiles.values() + self.homeTiles 
+        return self.wildTiles.values() + self.homeTiles
 
 
     @classmethod
     def createInitial(cls, entities: Entities) -> MapState:
-        return TeamState(
+        return MapState(
             wildTiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values() if tile.index % 4 != 1},
             homeTiles = {}
         )
 
 
 class TeamState(BaseModel):
-    team: TeamEntity
+    team: Team
     redCounter: Decimal
     blueCounter: Decimal
 
@@ -83,7 +92,7 @@ class TeamState(BaseModel):
     armies: List[Army]
 
     @classmethod
-    def createInitial(cls, team: TeamEntity, entities: Entities) -> TeamState:
+    def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         armies = [Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES]
         return TeamState(
             team=team,
@@ -96,7 +105,8 @@ class TeamState(BaseModel):
 
 class GameState(BaseModel):
     turn: int
-    teamStates: Dict[TeamEntity, TeamState]
+    teamStates: Dict[Team, TeamState]
+    map: MapState
 
     @classmethod
     def createInitial(cls, entities: Entities) -> GameState:
@@ -106,6 +116,7 @@ class GameState(BaseModel):
 
         return GameState(
             turn=0,
-            teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()}
+            teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
+            map=MapState.createInitial(entities)
         )
 

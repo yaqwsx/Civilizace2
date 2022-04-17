@@ -3,7 +3,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 from game.actions.actionBase import TeamActionBase, TeamActionArgs
 from game.state import GameState, TeamId
-from game.entities import Resource, Entities, TeamEntity
+from game.entities import Resource, Entities, Team
 from game.actions.common import ActionCost, ActionFailedException, MessageBuilder, ActionArgumentException
 from typing import Optional
 

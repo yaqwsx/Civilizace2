@@ -5,7 +5,7 @@ from typing import List
 
 from game.actions.common import DIE_IDS
 
-from .entities import Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, TeamEntity, Tech, TileFeature, Vyroba
+from .entities import Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
@@ -193,7 +193,7 @@ class EntityParser():
 
 
     def parseTeams(self):
-        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(TeamEntity, x), ["tym"])
+        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(Team, x), ["tym"])
 
     def parseTypes(self):
         self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
