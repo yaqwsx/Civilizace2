@@ -1,16 +1,23 @@
 from __future__ import annotations
+from math import floor
 from pydantic import BaseModel
-from typing import List, Dict, Optional, Iterable, Union, Set
+from typing import ClassVar, List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
 
 
+STARTER_ARMY_PRESTIGES = [15,20,25]
+TILE_DISTANCES_RELATIVE = {0: Decimal(0),
+    -9: Decimal(1.5), -3: Decimal(1.5), 2: Decimal(1.5), 7: Decimal(1.5), 9: Decimal(1.5),
+    -2: Decimal(1), -1: Decimal(1), 1: Decimal(1), 5: Decimal(1), 6: Decimal(1)}
+
+
 class Army(BaseModel):
-    team: Team # duplicates: items in Team.armies
+    team: TeamEntity # duplicates: items in Team.armies
     prestige: int
-    equipment: int # number of weapons the army carries
-    boost: int # boost added by die throw
-    tile: Optional[MapTile]
+    equipment: int=0 # number of weapons the army currently carries
+    boost: int=0 # boost added by die throw
+    tile: Optional[MapTile]=None
     
     @property
     def strength(self):
@@ -22,44 +29,35 @@ class Army(BaseModel):
 
 
 class MapTile(BaseModel): # Game state elemnent
-    name: str
-    index: int
-    parcelCount: int
-    naturalResources: List[NaturalResource]
-    richness: int=0
-    occupiedBy: Optional[Army]
+    entity: MapTileEntity
+    occupiedBy: Optional[Army]=None
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
     def features(self) -> List[TileFeature]:
         return self.naturalResources + self.buildings.keys()
 
-    @classmethod
-    def createInitial(cls, tile: MapTileEntity) -> MapTile:
-        return MapTile(name=tile.name,
-                       index=tile.index,
-                       parcelCount=tile.parcelCount,
-                       richness=tile.richness,
-                       naturalResources = List(tile.naturalResources))
-
-
 
 class HomeTile(MapTile):
-    teamEntity: Team
+    team: TeamEntity
     roadsTo: List[MapTile]=[]
 
     @classmethod
-    def createInitial(cls, team: Team, entities: Entities) -> HomeTile:
+    def createInitial(cls, team: TeamEntity, tile: MapTileEntity, entities: Entities) -> HomeTile:
         return HomeTile(name="Domovské pole " + team.name,
-                       index=-1,
+                       index=tile.index,
                        parcelCount=3,
                        richness=0,
-                       naturalResources = entities["nat-voda"])
+                       naturalResources = tile.naturalResources)
 
 
 class MapState(BaseModel):
     wildTiles: Dict[int, MapTile]
     homeTiles: List[HomeTile]
+
+    def getRawDistance(self, team: TeamState, tile: MapTile):
+        assert team.homeTile.index >= 0
+        teamTile = team.homeTile.index - tile.index
 
     @property
     def tiles(self):
@@ -69,36 +67,36 @@ class MapState(BaseModel):
 
     @classmethod
     def createInitial(cls, entities: Entities) -> MapState:
-        wildTiles = {tile.index: MapTile.createInitial(tile) for tile in entities.tiles}
-        homeTiles = []
         return TeamState(
-            wildTiles=wildTiles,
-            homeTiles=homeTiles
+            wildTiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values() if tile.index % 4 != 1},
+            homeTiles = {}
         )
 
 
 class TeamState(BaseModel):
-    team: Team
+    team: TeamEntity
     redCounter: Decimal
     blueCounter: Decimal
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
-    armies: Set[Army]
+    armies: List[Army]
 
     @classmethod
-    def createInitial(cls, team: Team, entities: Entities) -> TeamState:
+    def createInitial(cls, team: TeamEntity, entities: Entities) -> TeamState:
+        armies = [Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES]
         return TeamState(
             team=team,
             redCounter=0,
             blueCounter=0,
-            techs=[entities["tec-start"]]
+            techs=[entities["tec-start"]],
+            armies=armies,
         )
 
 
 class GameState(BaseModel):
     turn: int
-    teamStates: Dict[Team, TeamState]
+    teamStates: Dict[TeamEntity, TeamState]
 
     @classmethod
     def createInitial(cls, entities: Entities) -> GameState:

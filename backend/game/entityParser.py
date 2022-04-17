@@ -5,7 +5,7 @@ from typing import List
 
 from game.actions.common import DIE_IDS
 
-from .entities import Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
+from .entities import Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, TeamEntity, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
@@ -158,13 +158,17 @@ class EntityParser():
 
     def parseLineTile(self, line, lineId):
         assert len(line[0]) == 1, "Map tiles should have single letter tag"
-        id = "map-tile" + line[0].upper()
+        id = "map-tile" + line[1].rjust(2,"0")
+        team=None
+        name = line[0].upper()
+        if line[5] != "":
+            team = self.entities[line[5]]
+            id="hom-tile"+team.id[4:]
         assert not id in self.entities, "Id already exists: " + id
         index = int(line[1])
-        name = line[0].upper()
         resources = [self.entities[x.strip()] for x in line[2].split(",")]
         tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources,
-                            parcelCount=int(line[3]), richness=int(line[4]))
+                            parcelCount=int(line[3]), richness=int(line[4]), homeTeam=team)
         self.entities[id] = tile
 
 
@@ -189,7 +193,7 @@ class EntityParser():
 
 
     def parseTeams(self):
-        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(Team, x), ["tym"])
+        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(TeamEntity, x), ["tym"])
 
     def parseTypes(self):
         self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
@@ -215,8 +219,8 @@ class EntityParser():
 
 
     def checkMap(self, entities):
-        if len(entities.teams) * 3 != len(entities.tiles):
-            self.errors.append("World size is wrong: There are {} tiles and {} teams (expecting 3 tiles per team)".format(
+        if len(entities.teams) * 4 != len(entities.tiles):
+            self.errors.append("World size is wrong: There are {} tiles and {} teams (expecting 4 tiles per team)".format(
                     len(entities.tiles), 
                     len(entities.teams)))
             return

@@ -1,9 +1,9 @@
 from decimal import Decimal
 
 from pydantic import BaseModel
-from game.actions.actionBase import TeamActionBase
+from game.actions.actionBase import TeamActionBase, TeamActionArgs
 from game.state import GameState, TeamId
-from game.entities import Resource, Entities
+from game.entities import Resource, Entities, TeamEntity
 from game.actions.common import ActionCost, ActionFailedException, MessageBuilder, ActionArgumentException
 from typing import Optional
 
@@ -11,7 +11,7 @@ from typing import Optional
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
 # the player sacrificed to gods) and then it gains some blue counter
 
-class ActionIncreaseCounterArgs(BaseModel):
+class ActionIncreaseCounterArgs(TeamActionArgs):
     red: Decimal
     resource: Optional[Resource]=None
 
@@ -37,6 +37,6 @@ class ActionIncreaseCounter(TeamActionBase):
         if not error.empty:
             raise ActionFailedException(error)
 
-        self.state.teamStates[self.teamEntity].redCounter += self.args.red
+        self.teamState.redCounter += self.args.red
         if self.args.resource is not None:
-            self.state.teamStates[self.teamEntity].blueCounter += 1
+            self.teamState.blueCounter += 1

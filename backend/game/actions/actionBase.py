@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from game.actions.common import ActionFailedException
 from game.actions.common import ActionCost, ActionCost, MessageBuilder
-from game.entities import Entities, Team
+from game.entities import Entities, TeamEntity
 
 from game.state import GameState, TeamId, TeamState
 
@@ -32,10 +32,11 @@ class ActionBase(BaseModel):
     def delayedEffect(self) -> str:
         pass
 
-class TeamActionBase(ActionBase):
-    teamEntity: Team
-    
+class TeamActionBase(ActionBase):    
     @property
     def teamState(self) -> TeamState:
-        return self.state.teamStates[self.teamEntity]
+        return self.state.teamStates[self.args.teamEntity]
+
+class TeamActionArgs(BaseModel):
+    teamEntity: TeamEntity
 

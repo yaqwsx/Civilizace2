@@ -26,7 +26,7 @@ class EntityBase(BaseModel):
         return "{}({})".format(self.id, self.name)
 
 
-class Team(EntityBase):
+class TeamEntity(EntityBase):
     None
 
 
@@ -110,8 +110,7 @@ class MapTileEntity(EntityBase): # used to import data for initial state
     index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
-    richness: int=0
-
+    richness: int
 
 # Common type of all available entities
 Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity, ResourceType]
@@ -153,9 +152,9 @@ class Entities(frozendict):
 
 
     @cached_property
-    def teams(self) -> frozendict[EntityId, Team]:
+    def teams(self) -> frozendict[EntityId, TeamEntity]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Team)})
+            if isinstance(v, TeamEntity)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:

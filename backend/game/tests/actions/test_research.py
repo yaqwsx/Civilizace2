@@ -26,7 +26,7 @@ def test_start():
     tech = entities["tec-a"]
 
     action = ActionResearchStart(
-        state=state, entities=entities, teamEntity=team, args=ActionResearchArgs(tech=tech))
+        state=state, entities=entities, args=ActionResearchArgs(tech=tech, teamEntity=team))
 
     cost = action.cost()
     assert len(cost.resources) == 0
@@ -44,7 +44,7 @@ def test_startOwned():
     state = createTestInitState()
 
     action = ActionResearchStart(
-        state=state, entities=entities, teamEntity=team, args=ActionResearchArgs(tech=entities["tec-start"]))
+        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-start"], teamEntity=team))
 
     with pytest.raises(ActionArgumentException) as einfo:
         action.cost()
@@ -57,7 +57,7 @@ def test_startInProgress():
     state = createTestInitState()
 
     action = ActionResearchStart(
-        state=state, entities=entities, teamEntity=team, args=ActionResearchArgs(tech=entities["tec-c"]))
+        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-c"], teamEntity=team))
 
     with pytest.raises(ActionArgumentException) as einfo:
         action.cost()
@@ -71,7 +71,7 @@ def test_finish():
     tech = entities["tec-c"]
 
     action = ActionResearchFinish(state=state, entities=entities,
-                                  teamEntity=team, args=ActionResearchArgs(tech=tech))
+                                  args=ActionResearchArgs(tech=tech, teamEntity=team))
 
     assert action.cost() == ActionCost()
 
@@ -86,7 +86,7 @@ def test_finishOwned():
     state = createTestInitState()
 
     action = ActionResearchFinish(state=state, entities=entities,
-                                  teamEntity=team, args=ActionResearchArgs(tech=entities["tec-start"]))
+                                  args=ActionResearchArgs(tech=entities["tec-start"], teamEntity=team))
     with pytest.raises(ActionArgumentException) as einfo:
         action.commit()
 
@@ -96,7 +96,7 @@ def test_finishUnknown():
     state = createTestInitState()
 
     action = ActionResearchFinish(state=state, entities=entities,
-                                  teamEntity=team, args=ActionResearchArgs(tech=entities["tec-a"]))
+                                  args=ActionResearchArgs(tech=entities["tec-a"], teamEntity=team))
     with pytest.raises(ActionArgumentException) as einfo:
         action.commit()
 
@@ -105,14 +105,14 @@ def test_compound():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    ActionResearchStart(state=state, entities=entities, teamEntity=team,
-                        args=ActionResearchArgs(tech=entities["tec-a"])).commit()
-    ActionResearchFinish(state=state, entities=entities, teamEntity=team,
-                         args=ActionResearchArgs(tech=entities["tec-a"])).commit()
-    ActionResearchFinish(state=state, entities=entities, teamEntity=team,
-                         args=ActionResearchArgs(tech=entities["tec-c"])).commit()
-    ActionResearchStart(state=state, entities=entities, teamEntity=team,
-                        args=ActionResearchArgs(tech=entities["tec-d"])).commit()
+    ActionResearchStart(state=state, entities=entities,
+                        args=ActionResearchArgs(tech=entities["tec-a"], teamEntity=team)).commit()
+    ActionResearchFinish(state=state, entities=entities,
+                         args=ActionResearchArgs(tech=entities["tec-a"], teamEntity=team)).commit()
+    ActionResearchFinish(state=state, entities=entities,
+                         args=ActionResearchArgs(tech=entities["tec-c"], teamEntity=team)).commit()
+    ActionResearchStart(state=state, entities=entities,
+                        args=ActionResearchArgs(tech=entities["tec-d"], teamEntity=team)).commit()
 
     teamState = state.teamStates[team]
 

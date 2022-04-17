@@ -1,11 +1,10 @@
 from typing import List, Dict
 from pydantic import BaseModel
-from game.actions.actionBase import ActionBase, TeamActionBase
+from game.actions.actionBase import TeamActionBase, TeamActionArgs
 from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
-from game.entities import Vyroba, ResourceBase, ResourceGeneric, Resource
-from game.state import TeamId, TeamState
+from game.entities import Vyroba, ResourceGeneric, Resource
 
-class ActionVyrobaArgs(BaseModel):
+class ActionVyrobaArgs(TeamActionArgs):
     vyroba: Vyroba
     count: int
     genericProductions: Dict[ResourceGeneric, Resource]

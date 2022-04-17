@@ -1,11 +1,10 @@
-from typing import List, Set
-from pydantic import BaseModel
-from game.actions.actionBase import ActionBase, TeamActionBase
+from typing import Set
+from game.actions.actionBase import TeamActionBase, TeamActionArgs
 from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
-from game.entities import Tech
-from game.state import TeamId, TeamState
+from game.entities import Tech, TeamEntity
 
-class ActionResearchArgs(BaseModel):
+class ActionResearchArgs(TeamActionArgs):
+    teamEntity: TeamEntity
     tech: Tech
 
 class ActionResearchStart(TeamActionBase):

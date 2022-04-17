@@ -11,8 +11,8 @@ entities = TEST_ENTITIES
 
 def test_withoutResources():
     state = createTestInitState()
-    args = ActionIncreaseCounterArgs(red=Decimal(5))
-    action = ActionIncreaseCounter(state=state, entities=entities, args=args, teamEntity=team)
+    args = ActionIncreaseCounterArgs(red=Decimal(5), teamEntity=team)
+    action = ActionIncreaseCounter(state=state, entities=entities, args=args)
 
     cost = action.cost()
 
@@ -29,8 +29,8 @@ def test_withoutResources():
 
 def test_withResources():
     state = createTestInitState()
-    args = ActionIncreaseCounterArgs(red=Decimal(5), resource=TEST_ENTITIES["mat-drevo"])
-    action = ActionIncreaseCounter(state=state, entities=entities, args=args, teamEntity=team)
+    args = ActionIncreaseCounterArgs(red=Decimal(5), resource=TEST_ENTITIES["mat-drevo"], teamEntity=team)
+    action = ActionIncreaseCounter(state=state, entities=entities, args=args)
 
     prev = state.teamStates[team].blueCounter
     action.commit()
@@ -42,8 +42,8 @@ def test_withResources():
 
 def test_tooMany():
     state = GameState.createInitial(TEST_ENTITIES)
-    args = ActionIncreaseCounterArgs(red=Decimal(12))
-    action = ActionIncreaseCounter(state=state, entities=entities, args=args, teamEntity=team)
+    args = ActionIncreaseCounterArgs(red=Decimal(12), teamEntity=team)
+    action = ActionIncreaseCounter(state=state, entities=entities, args=args)
 
     with pytest.raises(ActionFailedException) as einfo:
         action.commit()
