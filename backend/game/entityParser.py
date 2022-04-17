@@ -124,7 +124,7 @@ class EntityParser():
             target = unlock[0]
             assert isinstance(target, EntityWithCost), "Cannot unlock entity without a cost: " + target
             target.unlockedBy.append((tech, unlock[1]))
-        tech.unlockedBy = unlocks
+        tech.unlocks = unlocks
 
 
     def getFeaturesFromField(self, field, onlyNaturals = False):

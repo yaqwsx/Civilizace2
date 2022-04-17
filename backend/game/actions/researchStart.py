@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 from pydantic import BaseModel
 from game.actions.actionBase import ActionBase, TeamActionBase
 from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
@@ -11,13 +11,12 @@ class ActionResearchArgs(BaseModel):
 class ActionResearchStart(TeamActionBase):
     args: ActionResearchArgs
 
-    def _lookupDice(self) -> List[str]:
-        dice = []
-        for tech in self.teamState.techs:
-            print(tech.id)
-            if self.args.tech in tech.edges.keys():
-                print("  OK")
-                dice.append(tech.edges[self.args.tech])
+    def _lookupDice(self) -> Set[str]:
+        dice = set()
+        tech = self.args.tech
+        for unlock in tech.unlockedBy:
+            if unlock[0] in self.teamState.techs:
+                dice.add(unlock[1])
         return dice
 
     def _checkPrerequisites(self) -> None:
@@ -34,7 +33,7 @@ class ActionResearchStart(TeamActionBase):
 
     def cost(self) -> ActionCost:
         self._checkPrerequisites()
-        return ActionCost(allowedDice = self._lookupDice(), requiredDots = self.args.tech.diePoints, resources = {})
+        return ActionCost(allowedDice = self._lookupDice(), requiredDots = self.args.tech.points, resources = {})
 
     def apply(self) -> None:
         self._checkPrerequisites()
