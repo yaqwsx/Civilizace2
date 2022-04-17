@@ -11,9 +11,9 @@ from typing import Optional
 # the player sacrificed to gods) and then it gains some blue counter
 
 class ActionAssignTileArgs(TeamActionArgs):
-    tileId: int
+    index: int
 
-class ActionIncreaseCounter(TeamActionBase):
+class ActionAssignTile(TeamActionBase):
     args: ActionAssignTileArgs
 
     def cost(self) -> ActionCost:

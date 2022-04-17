@@ -65,13 +65,13 @@ class MapState(BaseModel):
 
 
     def getHomeTile(self, team: Team) -> MapTile:
-        return None
+        return self.homeTiles[team]
 
 
     @property
     def tiles(self):
         # TODO: how to cache this?
-        return self.wildTiles.values() + self.homeTiles
+        return list(self.wildTiles.values()) + list(self.homeTiles.values())
 
 
     @classmethod
