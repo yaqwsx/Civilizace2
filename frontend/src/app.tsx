@@ -22,7 +22,8 @@ import {
     faHistory,
     faIndustry,
     faFlask,
-    faCubesStacked
+    faCubesStacked,
+    faStickyNote
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ import "./index.css";
 import { Forbidden } from "./pages/forbidden";
 import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
+import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -206,6 +208,7 @@ function OrgMenu() {
             <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
             <MenuItem name="Technologie" icon={faFlask} path="techs" />
             <MenuItem name="Úkoly" icon={faCubesStacked} path="tasks" />
+            <MenuItem name="Vývěska" icon={faStickyNote} path="announcements" />
         </MenuRow>
     );
 }
@@ -219,7 +222,8 @@ function ApplicationMenu() {
                 <Route path="/generations" element={<GenerationMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu/>} />
                 <Route path="/techs" element={<TechMenu/>}/>
-                <Route path="/tasks" element={<TasksMenu/>}/>
+                <Route path="/tasks/*" element={<TasksMenu/>}/>
+                <Route path="/announcements/*" element={<AnnouncementsMenu/>}/>
             </Routes>
         </>
     );
@@ -337,6 +341,14 @@ export default function App() {
                                 element={
                                     <RequireAuth>
                                         <Tasks />
+                                    </RequireAuth>
+                                }
+                            />
+                            <Route
+                                path="/announcements/*"
+                                element={
+                                    <RequireAuth>
+                                        <Announcements />
                                     </RequireAuth>
                                 }
                             />

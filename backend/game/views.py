@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse, HttpResponseNotFound
@@ -177,5 +178,54 @@ class TaskView(View):
     def put(self, request, taskId):
         for t in MOCK_TASKS:
             if t["id"] == taskId:
+                return JsonResponse({"status": "ok"})
+        return HttpResponseNotFound({"status": "error"})
+
+
+MOCK_ANNOUNCEMENTS = [
+    {
+        "id": 1,
+        "author": "maara",
+        "appearDatetime": datetime.now(),
+        "type": "normal",
+        "content": """Jen dáváme vědět, že hra začala. Hrajte!""",
+        "teams": ["tym-cerveni", "tym-modri"]
+    },
+    {
+        "id": 2,
+        "author": "honza",
+        "appearDatetime": datetime.now(),
+        "type": "important",
+        "content": """Tohle je fakt důležité""",
+        "teams": ["tym-cerni"]
+    }
+]
+
+# Handle listing all tasks and creating a new one.
+class AnnouncementsView(View):
+    def get(self, request):
+        return JsonResponse(MOCK_ANNOUNCEMENTS, safe=False)
+
+    def post(self, request):
+        # We should return something rest compatible...
+        return JsonResponse({"status": "ok"})
+
+# Handle task based on ID:
+class AnnouncementView(View):
+    def get(self, request, announcementId):
+        for t in MOCK_ANNOUNCEMENTS:
+            if t["id"] == announcementId:
+                return JsonResponse(t)
+        return HttpResponseNotFound({"status": "error"})
+
+    def put(self, request, announcementId):
+        for t in MOCK_ANNOUNCEMENTS:
+            if t["id"] == announcementId:
+                return JsonResponse({"status": "ok"})
+        return HttpResponseNotFound({"status": "error"})
+
+    def put(self, request, announcementId):
+        for t in MOCK_ANNOUNCEMENTS:
+            if t["id"] == announcementId:
                 return JsonResponse({"status": "ok"})
         return HttpResponseNotFound({"status": "error"})

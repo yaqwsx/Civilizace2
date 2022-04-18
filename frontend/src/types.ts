@@ -89,3 +89,17 @@ export interface UserResponse {
     id: string;
     username: string;
 }
+
+export enum AnnouncementType {
+    Normal = "normal",
+    Important = "important"
+}
+
+export interface Announcement {
+    id: number;
+    author: string;
+    type: AnnouncementType;
+    content: string;
+    appearDatetime: Date;
+    teams: string[];
+}

@@ -31,6 +31,7 @@
     "postcss-import": "^14.0.2",
     "postcss-preset-env": "^7.4.3",
     "react": "^17.0.2",
+    "react-datetime": "^3.1.1",
     "react-dom": "^17.0.2",
     "react-hooks-use-form-state": "^0.0.1",
     "react-loader-spinner": "^6.0.0-0",
@@ -72,6 +73,7 @@
   },
   "devDependencies": {
     "@types/onscan.js": "^1.5.2",
+    "@types/react-datepicker": "^4.4.0",
     "prettier": "^2.6.1",
     "prettier-plugin-tailwindcss": "^0.1.8"
   }

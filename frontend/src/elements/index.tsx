@@ -51,7 +51,7 @@ export function FormRow(props: FormRowProps) {
     if (props.className) className += " " + props.className;
     return (
         <div className={className}>
-            <div className="py-2 md:w-1/4">
+            <div className="py-1 md:w-1/4">
                 <label className="mb-1 block pr-4 font-bold text-gray-500 md:mb-0 md:text-right w-full">
                     {props.label}
                 </label>
