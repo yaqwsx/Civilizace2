@@ -34,6 +34,10 @@ class MapTile(BaseModel): # Game state elemnent
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
+    def name(self):
+        return self.entity.name
+
+    @property
     def features(self) -> List[TileFeature]:
         return self.naturalResources + self.buildings.keys()
 
@@ -52,7 +56,7 @@ class HomeTile(MapTile):
 
 
 class MapState(BaseModel):
-    wildTiles: Dict[int, MapTile]
+    tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
 
     def getRawDistance(self, team: TeamState, tile: MapTile) -> Decimal:
@@ -60,24 +64,15 @@ class MapState(BaseModel):
         teamTile = team.homeTile.index - tile.index
         return 0
 
-    def getTile(self, index:int) -> MapTile:
-        return self.wildTiles[index]
 
-
-    def getHomeTile(self, team: Team) -> MapTile:
-        return self.homeTiles[team]
-
-
-    @property
-    def tiles(self):
-        # TODO: how to cache this?
-        return list(self.wildTiles.values()) + list(self.homeTiles.values())
+    def getHomeTile(self, team: Team) -> HomeTile:
+        return self.homeTiles.get(team)
 
 
     @classmethod
     def createInitial(cls, entities: Entities) -> MapState:
         return MapState(
-            wildTiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values() if tile.index % 4 != 1},
+            tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values() if tile.index % 4 != 1},
             homeTiles = {}
         )
 

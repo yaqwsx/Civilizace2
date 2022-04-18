@@ -106,11 +106,12 @@ class Building(EntityWithCost, TileFeature):
     requiredFeatures: List[TileFeature]
 
 
-class MapTileEntity(EntityBase): # used to import data for initial state
+class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
     richness: int
+
 
 # Common type of all available entities
 Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity, ResourceType]
