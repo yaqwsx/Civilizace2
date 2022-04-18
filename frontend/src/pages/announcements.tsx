@@ -292,6 +292,57 @@ function AnnouncementEditForm(props: {
                         <CiviMarkdown>{props.values.content}</CiviMarkdown>
                     </div>
                 </FormRow>
+                <FormRow
+                    label="Viditelné pro týmy:"
+                    error={<ErrorMessage name="teams" />}
+                    extra={
+                        <div className="flex w-full flex-row-reverse px-0">
+                            <Button
+                                label="Označit vše"
+                                className="m-0 mr-2 grow"
+                                onClick={allTeams}
+                            />
+                            <Button
+                                label="Nic neoznačit"
+                                className="m-0 ml-2 grow"
+                                onClick={noTeams}
+                            />
+                        </div>
+                    }
+                >
+                    <div className="flex w-full flex-row flex-wrap">
+                        {props.teams.map((t) => (
+                            <div
+                                className="m-2 flex-none rounded bg-white p-2 shadow"
+                                key={t.id}
+                            >
+                                <Field
+                                    type="checkbox"
+                                    name="techs"
+                                    value={t.id}
+                                    className="checkboxinput align-middle"
+                                />
+                                <div
+                                    className={classNames(
+                                        "inline-block",
+                                        "align-middle",
+                                        "flex-none",
+                                        "w-5",
+                                        "h-5",
+                                        "rounded",
+                                        "m-1",
+                                        "bg-" + t.color
+                                    )}
+                                >
+                                    &nbsp;
+                                </div>
+                                <label className="mx-3 ml-0 align-middle">
+                                    {t.name}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </FormRow>
                 <Button
                     className="my-5 w-full bg-purple-500 hover:bg-purple-600"
                     type="submit"
