@@ -27,7 +27,7 @@ class ActionAssignTile(TeamActionBase):
     def cost(self) -> ActionCost:
         return ActionCost()
 
-    def commit(self) -> None:
+    def apply(self) -> None:
         team = self.args.team
         map = self.state.map
     

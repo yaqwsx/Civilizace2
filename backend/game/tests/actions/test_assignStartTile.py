@@ -1,12 +1,11 @@
+import pytest
+from game.actions.common import ActionFailedException
 from game.actions.common import ActionCost
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
-    from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
-    from game.entities import Entities
-    from game.state import GameState
     from game.tests.actions.common import TEST_ENTITIES, TEST_TEAM
 
 
@@ -46,7 +45,6 @@ def test_assignAll():
         args = ActionAssignTileArgs(team=team, index=4*index + 1)
         action = ActionAssignTile(args=args, state=state, entities=entities)
         action.commit()
-        assert action.errors.message == "", "Adding hoe tile to team {} failed with error:\n{}}".format(team.id, action.errors.message)
 
     assert len(state.map.tiles) == 32, "Adding 8 home tiles should result in 32 tiles in total (act={})".format(len(state.map.tiles))
     assert len(state.map.homeTiles) == 8, "Wrong home tile count (exp=8, act={})".format(len(state.map.homeTiles))
@@ -67,9 +65,8 @@ def test_assignDuplicate():
     action.commit()
     args = ActionAssignTileArgs(team=entities["tym-zluti"], index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
-    action.commit()
-    
-    assert action.errors.message != "", "Assigning the same tile to different teams passed"
+    with pytest.raises(ActionFailedException) as einfo:
+        action.commit()
     
 def test_reassingnTeam():
     reimport(__name__)

@@ -1,15 +1,10 @@
 from __future__ import annotations
+from cmath import nan
 from math import floor
 from pydantic import BaseModel
 from typing import ClassVar, List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
-
-
-STARTER_ARMY_PRESTIGES = [15,20,25]
-TILE_DISTANCES_RELATIVE = {0: Decimal(0),
-    -9: Decimal(1.5), -3: Decimal(1.5), 2: Decimal(1.5), 7: Decimal(1.5), 9: Decimal(1.5),
-    -2: Decimal(1), -1: Decimal(1), 1: Decimal(1), 5: Decimal(1), 6: Decimal(1)}
 
 
 class Army(BaseModel):
@@ -34,8 +29,20 @@ class MapTile(BaseModel): # Game state elemnent
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.entity.name
+
+    @property
+    def index(self) -> int:
+        return self.entity.index
+
+    @property
+    def parcelCount(self) -> int:
+        return self.entity.parcelCount
+
+    @property
+    def richness(self) -> int:
+        return self.entity.richness
 
     @property
     def features(self) -> List[TileFeature]:
@@ -56,14 +63,24 @@ class HomeTile(MapTile):
 
 
 class MapState(BaseModel):
+    size: int=32
     tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
 
-    def getRawDistance(self, team: TeamState, tile: MapTile) -> Decimal:
-        assert team.homeTile.index >= 0
-        teamTile = team.homeTile.index - tile.index
-        return 0
+    def _getRelativeIndex(self, team: Team, tile: MapTile) -> int:
+        home = self.homeTiles[team]
+        assert home != None, "Team {} has no home tile".format(team.id)
+        relIndex = tile.index - home.index
+        relIndexOffset = relIndex + self.size/2
+        return (relIndexOffset % self.size) - self.size/2
 
+    def getRawDistance(self, team: Team, tile: MapTile) -> Decimal:
+        relativeIndex = self._getRelativeIndex(team, tile)
+        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
+        return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
+
+    def getActualDistance(self, team: Team) -> Decimal:
+        return nan
 
     def getHomeTile(self, team: Team) -> HomeTile:
         return self.homeTiles.get(team)
