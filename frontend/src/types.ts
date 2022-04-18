@@ -53,6 +53,12 @@ export interface Task {
     name: string;
     teamDescription: string;
     orgDescription?: string; // Available only for orgs
+    capacity: number;
+    occupiedCount: number;
+}
+
+export interface EditableTask extends Task {
+    techs: TechId[];
 }
 
 export interface EntityTech extends EntityWithCost {

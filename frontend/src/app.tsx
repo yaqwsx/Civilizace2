@@ -21,7 +21,8 @@ import {
     faChartLine,
     faHistory,
     faIndustry,
-    faFlask
+    faFlask,
+    faCubesStacked
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +34,7 @@ import "./index.css";
 
 import { Forbidden } from "./pages/forbidden";
 import { Tech, TechMenu } from "./pages/techs";
+import { Tasks, TasksMenu } from "./pages/tasks";
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -178,7 +180,7 @@ function MenuItem(props: MenuItemProps) {
     };
 
     return (
-        <li className="my-2 mr-6 md:my-0">
+        <li className="my-2 mr-6 md:my-0 list-none">
             <NavLink to={props.path} className={className}>
                 <FontAwesomeIcon
                     icon={props.icon}
@@ -203,6 +205,7 @@ function OrgMenu() {
             <MenuItem name="Generace" icon={faHistory} path="generations" />
             <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
             <MenuItem name="Technologie" icon={faFlask} path="techs" />
+            <MenuItem name="Úkoly" icon={faCubesStacked} path="tasks" />
         </MenuRow>
     );
 }
@@ -216,6 +219,7 @@ function ApplicationMenu() {
                 <Route path="/generations" element={<GenerationMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu/>} />
                 <Route path="/techs" element={<TechMenu/>}/>
+                <Route path="/tasks" element={<TasksMenu/>}/>
             </Routes>
         </>
     );
@@ -325,6 +329,14 @@ export default function App() {
                                 element={
                                     <RequireAuth>
                                         <Tech />
+                                    </RequireAuth>
+                                }
+                            />
+                            <Route
+                                path="/tasks/*"
+                                element={
+                                    <RequireAuth>
+                                        <Tasks />
                                     </RequireAuth>
                                 }
                             />

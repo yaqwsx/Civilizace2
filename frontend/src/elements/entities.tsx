@@ -11,7 +11,7 @@ export const urlEntityAtom = atomWithHash< string | undefined>("entity",
         deserialize: x => x ? x : undefined
     });
 
-function useTeamEntity<T>(entityType: string, team?: Team) {
+export function useTeamEntity<T>(entityType: string, team?: Team) {
     const {data, error, mutate} = useSWR<Record<string, T>>(
         () => team ? `game/entity/${team.id}?type=${entityType}` : null,
         fetcher)
@@ -23,7 +23,7 @@ function useTeamEntity<T>(entityType: string, team?: Team) {
     }
 }
 
-function useEntities<T>(entityType?: string) {
+export function useEntities<T>(entityType?: string) {
     const {data, error, mutate} = useSWR<Record<string, T>>(
         () => entityType ? `game/entity?type=${entityType}` : `game/entity`, fetcher);
     return {
@@ -49,6 +49,7 @@ export function useResources() {
         ...rest
     };
 }
+
 
 export function useTeamResources(team?: Team) {
     const {data, ...rest} = useTeamEntity<TeamEntityResource>("resource", team);

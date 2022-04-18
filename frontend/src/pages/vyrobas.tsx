@@ -42,7 +42,7 @@ export function Vyroba() {
 
     return (
         <>
-            <h2 className="text-lg">
+            <h2>
                 Zadat výrobu
                 {team ? ` pro tým ${team.name}` : null}
             </h2>
@@ -148,7 +148,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
         <FormRow label="Zadejte počet výrob:">
             <SpinboxInput value={amount} onChange={handleAmountChange}/>
         </FormRow>
-        <h2 className="text-xl">
+        <h2>
             {amount}× {vyroba.name} → {amount * vyroba.reward[1]}× {props.resources[vyroba.reward[0]].name}
         </h2>
         {

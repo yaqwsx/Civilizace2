@@ -5,6 +5,7 @@ import { fetcher } from "../utils/axios";
 import { ThreeDots } from "react-loader-spinner";
 import classNames from "classnames";
 import ReactMarkdown from "react-markdown";
+import { JsxElement } from "typescript";
 
 // Avoid purging team background colors
 let teamColorPlaceholder = [
@@ -41,7 +42,9 @@ export function ComponentError(props: ComponentErrorProps) {
 type FormRowProps = {
     label: string;
     className?: string;
+    error?: any;
     children: any;
+    extra?: any;
 };
 export function FormRow(props: FormRowProps) {
     let className = "md:flex md:items-center mb-6";
@@ -49,9 +52,15 @@ export function FormRow(props: FormRowProps) {
     return (
         <div className={className}>
             <div className="py-2 md:w-1/4">
-                <label className="mb-1 block pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                <label className="mb-1 block pr-4 font-bold text-gray-500 md:mb-0 md:text-right w-full">
                     {props.label}
                 </label>
+                <div className="mb-1 block w-full text-red-600 md:mb-0 md:text-right">
+                    {props.error ? props.error : null}
+                </div>
+                <div className="mb-1 block pr-4 md:mb-0 md:text-right w-full">
+                    {props.extra ? props.extra : null}
+                </div>
             </div>
             <div className="field flex flex-wrap md:w-3/4">
                 {props.children}
@@ -148,6 +157,7 @@ export function Button(props: {
     label: string;
     onClick?: () => void;
     className?: string;
+    type?: "button" | "submit" | "reset" | undefined;
 }) {
     const className = classNames(
         "rounded",
@@ -160,10 +170,12 @@ export function Button(props: {
         "rounded",
         "focus:shadow-outline",
         "focus:outline-none",
+        "bg-purple-500",
+        "hover:bg-purple-600",
         props.className
     );
     return (
-        <button className={className} onClick={props.onClick}>
+        <button className={className} onClick={props.onClick} type={props.type}>
             {props.label}
         </button>
     );
@@ -218,12 +230,27 @@ export function CloseButton(props: {
     );
 }
 
+function stopPropagation(e: any) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}
+
 export function Dialog(props: { children: any; onClose: () => void }) {
     useEffect(() => {
         document.documentElement.style.overflow = "hidden";
         return () => {
             document.documentElement.style.overflow = "scroll";
         };
+        // This doesn't work:
+        // document.body.addEventListener("scroll", stopPropagation);
+        // document.body.addEventListener("mousewheel", stopPropagation);
+        // document.body.addEventListener("touchmove", stopPropagation);
+        // return () => {
+        //     document.body.removeEventListener("scroll", stopPropagation);
+        //     document.body.removeEventListener("mousewheel", stopPropagation);
+        //     document.body.removeEventListener("touchmove", stopPropagation);
+        // }
     });
 
     return (

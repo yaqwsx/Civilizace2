@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound
+
 
 from typing import Dict, Any, Callable
 import json
@@ -122,7 +123,59 @@ class TeamEntityView(View):
                     "id": "task_42",
                     "name": "Hezký úkol",
                     "teamDescription": "Řekni a!",
-                    "orgDescription": "Zadej jim to!"
+                    "orgDescription": "Zadej jim to!",
+                    "capacity": 4,
+                    "occupiedCount": 3,
                 }})
             return extra
         return {}
+
+MOCK_TASKS = [
+    {
+        "id": "task_42",
+        "name": "Hezký úkol",
+        "teamDescription": "Řekni a!",
+        "orgDescription": "Zadej jim to!",
+        "capacity": 4,
+        "occupiedCount": 3,
+        "techs": ["tec-a", "tec-b", "tec-c"]
+    },
+    {
+        "id": "task_43",
+        "name": "Další hezký úkol",
+        "teamDescription": "# Tohle\n\n má:\n\n-markdown\n\n-jakože fakt\n\n",
+        "orgDescription": "Zadej jim to!",
+        "capacity": 4,
+        "occupiedCount": 3,
+        "techs": ["tec-b", "tec-c"]
+    },
+]
+
+# Handle listing all tasks and creating a new one.
+class TasksView(View):
+    def get(self, request):
+        return JsonResponse(MOCK_TASKS, safe=False)
+
+    def post(self, request):
+        # We should return something rest compatible...
+        return JsonResponse({"status": "ok"})
+
+# Handle task based on ID:
+class TaskView(View):
+    def get(self, request, taskId):
+        for t in MOCK_TASKS:
+            if t["id"] == taskId:
+                return JsonResponse(t)
+        return HttpResponseNotFound({"status": "error"})
+
+    def put(self, request, taskId):
+        for t in MOCK_TASKS:
+            if t["id"] == taskId:
+                return JsonResponse({"status": "ok"})
+        return HttpResponseNotFound({"status": "error"})
+
+    def put(self, request, taskId):
+        for t in MOCK_TASKS:
+            if t["id"] == taskId:
+                return JsonResponse({"status": "ok"})
+        return HttpResponseNotFound({"status": "error"})
