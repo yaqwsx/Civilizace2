@@ -51,7 +51,7 @@ class MapTile(BaseModel): # Game state elemnent
 
 class HomeTile(MapTile):
     team: Team
-    roadsTo: List[MapTile]=[]
+    roadsTo: List[MapTileEntity]=[]
 
     @classmethod
     def createInitial(cls, team: Team, tile: MapTileEntity, entities: Entities) -> HomeTile:
@@ -79,8 +79,19 @@ class MapState(BaseModel):
         assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
-    def getActualDistance(self, team: Team) -> Decimal:
-        return nan
+    def getActualDistance(self, team: Team, tile: MapTile) -> Decimal:
+        relativeIndex = self._getRelativeIndex(team, tile)
+        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
+        distance = TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
+        home = self.homeTiles[team]
+        if relativeIndex != tile.index - home.index:
+            distance *= Decimal(0.8) # Tiles are around the map
+        multiplier = 1
+        if tile.entity in home.roadsTo:
+            multiplier -= 0.5
+        if tile.occupiedBy != None and tile.occupiedBy.team == team:
+            multiplier -= 0.5
+        return Decimal(float(distance) * multiplier)
 
     def getHomeTile(self, team: Team) -> HomeTile:
         return self.homeTiles.get(team)
