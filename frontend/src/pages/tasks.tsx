@@ -32,7 +32,7 @@ export function Tasks() {
 }
 
 function TasksOverview() {
-    const { data: tasks, error: taskError } = useSWR<Task[]>(
+    const { data: tasks, error: taskError } = useSWR<EditableTask[]>(
         "game/task",
         fetcher
     );
@@ -64,7 +64,10 @@ function TasksOverview() {
     );
 }
 
-function TaskItem(props: { task: Task; techs: Record<string, EntityTech> }) {
+function TaskItem(props: {
+    task: EditableTask;
+    techs: Record<string, EntityTech>;
+}) {
     const [dDialog, setdDialog] = useState(false);
 
     const handleDelete = () => {
@@ -95,9 +98,9 @@ function TaskItem(props: { task: Task; techs: Record<string, EntityTech> }) {
             </Row>
             <Row className="flex flex-row flex-wrap">
                 <div className="m-0 flex w-full flex-col p-2 md:w-1/2 md:pl-0">
-                    <h2 className="font-normal text-gray-500">
+                    <h4 className="font-normal text-gray-500">
                         Popis pro tým:
-                    </h2>
+                    </h4>
                     <hr className="my-2" />
                     <CiviMarkdown className="grow">
                         {props.task.teamDescription}
@@ -105,15 +108,31 @@ function TaskItem(props: { task: Task; techs: Record<string, EntityTech> }) {
                     <hr className="my-2" />
                 </div>
                 <div className="m-0 flex w-full  flex-col p-2 md:w-1/2 md:pr-0">
-                    <h2 className="font-normal text-gray-500">
-                        Popis pro orga
-                    </h2>
+                    <h4 className="font-normal text-gray-500">
+                        Popis pro orga:
+                    </h4>
                     <hr className="my-2" />
                     <CiviMarkdown className="grow">
                         {props.task.orgDescription}
                     </CiviMarkdown>
                     <hr className="my-2" />
                 </div>
+            </Row>
+            <Row className="flex w-full flex-row flex-wrap text-sm">
+                {props.task.techs.map((tid) => {
+                    const t = props.techs[tid];
+                    if (!t) return null;
+                    return (
+                        <div
+                            className="m-2 grow rounded bg-white p-1 shadow-lg border-2 border-gray-400"
+                            key={tid}
+                        >
+                            <span className="mx-1 align-middle">
+                                {t.name}
+                            </span>
+                        </div>
+                    );
+                })}
             </Row>
             {dDialog ? (
                 <Dialog onClose={() => setdDialog(false)}>
