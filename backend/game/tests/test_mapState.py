@@ -1,6 +1,6 @@
 from decimal import Decimal
 from game.state import ArmyId
-from game.tests.actions.common import createTestInitStateWithHomeTiles
+from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
@@ -9,7 +9,7 @@ if not PYTEST_COLLECT:
 def test_rawDistance():
     reimport(__name__)
 
-    state = createTestInitStateWithHomeTiles()
+    state = createTestInitState()
 
     expectations = [(1, 0), (0, 10), (31, 10), (3, 15), (30, 15)]
 
@@ -20,7 +20,7 @@ def test_rawDistance():
 def test_actualDistance():
     reimport(__name__)
 
-    state = createTestInitStateWithHomeTiles()
+    state = createTestInitState()
 
     home = state.map.getHomeTile(TEAM_ADVANCED)
     home.roadsTo = [state.map.tiles[x].entity for x in [6, 10, 24, 2]]

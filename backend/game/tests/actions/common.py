@@ -16,12 +16,9 @@ TEAM_INIT = TEST_ENTITIES["tym-cerni"] # team that is in the initial state, befo
 def createTestInitState(entities=TEST_ENTITIES):
     state = GameState.createInitial(entities)
     state.teamStates[TEAM_ADVANCED].researching.add(entities["tec-c"])
-    return state
-    
-
-def createTestInitStateWithHomeTiles(entities=TEST_ENTITIES):
-    state = createTestInitState(entities)
     for index, team in enumerate(entities.teams.values()):
+        if team == TEAM_INIT:
+            continue
         ActionAssignTile(args=ActionAssignTileArgs(team=team, index=4*index + 1), state=state, entities=entities).commit()
     return state
         

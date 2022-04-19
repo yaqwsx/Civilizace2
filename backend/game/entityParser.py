@@ -13,12 +13,9 @@ GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyva
 
 
 class EntityParser():
-    def __init__(self, fileName):
+    def __init__(self, data):
         self.errors = []
-        with open(fileName) as file:
-            self.data = json.load(file)
-        self.fileName = fileName
-
+        self.data = data
 
     def parseTypString(self, s):
         assert len(s.split("-")) == 3, "Invalid resourceType id: " + s
@@ -246,23 +243,23 @@ class EntityParser():
         self.parseVyrobas()
         self.parseTechs()
 
-        for id in GUARANTEED_IDS:
-            if not id in self.entities:
-                self.errors.append("Missing required id \"" + id + "\"")
+        if len(self.errors) == 0:
+            for id in GUARANTEED_IDS:
+                if not id in self.entities:
+                    self.errors.append("Missing required id \"" + id + "\"")
 
-        entities = Entities(self.entities.values())
-        self.checkMap(entities)
+            entities = Entities(self.entities.values())
+            self.checkMap(entities)
+            return entities
 
-        if (len(self.errors)) > 0:
-            for message in self.errors:
-                print("  " + message)
-            print("ERROR: Failed to parse file " + self.fileName + ". Errors are listed above")
-            return None
-        else:
-            print()
-            c = Counter([x[:3] for x in entities.keys()])
-            for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "techs", "vyrobas"]:
-                print("    " + x + ": " + str(c[x[:3]]))
-            print("SUCCESS: Created " + str(len(entities)) + " entities from " + self.fileName)
+        return Entities({})
 
-        return entities
+
+def loadEntities(fileName):
+
+    with open(fileName) as file:
+        data = json.load(file)
+    
+    parser = EntityParser(data)
+    entities = parser.parse()
+    return entities

@@ -1,4 +1,5 @@
 import pytest
+from game.state import GameState
 from game.actions.common import ActionFailedException
 from game.actions.common import ActionCost
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
@@ -12,15 +13,15 @@ if not PYTEST_COLLECT:
 def test_initialState():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
+    state = GameState.createInitial(entities)
     assert len(state.map.tiles) == 24, "Empty map should have 24 tiles"
 
 def test_assignOne():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
+    state = GameState.createInitial(entities)
 
     args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
@@ -38,8 +39,8 @@ def test_assignOne():
 def test_assignAll():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
+    state = GameState.createInitial(entities)
 
     for index, team in enumerate(entities.teams.values()):
         args = ActionAssignTileArgs(team=team, index=4*index + 1)
@@ -57,8 +58,8 @@ def test_assignAll():
 def test_assignDuplicate():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
+    state = GameState.createInitial(entities)
 
     args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
@@ -71,8 +72,8 @@ def test_assignDuplicate():
 def test_reassingnTeam():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
+    state = GameState.createInitial(entities)
 
     args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
@@ -87,7 +88,10 @@ def test_reassingnTeam():
     assert state.map.getHomeTile(TEAM_ADVANCED) != None, "Team has no home tile after reassignment"
     assert state.map.getHomeTile(TEAM_ADVANCED).entity.index == 5, "Reassigned team home tile has wrong index {}".format(state.map.getHomeTile(TEAM_ADVANCED).entity.index)
 
-    
+def test_examineTestInitState():
+    reimport(__name__)
 
-    
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+
     
