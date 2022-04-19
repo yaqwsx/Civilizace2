@@ -7,7 +7,7 @@ from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from decimal import Decimal
 from typing import Dict, List
 
-TEST_ENTITIES = entityParser.EntityParser(os.path.join(settings.BASE_DIR, "testEntities.json")).parse()
+TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.BASE_DIR, "testEntities.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
 TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial state, with the pre-game set up
 TEAM_INIT = TEST_ENTITIES["tym-cerni"] # team that is in the initial state, before pre-game
