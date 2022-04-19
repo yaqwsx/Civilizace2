@@ -7,6 +7,7 @@ from typing import Any, Optional, Tuple, Union, Iterable, Dict, List
 
 
 STARTER_ARMY_PRESTIGES = [15,20,25]
+BASE_ARMY_STRENGTH = 5
 MAP_SIZE = 32
 TILE_DISTANCES_RELATIVE = {0: Decimal(0),
     -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
@@ -140,6 +141,10 @@ class Entities(frozendict):
     def work(self) -> Resource:
         return self["res-prace"]
 
+    @property
+    def zbrane(self) -> Resource:
+        return self["mat-zbrane"]
+
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.items()
@@ -170,3 +175,4 @@ class Entities(frozendict):
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, MapTileEntity)})
+

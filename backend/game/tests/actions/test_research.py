@@ -4,11 +4,11 @@ from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart, ActionResearchArgs
 from game.entities import Entities
 from game.state import GameState
-from game.tests.actions.common import TEST_ENTITIES, TEST_TEAM, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
 
-team = TEST_TEAM
+team = TEAM_ADVANCED
 
 
 def test_initialState():

@@ -6,7 +6,7 @@ from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
-    from game.tests.actions.common import TEST_ENTITIES, TEST_TEAM
+    from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 
 
 def test_initialState():
@@ -22,14 +22,14 @@ def test_assignOne():
     state = createTestInitState()
     entities = TEST_ENTITIES
 
-    args = ActionAssignTileArgs(team=TEST_TEAM, index=1)
+    args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
     assert action.cost() == ActionCost(), "Assigning tile to team should be free"
 
-    assert state.map.getHomeTile(TEST_TEAM) == None, "Team should not have a home tile assigned by default"
+    assert state.map.getHomeTile(TEAM_ADVANCED) == None, "Team should not have a home tile assigned by default"
 
     action.commit()
-    tile = state.map.getHomeTile(TEST_TEAM)
+    tile = state.map.getHomeTile(TEAM_ADVANCED)
     assert tile != None, "Assigning tile to team failed"
     assert tile.entity.index == 1, "Assigned tile has wrong index (exp=1, act={})".format(1, tile.entity.index)
     assert len(state.map.tiles) == 25, "Adding a home tile should increase tile count"
@@ -60,7 +60,7 @@ def test_assignDuplicate():
     state = createTestInitState()
     entities = TEST_ENTITIES
 
-    args = ActionAssignTileArgs(team=TEST_TEAM, index=1)
+    args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
     action.commit()
     args = ActionAssignTileArgs(team=entities["tym-zluti"], index=1)
@@ -74,18 +74,18 @@ def test_reassingnTeam():
     state = createTestInitState()
     entities = TEST_ENTITIES
 
-    args = ActionAssignTileArgs(team=TEST_TEAM, index=1)
+    args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
     action.commit()
-    args = ActionAssignTileArgs(team=TEST_TEAM, index=5)
+    args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=5)
     action = ActionAssignTile(args=args, state=state, entities=entities)
     action.commit()
 
     assert action.errors.message == "", "Reassigning team to different home tile failed:{}".format(action.errors.message)
     assert state.map.tiles.get(1) == None, "Unassigned tile remained on the map: {}".format(state.map.tiles.get(1)) 
     assert state.map.tiles.get(5) != None, "Newly assigned tile #5 does not exist"
-    assert state.map.getHomeTile(TEST_TEAM) != None, "Team has no home tile after reassignment"
-    assert state.map.getHomeTile(TEST_TEAM).entity.index == 5, "Reassigned team home tile has wrong index {}".format(state.map.getHomeTile(TEST_TEAM).entity.index)
+    assert state.map.getHomeTile(TEAM_ADVANCED) != None, "Team has no home tile after reassignment"
+    assert state.map.getHomeTile(TEAM_ADVANCED).entity.index == 5, "Reassigned team home tile has wrong index {}".format(state.map.getHomeTile(TEAM_ADVANCED).entity.index)
 
     
 

@@ -1,31 +1,71 @@
 from __future__ import annotations
 from cmath import nan
+import enum
 from math import floor
 from pydantic import BaseModel
 from typing import ClassVar, List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
 
+class ArmyState(enum.Enum):
+    Idle = 0
+    Marching = 1
+    Occupying = 2
+
+class ArmyId(BaseModel):
+    prestige: int
+    team: Team
+
+    def __hash__(self):
+        return self.team.__hash__() + self.prestige
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return self.team == other.team and self.id == other.id
 
 class Army(BaseModel):
     team: Team # duplicates: items in Team.armies
     prestige: int
     equipment: int=0 # number of weapons the army currently carries
     boost: int=0 # boost added by die throw
-    tile: Optional[MapTile]=None
-    
-    @property
-    def strength(self):
-        return self.strength + self.boost + 5
+    tile: Optional[MapTileEntity]=None
+    state: ArmyState=ArmyState.Idle
+
+    @property 
+    def capacity(self) -> int:
+        return self.prestige - BASE_ARMY_STRENGTH
 
     @property
-    def isMarching(self):
+    def id(self) -> ArmyId:
+        return ArmyId(self.prestige, self.team)
+
+    @property
+    def strength(self) -> int:
+        return self.equipment + self.boost + BASE_ARMY_STRENGTH
+
+    @property
+    def isMarching(self) -> bool:
         return self.tile == None
+
+    def retreat(self) -> int:
+        result = self.equipment
+        self.state = ArmyState.Idle
+        self.equipment = 0
+        self.boost = 0
+        self.tile = None
+        return result
+
+    def occupy(self, tile: MapTile):
+        self.state = ArmyState.Occupying
+        self.boost = 0
+        self.tile = tile.entity
+        tile.occupiedBy = self.id
 
 
 class MapTile(BaseModel): # Game state elemnent
     entity: MapTileEntity
-    occupiedBy: Optional[Army]=None
+    occupiedBy: Optional[Tuple[int, Team]]=None
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
@@ -63,7 +103,7 @@ class HomeTile(MapTile):
 
 
 class MapState(BaseModel):
-    size: int=32
+    size: int=MAP_SIZE
     tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
 
@@ -112,11 +152,11 @@ class TeamState(BaseModel):
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
-    armies: List[Army]
+    armies: Dict[ArmyId, Army]
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
-        armies = [Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES]
+        armies = {ArmyId(prestige=x, team=team): Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES}
         return TeamState(
             team=team,
             redCounter=0,
@@ -130,6 +170,9 @@ class GameState(BaseModel):
     turn: int
     teamStates: Dict[Team, TeamState]
     map: MapState
+
+    def getArmy(self, id: ArmyId) -> Army:
+        return self.teamStates[id.team].armies[id]
 
     @classmethod
     def createInitial(cls, entities: Entities) -> GameState:

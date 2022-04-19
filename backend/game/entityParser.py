@@ -9,7 +9,7 @@ from .entities import Building, Entities, EntityWithCost, MapTileEntity, Natural
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
-GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel"]
+GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
 
 
 class EntityParser():
@@ -261,7 +261,7 @@ class EntityParser():
         else:
             print()
             c = Counter([x[:3] for x in entities.keys()])
-            for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "materials", "buildings", "resourses", "productions", "techs", "vyrobas"]:
+            for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "techs", "vyrobas"]:
                 print("    " + x + ": " + str(c[x[:3]]))
             print("SUCCESS: Created " + str(len(entities)) + " entities from " + self.fileName)
 

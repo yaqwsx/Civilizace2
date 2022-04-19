@@ -1,12 +1,12 @@
 from decimal import Decimal
 from game.actions.increaseCounter import ActionIncreaseCounter, ActionIncreaseCounterArgs
-from game.tests.actions.common import TEST_ENTITIES, TEST_TEAM, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 from game.state import GameState
 from game.actions.common import ActionFailedException
 
 import pytest
 
-team = TEST_TEAM
+team = TEAM_ADVANCED
 entities = TEST_ENTITIES
 
 def test_withoutResources():

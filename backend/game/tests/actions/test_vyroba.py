@@ -5,11 +5,11 @@ from game.actions.researchStart import ActionResearchStart, ActionResearchArgs
 from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.entities import Entities
 from game.state import GameState
-from game.tests.actions.common import TEST_ENTITIES, TEST_TEAM, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
 
-teamId = TEST_TEAM
+teamId = TEAM_ADVANCED
 
 
 def test_vyroba_initial():
