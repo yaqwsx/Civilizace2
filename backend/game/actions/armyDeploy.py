@@ -3,10 +3,10 @@ from typing import Optional
 from pydantic import BaseModel
 from game.entities import BASE_ARMY_STRENGTH
 
-from game.actions.actionBase import TeamActionBase
-from game.actions.common import ActionCost
+from game.actions.actionBase import TeamActionArgs, TeamActionBase
+from game.actions.common import ActionCost, ActionException
 from game.entities import Team, MapTileEntity, MapTileEntity
-from game.state import Army, ArmyState
+from game.state import Army, ArmyId, ArmyState
 
 class ArmyGoal(Enum):
     Occupy = 0
@@ -14,8 +14,8 @@ class ArmyGoal(Enum):
     Support = 2
     Replace = 3
 
-class ActionArmyDeployArgs(BaseModel):
-    army: Army
+class ActionArmyDeployArgs(TeamActionArgs):
+    army: ArmyId
     tile: MapTileEntity
     goal: ArmyGoal
     equipment: int
@@ -31,49 +31,53 @@ class ActionArmyDeploy(TeamActionBase):
         return amount
 
 
-    @property
-    def army(self):
-        return self.teamState.armies[self.args.army.id]
-
-
     def cost(self) -> ActionCost:
-        assert self.army.state == ArmyState.Idle, "Armáda {} už je vyslána na pole {}."\
-                            .format(self.army.id, self.army.tile) 
-        assert self.args.equipment + BASE_ARMY_STRENGTH <= self.army.capacity, \
-                        "Armáda neunese {} zbraní. Maximální možná výzbroj je {}."\
-                            .format(self.args.equipment, self.army.capacity - BASE_ARMY_STRENGTH)
-        return ActionCost(postpone=self.state.map.getActualDistance(self.args.team, self.args.tile))
+        return ActionCost(postpone=self.state.map.getActualDistance(self.args.team, self.args.tile),
+                          resources={self.entities.zbrane: self.args.equipment})
 
 
     def commitInternal(self) -> None:
-        self.army.tile = self.args.tile
-        self.army.state = ArmyState.Marching
+        if not self.args.army in self.teamState.armies: raise ActionException("Neznámá armáda {}".format(self.args.army))
+        
+        army = self.teamState.armies[self.args.army]
+        if army.state != ArmyState.Idle:
+            assert army.tile != None, "Army {} is in inconsistent state".format(self.args.army)
+            raise ActionException( "Armáda {} už je vyslána na pole {}."\
+                    .format(army.id, army.tile))
+        
+        if self.args.equipment < 0: raise ActionException("Nelze poskytnout záporný počet zbraní ({})".format(self.args.equipment))
+        if self.args.equipment > army.capacity:
+            raise ActionException("Armáda neunese {} zbraní. Maximální možná výzbroj je {}."\
+                    .format(self.args.equipment, army.capacity))
+        
+        army.tile = self.args.tile
+        army.equipment = self.args.equipment
+        army.state = ArmyState.Marching
         self.info.add("Armáda <<{}>> vyslána na pole <<{}>>. Dorazí v <<cas>>"\
-                        .format(self.army.id, self.army.tile))
+                    .format(army.id, army.tile))
 
 
     def delayed(self) -> str:
-        army = self.army
+        army = self.teamState.armies[self.args.army]
         tile = self.state.map.tiles[self.args.tile.index]
         defender = self.state.getArmy(tile.occupiedBy)
-        reward = {}
 
         if defender == None:
             if self.args.goal != ArmyGoal.Occupy:
                 equipment = army.retreat()
-                reward = {self.entities.zbrane: equipment}
+                self.reward[self.entities.zbrane] += equipment
                 return "Pole <<{}>> je prázdné, armáda <<{}>> se vrátila zpět"\
                     .format(tile.id, army.id)
             else:
                 tile.occupiedBy = army.id
                 army.state = ArmyState.Occupying
                 army.boost = 0
-                return "Armáda <<{}>> obsadila pole <<{}>>".format(army.id, tile.id)
+                return "Armáda <<{}>> obsadila pole <<{}>>".format(army.id, tile.entity.id)
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
                 equipment = army.retreat()
-                reward = {self.entities.zbrane: equipment}
+                self.reward[self.entities.zbrane] += equipment
                 return "Pole <<{}>> už bylo obsazeno jinou vaší armádou <<{}>>. Armáda <<{}>> se vrátila domů."\
                     .format(tile, tile.occupiedBy, army.id)
             provider = defender if self.args.goal == ArmyGoal.Replace else army
@@ -83,7 +87,7 @@ class ActionArmyDeploy(TeamActionBase):
             tile.occupiedBy = receiver
             receiver.occupy(tile)
             equipment = provider.retreat()
-            reward = {self.entities.zbrane: equipment}
+            self.reward[self.entities.zbrane] += equipment
 
             if self.args.goal == ArmyGoal.Replace:
                 return "Armáda <<{}>> nahradila předchozí armádu. Její nová síla je <<{}>>. Armáda <<{}>> se vrátila domů."\
@@ -92,16 +96,18 @@ class ActionArmyDeploy(TeamActionBase):
         if self.args.goal == ArmyGoal.Support and self.args.friendlyTeam == defender.team:
             transfered = self.transferEquipment(army, defender)
             equipment = army.retreat()
-            reward = {self.entities.zbrane: equipment}
+            self.reward[self.entities.zbrane] += equipment
             # TODO: Notify defender
             return "Armáda <<{}>> posílila armádu týmu <<{}>> o <<{}>> zbraní."\
                 .format(army.id, defender.team, transfered)
 
         if self.args.goal == ArmyGoal.Support or self.args.goal == ArmyGoal.Replace:
             equipment = army.retreat()
-            reward = {self.entities.zbrane: equipment}
+            self.reward[self.entities.zbrane] += equipment
             return "Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
                 .format(tile.id, army.id)
+        
+        raise RuntimeError("Souboje jeste nejsou implementovany")
         # battle
 
 

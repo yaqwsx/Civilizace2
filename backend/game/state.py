@@ -22,7 +22,7 @@ class ArmyId(BaseModel):
     def __eq__(self, other):
         if type(other) != type(self):
             return False
-        return self.team == other.team and self.id == other.id
+        return self.team == other.team and self.prestige == other.prestige
 
 class Army(BaseModel):
     team: Team # duplicates: items in Team.armies
@@ -38,7 +38,7 @@ class Army(BaseModel):
 
     @property
     def id(self) -> ArmyId:
-        return ArmyId(self.prestige, self.team)
+        return ArmyId(prestige=self.prestige, team=self.team)
 
     @property
     def strength(self) -> int:
@@ -65,7 +65,7 @@ class Army(BaseModel):
 
 class MapTile(BaseModel): # Game state elemnent
     entity: MapTileEntity
-    occupiedBy: Optional[Tuple[int, Team]]=None
+    occupiedBy: Optional[ArmyId]=None
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
 
     @property
@@ -86,7 +86,7 @@ class MapTile(BaseModel): # Game state elemnent
 
     @property
     def features(self) -> List[TileFeature]:
-        return self.naturalResources + self.buildings.keys()
+        return self.entity.naturalResources + self.buildings.keys()
 
 
 class HomeTile(MapTile):
@@ -107,19 +107,19 @@ class MapState(BaseModel):
     tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
 
-    def _getRelativeIndex(self, team: Team, tile: MapTile) -> int:
+    def _getRelativeIndex(self, team: Team, tile: MapTileEntity) -> int:
         home = self.homeTiles[team]
         assert home != None, "Team {} has no home tile".format(team.id)
         relIndex = tile.index - home.index
         relIndexOffset = relIndex + self.size/2
         return (relIndexOffset % self.size) - self.size/2
 
-    def getRawDistance(self, team: Team, tile: MapTile) -> Decimal:
+    def getRawDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
-    def getActualDistance(self, team: Team, tile: MapTile) -> Decimal:
+    def getActualDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
         distance = TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
@@ -127,9 +127,10 @@ class MapState(BaseModel):
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8) # Tiles are around the map
         multiplier = 1
-        if tile.entity in home.roadsTo:
+        if tile in home.roadsTo:
             multiplier -= 0.5
-        if tile.occupiedBy != None and tile.occupiedBy.team == team:
+        tileState = self.tiles[tile.index]
+        if tileState.occupiedBy != None and tileState.occupiedBy.team == team:
             multiplier -= 0.5
         return Decimal(float(distance) * multiplier)
 

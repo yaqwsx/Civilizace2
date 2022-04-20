@@ -29,20 +29,27 @@ class ActionBase(BaseModel):
     def cost(self) -> ActionCost:
         return ActionCost()
 
-    def commit(self) -> str:
+    def commit(self) -> ActionResult:
         # Reward was not given to the team yet. Assuming that happens outside action, same as with postponed()
+        self.errors = MessageBuilder()
+        self.info = MessageBuilder()
         self.commitInternal()
         if not self.errors.empty:
-            raise ActionException(self.errors.message)
+            return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
         return ActionResult(message=self.info, reward=self.reward, succeeded=True)
 
     def commitInternal(self) -> None:
         raise NotImplementedError("ActionBae is an interface")
 
     def delayed(self) -> ActionResult:
-        pass
+        self.errors = MessageBuilder()
+        self.info = MessageBuilder()
+        self.delayedInternal()
+        if not self.errors.empty:
+            return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
+        return ActionResult(message=self.info, reward=self.reward, succeeded=True)
 
-    def delayedInternal(self) -> str:
+    def delayedInternal(self) -> None:
         pass
 
 class TeamActionBase(ActionBase):    

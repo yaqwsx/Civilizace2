@@ -66,6 +66,7 @@ def test_assignDuplicate():
     action.commit()
     args = ActionAssignTileArgs(team=entities["tym-zluti"], index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
+    
     with pytest.raises(ActionException) as einfo:
         action.commit()
     

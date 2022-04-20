@@ -1,24 +1,40 @@
 import os
 from django.conf import settings
 from game import entityParser
-from game.entities import Entities, Tech, Vyroba, Resource
-from game.state import GameState
+from game.entities import Entities, Team, Tech, Vyroba, Resource
+from game.state import Army, ArmyId, GameState
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from decimal import Decimal
 from typing import Dict, List
 
 TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.BASE_DIR, "testEntities.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
-TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial state, with the pre-game set up
-TEAM_INIT = TEST_ENTITIES["tym-cerni"] # team that is in the initial state, before pre-game
+TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial state, with home tile set up
 
 
 def createTestInitState(entities=TEST_ENTITIES):
-    state = GameState.createInitial(entities)
-    state.teamStates[TEAM_ADVANCED].researching.add(entities["tec-c"])
+    state = GameState.createInitial(entities)    
+    
+    #starting tiles
     for index, team in enumerate(entities.teams.values()):
-        if team == TEAM_INIT:
-            continue
         ActionAssignTile(args=ActionAssignTileArgs(team=team, index=4*index + 1), state=state, entities=entities).commit()
+    
+    team = TEAM_ADVANCED
+    teamState = state.teamStates[TEAM_ADVANCED]
+
+    # tech
+    teamState.researching.add(entities["tec-c"])
+
+    # roads
+    home = state.map.getHomeTile(TEAM_ADVANCED)
+    home.roadsTo = [state.map.tiles[x].entity for x in [6, 10, 24, 2]]
+
+    # deploy armies
+    for tileIndex, prestige, equipment in [(0, 10, 0), (3, 15, 0), (30, 20, 0),  (2, 25, 0)]:
+        tile = state.map.tiles[tileIndex]
+        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment)
+        teamState.armies[army.id] = army
+        tile.occupiedBy = army.id
+
     return state
         
