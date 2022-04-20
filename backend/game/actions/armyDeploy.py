@@ -45,14 +45,14 @@ class ActionArmyDeploy(TeamActionBase):
         return ActionCost(postpone=self.state.map.getActualDistance(self.args.team, self.args.tile))
 
 
-    def apply(self) -> None:
+    def commitInternal(self) -> None:
         self.army.tile = self.args.tile
         self.army.state = ArmyState.Marching
         self.info.add("Armáda <<{}>> vyslána na pole <<{}>>. Dorazí v <<cas>>"\
                         .format(self.army.id, self.army.tile))
 
 
-    def delayedEffect(self) -> str:
+    def delayed(self) -> str:
         army = self.army
         tile = self.state.map.tiles[self.args.tile.index]
         defender = self.state.getArmy(tile.occupiedBy)

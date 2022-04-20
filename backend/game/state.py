@@ -154,6 +154,14 @@ class TeamState(BaseModel):
     researching: Set[Tech] = set()
     armies: Dict[ArmyId, Army]
 
+    def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
+        dice = set()
+        for unlock in entity.unlockedBy:
+            if unlock[0] in self.techs:
+                dice.add(unlock[1])
+        return dice
+
+
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         armies = {ArmyId(prestige=x, team=team): Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES}

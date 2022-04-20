@@ -11,8 +11,6 @@ class ActionNextTurn(ActionBase):
     def cost(self) -> ActionCost:
         return ActionCost(resources={})
 
-    def apply(self) -> None:
-        currentTurn = self.state.turn
+    def commitInternal(self) -> None:
         self.state.turn += 1
-
-        self.info.add(f"Začalo kolo {currentTurn+1}")
+        self.info.add("Začalo kolo {}".format(self.state.turn))

@@ -1,10 +1,7 @@
-from decimal import Decimal
-
 from game.actions.actionBase import TeamActionBase, TeamActionArgs
-from game.state import GameState, TeamId, HomeTile
-from game.entities import Resource, Entities, Team, MapTileEntity
-from game.actions.common import ActionCost, ActionFailedException, MessageBuilder, ActionArgumentException
-from typing import Optional
+from game.state import HomeTile
+from game.entities import MapTileEntity
+from game.actions.common import ActionCost
 
 # This action is a demonstration of action implementation. Basically you can say
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
@@ -27,7 +24,7 @@ class ActionAssignTile(TeamActionBase):
     def cost(self) -> ActionCost:
         return ActionCost()
 
-    def apply(self) -> None:
+    def commitInternal(self) -> None:
         team = self.args.team
         map = self.state.map
     

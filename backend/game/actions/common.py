@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from game.entities import EntityId, Team
-from typing import Dict, List, Any, Union, Generator, Callable, Set, Iterable
+from game.entities import EntityId, ResourceBase
+from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
 
-DIE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
+from game.entityParser import DICE_IDS
 
 class MessageBuilder(BaseModel):
     """
@@ -45,37 +45,18 @@ class MessageBuilder(BaseModel):
     def empty(self) -> bool:
         return len(self.message) == 0
 
-class CivilizationException(Exception):
-    """Generic type for an error in Civilization logic."""
+class ActionException(Exception):
     pass
-
-class ActionArgumentException(CivilizationException):
-    """
-    Thrown when an action receives invalid or unexpected arguments.
-    If thrown by commit, the action should be abandoned.
-    """
-    pass
-
-class ActionFailedException(CivilizationException):
-    """
-    Thrown when action yields a result different to expectation.
-    If thrown by commit, the action should be cancelled.
-    """
-    def __init__(self, msg: Union[str, MessageBuilder]) -> None:
-        if isinstance(msg, MessageBuilder):
-            super().__init__(msg.message)
-        else:
-            super().__init__(msg)
 
 class ActionCost(BaseModel):
     allowedDice: Set[str] = set()
     requiredDots: int = 0
     postpone: int = 0
-    resources: Dict[EntityId, Decimal] = {}
+    resources: Dict[ResourceBase, Decimal] = {}
     
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:
-        ALLOWED_DICE = DIE_IDS
+        ALLOWED_DICE = DICE_IDS
         dice = set(v)
         for d in dice:
             if d not in ALLOWED_DICE:
@@ -95,7 +76,4 @@ class ActionCost(BaseModel):
             raise ValueError("Nemůžu chtít puntíky a nespecifikovat kostky")
         return values
 
-
-class GlobalActionArgs(BaseModel):
-    pass
 

@@ -1,6 +1,6 @@
 import pytest
 from game.state import GameState
-from game.actions.common import ActionFailedException
+from game.actions.common import ActionException
 from game.actions.common import ActionCost
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from game.tests.actions.common import createTestInitState
@@ -66,7 +66,7 @@ def test_assignDuplicate():
     action.commit()
     args = ActionAssignTileArgs(team=entities["tym-zluti"], index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
-    with pytest.raises(ActionFailedException) as einfo:
+    with pytest.raises(ActionException) as einfo:
         action.commit()
     
 def test_reassingnTeam():

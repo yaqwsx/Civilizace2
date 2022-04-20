@@ -1,6 +1,6 @@
 from typing import Set
 from game.actions.actionBase import TeamActionBase, TeamActionArgs
-from game.actions.common import ActionArgumentException, ActionCost, ActionFailedException
+from game.actions.common import ActionException, ActionCost
 from game.entities import Tech, Team
 
 class ActionResearchArgs(TeamActionArgs):
@@ -10,31 +10,20 @@ class ActionResearchArgs(TeamActionArgs):
 class ActionResearchStart(TeamActionBase):
     args: ActionResearchArgs
 
-    def _lookupDice(self) -> Set[str]:
-        dice = set()
-        tech = self.args.tech
-        for unlock in tech.unlockedBy:
-            if unlock[0] in self.teamState.techs:
-                dice.add(unlock[1])
-        return dice
-
-    def _checkPrerequisites(self) -> None:
-        if self.args.tech in self.teamState.techs:
-            raise ActionArgumentException("Technologie <<" + self.args.tech.id + ">> je již vyzkoumána")
-
-        if self.args.tech in self.teamState.researching:
-            raise ActionArgumentException("Výzkum technologie <<" + self.args.tech.id + ">> již probíhá")
-
-        dice = self._lookupDice()
-
-        if len(dice) == 0:
-            raise ActionArgumentException("Zkoumání technologie <<" + self.args.tech.id + ">> ještě není odemčeno")
 
     def cost(self) -> ActionCost:
-        self._checkPrerequisites()
-        return ActionCost(allowedDice = self._lookupDice(), requiredDots = self.args.tech.points, resources = {})
+        dice = self.teamState.getUnlockingDice(self.args.tech)
+        if len(dice) == 0:
+            raise ActionException("Zkoumání technologie <<" + self.args.tech.id + ">> ještě není odemčeno")
+        return ActionCost(allowedDice=dice, requiredDots=self.args.tech.points, resources=self.args.tech.cost)
 
-    def apply(self) -> None:
-        self._checkPrerequisites()
+
+    def commitInternal(self) -> None:
+        if self.args.tech in self.teamState.techs:
+            raise ActionException("Technologie <<" + self.args.tech.id + ">> je již vyzkoumána")
+
+        if self.args.tech in self.teamState.researching:
+            raise ActionException("Výzkum technologie <<" + self.args.tech.id + ">> již probíhá")
+
         self.teamState.researching.add(self.args.tech)
         self.info += "Výzkum technologie <<" + self.args.tech.id + ">> začal."

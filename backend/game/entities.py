@@ -5,6 +5,9 @@ from functools import cached_property
 from pydantic import BaseModel
 from typing import Any, Optional, Tuple, Union, Iterable, Dict, List
 
+EntityId = str
+TeamId = str # intentionally left weak
+DieId = str
 
 STARTER_ARMY_PRESTIGES = [15,20,25]
 BASE_ARMY_STRENGTH = 5
@@ -13,13 +16,10 @@ TILE_DISTANCES_RELATIVE = {0: Decimal(0),
     -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
     -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
 TIME_PER_TILE_DISTANCE = Decimal(5)
+DIE_IDS = [DieId("die-lesy"), DieId("die-plane"), DieId("die-hory")]
 
 
 # Type Aliases
-EntityId = str
-TeamId = str # intentionally left weak
-DieId = str
-
 
 class EntityBase(BaseModel):
     id: EntityId

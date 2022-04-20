@@ -1,10 +1,8 @@
 from decimal import Decimal
 
-from pydantic import BaseModel
 from game.actions.actionBase import TeamActionBase, TeamActionArgs
-from game.state import GameState, TeamId
-from game.entities import Resource, Entities, Team
-from game.actions.common import ActionCost, ActionFailedException, MessageBuilder, ActionArgumentException
+from game.entities import Resource
+from game.actions.common import ActionCost, ActionException, MessageBuilder, ActionException
 from typing import Optional
 
 # This action is a demonstration of action implementation. Basically you can say
@@ -24,7 +22,7 @@ class ActionIncreaseCounter(TeamActionBase):
             "mat-drevo": Decimal(5)
         }
 
-    def commit(self) -> None:
+    def commitInternal(self) -> None:
         error = MessageBuilder()
 
         if self.args.red > 10:
@@ -35,7 +33,7 @@ class ActionIncreaseCounter(TeamActionBase):
             error += "Hráči nemohou obětovat lidi - chtěli jste obětovat 1× <<mat-clovek>>"
 
         if not error.empty:
-            raise ActionFailedException(error)
+            raise ActionException(error)
 
         self.teamState.redCounter += self.args.red
         if self.args.resource is not None:
