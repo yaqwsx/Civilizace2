@@ -57,26 +57,24 @@ class ActionArmyDeploy(TeamActionBase):
                     .format(army.id, army.tile))
 
 
-    def delayed(self) -> str:
+    def delayedInternal(self) -> str:
         army = self.teamState.armies[self.args.army]
         tile = self.state.map.tiles[self.args.tile.index]
         defender = self.state.getArmy(tile.occupiedBy)
 
         if defender == None:
-            if self.args.goal != ArmyGoal.Occupy:
-                equipment = army.retreat()
+            if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
+                equipment = army.retreat(self.state)
                 self.reward[self.entities.zbrane] += equipment
                 return "Pole <<{}>> je prázdné, armáda <<{}>> se vrátila zpět"\
-                    .format(tile.id, army.id)
+                    .format(tile.entity.id, army.id)
             else:
-                tile.occupiedBy = army.id
-                army.state = ArmyState.Occupying
-                army.boost = 0
+                army.occupy(tile)
                 return "Armáda <<{}>> obsadila pole <<{}>>".format(army.id, tile.entity.id)
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
-                equipment = army.retreat()
+                equipment = army.retreat(self.state)
                 self.reward[self.entities.zbrane] += equipment
                 return "Pole <<{}>> už bylo obsazeno jinou vaší armádou <<{}>>. Armáda <<{}>> se vrátila domů."\
                     .format(tile, tile.occupiedBy, army.id)
@@ -84,25 +82,26 @@ class ActionArmyDeploy(TeamActionBase):
             receiver = army if self.args.goal == ArmyGoal.Replace else defender
             transfered = self.transferEquipment(provider, receiver)
 
-            tile.occupiedBy = receiver
+            equipment = provider.retreat(self.state)
             receiver.occupy(tile)
-            equipment = provider.retreat()
             self.reward[self.entities.zbrane] += equipment
 
             if self.args.goal == ArmyGoal.Replace:
                 return "Armáda <<{}>> nahradila předchozí armádu. Její nová síla je <<{}>>. Armáda <<{}>> se vrátila domů."\
                     .format(army.id, army.strength, provider.id)
+            return "Armáda <<{}>> posílila armádu <<{}>> a vrátila se zpět. Nová síla obránce je <<{}>>."\
+                .format(army.id, army.strength, provider.id)
 
         if self.args.goal == ArmyGoal.Support and self.args.friendlyTeam == defender.team:
             transfered = self.transferEquipment(army, defender)
-            equipment = army.retreat()
+            equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
             # TODO: Notify defender
             return "Armáda <<{}>> posílila armádu týmu <<{}>> o <<{}>> zbraní."\
                 .format(army.id, defender.team, transfered)
 
         if self.args.goal == ArmyGoal.Support or self.args.goal == ArmyGoal.Replace:
-            equipment = army.retreat()
+            equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
             return "Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
                 .format(tile.id, army.id)

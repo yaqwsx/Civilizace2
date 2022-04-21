@@ -48,8 +48,12 @@ class Army(BaseModel):
     def isMarching(self) -> bool:
         return self.tile == None
 
-    def retreat(self) -> int:
+    def retreat(self, state: GameState) -> int:
         result = self.equipment
+        if self.state == ArmyState.Occupying:
+            tile = state.map.tiles[self.tile.index]
+            assert tile.occupiedBy == self.id, "Army {} thinks its occupying a tile occupied by {}".format(self.id, tile.occupiedBy)
+            tile.occupiedBy = None
         self.state = ArmyState.Idle
         self.equipment = 0
         self.boost = 0
@@ -57,6 +61,8 @@ class Army(BaseModel):
         return result
 
     def occupy(self, tile: MapTile):
+        if tile.occupiedBy == self.id: return
+        assert tile.occupiedBy == None, "Nelze obsadit pole obsazené cizí armádou"
         self.state = ArmyState.Occupying
         self.boost = 0
         self.tile = tile.entity
@@ -87,6 +93,10 @@ class MapTile(BaseModel): # Game state elemnent
     @property
     def features(self) -> List[TileFeature]:
         return self.entity.naturalResources + self.buildings.keys()
+
+    @property
+    def id(self) -> EntityId:
+        return self.entity.id
 
 
 class HomeTile(MapTile):
@@ -181,7 +191,7 @@ class GameState(BaseModel):
     map: MapState
 
     def getArmy(self, id: ArmyId) -> Army:
-        return self.teamStates[id.team].armies[id]
+        return self.teamStates[id.team].armies.get(id) if id != None else None
 
     @classmethod
     def createInitial(cls, entities: Entities) -> GameState:
