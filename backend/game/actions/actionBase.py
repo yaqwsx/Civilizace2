@@ -33,7 +33,12 @@ class ActionBase(BaseModel):
         # Reward was not given to the team yet. Assuming that happens outside action, same as with postponed()
         self.errors = MessageBuilder()
         self.info = MessageBuilder()
+        cost = self.cost()
+        
         self.commitInternal()
+        if cost.postpone == 0:
+            self.delayedInternal()
+            
         if not self.errors.empty:
             return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
         return ActionResult(message=self.info, reward=self.reward, succeeded=True)

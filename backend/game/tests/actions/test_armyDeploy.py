@@ -44,7 +44,7 @@ def test_commit():
     result = action.commit()
 
     army = state.teamStates[team].armies[armyId]
-    exp = Army(team=team, prestige=15, equipment=10, tile=tile, state=ArmyState.Marching)
+    exp = Army(team=team, prestige=15, equipment=10, tile=tile, state=ArmyState.Marching, goal=ArmyGoal.Occupy)
     assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
     assert result.reward == {}
 
@@ -71,7 +71,7 @@ def test_invalidArgs():
         action.commit()
 
 
-def sendArmyTo(entities, state, army, tile, goal = ArmyGoal.Occupy, equipment = 0, boost=0):
+def sendArmyTo(entities, state, army, tile, goal=ArmyGoal.Occupy, equipment=0, boost=0):
     args = ActionArmyDeployArgs(army=army, tile=tile, team=army.team, goal=goal, equipment=equipment)
     action = ActionArmyDeploy(args=args, entities=entities, state=state)
     action.commit()
@@ -92,7 +92,7 @@ def test_occupyNobody():
     tile = state.map.tiles[4]
     army = state.teamStates[team].armies[armyId]
     assert tile.occupiedBy == armyId
-    exp = Army(team=team, boost=0, equipment=8, tile=tile.entity, state=ArmyState.Occupying, prestige=15)
+    exp = Army(team=team, equipment=8, tile=tile.entity, state=ArmyState.Occupying, prestige=15)
     assert army == exp
     assert reward.reward == {}
     assert reward.succeeded
@@ -109,7 +109,7 @@ def test_replaceNobody():
     tile = state.map.tiles[4]
     army = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     assert tile.occupiedBy == army.id
-    exp = Army(team=team, equipment=8, boost=0, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=15)
+    exp = Army(team=team, equipment=8, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=15)
     assert army == exp
     assert reward.reward == {}
     assert reward.succeeded
@@ -127,7 +127,7 @@ def test_eliminateNobody():
     tile = state.map.tiles[4]
     army = state.teamStates[team].armies[armyId]
     assert tile.occupiedBy == None
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=15)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
     assert reward.reward == {entities.zbrane: 8}
     assert reward.succeeded
@@ -144,7 +144,7 @@ def test_supportNobody():
     tile = state.map.tiles[4]
     army = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     assert tile.occupiedBy == None
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=15)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army == exp
     assert reward.reward == {entities.zbrane: 8}
     assert reward.succeeded
@@ -164,9 +164,9 @@ def test_occupySelf():
     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
     assert tile.occupiedBy == army20.id
-    exp = Army(team=team, equipment=15, boost=0, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
+    exp = Army(team=team, equipment=15, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=15)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
     assert reward.reward == {entities.zbrane: 1}
     assert reward.succeeded
@@ -185,9 +185,9 @@ def test_replaceSelf():
     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
     assert tile.occupiedBy == army15.id
-    exp = Army(team=team, equipment=10, boost=0, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=15)
+    exp = Army(team=team, equipment=10, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=15)
     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=20)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
     assert reward.reward == {entities.zbrane: 6}
     assert reward.succeeded
@@ -207,9 +207,9 @@ def test_eliminateSelf():
     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
     assert tile.occupiedBy == army20.id
-    exp = Army(team=team, equipment=8, boost=0, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
+    exp = Army(team=team, equipment=8, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=15)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
     assert reward.reward == {entities.zbrane: 8}
     assert reward.succeeded
@@ -228,9 +228,9 @@ def test_supportSelf():
     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
     assert tile.occupiedBy == army20.id
-    exp = Army(team=team, equipment=15, boost=0, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
+    exp = Army(team=team, equipment=15, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-    exp = Army(team=team, equipment=0, boost=0, tile=None, state=ArmyState.Idle, prestige=15)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
     assert reward.reward == {entities.zbrane: 3}
     assert reward.succeeded

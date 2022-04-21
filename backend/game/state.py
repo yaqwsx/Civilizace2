@@ -12,6 +12,13 @@ class ArmyState(enum.Enum):
     Marching = 1
     Occupying = 2
 
+class ArmyGoal(enum.Enum):
+    Occupy = 0
+    Eliminate = 1
+    Support = 2
+    Replace = 3
+
+
 class ArmyId(BaseModel):
     prestige: int
     team: Team
@@ -28,9 +35,10 @@ class Army(BaseModel):
     team: Team # duplicates: items in Team.armies
     prestige: int
     equipment: int=0 # number of weapons the army currently carries
-    boost: int=0 # boost added by die throw
+    boost: int=-1 # boost added by die throw
     tile: Optional[MapTileEntity]=None
     state: ArmyState=ArmyState.Idle
+    goal: Optional[ArmyGoal]=None
 
     @property 
     def capacity(self) -> int:
@@ -54,19 +62,23 @@ class Army(BaseModel):
             tile = state.map.tiles[self.tile.index]
             assert tile.occupiedBy == self.id, "Army {} thinks its occupying a tile occupied by {}".format(self.id, tile.occupiedBy)
             tile.occupiedBy = None
+
         self.state = ArmyState.Idle
         self.equipment = 0
-        self.boost = 0
+        self.boost = -1
         self.tile = None
+        self.goal = None
         return result
 
     def occupy(self, tile: MapTile):
         if tile.occupiedBy == self.id: return
         assert tile.occupiedBy == None, "Nelze obsadit pole obsazené cizí armádou"
-        self.state = ArmyState.Occupying
-        self.boost = 0
-        self.tile = tile.entity
         tile.occupiedBy = self.id
+
+        self.state = ArmyState.Occupying
+        self.boost = -1
+        self.tile = tile.entity
+        self.goal = None
 
 
 class MapTile(BaseModel): # Game state elemnent

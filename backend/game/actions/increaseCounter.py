@@ -17,10 +17,10 @@ class ActionIncreaseCounter(TeamActionBase):
     args: ActionIncreaseCounterArgs
 
     def cost(self) -> ActionCost:
-        return {
-            "res-prace": Decimal(10),
-            "mat-drevo": Decimal(5)
-        }
+        return ActionCost(resources={
+            self.entities["res-prace"]: Decimal(10),
+            self.entities["mat-drevo"]: Decimal(5)
+        })
 
     def commitInternal(self) -> None:
         error = MessageBuilder()

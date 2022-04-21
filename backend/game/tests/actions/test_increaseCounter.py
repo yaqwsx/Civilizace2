@@ -11,14 +11,15 @@ entities = TEST_ENTITIES
 
 def test_withoutResources():
     state = createTestInitState()
+    entities = TEST_ENTITIES
     args = ActionIncreaseCounterArgs(red=Decimal(5), team=team)
     action = ActionIncreaseCounter(state=state, entities=entities, args=args)
 
     cost = action.cost()
 
-    assert cost["res-prace"] == 10
-    assert cost["mat-drevo"] == 5
-    assert len(cost) == 2
+    assert cost.resources[entities["res-prace"]] == 10
+    assert cost.resources[entities["mat-drevo"]] == 5
+    assert len(cost.resources) == 2
 
     prev = state.teamStates[team].blueCounter
     action.commit()

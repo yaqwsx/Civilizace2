@@ -6,13 +6,7 @@ from game.entities import BASE_ARMY_STRENGTH
 from game.actions.actionBase import TeamActionArgs, TeamActionBase
 from game.actions.common import ActionCost, ActionException
 from game.entities import Team, MapTileEntity, MapTileEntity
-from game.state import Army, ArmyId, ArmyState
-
-class ArmyGoal(Enum):
-    Occupy = 0
-    Eliminate = 1
-    Support = 2
-    Replace = 3
+from game.state import Army, ArmyGoal, ArmyId, ArmyState
 
 class ActionArmyDeployArgs(TeamActionArgs):
     army: ArmyId
@@ -53,6 +47,7 @@ class ActionArmyDeploy(TeamActionBase):
         army.tile = self.args.tile
         army.equipment = self.args.equipment
         army.state = ArmyState.Marching
+        army.goal = self.args.goal
         self.info.add("Armáda <<{}>> vyslána na pole <<{}>>. Dorazí v <<cas>>"\
                     .format(army.id, army.tile))
 
@@ -81,6 +76,8 @@ class ActionArmyDeploy(TeamActionBase):
             provider = defender if self.args.goal == ArmyGoal.Replace else army
             receiver = army if self.args.goal == ArmyGoal.Replace else defender
             transfered = self.transferEquipment(provider, receiver)
+            if self.args.goal == ArmyGoal.Replace:
+                army.boost = defender.boost
 
             equipment = provider.retreat(self.state)
             receiver.occupy(tile)
