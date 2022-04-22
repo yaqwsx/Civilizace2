@@ -49,6 +49,9 @@ class ActionArmyDeploy(TeamActionBase):
         army.equipment = self.args.equipment
         army.state = ArmyState.Marching
         army.goal = self.args.goal
+
+        tile = self.state.map.tiles[self.args.tile.index]
+        tile.inbound.add(army.id)
         self.info.add("Armáda <<{}>> vyslána na pole <<{}>>. Dorazí v <<cas>>"\
                     .format(army.id, army.tile))
 
