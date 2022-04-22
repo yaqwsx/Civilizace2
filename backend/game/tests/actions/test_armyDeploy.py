@@ -1,9 +1,9 @@
 import pytest
 from game import state
 from game.actions.armyDeploy import ActionArmyDeploy, ArmyGoal
-from game.actions.common import ActionException
+from game.actions.common import ActionException, DebugException
 from game.state import Army, ArmyId, ArmyState
-from game.tests.actions.common import TEAM_BASIC
+from game.tests.actions.common import TEAM_ADVANCED, TEAM_BASIC
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
@@ -66,13 +66,13 @@ def test_invalidArgs():
 
     args = ActionArmyDeployArgs(army=armyId, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=-1)
     action = ActionArmyDeploy(args=args, entities=entities, state=state)
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(DebugException) as einfo:
         action.cost()
         action.commit()
 
 
-def sendArmyTo(entities, state, army, tile, goal=ArmyGoal.Occupy, equipment=0, boost=0):
-    args = ActionArmyDeployArgs(army=army, tile=tile, team=army.team, goal=goal, equipment=equipment)
+def sendArmyTo(entities, state, army, tile, goal=ArmyGoal.Occupy, equipment=0, boost=0, friendlyTeam=None):
+    args = ActionArmyDeployArgs(army=army, tile=tile, team=army.team, goal=goal, equipment=equipment, friendlyTeam=friendlyTeam)
     action = ActionArmyDeploy(args=args, entities=entities, state=state)
     action.commit()
     state.teamStates[army.team].armies[army].boost = boost
@@ -139,7 +139,7 @@ def test_supportNobody():
     entities = TEST_ENTITIES
     team = TEAM_BASIC
 
-    reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Support, equipment=8, boost=2)
+    reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Supply, equipment=8, boost=2)
 
     tile = state.map.tiles[4]
     army = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
@@ -222,7 +222,7 @@ def test_supportSelf():
     team = TEAM_BASIC
 
     sendArmyTo(entities, state, ArmyId(team=team, prestige=20), entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
-    reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Support, equipment=10)
+    reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Supply, equipment=10)
 
     tile = state.map.tiles[4]
     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
@@ -233,4 +233,190 @@ def test_supportSelf():
     exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
     assert reward.reward == {entities.zbrane: 3}
+    assert reward.succeeded
+
+
+def test_occupyWin():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile03"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Occupy, equipment=15)
+
+    tile = state.map.tiles[3]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == army.id
+    exp = Army(team=TEAM_ADVANCED, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=10, tile=tileId, state=ArmyState.Occupying, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {}
+    assert reward.succeeded
+
+
+def test_replaceWin():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile03"]
+    state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)].boost = 5
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Replace, equipment=12, boost=5)
+
+    tile = state.map.tiles[3]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == army.id, "{}".format(reward)
+    exp = Army(team=TEAM_ADVANCED, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=2, tile=tileId, state=ArmyState.Occupying, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {}
+    assert reward.succeeded
+
+
+def test_eliminateWin():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile03"]
+    state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)].boost = 1
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Eliminate, equipment=15, boost=5)
+
+    tile = state.map.tiles[3]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == None, "{}".format(reward)
+    exp = Army(team=TEAM_ADVANCED, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 9}
+    assert reward.succeeded
+
+
+def test_supplyRetreat():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile03"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Supply, equipment=15)
+
+    tile = state.map.tiles[3]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == defender.id
+    exp = Army(team=TEAM_ADVANCED, equipment=5, tile=tileId, state=ArmyState.Occupying, prestige=15)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 15}
+    assert not reward.succeeded
+
+
+def test_occupyLose():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile02"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Occupy, equipment=15)
+
+    tile = state.map.tiles[2]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=25)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == defender.id
+    exp = Army(team=TEAM_ADVANCED, equipment=10, tile=tileId, state=ArmyState.Occupying, prestige=25)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 2}
+    assert not reward.succeeded
+
+
+def test_replaceLose():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile02"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Replace, equipment=14, boost=2)
+
+    tile = state.map.tiles[2]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=25)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == defender.id
+    exp = Army(team=TEAM_ADVANCED, equipment=8, tile=tileId, state=ArmyState.Occupying, prestige=25)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 1}
+    assert not reward.succeeded
+
+
+def test_eliminateLose():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile02"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Eliminate, equipment=10, boost=2)
+
+    tile = state.map.tiles[2]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=25)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == defender.id
+    exp = Army(team=TEAM_ADVANCED, equipment=10, tile=tileId, state=ArmyState.Occupying, prestige=25)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 0}
+    assert not reward.succeeded
+
+
+def test_supplyFriend():
+    reimport(__name__)
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    team = TEAM_BASIC
+    armyId = ArmyId(team=team, prestige=20)
+    tileId = entities["map-tile03"]
+
+    reward = sendArmyTo(entities, state, armyId, tileId, goal=ArmyGoal.Supply, equipment=5, boost=2, friendlyTeam=TEAM_ADVANCED)
+
+    tile = state.map.tiles[3]
+    defender = state.teamStates[TEAM_ADVANCED].armies[ArmyId(team=TEAM_ADVANCED, prestige=15)]
+    army = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
+    
+    assert tile.occupiedBy == defender.id
+    exp = Army(team=TEAM_ADVANCED, equipment=10, tile=tileId, state=ArmyState.Occupying, prestige=15)
+    assert defender == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, defender)
+    exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
+    assert army == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army)
+    assert reward.reward == {entities.zbrane: 0}
     assert reward.succeeded

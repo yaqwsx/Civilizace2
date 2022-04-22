@@ -20,6 +20,8 @@ class MessageBuilder(BaseModel):
         return self
 
     def add(self, message: str) -> None:
+        if message == None:
+            return
         if len(self.message) > 0:
             self.message += "\n\n"
         self.message += message
@@ -46,6 +48,9 @@ class MessageBuilder(BaseModel):
         return len(self.message) == 0
 
 class ActionException(Exception):
+    pass
+
+class DebugException(Exception):
     pass
 
 class ActionCost(BaseModel):

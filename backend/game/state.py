@@ -15,7 +15,7 @@ class ArmyState(enum.Enum):
 class ArmyGoal(enum.Enum):
     Occupy = 0
     Eliminate = 1
-    Support = 2
+    Supply = 2
     Replace = 3
 
 
@@ -50,7 +50,7 @@ class Army(BaseModel):
 
     @property
     def strength(self) -> int:
-        return self.equipment + self.boost + BASE_ARMY_STRENGTH
+        return self.equipment + BASE_ARMY_STRENGTH + max(0, self.boost)
 
     @property
     def isMarching(self) -> bool:
@@ -79,6 +79,10 @@ class Army(BaseModel):
         self.boost = -1
         self.tile = tile.entity
         self.goal = None
+
+    def destroyEquipment(self, casualties: int) -> int:
+        self.equipment = max(0, self.equipment - casualties)
+        return BASE_ARMY_STRENGTH + self.equipment
 
 
 class MapTile(BaseModel): # Game state elemnent
@@ -109,6 +113,10 @@ class MapTile(BaseModel): # Game state elemnent
     @property
     def id(self) -> EntityId:
         return self.entity.id
+
+    @property
+    def defenseBonus(self) -> int:
+        return 0
 
 
 class HomeTile(MapTile):

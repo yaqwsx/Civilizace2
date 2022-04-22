@@ -1,10 +1,11 @@
 from enum import Enum
+from math import ceil
 from typing import Optional
 from pydantic import BaseModel
 from game.entities import BASE_ARMY_STRENGTH
 
 from game.actions.actionBase import TeamActionArgs, TeamActionBase
-from game.actions.common import ActionCost, ActionException
+from game.actions.common import ActionCost, ActionException, DebugException
 from game.entities import Team, MapTileEntity, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyId, ArmyState
 
@@ -39,7 +40,7 @@ class ActionArmyDeploy(TeamActionBase):
             raise ActionException( "Armáda {} už je vyslána na pole {}."\
                     .format(army.id, army.tile))
         
-        if self.args.equipment < 0: raise ActionException("Nelze poskytnout záporný počet zbraní ({})".format(self.args.equipment))
+        if self.args.equipment < 1: raise DebugException("Nelze poskytnout záporný počet zbraní ({}). Minimální počet je 1".format(self.args.equipment))
         if self.args.equipment > army.capacity:
             raise ActionException("Armáda neunese {} zbraní. Maximální možná výzbroj je {}."\
                     .format(self.args.equipment, army.capacity))
@@ -89,7 +90,7 @@ class ActionArmyDeploy(TeamActionBase):
             return "Armáda <<{}>> posílila armádu <<{}>> a vrátila se zpět. Nová síla obránce je <<{}>>."\
                 .format(army.id, army.strength, provider.id)
 
-        if self.args.goal == ArmyGoal.Support and self.args.friendlyTeam == defender.team:
+        if self.args.goal == ArmyGoal.Supply and self.args.friendlyTeam == defender.team:
             transfered = self.transferEquipment(army, defender)
             equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
@@ -97,14 +98,46 @@ class ActionArmyDeploy(TeamActionBase):
             return "Armáda <<{}>> posílila armádu týmu <<{}>> o <<{}>> zbraní."\
                 .format(army.id, defender.team, transfered)
 
-        if self.args.goal == ArmyGoal.Support or self.args.goal == ArmyGoal.Replace:
+        if self.args.goal == ArmyGoal.Supply:
             equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
-            return "Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
-                .format(tile.id, army.id)
+            self.errors.add("Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
+                .format(tile.id, army.id))
+            return
         
-        raise RuntimeError("Souboje jeste nejsou implementovany")
+        attacker = army
+
         # battle
+        defenderCasualties = ceil((BASE_ARMY_STRENGTH + attacker.equipment) / 2) + max(0, attacker.boost) - tile.defenseBonus
+        attackerCasualties = ceil((BASE_ARMY_STRENGTH + defender.equipment) / 2) + max(0, defender.boost)
+
+        defenderStrength = defender.destroyEquipment(defenderCasualties)
+        attackertStrength = attacker.destroyEquipment(attackerCasualties)
+
+        # resolve
+        if defenderStrength >= attackertStrength:
+            self.reward[self.entities.zbrane] += attacker.retreat(self.state)
+            self.errors.add("Armáda <<{}>> neuspěla v dobývání pole <<{}>> a vrátila se domů.")
+
+            if defender.equipment == 0:
+                defender.retreat(self.state)
+            #TODO: Notify defender
+            return
+
+        defenderReward = defender.retreat(self.state)
+        #TODO: Notify defender
+
+        if attacker.equipment == 0:
+            attacker.retreat(self.state)
+            return "Armáda <<{}>> dobyla pole <<{}>>. Nezbyly jí žádné zbraně, tak se vrátila domů."\
+                .format(army.id, tile.entity)
+
+        if self.args.goal == ArmyGoal.Eliminate:
+            self.reward[self.entities.zbrane] += attacker.retreat(self.state)
+            return "Armáda <<{}>> vyčistila pole <<{}>> a vrátila se domů".format(army,id, tile.entity)
+        
+        attacker.occupy(tile)
+        return "Armáda <<{}>> obsadila pole <<{}>>. Její aktuální síla je {}".format(army.id, tile.entity, army.strength)
 
 
 

@@ -2,7 +2,7 @@ import os
 from django.conf import settings
 from game import entityParser
 from game.entities import Entities, Team, Tech, Vyroba, Resource
-from game.state import Army, ArmyId, GameState
+from game.state import Army, ArmyId, ArmyState, GameState
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from decimal import Decimal
 from typing import Dict, List
@@ -30,9 +30,9 @@ def createTestInitState(entities=TEST_ENTITIES):
     home.roadsTo = [state.map.tiles[x].entity for x in [6, 10, 24, 2]]
 
     # deploy armies
-    for tileIndex, prestige, equipment in [(0, 10, 0), (3, 15, 0), (30, 20, 0),  (2, 25, 0)]:
+    for tileIndex, prestige, equipment in [(0, 10, 1), (3, 15, 5), (30, 20, 15),  (2, 25, 20)]:
         tile = state.map.tiles[tileIndex]
-        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment)
+        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment, state=ArmyState.Occupying)
         teamState.armies[army.id] = army
         tile.occupiedBy = army.id
 

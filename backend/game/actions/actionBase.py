@@ -35,26 +35,26 @@ class ActionBase(BaseModel):
         self.info = MessageBuilder()
         cost = self.cost()
         
-        self.commitInternal()
+        self.info.add(self.commitInternal())
         if cost.postpone == 0:
-            self.delayedInternal()
+            self.info.add(self.delayedInternal())
             
         if not self.errors.empty:
             return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
         return ActionResult(message=self.info, reward=self.reward, succeeded=True)
 
-    def commitInternal(self) -> None:
+    def commitInternal(self) -> str:
         raise NotImplementedError("ActionBae is an interface")
 
     def delayed(self) -> ActionResult:
         self.errors = MessageBuilder()
         self.info = MessageBuilder()
-        self.delayedInternal()
+        self.info.add(self.delayedInternal())
         if not self.errors.empty:
             return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
         return ActionResult(message=self.info, reward=self.reward, succeeded=True)
 
-    def delayedInternal(self) -> None:
+    def delayedInternal(self) -> str:
         pass
 
 class TeamActionBase(ActionBase):    
