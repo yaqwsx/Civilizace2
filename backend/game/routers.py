@@ -1,5 +1,5 @@
 from rest_framework.routers import SimpleRouter
-from game.views import AnnouncementView, AnnouncementsView, EntityView, TeamEntityView, TasksView, TaskView
+from game.views import AnnouncementView, AnnouncementsView, EntityView, RoundView, RoundsSentinelView, RoundsView, TeamEntityView, TasksView, TaskView
 from django.urls import path
 
 routes = SimpleRouter()
@@ -11,5 +11,8 @@ urlpatterns = [
     path("task", TasksView.as_view(), name="tasks"),
     path("task/<str:taskId>", TaskView.as_view(), name="task"),
     path("announcement", AnnouncementsView.as_view(), name="announcements"),
-    path("announcement/<int:announcementId>", AnnouncementView.as_view(), name="announcement")
+    path("announcement/<int:announcementId>", AnnouncementView.as_view(), name="announcement"),
+    path("round", RoundsView.as_view(), name="rounds"),
+    path("round/sentinel", RoundsSentinelView.as_view(), name="round-sentinel"),
+
 ]

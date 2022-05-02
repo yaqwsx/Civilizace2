@@ -5,8 +5,11 @@ from game.entities import EntityId, ResourceBase
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
+from collections import namedtuple
 
 from game.entityParser import DICE_IDS
+
+GameAction = namedtuple("GameAction", ["action", "argument"])
 
 class MessageBuilder(BaseModel):
     """
@@ -58,7 +61,7 @@ class ActionCost(BaseModel):
     requiredDots: int = 0
     postpone: int = 0
     resources: Dict[ResourceBase, Decimal] = {}
-    
+
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:
         ALLOWED_DICE = DICE_IDS

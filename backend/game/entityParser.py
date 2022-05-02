@@ -1,5 +1,6 @@
 from decimal import Decimal
 import json
+from typing import Any, Callable, Dict
 
 from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
 
@@ -7,11 +8,18 @@ DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
 
-
 class EntityParser():
-    def __init__(self, data):
+    def __init__(self, data, reportError=None):
         self.errors = []
         self.data = data
+
+        if reportError:
+            self.reportError = reportError
+        else:
+            self.reportError = self._reportError
+
+    def _reportError(self, error):
+        print(error)
 
     def parseTypString(self, s):
         assert len(s.split("-")) == 3, "Invalid resourceType id: " + s
@@ -58,16 +66,16 @@ class EntityParser():
             assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
             assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
             targetEntity = self.entities[targetId]
-            result.append((targetEntity, die))        
+            result.append((targetEntity, die))
         return result
 
 
     def kwargsEntityWithCost(self, line, includeEdges = True):
         cost = self.parseCost(line[3])
         cost[self.entities["res-prace"]] = Decimal(line[2])
-        return {'id': line[0], 
-                'name':line[1], 
-                'cost':cost, 
+        return {'id': line[0],
+                'name':line[1],
+                'cost':cost,
                 'points': Decimal(line[4])}
 
 
@@ -182,7 +190,7 @@ class EntityParser():
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
         for e in self.errors:
-            print("  " + e)
+            self.reportError("  " + e)
 
 
     def parseTeams(self):
@@ -214,7 +222,7 @@ class EntityParser():
     def checkMap(self, entities):
         if len(entities.teams) * 4 != len(entities.tiles):
             self.errors.append("World size is wrong: There are {} tiles and {} teams (expecting 4 tiles per team)".format(
-                    len(entities.tiles), 
+                    len(entities.tiles),
                     len(entities.teams)))
             return
 
@@ -243,19 +251,23 @@ class EntityParser():
             for id in GUARANTEED_IDS:
                 if not id in self.entities:
                     self.errors.append("Missing required id \"" + id + "\"")
+            if len(self.errors) > 0:
+                raise RuntimeError("Invalid entities specified")
 
             entities = Entities(self.entities.values())
             self.checkMap(entities)
             return entities
+        raise RuntimeError("Invalid entities specified")
 
-        return Entities({})
-
+def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
+    parser = EntityParser(data, reportError)
+    return parser.parse()
 
 def loadEntities(fileName):
 
     with open(fileName) as file:
         data = json.load(file)
-    
+
     parser = EntityParser(data)
     entities = parser.parse()
     return entities

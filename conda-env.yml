@@ -22,3 +22,4 @@ dependencies:
     - pydantic==1.9.*
     - frozendict==2.3.*
     - types-frozendict
+    - django-enumfields==2.1.*

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from game.entities import BASE_ARMY_STRENGTH
 
 from game.actions.actionBase import TeamActionArgs, TeamActionBase
-from game.actions.common import ActionCost, ActionException, DebugException
+from game.actions.common import ActionCost, ActionException, DebugException, GameAction
 from game.entities import Team, MapTileEntity, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyId, ArmyState
 
@@ -33,18 +33,18 @@ class ActionArmyDeploy(TeamActionBase):
 
     def commitInternal(self) -> None:
         if not self.args.army in self.teamState.armies: raise ActionException("Neznámá armáda {}".format(self.args.army))
-        
+
         army = self.teamState.armies[self.args.army]
         if army.state != ArmyState.Idle:
             assert army.tile != None, "Army {} is in inconsistent state".format(self.args.army)
             raise ActionException( "Armáda {} už je vyslána na pole {}."\
                     .format(army.id, army.tile))
-        
+
         if self.args.equipment < 1: raise DebugException("Nelze poskytnout záporný počet zbraní ({}). Minimální počet je 1".format(self.args.equipment))
         if self.args.equipment > army.capacity:
             raise ActionException("Armáda neunese {} zbraní. Maximální možná výzbroj je {}."\
                     .format(self.args.equipment, army.capacity))
-        
+
         army.tile = self.args.tile
         army.equipment = self.args.equipment
         army.state = ArmyState.Marching
@@ -107,7 +107,7 @@ class ActionArmyDeploy(TeamActionBase):
             self.errors.add("Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
                 .format(tile.id, army.id))
             return
-        
+
         attacker = army
 
         # battle
@@ -138,12 +138,7 @@ class ActionArmyDeploy(TeamActionBase):
         if self.args.goal == ArmyGoal.Eliminate:
             self.reward[self.entities.zbrane] += attacker.retreat(self.state)
             return "Armáda <<{}>> vyčistila pole <<{}>> a vrátila se domů".format(army,id, tile.entity)
-        
+
         attacker.occupy(tile)
         return "Armáda <<{}>> obsadila pole <<{}>>. Její aktuální síla je {}".format(army.id, tile.entity, army.strength)
-
-
-
-        
-        
 

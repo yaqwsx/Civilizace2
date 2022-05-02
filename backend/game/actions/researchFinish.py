@@ -2,8 +2,10 @@ from game.actions.actionBase import TeamActionBase
 from game.actions.common import ActionException, ActionCost, ActionException
 from game.actions.researchStart import ActionResearchArgs
 
+ActionResearchFinishArgs = ActionResearchArgs
+
 class ActionResearchFinish(TeamActionBase):
-    args: ActionResearchArgs
+    args: ActionResearchFinishArgs
 
 
     def cost(self) -> ActionCost:

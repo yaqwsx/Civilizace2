@@ -79,7 +79,8 @@ class Command(BaseCommand):
                                                 team=team)
 
     def add_arguments(self, parser):
-        parser.add_argument('what', nargs='+', type=str)
+        parser.add_argument("entities", type=str)
+        parser.add_argument("gameconfig", type=str)
 
     def handle(self, *args, **options):
         for what in options["what"]:

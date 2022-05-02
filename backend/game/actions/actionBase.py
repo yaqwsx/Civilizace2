@@ -17,7 +17,7 @@ class ActionBase(BaseModel):
         # Action can have attributes that doesn't follow strict
         # type checking in via Pydantic - i.e., entities.
         arbitrary_types_allowed=True
-  
+
     entities: Entities
     state: GameState
 
@@ -34,11 +34,11 @@ class ActionBase(BaseModel):
         self.errors = MessageBuilder()
         self.info = MessageBuilder()
         cost = self.cost()
-        
+
         self.info.add(self.commitInternal())
         if cost.postpone == 0:
             self.info.add(self.delayedInternal())
-            
+
         if not self.errors.empty:
             return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
         return ActionResult(message=self.info, reward=self.reward, succeeded=True)
@@ -57,11 +57,14 @@ class ActionBase(BaseModel):
     def delayedInternal(self) -> str:
         pass
 
-class TeamActionBase(ActionBase):    
+class TeamActionBase(ActionBase):
     @property
     def teamState(self) -> TeamState:
         return self.state.teamStates[self.args.team]
 
-class TeamActionArgs(BaseModel):
+class ActionArgs(BaseModel):
+    pass
+
+class TeamActionArgs(ActionArgs):
     team: Team
 

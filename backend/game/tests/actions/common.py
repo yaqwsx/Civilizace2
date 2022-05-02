@@ -7,18 +7,18 @@ from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 from decimal import Decimal
 from typing import Dict, List
 
-TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.BASE_DIR, "testEntities.json"))
+TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.DATA_PATH, "entities", "TEST.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
 TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial state, with home tile set up
 
 
 def createTestInitState(entities=TEST_ENTITIES):
-    state = GameState.createInitial(entities)    
-    
+    state = GameState.createInitial(entities)
+
     #starting tiles
     for index, team in enumerate(entities.teams.values()):
         ActionAssignTile(args=ActionAssignTileArgs(team=team, index=4*index + 1), state=state, entities=entities).commit()
-    
+
     team = TEAM_ADVANCED
     teamState = state.teamStates[TEAM_ADVANCED]
 
@@ -37,4 +37,3 @@ def createTestInitState(entities=TEST_ENTITIES):
         tile.occupiedBy = army.id
 
     return state
-        

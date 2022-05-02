@@ -3,10 +3,6 @@ from game.state import HomeTile
 from game.entities import MapTileEntity
 from game.actions.common import ActionCost, ActionException
 
-# This action is a demonstration of action implementation. Basically you can say
-# how much to increase the red Counter. Optionally we can pass an entity (e.g.,
-# the player sacrificed to gods) and then it gains some blue counter
-
 class ActionAssignTileArgs(TeamActionArgs):
     index: int
 
@@ -15,7 +11,7 @@ class ActionAssignTile(TeamActionBase):
 
     def getTileEntity(self, index: int) -> MapTileEntity:
         print(self.entities.tiles)
-        
+
         for tile in self.entities.tiles.values():
             if tile.index == index:
                 return tile
@@ -27,7 +23,7 @@ class ActionAssignTile(TeamActionBase):
     def commitInternal(self) -> None:
         team = self.args.team
         map = self.state.map
-    
+
         if self.args.index < 0:
             oldTile = map.getHomeTile(team)
             if oldTile == None:
@@ -48,8 +44,8 @@ class ActionAssignTile(TeamActionBase):
         if oldTile != None:
             map.tiles[oldTile.entity.index] = None
             map.homeTiles[team] = None
-        
+
         entity = self.getTileEntity(self.args.index)
-        tile = HomeTile(entity=entity, team=team)        
+        tile = HomeTile(entity=entity, team=team)
         map.tiles[self.args.index] = tile
         map.homeTiles[team] = tile

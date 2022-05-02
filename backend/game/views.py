@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse, HttpResponseNotFound
@@ -229,3 +229,70 @@ class AnnouncementView(View):
             if t["id"] == announcementId:
                 return JsonResponse({"status": "ok"})
         return HttpResponseNotFound({"status": "error"})
+
+MOCK_ROUNDS = [
+    {
+        "seq": 1,
+        "start": datetime.now() - 6 * timedelta(minutes=15),
+        "editable": False,
+        "length": 15 * 60
+    },
+    {
+        "seq": 2,
+        "start": datetime.now() - 5 * timedelta(minutes=15),
+        "editable": False,
+        "length": 15 * 60
+    },
+    {
+        "seq": 3,
+        "start": datetime.now() - 4 * timedelta(minutes=15),
+        "editable": False,
+        "length": 15 * 60
+    },
+    {
+        "seq": 4,
+        "start": datetime.now() - 3 * timedelta(minutes=15),
+        "editable": False,
+        "length": 15 * 60
+    },
+    {
+        "seq": 5,
+        "start": datetime.now() - 2 * timedelta(minutes=15),
+        "editable": False,
+        "length": 15 * 60
+    },
+] + [
+    {
+        "seq": i,
+        "start": datetime.now() + (i - 6) * timedelta(minutes=15),
+        "editable": True,
+        "length": 15 * 60
+    } for i in range(6, 100)
+]
+
+
+class RoundsView(View):
+    def get(self, request):
+        return JsonResponse(MOCK_ROUNDS, safe=False)
+
+class RoundView(View):
+    def get(self, request, announcementId):
+        for t in MOCK_ROUNDS:
+            if t["id"] == announcementId:
+                return JsonResponse(t)
+        return HttpResponseNotFound({"status": "error"})
+
+    def put(self, request, roundSeq):
+        for t in MOCK_ROUNDS:
+            if t["seq"] == roundSeq:
+                return JsonResponse({"status": "ok"})
+        return HttpResponseNotFound({"status": "error"})
+
+class RoundsSentinelView(View):
+    def get(self, request):
+        return JsonResponse({
+            "seq": 42
+        }, safe=False)
+
+    def put(self, request):
+        return JsonResponse({"status": "ok"})
