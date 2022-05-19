@@ -39,7 +39,7 @@ class EntityBase(BaseModel):
 
 class Team(EntityBase):
     color: str
-    password: str # We use it to populate database
+    password: Optional[str] # We use it to populate database
     visible: bool
 
 class OrgRole(Enum):
@@ -48,7 +48,7 @@ class OrgRole(Enum):
 
 class Org(EntityBase):
     role: OrgRole
-    password: str
+    password: Optional[str]
 
 class ResourceType(EntityBase):
     productionName: str
@@ -196,8 +196,19 @@ class Entities(frozendict):
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, Team)})
 
+    @staticmethod
+    def _gameOnlyView(entity):
+        if isinstance(entity, Team):
+            t = entity.copy()
+            t.password = None
+            return t
+        if isinstance(entity, Org):
+            o = entity.copy()
+            o.password = None
+            return o
+        return entity
+
     @property
     def gameOnlyEntities(self) -> Entities:
-        return Entities([v for k, v in self.items()
-            if not isinstance(v, Team) and not isinstance(v, Org)])
+        return Entities([self._gameOnlyView(v) for v in self.values()])
 

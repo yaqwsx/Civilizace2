@@ -1,11 +1,14 @@
 from __future__ import annotations
+import decimal
+import json
 from enumfields import EnumField
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from django.db import models
 from django.db.models import QuerySet
+from pydantic import BaseModel
 from core.models.fields import JSONField
 from core.models import Team, User
-from game.entities import Entities
+from game.entities import Entities, Entity, EntityBase
 from game.entityParser import parseEntities
 from enum import Enum
 
@@ -58,9 +61,10 @@ class InteractionType(Enum):
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     phase = EnumField(InteractionType)
-    models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False)
+    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False)
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
     workConsumed = models.IntegerField()
+
 
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
@@ -72,4 +76,5 @@ class DbWorldState(models.Model):
 class DbState(models.Model):
     worldState = models.ForeignKey(DbWorldState, on_delete=models.PROTECT, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
+    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False)
 

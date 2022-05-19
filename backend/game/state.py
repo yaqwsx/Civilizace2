@@ -1,11 +1,74 @@
 from __future__ import annotations
-from cmath import nan
 import enum
-from math import floor
 from pydantic import BaseModel
-from typing import ClassVar, List, Dict, Optional, Iterable, Union, Set
+from pydantic.fields import *
+from typing import List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
+
+class StateModel(BaseModel):
+    def serialize(self):
+        """
+        Turn the model into a dictionary representation
+        """
+        value = {}
+        for field in self.__fields__.values():
+            value[field.name] = self._serialize(getattr(self, field.name))
+        return value
+
+    @staticmethod
+    def _serialize(what):
+        if isinstance(what, StateModel):
+            return what.serialize()
+        if isinstance(what, EntityBase):
+            return what.id
+        if isinstance(what, Decimal):
+            return str(what)
+        if isinstance(what, list):
+            return [StateModel._serialize(x) for x in what]
+        if isinstance(what, set):
+            return set([StateModel._serialize(x) for x in what])
+        if isinstance(what, tuple):
+            return tuple([StateModel._serialize(x) for x in what])
+        if isinstance(what, dict):
+            return {StateModel._serialize(k): StateModel._serialize(v) for k, v in what.items()}
+        return what
+
+    @classmethod
+    def deserialize(cls, data, entities):
+        source = {}
+        for field in cls.__fields__.values():
+            source[field.name] = cls._deserialize(data[field.name], field, entities)
+        return cls.parse_obj(source)
+
+    @staticmethod
+    def _deserialize(data, field, entities):
+        if field.shape == SHAPE_SINGLETON:
+            return StateModel._deserializeSingleton(data, field, entities)
+        if field.shape in MAPPING_LIKE_SHAPES:
+            return {
+                StateModel._deserialize(k, field.key_field, entities): StateModel._deserializeSingleton(v, field, entities)
+                for k, v in data.items()}
+        if field.shape == SHAPE_LIST:
+            return [StateModel._deserializeSingleton(x, field, entities)
+                for x in data]
+        if field.shape == SHAPE_SET:
+            return set([StateModel._deserializeSingleton(x, field, entities)
+                for x in data])
+        raise NotImplementedError(f"Shape type {field.shape} not implemented")
+
+    @staticmethod
+    def _deserializeSingleton(data, field, entities):
+        if not field.required and data is None:
+            return None
+        expectedType = field.type_
+        if issubclass(expectedType, StateModel):
+            return expectedType.deserialize(data, entities)
+        if issubclass(expectedType, EntityBase):
+            return entities[data]
+        if issubclass(expectedType, Decimal):
+            return Decimal(data)
+        return data
 
 class ArmyState(enum.Enum):
     Idle = 0
@@ -19,9 +82,18 @@ class ArmyGoal(enum.Enum):
     Replace = 3
 
 
-class ArmyId(BaseModel):
+class ArmyId(StateModel):
     prestige: int
     team: Team
+
+    def serialize(self):
+        return (self.team.id, self.prestige)
+
+    @classmethod
+    def deserialize(cls, data, entities):
+        return ArmyId(
+            prestige=data[1],
+            team=entities[data[0]])
 
     def __hash__(self):
         return self.team.__hash__() + self.prestige
@@ -31,7 +103,7 @@ class ArmyId(BaseModel):
             return False
         return self.team == other.team and self.prestige == other.prestige
 
-class Army(BaseModel):
+class Army(StateModel):
     team: Team # duplicates: items in Team.armies
     prestige: int
     equipment: int=0 # number of weapons the army currently carries
@@ -40,7 +112,7 @@ class Army(BaseModel):
     state: ArmyState=ArmyState.Idle
     goal: Optional[ArmyGoal]=None
 
-    @property 
+    @property
     def capacity(self) -> int:
         return self.prestige - BASE_ARMY_STRENGTH
 
@@ -91,7 +163,7 @@ class Army(BaseModel):
         return BASE_ARMY_STRENGTH + self.equipment
 
 
-class MapTile(BaseModel): # Game state elemnent
+class MapTile(StateModel): # Game state elemnent
     entity: MapTileEntity
     occupiedBy: Optional[ArmyId]=None
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
@@ -126,7 +198,7 @@ class MapTile(BaseModel): # Game state elemnent
         return 0
 
 
-class HomeTile(MapTile):
+class HomeTile(StateModel):
     team: Team
     roadsTo: List[MapTileEntity]=[]
 
@@ -139,7 +211,7 @@ class HomeTile(MapTile):
                        naturalResources = tile.naturalResources)
 
 
-class MapState(BaseModel):
+class MapState(StateModel):
     size: int=MAP_SIZE
     tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
@@ -183,7 +255,7 @@ class MapState(BaseModel):
         )
 
 
-class TeamState(BaseModel):
+class TeamState(StateModel):
     team: Team
     redCounter: Decimal
     blueCounter: Decimal
@@ -212,7 +284,7 @@ class TeamState(BaseModel):
         )
 
 
-class GameState(BaseModel):
+class GameState(StateModel):
     turn: int
     teamStates: Dict[Team, TeamState]
     map: MapState
