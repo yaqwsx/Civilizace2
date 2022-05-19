@@ -102,7 +102,7 @@ function AnnouncementItem(props: {
                 />
             </Row>
             <Row>
-                <FormRow label="Autor:" className="mb-0">
+                <FormRow label="Naposledy upravil:" className="mb-0">
                     <p>{props.announcement.author}</p>
                 </FormRow>
                 <FormRow label="Viditelné od:" className="mb-0">

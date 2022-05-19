@@ -103,3 +103,14 @@ export interface Announcement {
     appearDatetime: Date;
     teams: string[];
 }
+
+export interface Round {
+    seq: number;
+    start: Date;
+    editable: boolean;
+    length: number;
+}
+
+export interface RoundSentinel {
+    seq: number;
+}

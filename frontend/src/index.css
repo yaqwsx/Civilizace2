@@ -17,6 +17,10 @@ code {
     monospace;
 }
 
+h1, h2, h3, h4, h5 {
+  @apply mt-4;
+}
+
 h1 {
   @apply text-2xl font-semibold;
 }

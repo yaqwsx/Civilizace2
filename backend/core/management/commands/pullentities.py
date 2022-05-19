@@ -31,7 +31,7 @@ def checkAndSave(data, fileName):
         raise RuntimeError("Failed to validate entities. Errors listed above")
 
     c = Counter([x[:3] for x in entities.keys()])
-    for x in ["tymy", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "techs", "vyrobas"]:
+    for x in ["tymy", "orgove", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "techs", "vyrobas"]:
         print("    " + x + ": " + str(c[x[:3]]))
     print(f"SUCCESS: Created {len(entities)} entities from {fileName}")
 

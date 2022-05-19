@@ -1,63 +1,14 @@
+from typing import Dict
+import json
+from typing import List
 from django.core.management import BaseCommand
+from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
+from game.entityParser import loadEntities
+from django.conf import settings
+from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTeamState, DbWorldState
 from core.models import User, Team
 
-GROUPS = ["super", "org"]
-
-def teamPlayers(name, password):
-    return [{"username": f"{name}{i+1}", "password": password} for i in range(4)]
-
-TEAMS = {
-    "Černí": {
-        "players": teamPlayers("cerny", "zlutevejce"),
-        "id": "tym-cerni",
-        "color": "gray-600"
-    },
-    "Červení": {
-        "players": teamPlayers("cerveny", "modrypomeranc"),
-        "id": "tym-cerveni",
-        "color": "red-600"
-    },
-    "Oranžoví": {
-        "players": teamPlayers("oranzovy", "hladkypapir"),
-        "id": "tym-oranzovi",
-        "color": "orange-500"
-    },
-    "Žlutí": {
-        "players": teamPlayers("zluty", "kluzkystrom"),
-        "id": "tym-zluti",
-        "color": "yellow-500"
-    },
-    "Zelení": {
-        "players": teamPlayers("zeleny", "pruhlednyhrnek"),
-        "id": "tym-zeleni",
-        "color": "green-600"
-    },
-    "Modří": {
-        "players": teamPlayers("modry", "zelenaspona"),
-        "id": "tym-modri",
-        "color": "blue-600"
-    },
-    "Fialoví": {
-        "players": teamPlayers("fialovy", "kvetoucistrom"),
-        "id": "tym-fialovi",
-        "color": "purple-500"
-    },
-    "Růžoví": {
-        "players": teamPlayers("ruzovy", "nevyrovnanyuhel"),
-        "id": "tym-ruzovi",
-        "color": "pink-600"
-    },
-    "Protinožci": {
-        "players": [{"username": "protinozec", "password": "zemekoule"}],
-        "id": "tym-protinozci",
-        "color": "white"
-    }
-}
-
-
-SUPER_USERS = ["maara", "honza", "heno", "stouri", "system"]
-ORG = ["jupi", "efka", "darwin", "martin", "zuzka", "maruska", "stouri",
-       "liska", "tinka", "ivka", "tom", "timan", "zaloha"]
+from .pullentities import setFilename
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
@@ -66,9 +17,14 @@ class Command(BaseCommand):
     help = "usage: create [entities|users|state]+"
 
     @staticmethod
-    def create_or_get_user(username, password, superuser=False, team=None):
+    def create_or_update_user(username, password, superuser=False, team=None):
         try:
-            return User.objects.get(username=username)
+            u = User.objects.get(username=username)
+            u.set_password(password)
+            u.team = team
+            u.is_superuser = superuser
+            u.save()
+            return u
         except User.DoesNotExist:
             if superuser:
                 return User.objects.create_superuser(username=username,
@@ -80,48 +36,42 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("entities", type=str)
-        parser.add_argument("gameconfig", type=str)
 
-    def handle(self, *args, **options):
-        for what in options["what"]:
-            if what == "entities":
-                self.createEntities()
-            if what == "users":
-                self.createUsers()
-            if what == "state":
-                self.createState()
+    def handle(self, entities, *args, **options):
+        targetFile = settings.ENTITY_PATH / setFilename(entities)
+        ent = loadEntities(targetFile)
 
-    def createUsers(self):
-        # Create team users
-        for teamName, teamParams in TEAMS.items():
-            # There can be more than one team with the name - do not use get
-            team = Team.objects.all().filter(name=teamName).first()
-            if not team:
-                team = Team.objects.create(id=teamParams["id"], name=teamName,
-                    color=teamParams["color"])
-                if team.id == "tym-protinozci":
-                    team.visible = False
-                    team.save()
-                print("Creating team: " + str(team))
-            for userParams in teamParams["players"]:
-                user = Command.create_or_get_user(
-                        username=userParams["username"],
-                        password=userParams["password"],
-                        team=team)
-        for username in ORG:
-            user = Command.create_or_get_user(
-                            username=username,
-                            password="macatymaara",
-                            superuser=False)
-        for username in SUPER_USERS:
-            user = Command.create_or_get_user(
-                            username=username,
-                            password="jogurt",
-                            superuser=True)
+        self.clearGame()
 
-    def createState(self):
-        raise NotImplementedError("Not implemented yet")
+        self.createOrgs(ent.orgs)
+        self.createTeams(ent.teams)
+        self.createEntities(targetFile)
 
-    def createEntities(self):
-        raise NotImplementedError("Not implemented yet")
+    def clearGame(self):
+        User.objects.all().delete()
+        Team.objects.all().delete()
+        DbEntities.objects.all().delete()
+        DbAction.objects.all().delete()
+        DbInteraction.objects.all().delete()
+        DbTeamState.objects.all().delete()
+        DbWorldState.objects.all().delete()
+        DbState.objects.all().delete()
+
+    def createOrgs(self, orgs: Dict[EntityId, Org]) -> None:
+        for o in orgs.values():
+            self.create_or_update_user(username = o.id[4:], password=o.password,
+                                          superuser=o.role == OrgRole.SUPER)
+
+    def createTeams(self, teams: Dict[EntityId, TeamEntity]) -> None:
+        for t in teams.values():
+            teamModel = Team.objects.create(id=t.id, name=t.name, color=t.color,
+                                            visible=t.visible)
+            for i in range(4):
+                self.create_or_update_user(username=f"{t.id[4:]}{i+1}",
+                    password=t.password, superuser=False, team=teamModel)
+
+    def createEntities(self, entityFile) -> None:
+        with open(entityFile) as f:
+            data = json.load(f)
+        DbEntities.objects.create(data=data)
 

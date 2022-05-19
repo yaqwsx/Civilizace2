@@ -131,9 +131,6 @@ export function LoadingOrError(props: {
     error?: any;
     message: string;
 }) {
-    if (props.loading) {
-        return <InlineSpinner />;
-    }
     if (props.error) {
         return (
             <ComponentError>
@@ -141,6 +138,9 @@ export function LoadingOrError(props: {
                 <p>{props.error.toString()}</p>
             </ComponentError>
         );
+    }
+    if (props.loading) {
+        return <InlineSpinner />;
     }
     return null;
 }

@@ -6,4 +6,4 @@ copy NUL core\migrations\__init__.py
 del db.sqlite3
 python manage.py makemigrations
 python manage.py migrate
-python manage.py create users
+python manage.py setupgame %1

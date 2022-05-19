@@ -7,8 +7,10 @@
   Google tabulkám. Umísti ho do kořenového adresáře backendu.
     - pokud chceš, můžeš soubor umístit kamkoliv a nastavit proměnnou prostředí
       `CIVILIZACE_GAUTH_FILE` na cestu k němu.
-- zresetuj hru pomocí `scripts/resetGame.sh` - to vytvoří databázi a aplikuje
-  migrace.
+- stáhni si entity `python manage.py pullentities`. Entity jsou uloženy v
+  `game/data/entities`
+- zresetuj hru pomocí `scripts/resetGame.sh TEST` - to vytvoří databázi a aplikuje
+  migrace. TEST je název sady entit
 - funguj úplně normálně jako s Djangem.
 
 ## Jak se to má s migracemi

@@ -4,6 +4,7 @@ from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
 from typing import Any, Optional, Tuple, Union, Iterable, Dict, List
+from enum import Enum
 
 EntityId = str
 TeamId = str # intentionally left weak
@@ -37,8 +38,17 @@ class EntityBase(BaseModel):
 
 
 class Team(EntityBase):
-    None
+    color: str
+    password: str # We use it to populate database
+    visible: bool
 
+class OrgRole(Enum):
+    ORG = 0
+    SUPER = 1
+
+class Org(EntityBase):
+    role: OrgRole
+    password: str
 
 class ResourceType(EntityBase):
     productionName: str
@@ -124,7 +134,8 @@ class MapTileEntity(EntityBase):
 
 
 # Common type of all available entities
-Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity, ResourceType]
+Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity,
+               ResourceType, Team, Org]
 
 class Entities(frozendict):
     """
@@ -165,7 +176,6 @@ class Entities(frozendict):
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, Tech)})
 
-
     @cached_property
     def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
@@ -175,4 +185,19 @@ class Entities(frozendict):
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, MapTileEntity)})
+
+    @cached_property
+    def orgs(self) -> frozendict[EntityId, Org]:
+        return frozendict({k: v for k, v in self.items()
+            if isinstance(v, Org)})
+
+    @cached_property
+    def teams(self) -> frozendict[EntityId, Team]:
+        return frozendict({k: v for k, v in self.items()
+            if isinstance(v, Team)})
+
+    @property
+    def gameOnlyEntities(self) -> Entities:
+        return Entities([v for k, v in self.items()
+            if not isinstance(v, Team) and not isinstance(v, Org)])
 

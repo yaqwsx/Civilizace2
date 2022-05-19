@@ -5,11 +5,8 @@ from game.entities import EntityId, ResourceBase
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
-from collections import namedtuple
 
 from game.entityParser import DICE_IDS
-
-GameAction = namedtuple("GameAction", ["action", "argument"])
 
 class MessageBuilder(BaseModel):
     """

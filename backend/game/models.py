@@ -26,7 +26,7 @@ class DbEntitiesManager(models.Manager):
 
         def reportError(msg: str):
             raise RuntimeError(msg)
-        entities = parseEntities(dbEntities.data, reportError=reportError)
+        entities = parseEntities(dbEntities.data, reportError=reportError).gameOnlyEntities
         self.cache[revision] = entities
         return entities
 

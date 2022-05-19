@@ -2,11 +2,19 @@ from decimal import Decimal
 import json
 from typing import Any, Callable, Dict
 
-from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
+from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
+
+def readRole(s: str) -> OrgRole:
+    s = s.lower()
+    if s == "org":
+        return OrgRole.ORG
+    if s == "super":
+        return OrgRole.SUPER
+    raise RuntimeError(f"{s} is not a valid role")
 
 class EntityParser():
     def __init__(self, data, reportError=None):
@@ -87,6 +95,27 @@ class EntityParser():
     def parseLineGeneric(self, c, line):
         e = c(id=line[0], name=line[1])
         self.entities[line[0]] = e
+
+    def parseLineTeam(self, line):
+        if len(line) != 5:
+            raise RuntimeError(f"Team line {line} doesn't look like team line")
+        team = Team(
+            id=line[0],
+            name=line[1],
+            color=line[2],
+            password=line[3],
+            visible=line[4])
+        self.entities[team.id] = team
+
+    def parseLineOrg(self, line):
+        if len(line) != 4:
+            raise RuntimeError(f"Invalid org line: {line}")
+        org = Org(
+            id=line[0],
+            name=line[1],
+            role=readRole(line[2]),
+            password=line[3])
+        self.entities[org.id] = org
 
 
     def parseLineTyp(self, line):
@@ -194,7 +223,10 @@ class EntityParser():
 
 
     def parseTeams(self):
-        self.parseSheet("teams", 1, lambda x: self.parseLineGeneric(Team, x), ["tym"])
+        self.parseSheet("teams", 1, self.parseLineTeam, ["tym"])
+
+    def parseOrgs(self):
+        self.parseSheet("orgs", 1, self.parseLineOrg, ["org"])
 
     def parseTypes(self):
         self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
@@ -239,6 +271,7 @@ class EntityParser():
         self.entities = {}
 
         self.parseTeams()
+        self.parseOrgs()
         self.parseTypes()
         self.parseMaterials()
         self.parseNaturalResources()
@@ -264,7 +297,6 @@ def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> E
     return parser.parse()
 
 def loadEntities(fileName):
-
     with open(fileName) as file:
         data = json.load(file)
 
