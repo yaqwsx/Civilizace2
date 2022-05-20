@@ -33,7 +33,7 @@ export function Tasks() {
 
 function TasksOverview() {
     const { data: tasks, error: taskError } = useSWR<EditableTask[]>(
-        "game/task",
+        "game/tasks",
         fetcher
     );
     const {
@@ -167,7 +167,7 @@ function TaskEdit() {
         error: techError,
     } = useEntities<EntityTech>("techs");
     const { data: task, error: taskError } = useSWR<EditableTask>(
-        () => (taskId ? `game/task/${taskId}` : null),
+        () => (taskId ? `game/tasks/${taskId}` : null),
         fetcher
     );
 

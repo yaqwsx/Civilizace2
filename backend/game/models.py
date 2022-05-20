@@ -148,16 +148,18 @@ class DbTask(models.Model):
 class DbTaskAssignment(models.Model):
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['team', 'task'], name='unique_assignment')
+            models.UniqueConstraint(fields=['team', 'task', 'techId'], name='unique_assignment')
         ]
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     task = models.ForeignKey(DbTask, on_delete=models.CASCADE)
+    techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now=True)
+    finishedAt = models.DateTimeField(null=True)
 
 class DbTaskPreference(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['task', 'techId'], name='unique_preference')
         ]
-    task = models.ForeignKey(DbTask, on_delete=models.CASCADE)
+    task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="techs")
     techId = models.CharField(max_length=32)

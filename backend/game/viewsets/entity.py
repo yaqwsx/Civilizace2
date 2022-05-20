@@ -10,7 +10,7 @@ from core.serializers.team import TeamSerializer
 from game.entities import Entities, Tech
 from game.gameGlue import serializeEntity
 
-from game.models import DbEntities, DbState
+from game.models import DbEntities, DbState, DbTaskAssignment
 from game.state import TeamState
 
 from core.models import Team as DbTeam
@@ -40,7 +40,7 @@ class EntityViewSet(viewsets.ViewSet):
         subset = getattr(entities, entityType)
         return Response({id: serializeEntity(e) for id, e in subset.items()})
 
-class TeamView(viewsets.ViewSet):
+class TeamViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, )
 
     def validateAccess(self, user, teamId):
@@ -73,6 +73,7 @@ class TeamView(viewsets.ViewSet):
     @action(detail=True)
     def techs(self, request, pk):
         self.validateAccess(request.user, pk)
+        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
 
         state = self.getTeamState(pk)
 
@@ -83,11 +84,25 @@ class TeamView(viewsets.ViewSet):
             teamTechs.update([x for x, _ in t.unlocks if isinstance(x, Tech)])
 
         def enrich(tech):
-            # TBA add assigned tasks
             if tech in state.techs:
                 return { "status": "owned" }
             if tech in state.researching:
-                return { "status": "researching" }
+                assignment = DbTaskAssignment.objects\
+                    .get(team=team, techId=tech, finishedAt=None)
+                if assignment is None:
+                    return { "status": "researching" }
+                task = assignment.task
+                return {
+                    "status": "researching",
+                    "assignedTask": {
+                        "id": task.id,
+                        "name": task.name,
+                        "teamDescription": task.teamDescription,
+                        "orgDescription": task.orgDescription,
+                        "capacity": task.capacity,
+                        "occupiedCount": DbTaskAssignment.objects.filter(task=task).count()
+                    }
+                }
             return { "status": "available" }
 
         return Response({t.id: serializeEntity(t, enrich) for t in teamTechs})
