@@ -26,6 +26,9 @@ class EntityBase(BaseModel):
     id: EntityId
     name: str
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, EntityBase) and self.id == other.id
+
     def __hash__(self) -> int:
         return self.id.__hash__()
 
@@ -98,12 +101,14 @@ class EntityWithCost(EntityBase):
     # The ultimate solution would to be to keep a set of already checked objects
     # for equality, however, that requires changes to BaseModel which is out of
     # our control.
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, EntityWithCost):
-            return False
-        return self.cost == other.cost and \
-               self.points == other.points and \
-               [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
+    #
+    # Equality based on ID is enough, thus this code is no longer needed
+    # def __eq__(self, other: Any) -> bool:
+    #     if not isinstance(other, EntityWithCost):
+    #         return False
+    #     return self.cost == other.cost and \
+    #            self.points == other.points and \
+    #            [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
 
 
 class Tech(EntityWithCost):

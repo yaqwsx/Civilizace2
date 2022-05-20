@@ -7,6 +7,14 @@ from decimal import Decimal
 from game.entities import *
 
 class StateModel(BaseModel):
+    def __eq__(self, other: Any) -> bool:
+        if self.__class__ != other.__class__:
+            return False
+        for field in self.__fields__.values():
+            if getattr(self, field.name) != getattr(other, field.name):
+                return False
+        return True
+
     def serialize(self):
         """
         Turn the model into a dictionary representation
@@ -36,6 +44,9 @@ class StateModel(BaseModel):
 
     @classmethod
     def deserialize(cls, data, entities):
+        """
+        Turn dictionary representation into a Statemodel
+        """
         source = {}
         for field in cls.__fields__.values():
             source[field.name] = cls._deserialize(data[field.name], field, entities)
@@ -169,6 +180,25 @@ class MapTile(StateModel): # Game state elemnent
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
     inbound: Set[ArmyId]=set()
 
+    # We have to provide extra serialization/deserialization as the model uses
+    # polymorphism (MapTile/HomeTile)
+    def serialize(self):
+        vals = super().serialize()
+        vals["tt"] = "M"
+        return vals
+
+    @classmethod
+    def deserialize(cls, data, entities):
+        deducedCls = {
+            "H": HomeTile,
+            "M": MapTile
+        }[data["tt"]]
+
+        source = {}
+        for field in deducedCls.__fields__.values():
+            source[field.name] = deducedCls._deserialize(data[field.name], field, entities)
+        return deducedCls.parse_obj(source)
+
     @property
     def name(self) -> str:
         return self.entity.name
@@ -198,9 +228,14 @@ class MapTile(StateModel): # Game state elemnent
         return 0
 
 
-class HomeTile(StateModel):
+class HomeTile(MapTile):
     team: Team
     roadsTo: List[MapTileEntity]=[]
+
+    def serialize(self):
+        vals = super().serialize()
+        vals["tt"] = "H"
+        return vals
 
     @classmethod
     def createInitial(cls, team: Team, tile: MapTileEntity, entities: Entities) -> HomeTile:

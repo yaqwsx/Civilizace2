@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from game.entities import BASE_ARMY_STRENGTH
 
 from game.actions.actionBase import TeamActionArgs, TeamActionBase
-from game.actions.common import ActionCost, ActionException, DebugException, GameAction
+from game.actions.common import ActionCost, ActionException, DebugException
 from game.entities import Team, MapTileEntity, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyId, ArmyState
 

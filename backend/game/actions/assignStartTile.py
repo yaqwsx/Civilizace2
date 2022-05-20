@@ -10,8 +10,6 @@ class ActionAssignTile(TeamActionBase):
     args: ActionAssignTileArgs
 
     def getTileEntity(self, index: int) -> MapTileEntity:
-        print(self.entities.tiles)
-
         for tile in self.entities.tiles.values():
             if tile.index == index:
                 return tile

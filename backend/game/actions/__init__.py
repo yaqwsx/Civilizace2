@@ -17,12 +17,10 @@ for pkg in pkgutil.iter_modules(__path__):
 
     action = None
     args = None
-    print(pkg.name)
     for name in dir(actionPkg):
         item = getattr(actionPkg, name)
         if not inspect.isclass(item):
             continue
-        print(f" -- {item}, {type(item)}, {isinstance(item, ActionBase)}, {isinstance(item, ActionArgs)}")
         if issubclass(item, ActionBase):
             if action is None or not issubclass(action, item):
                 action = item
