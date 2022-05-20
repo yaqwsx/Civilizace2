@@ -137,3 +137,27 @@ class DbState(models.Model):
             return DbEntities.objects.get_revision()
         return DbEntities.objects.get_revision(self.action.entitiesRevision)
 
+
+class DbTask(models.Model):
+    id = models.CharField(primary_key=True, max_length=32)
+    name = models.TextField()
+    capacity = models.IntegerField()
+    orgDescription = models.TextField()
+    teamDescription = models.TextField()
+
+class DbTaskAssignment(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['team', 'task'], name='unique_assignment')
+        ]
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    task = models.ForeignKey(DbTask, on_delete=models.CASCADE)
+    assignedAt = models.DateTimeField(auto_now=True)
+
+class DbTaskPreference(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['task', 'techId'], name='unique_preference')
+        ]
+    task = models.ForeignKey(DbTask, on_delete=models.CASCADE)
+    techId = models.CharField(max_length=32)
