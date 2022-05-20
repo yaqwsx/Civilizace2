@@ -112,7 +112,7 @@ class EntityWithCost(EntityBase):
 
 
 class Tech(EntityWithCost):
-    unlocks: List[Entity, DieId]=[]
+    unlocks: List[Tuple[Entity, DieId]]=[]
 
 
 class TileFeature(EntityBase):
@@ -152,6 +152,10 @@ class Entities(frozendict):
     def __new__(cls, entities: Iterable[Entity]) -> Entities:
         x = super().__new__(cls, { x.id: x for x in entities })
         return x
+
+    @property
+    def all(self) -> frozendict[EntityId, Entity]:
+        return self
 
     @property
     def work(self) -> Resource:
@@ -200,6 +204,11 @@ class Entities(frozendict):
     def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, Team)})
+
+    @cached_property
+    def vyrobas(self) -> frozendict[EntityId, Vyroba]:
+        return frozendict({k: v for k, v in self.items()
+            if isinstance(v, Vyroba)})
 
     @staticmethod
     def _gameOnlyView(entity):

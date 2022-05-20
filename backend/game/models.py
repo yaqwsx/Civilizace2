@@ -11,6 +11,9 @@ from core.models import Team, User
 from game.entities import Entities, Entity, EntityBase
 from game.entityParser import parseEntities
 from enum import Enum
+from game.gameGlue import stateDeserialize, stateSerialize
+
+from game.state import GameState, MapState, TeamState
 
 class DbEntitiesManager(models.Manager):
     def __init__(self, *args, **kwargs):
@@ -65,16 +68,72 @@ class DbInteraction(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
     workConsumed = models.IntegerField()
 
-
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
     data = JSONField("data")
 
-class DbWorldState(models.Model):
+    def toIr(self, entities) -> TeamState:
+        return stateDeserialize(TeamState, self.data, entities)
+
+class DbMapState(models.Model):
     data = JSONField("data")
 
+    def toIr(self, entities) -> TeamState:
+        return stateDeserialize(MapState, self.data, entities)
+
+class DbStateManager(models.Manager):
+    def createFromIr(self, ir: GameState) -> DbState:
+        mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
+        state = self.create(turn=ir.turn, mapState=mapState, action=None)
+        for t, ts in ir.teamStates.items():
+            dbTs = DbTeamState.objects.create(
+                team=Team.objects.get(id=t.id),
+                data=stateSerialize(ts))
+            state.teamStates.add(dbTs)
+        state.save()
+        return state
+
 class DbState(models.Model):
-    worldState = models.ForeignKey(DbWorldState, on_delete=models.PROTECT, null=False)
+    turn = models.IntegerField()
+    mapState = models.ForeignKey(DbMapState, on_delete=models.PROTECT, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
-    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False)
+    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=True)
+
+    objects = DbStateManager()
+
+    def toIr(self) -> GameState:
+        entities = self.entities
+        teams = {}
+        for ts in self.teamStates.all():
+            teams[entities[ts.team.id]] = ts.toIr(entities)
+        return GameState(
+            turn=self.turn,
+            teamStates=teams,
+            map=self.mapState.toIr(entities))
+
+    def updateFromIr(self, ir: GameState) -> None:
+        dirty = False
+        if self.turn != ir.turn:
+            dirty = True
+            self.turn = ir.turn
+        sMap = stateSerialize(ir.map)
+        if sMap != self.mapState.data:
+            dirty = True
+            self.mapState.id = None
+            self.mapState.data = sMap
+        teamMapping = {t.id: t for t in ir.teamStates.keys()}
+        for ts in self.teamStates.all():
+            sTs = stateSerialize(ir.teamStates[teamMapping[ts.team.id]])
+            if sTs != ts.data:
+                self.dirty = True
+                ts.id = None
+                ts.data = sTs
+        if dirty:
+            self.id = None
+
+    @property
+    def entities(self):
+        if self.action is None:
+            return DbEntities.objects.get_revision()
+        return DbEntities.objects.get_revision(self.action.entitiesRevision)
 

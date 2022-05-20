@@ -40,7 +40,7 @@ function TasksOverview() {
         data: techs,
         loading: techLoading,
         error: techError,
-    } = useEntities<EntityTech>("tech");
+    } = useEntities<EntityTech>("techs");
 
     if (!tasks || taskError || techLoading || techError || !techs)
         return (
@@ -165,7 +165,7 @@ function TaskEdit() {
         data: techs,
         loading: techLoading,
         error: techError,
-    } = useEntities<EntityTech>("tech");
+    } = useEntities<EntityTech>("techs");
     const { data: task, error: taskError } = useSWR<EditableTask>(
         () => (taskId ? `game/task/${taskId}` : null),
         fetcher

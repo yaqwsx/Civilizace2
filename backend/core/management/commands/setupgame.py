@@ -5,8 +5,9 @@ from django.core.management import BaseCommand
 from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import loadEntities
 from django.conf import settings
-from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTeamState, DbWorldState
+from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTeamState, DbMapState
 from core.models import User, Team
+from game.state import GameState
 
 from .pullentities import setFilename
 
@@ -46,6 +47,7 @@ class Command(BaseCommand):
         self.createOrgs(ent.orgs)
         self.createTeams(ent.teams)
         self.createEntities(targetFile)
+        self.createInitialState(ent)
 
     def clearGame(self):
         User.objects.all().delete()
@@ -54,7 +56,7 @@ class Command(BaseCommand):
         DbAction.objects.all().delete()
         DbInteraction.objects.all().delete()
         DbTeamState.objects.all().delete()
-        DbWorldState.objects.all().delete()
+        DbMapState.objects.all().delete()
         DbState.objects.all().delete()
 
     def createOrgs(self, orgs: Dict[EntityId, Org]) -> None:
@@ -74,4 +76,8 @@ class Command(BaseCommand):
         with open(entityFile) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)
+
+    def createInitialState(self, entities) -> None:
+        irState = GameState.createInitial(entities)
+        state = DbState.objects.createFromIr(irState)
 

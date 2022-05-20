@@ -1,5 +1,7 @@
 from game.state import GameState
+from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEST_ENTITIES, createTestInitState
+import json
 
 def test_stateEq():
     x = createTestInitState()
@@ -11,6 +13,11 @@ def test_stateEq():
 
 def test_serialize():
     x = createTestInitState()
-    s = x.serialize()
-    y = GameState.deserialize(s, TEST_ENTITIES)
+    s = stateSerialize(x)
+    y = stateDeserialize(GameState, s, TEST_ENTITIES)
     assert x == y
+
+    sRepr = json.dumps(s)
+    jRepr = json.loads(sRepr)
+    z = stateDeserialize(GameState, jRepr, TEST_ENTITIES)
+    assert x == z

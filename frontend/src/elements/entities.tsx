@@ -13,7 +13,7 @@ export const urlEntityAtom = atomWithHash< string | undefined>("entity",
 
 export function useTeamEntity<T>(entityType: string, team?: Team) {
     const {data, error, mutate} = useSWR<Record<string, T>>(
-        () => team ? `game/entity/${team.id}?type=${entityType}` : null,
+        () => team ? `game/teams/${team.id}/${entityType}` : null,
         fetcher)
     return {
         data: data,
@@ -25,7 +25,7 @@ export function useTeamEntity<T>(entityType: string, team?: Team) {
 
 export function useEntities<T>(entityType?: string) {
     const {data, error, mutate} = useSWR<Record<string, T>>(
-        () => entityType ? `game/entity?type=${entityType}` : `game/entity`, fetcher);
+        () => entityType ? `game/entities/${entityType}` : `game/entities`, fetcher);
     return {
         data: data,
         loading: !error && !data,
@@ -35,7 +35,7 @@ export function useEntities<T>(entityType?: string) {
 }
 
 export function useTeamVyrobas(team?: Team) {
-    const {data, ...rest} = useTeamEntity< EntityVyroba >("vyroba", team);
+    const {data, ...rest} = useTeamEntity< EntityVyroba >("vyrobas", team);
     return {
         vyrobas: data,
         ...rest
@@ -43,7 +43,7 @@ export function useTeamVyrobas(team?: Team) {
 }
 
 export function useResources() {
-    const {data, ...rest} = useEntities<EntityResource>("resource");
+    const {data, ...rest} = useEntities<EntityResource>("resources");
     return {
         resources: data,
         ...rest
@@ -52,7 +52,7 @@ export function useResources() {
 
 
 export function useTeamResources(team?: Team) {
-    const {data, ...rest} = useTeamEntity<TeamEntityResource>("resource", team);
+    const {data, ...rest} = useTeamEntity<TeamEntityResource>("resources", team);
     return {
         resources: data,
         ...rest
@@ -60,7 +60,7 @@ export function useTeamResources(team?: Team) {
 }
 
 export function useTeamTechs(team?: Team) {
-    const {data, ...rest} = useTeamEntity<TeamEntityTech>("tech", team);
+    const {data, ...rest} = useTeamEntity<TeamEntityTech>("techs", team);
     return {
         techs: data,
         ...rest
