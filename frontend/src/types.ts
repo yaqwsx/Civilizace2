@@ -6,6 +6,13 @@ export interface Team {
     color: string;
 }
 
+export interface User {
+    id: string;
+    username: string;
+    isOrg: boolean;
+    team: Team;
+}
+
 type ResourceId = string;
 type DieId = string;
 type TechId = string;
@@ -75,12 +82,7 @@ export type Entity =
     | EntityVyroba;
 
 export interface AccountResponse {
-    user: {
-        id: string;
-        username: string;
-        isOrg: boolean;
-        team: Team;
-    };
+    user: User;
     access: string;
     refresh: string;
 }
@@ -97,11 +99,12 @@ export enum AnnouncementType {
 
 export interface Announcement {
     id: number;
-    author: string;
+    author?: User;
     type: AnnouncementType;
     content: string;
     appearDatetime: Date;
     teams: string[];
+    read?: string[];
 }
 
 export interface Round {

@@ -90,10 +90,6 @@ function TaskItem(props: {
 }) {
     const [dDialog, setdDialog] = useState(false);
 
-    const handleDelete = () => {
-        setdDialog(false);
-    };
-
     return (
         <div className="my-2 w-full rounded bg-white p-4 shadow">
             <Row className="flex">
@@ -233,7 +229,6 @@ function TaskEdit() {
         data: EditableTask,
         { setErrors, setStatus, setSubmitting }: any
     ) => {
-        console.log(data);
         setSubmitting(true);
         let submit = taskId
             ? (data: any) => axiosService.put(`game/tasks/${taskId}/`, data)

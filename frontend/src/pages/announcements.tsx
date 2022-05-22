@@ -1,7 +1,14 @@
 import classNames from "classnames";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { useState } from "react";
-import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
+import {
+    Link,
+    Navigate,
+    Route,
+    Routes,
+    useNavigate,
+    useParams,
+} from "react-router-dom";
 import useSWR from "swr";
 import {
     Button,
@@ -13,10 +20,12 @@ import {
 } from "../elements";
 import { useTeams } from "../elements/team";
 import { Announcement, AnnouncementType, Team } from "../types";
-import { fetcher } from "../utils/axios";
+import axiosService, { fetcher } from "../utils/axios";
 import { combineErrors } from "../utils/error";
 import DateTime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
+import { toast } from "react-toastify";
+import { objectMap } from "../utils/functional";
 
 export function AnnouncementsMenu() {
     return null;
@@ -34,10 +43,11 @@ export function Announcements() {
 }
 
 function AnnouncementsOverview() {
-    const { data: announcements, error } = useSWR<Announcement[]>(
-        "game/announcement",
-        fetcher
-    );
+    const {
+        data: announcements,
+        error,
+        mutate: mutateAnnouncements,
+    } = useSWR<Announcement[]>("/announcements", fetcher);
     const { teams, loading: teamLoading, error: teamError } = useTeams();
 
     if (!announcements || error || !teams || teamError)
@@ -48,6 +58,17 @@ function AnnouncementsOverview() {
                 message="Nastala chyba"
             />
         );
+
+    let handleDelete = (id: number) => {
+        let options = {
+            optimisticData: announcements?.filter((x) => x.id != id),
+        };
+        let fetchNew = async () => {
+            return fetcher("/announcements");
+        };
+        mutateAnnouncements(fetchNew, options);
+    };
+
     return (
         <>
             <h2>Správa vývěsky</h2>
@@ -55,7 +76,12 @@ function AnnouncementsOverview() {
                 <Button label="Nové oznámení" className="mx-0 my-2 w-full" />
             </Link>
             {announcements.map((a) => (
-                <AnnouncementItem announcement={a} teams={teams} />
+                <AnnouncementItem
+                    key={a.id}
+                    announcement={a}
+                    teams={teams}
+                    onDelete={() => handleDelete(a.id)}
+                />
             ))}
         </>
     );
@@ -73,6 +99,7 @@ function translateAnnouncementType(type: AnnouncementType) {
 function AnnouncementItem(props: {
     announcement: Announcement;
     teams: Team[];
+    onDelete: () => void;
 }) {
     const [dDialog, setdDialog] = useState(false);
 
@@ -103,7 +130,7 @@ function AnnouncementItem(props: {
             </Row>
             <Row>
                 <FormRow label="Naposledy upravil:" className="mb-0">
-                    <p>{props.announcement.author}</p>
+                    <p>{props.announcement?.author?.username}</p>
                 </FormRow>
                 <FormRow label="Viditelné od:" className="mb-0">
                     <p>
@@ -142,33 +169,73 @@ function AnnouncementItem(props: {
                 </FormRow>
             </Row>
             {dDialog ? (
-                <Dialog onClose={() => setdDialog(false)}>
-                    <h2>Skutečně smazat oznámení {props.announcement.id}?</h2>
-                    <Row className="my-4 flex">
-                        <Button
-                            label="Ano"
-                            className="flex-1"
-                            onClick={handleDelete}
-                        />
-                        <Button
-                            label="Ne"
-                            className="flex-1 bg-blue-500 hover:bg-blue-600"
-                            onClick={() => setdDialog(false)}
-                        />
-                    </Row>
-                </Dialog>
+                <DeleteDialog
+                    close={() => setdDialog(false)}
+                    announcement={props.announcement}
+                    onDelete={props.onDelete}
+                />
             ) : null}
         </div>
     );
 }
 
+function DeleteDialog(props: {
+    close: () => void;
+    announcement: Announcement;
+    onDelete: () => void;
+}) {
+    let [deleting, setDeleting] = useState<boolean>(false);
+
+    let handleDelete = () => {
+        setDeleting(true);
+        axiosService
+            .delete(`/announcements/${props.announcement.id}/`)
+            .then((data) => {
+                props.onDelete();
+                props.close();
+                toast.success("Smazáno");
+            })
+            .catch((error) => {
+                console.log("E", error);
+                if (error?.response?.status === "403") {
+                    toast.error(error.response.data.detail);
+                } else {
+                    toast.error(`Nastala neočekávaná chyba: ${error}`);
+                }
+            })
+            .finally(() => {
+                props.close();
+            });
+    };
+
+    return (
+        <Dialog onClose={props.close}>
+            <h2>Skutečně smazat oznámení {props.announcement.id}?</h2>
+            <Row className="my-4 flex">
+                <Button
+                    disabled={deleting}
+                    className="flex-1"
+                    onClick={handleDelete}
+                    label={deleting ? "Mažu, prosím čekejte" : "Ano"}
+                />
+                <Button
+                    disabled={deleting}
+                    label="Ne"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600"
+                    onClick={props.close}
+                />
+            </Row>
+        </Dialog>
+    );
+}
+
 function AnnouncementEdit() {
     const { announcementId } = useParams();
+    const navigate = useNavigate();
     const { teams, error: teamError, loading: teamLoading } = useTeams();
     const { data: announcement, error: announcementError } =
         useSWR<Announcement>(
-            () =>
-                announcementId ? `game/announcement/${announcementId}` : null,
+            () => (announcementId ? `/announcements/${announcementId}` : null),
             (url) =>
                 fetcher(url).then((a) => {
                     console.log(a);
@@ -187,13 +254,53 @@ function AnnouncementEdit() {
             />
         );
 
-    const handleSubmit = (data: Announcement) => {
+    const handleSubmit = (
+        data: Announcement,
+        { setErrors, setStatus, setSubmitting }: any
+    ) => {
         console.log(data);
+        setSubmitting(true);
+
+        const preparedData = {
+            appearDatetime: data.appearDatetime.toISOString(),
+            content: data.content,
+            type: data.type,
+            teams: data.teams,
+        };
+        console.log(preparedData);
+        let submit = announcementId
+            ? (data: any) =>
+                  axiosService.put(`/announcements/${announcementId}/`, data)
+            : (data: any) => axiosService.post(`/announcements/`, data);
+        submit(preparedData)
+            .then((response) => {
+                let data = response.data;
+                navigate("/announcements");
+                toast.success("Oznámení uloženo");
+            })
+            .catch((e) => {
+                if (e.response.status == 400) {
+                    setErrors(
+                        objectMap(e.response.data, (errors) =>
+                            errors.join(", ")
+                        )
+                    );
+                    toast.error(
+                        "Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte."
+                    );
+                } else {
+                    setStatus(e.toString());
+                    toast.error(e.toString());
+                }
+            })
+            .finally(() => {
+                setSubmitting(false);
+            });
     };
 
     const initialValues: Announcement = {
         id: -1,
-        author: "",
+        author: undefined,
         type: AnnouncementType.Normal,
         content: "",
         appearDatetime: new Date(),
@@ -225,6 +332,7 @@ function AnnouncementEdit() {
                         values={props.values}
                         setFieldValue={props.setFieldValue}
                         teams={teams}
+                        submitting={props.isSubmitting}
                     />
                 )}
             </Formik>
@@ -236,6 +344,7 @@ function AnnouncementEditForm(props: {
     values: Announcement;
     setFieldValue: (field: string, value: any, validate: boolean) => void;
     teams: Team[];
+    submitting: boolean;
 }) {
     const allTeams = () => {
         props.setFieldValue(
@@ -247,9 +356,10 @@ function AnnouncementEditForm(props: {
     const noTeams = () => {
         props.setFieldValue("teams", [], false);
     };
+    let { submitting, setFieldValue, ...otherProps } = props;
     return (
         <div className="w-full">
-            <Form {...props}>
+            <Form {...otherProps}>
                 <FormRow
                     label="Viditelné od:"
                     error={<ErrorMessage name="appearDatetime" />}
@@ -318,7 +428,7 @@ function AnnouncementEditForm(props: {
                             >
                                 <Field
                                     type="checkbox"
-                                    name="techs"
+                                    name="teams"
                                     value={t.id}
                                     className="checkboxinput align-middle"
                                 />
@@ -344,10 +454,13 @@ function AnnouncementEditForm(props: {
                     </div>
                 </FormRow>
                 <Button
+                    disabled={props.submitting}
                     className="my-5 w-full bg-purple-500 hover:bg-purple-600"
                     type="submit"
                     label={
-                        props.values.id != -1
+                        props.submitting
+                            ? "Odesílám..."
+                            : props.values.id
                             ? "Uložit změny"
                             : "Založit nové oznámení"
                     }

@@ -1,10 +1,7 @@
 from rest_framework import serializers
 from .models import DbTask, DbTaskPreference
 
-class IdRelatedField(serializers.SlugRelatedField):
-    def to_internal_value(self, data):
-        return data
-    # TBA validate that the ID exists
+from core.serializers.fields import IdRelatedField
 
 class DbTaskSerializer(serializers.ModelSerializer):
     techs = IdRelatedField(slug_field="techId",
