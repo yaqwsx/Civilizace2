@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import {
     Button,
@@ -10,11 +10,13 @@ import {
 } from "../elements";
 import { useEntities } from "../elements/entities";
 import { EditableTask, EntityTech, Task } from "../types";
-import { fetcher } from "../utils/axios";
+import axiosService, { fetcher } from "../utils/axios";
 import { combineErrors } from "../utils/error";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { number } from "yup";
 import { useState } from "react";
+import { objectMap } from "../utils/functional";
+import { toast } from "react-toastify";
+import { toDate } from "date-fns/esm";
 
 export function TasksMenu() {
     return null;
@@ -161,6 +163,7 @@ function sortTechs(techs: EntityTech[]) {
 
 function TaskEdit() {
     const { taskId } = useParams();
+    const navigate = useNavigate()
     const {
         data: techs,
         loading: techLoading,
@@ -180,8 +183,34 @@ function TaskEdit() {
             />
         );
 
-    const handleSubmit = (data: EditableTask) => {
+    const handleSubmit = (data: EditableTask, {setErrors, setStatus, setSubmitting}: any) => {
         console.log(data);
+        setSubmitting(true);
+        let submit = taskId
+            ? (data: any) => axiosService.put(`game/tasks/${taskId}/`, data)
+            : (data: any) => axiosService.post(`game/tasks/`, data);
+        submit(data).then( response => {
+            let data = response.data
+            navigate("/tasks");
+            if ( taskId ) {
+                toast.success(`Úloha ${data.name} (${data.id}) byla uložena`);
+            }
+            else {
+                toast.success(`Úloha ${data.name} (${data.id}) byla založena`);
+            }
+
+        }).catch( e => {
+            if ( e.response.status == 400 ) {
+                setErrors(objectMap(e.response.data, (errors) => errors.join(", ")));
+                toast.error("Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte.")
+            }
+            else {
+                setStatus(e.toString());
+                toast.error(e.toString());
+            }
+        }).finally( () => {
+            setSubmitting(false);
+        });
     };
 
     return (
@@ -200,7 +229,7 @@ function TaskEdit() {
                     />
                 </Link>
             </Row>
-            <Formik<EditableTask>
+            <Formik
                 initialValues={
                     task
                         ? task
@@ -221,6 +250,7 @@ function TaskEdit() {
                         values={props.values}
                         setFieldValue={props.setFieldValue}
                         techs={sortTechs(Object.values(techs))}
+                        submitting={props.isSubmitting}
                     />
                 )}
             </Formik>
@@ -232,6 +262,7 @@ function TaskEditForm(props: {
     values: EditableTask;
     setFieldValue: (field: string, value: any, validate: boolean) => void;
     techs: EntityTech[];
+    submitting: boolean;
 }) {
     const allTechs = () => {
         props.setFieldValue(
@@ -243,9 +274,10 @@ function TaskEditForm(props: {
     const noTechs = () => {
         props.setFieldValue("techs", [], false);
     };
+    let { submitting, setFieldValue, ...otherProps } = props;
     return (
         <div className="w-full">
-            <Form {...props}>
+            <Form {...otherProps}>
                 <FormRow
                     label="Název úkolu"
                     error={<ErrorMessage name="name" />}
@@ -322,10 +354,13 @@ function TaskEditForm(props: {
                     </div>
                 </FormRow>
                 <Button
+                    disabled={props.submitting}
                     className="my-5 w-full bg-purple-500 hover:bg-purple-600"
                     type="submit"
                     label={
-                        props.values.id ? "Uložit změny" : "Založit nový úkol"
+                        props.submitting
+                            ? "Odesílám..."
+                            :  props.values.id ? "Uložit změny" : "Založit nový úkol"
                     }
                 />
             </Form>

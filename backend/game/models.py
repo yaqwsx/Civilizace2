@@ -139,11 +139,16 @@ class DbState(models.Model):
 
 
 class DbTask(models.Model):
-    id = models.CharField(primary_key=True, max_length=32)
+    id = models.CharField(primary_key=True, max_length=32, null=False)
     name = models.TextField()
     capacity = models.IntegerField()
     orgDescription = models.TextField()
     teamDescription = models.TextField()
+
+    def save(self, *args, **kwargs):
+        if self.id is None or self.id == "":
+            self.id = f"ukol-{DbTask.objects.all().count() + 1}"
+        super().save(*args, **kwargs)
 
 class DbTaskAssignment(models.Model):
     class Meta:

@@ -158,6 +158,7 @@ export function Button(props: {
     onClick?: () => void;
     className?: string;
     type?: "button" | "submit" | "reset" | undefined;
+    disabled?: boolean;
 }) {
     const className = classNames(
         "rounded",
@@ -172,10 +173,11 @@ export function Button(props: {
         "focus:outline-none",
         "bg-purple-500",
         "hover:bg-purple-600",
+        "disabled:bg-gray-500",
         props.className
     );
     return (
-        <button className={className} onClick={props.onClick} type={props.type}>
+        <button disabled={props.disabled} className={className} onClick={props.onClick} type={props.type}>
             {props.label}
         </button>
     );

@@ -23,7 +23,7 @@ import {
     faIndustry,
     faFlask,
     faCubesStacked,
-    faStickyNote
+    faStickyNote,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +37,8 @@ import { Forbidden } from "./pages/forbidden";
 import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
 import { Announcements, AnnouncementsMenu } from "./pages/announcements";
+import { ToastProvider } from "./elements/toast";
+
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -57,6 +59,7 @@ function RequireOrg({ children }: RequireOrgProps) {
         <Navigate to="/forbidden" />
     );
 }
+
 
 function IconHamburger() {
     return (
@@ -182,7 +185,7 @@ function MenuItem(props: MenuItemProps) {
     };
 
     return (
-        <li className="my-2 mr-6 md:my-0 list-none">
+        <li className="my-2 mr-6 list-none md:my-0">
             <NavLink to={props.path} className={className}>
                 <FontAwesomeIcon
                     icon={props.icon}
@@ -220,10 +223,13 @@ function ApplicationMenu() {
             <Routes>
                 <Route path="/dashboard" element={<DashboardMenu />} />
                 <Route path="/rounds" element={<RoundsMenu />} />
-                <Route path="/vyrobas" element={<VyrobaMenu/>} />
-                <Route path="/techs" element={<TechMenu/>}/>
-                <Route path="/tasks/*" element={<TasksMenu/>}/>
-                <Route path="/announcements/*" element={<AnnouncementsMenu/>}/>
+                <Route path="/vyrobas" element={<VyrobaMenu />} />
+                <Route path="/techs" element={<TechMenu />} />
+                <Route path="/tasks/*" element={<TasksMenu />} />
+                <Route
+                    path="/announcements/*"
+                    element={<AnnouncementsMenu />}
+                />
             </Routes>
         </>
     );
@@ -294,7 +300,8 @@ export default function App() {
             <PersistGate persistor={persistor} loading={null}>
                 <Router>
                     <AppFrame>
-                        <ScannerDispatcher/>
+                        <ToastProvider/>
+                        <ScannerDispatcher />
                         <Routes>
                             <Route path="/login" element={<Login />} />
                             <Route path="/forbidden" element={<Forbidden />} />
