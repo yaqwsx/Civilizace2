@@ -1,4 +1,11 @@
-import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+    Link,
+    Navigate,
+    Route,
+    Routes,
+    useNavigate,
+    useParams,
+} from "react-router-dom";
 import useSWR from "swr";
 import {
     Button,
@@ -34,7 +41,7 @@ export function Tasks() {
 }
 
 function TasksOverview() {
-    const { data: tasks, error: taskError } = useSWR<EditableTask[]>(
+    const { data: tasks, error: taskError, mutate: mutateTasks } = useSWR<EditableTask[]>(
         "game/tasks",
         fetcher
     );
@@ -43,6 +50,16 @@ function TasksOverview() {
         loading: techLoading,
         error: techError,
     } = useEntities<EntityTech>("techs");
+
+    let handleDelete = (id: string) => {
+        let options = {
+            optimisticData: tasks?.filter(x => x.id != id)
+        };
+        let fetchNew = async () => {
+            return fetcher("/game/tasks")
+        }
+        mutateTasks(fetchNew, options);
+    }
 
     if (!tasks || taskError || techLoading || techError || !techs)
         return (
@@ -60,7 +77,7 @@ function TasksOverview() {
                 <Button label="Nový úkol" className="mx-0 my-2 w-full" />
             </Link>
             {tasks.map((t) => (
-                <TaskItem task={t} techs={techs} />
+                <TaskItem key={t.id} task={t} techs={techs} onDelete={() => handleDelete(t.id)} />
             ))}
         </>
     );
@@ -69,6 +86,7 @@ function TasksOverview() {
 function TaskItem(props: {
     task: EditableTask;
     techs: Record<string, EntityTech>;
+    onDelete: () => void;
 }) {
     const [dDialog, setdDialog] = useState(false);
 
@@ -126,34 +144,62 @@ function TaskItem(props: {
                     if (!t) return null;
                     return (
                         <div
-                            className="m-2 grow rounded bg-white p-1 shadow-lg border-2 border-gray-400"
+                            className="m-2 grow rounded border-2 border-gray-400 bg-white p-1 shadow-lg"
                             key={tid}
                         >
-                            <span className="mx-1 align-middle">
-                                {t.name}
-                            </span>
+                            <span className="mx-1 align-middle">{t.name}</span>
                         </div>
                     );
                 })}
             </Row>
             {dDialog ? (
-                <Dialog onClose={() => setdDialog(false)}>
-                    <h2>Skutečně smazat {props.task.name}?</h2>
-                    <Row className="my-4 flex">
-                        <Button
-                            label="Ano"
-                            className="flex-1"
-                            onClick={handleDelete}
-                        />
-                        <Button
-                            label="Ne"
-                            className="flex-1 bg-blue-500 hover:bg-blue-600"
-                            onClick={() => setdDialog(false)}
-                        />
-                    </Row>
-                </Dialog>
+                <DeleteDialog
+                    close={() => setdDialog(false)}
+                    task={props.task}
+                    onDelete={props.onDelete}
+                />
             ) : null}
         </div>
+    );
+}
+
+function DeleteDialog(props: { close: () => void; task: EditableTask; onDelete: () => void }) {
+    let [deleting, setDeleting] = useState<boolean>(false);
+
+    let handleDelete = () => {
+        setDeleting(true);
+        axiosService.delete(`game/tasks/${props.task.id}/`).then(data => {
+            props.onDelete();
+            props.close();
+            toast.success(`Úkol ${props.task.name} (${props.task.id}) byl smazán`);
+        }).catch(error => {
+            console.log("E", error)
+            if (error?.response?.status === "403") {
+                toast.error(error.response.data.detail);
+            } else {
+                toast.error(`Nastala neočekávaná chyba: ${error}`)
+            }
+        }).finally(() => {
+            props.close();
+        })
+    };
+
+    return (
+        <Dialog onClose={props.close}>
+            <h2>Skutečně smazat {props.task.name}?</h2>
+            <Row className="my-4 flex">
+                <Button
+                    disabled={deleting}
+                    className="flex-1" onClick={handleDelete}
+                    label={deleting ? "Mažu, prosím čekejte" : "Ano"}  />
+                <Button
+                    disabled={deleting}
+                    label="Ne"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600"
+                    onClick={props.close}
+                />
+            </Row>
+        </Dialog>
     );
 }
 
@@ -163,7 +209,7 @@ function sortTechs(techs: EntityTech[]) {
 
 function TaskEdit() {
     const { taskId } = useParams();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const {
         data: techs,
         loading: techLoading,
@@ -183,34 +229,47 @@ function TaskEdit() {
             />
         );
 
-    const handleSubmit = (data: EditableTask, {setErrors, setStatus, setSubmitting}: any) => {
+    const handleSubmit = (
+        data: EditableTask,
+        { setErrors, setStatus, setSubmitting }: any
+    ) => {
         console.log(data);
         setSubmitting(true);
         let submit = taskId
             ? (data: any) => axiosService.put(`game/tasks/${taskId}/`, data)
             : (data: any) => axiosService.post(`game/tasks/`, data);
-        submit(data).then( response => {
-            let data = response.data
-            navigate("/tasks");
-            if ( taskId ) {
-                toast.success(`Úloha ${data.name} (${data.id}) byla uložena`);
-            }
-            else {
-                toast.success(`Úloha ${data.name} (${data.id}) byla založena`);
-            }
-
-        }).catch( e => {
-            if ( e.response.status == 400 ) {
-                setErrors(objectMap(e.response.data, (errors) => errors.join(", ")));
-                toast.error("Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte.")
-            }
-            else {
-                setStatus(e.toString());
-                toast.error(e.toString());
-            }
-        }).finally( () => {
-            setSubmitting(false);
-        });
+        submit(data)
+            .then((response) => {
+                let data = response.data;
+                navigate("/tasks");
+                if (taskId) {
+                    toast.success(
+                        `Úloha ${data.name} (${data.id}) byla uložena`
+                    );
+                } else {
+                    toast.success(
+                        `Úloha ${data.name} (${data.id}) byla založena`
+                    );
+                }
+            })
+            .catch((e) => {
+                if (e.response.status == 400) {
+                    setErrors(
+                        objectMap(e.response.data, (errors) =>
+                            errors.join(", ")
+                        )
+                    );
+                    toast.error(
+                        "Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte."
+                    );
+                } else {
+                    setStatus(e.toString());
+                    toast.error(e.toString());
+                }
+            })
+            .finally(() => {
+                setSubmitting(false);
+            });
     };
 
     return (
@@ -360,7 +419,9 @@ function TaskEditForm(props: {
                     label={
                         props.submitting
                             ? "Odesílám..."
-                            :  props.values.id ? "Uložit změny" : "Založit nový úkol"
+                            : props.values.id
+                            ? "Uložit změny"
+                            : "Založit nový úkol"
                     }
                 />
             </Form>
