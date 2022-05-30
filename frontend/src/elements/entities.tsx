@@ -1,5 +1,5 @@
 import useSWR, { mutate } from "swr";
-import { EntityResource, Team, TeamEntityResource, TeamEntityTech } from "../types";
+import { Entity, EntityResource, Team, TeamEntityResource, TeamEntityTech } from "../types";
 import { fetcher } from "../utils/axios";
 import { useAtom } from "jotai";
 import { atomWithHash } from "jotai/utils";
@@ -10,6 +10,16 @@ export const urlEntityAtom = atomWithHash< string | undefined>("entity",
         serialize: x => x ? x : "",
         deserialize: x => x ? x : undefined
     });
+
+export function useTeamWork(team?: Team) {
+    const {data, error} = useSWR<Record<string, number>>(
+        () => team ? `game/teams/${team.id}/work` : null,
+        fetcher)
+    return {
+        teamWork: data ? data["work"] : null,
+        error: error
+    }
+}
 
 export function useTeamEntity<T>(entityType: string, team?: Team) {
     const {data, error, mutate} = useSWR<Record<string, T>>(
@@ -65,4 +75,18 @@ export function useTeamTechs(team?: Team) {
         techs: data,
         ...rest
     }
+}
+
+
+export function EntityMdTag({node}: any) {
+    let value = node.value;
+
+    const {data, error} = useSWR<Record<string, Entity>>("game/entities", fetcher);
+    let name = value[0];
+    if (data && data[value[0]].name)
+        name = data[value[0]].name;
+    if (value.length == 1)
+        return <>{name}</>
+    else
+        return <>`${value[1]}× ${name}`</>
 }

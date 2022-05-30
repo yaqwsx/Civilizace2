@@ -1,10 +1,10 @@
-from game.actions.actionBase import TeamActionBase, TeamActionArgs
+from game.actions.actionBase import TeamActionBase, ActionArgs
 from game.actions.armyDeploy import ArmyGoal
 from game.actions.common import ActionException, ActionCost, DebugException
 from game.entities import Tech, Team
 from game.state import ArmyId, ArmyState
 
-class ActionBoostArgs(TeamActionArgs):
+class ActionBoostArgs(ActionArgs):
     team: Team
     prestige: int
     boost: int

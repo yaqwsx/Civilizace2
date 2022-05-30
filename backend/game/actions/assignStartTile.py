@@ -1,9 +1,9 @@
-from game.actions.actionBase import TeamActionBase, TeamActionArgs
+from game.actions.actionBase import TeamActionBase, ActionArgs
 from game.state import HomeTile
 from game.entities import MapTileEntity
 from game.actions.common import ActionCost, ActionException
 
-class ActionAssignTileArgs(TeamActionArgs):
+class ActionAssignTileArgs(ActionArgs):
     index: int
 
 class ActionAssignTile(TeamActionBase):

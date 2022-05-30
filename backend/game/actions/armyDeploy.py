@@ -4,12 +4,12 @@ from typing import Optional
 from pydantic import BaseModel
 from game.entities import BASE_ARMY_STRENGTH
 
-from game.actions.actionBase import TeamActionArgs, TeamActionBase
+from game.actions.actionBase import ActionArgs, TeamActionBase
 from game.actions.common import ActionCost, ActionException, DebugException
 from game.entities import Team, MapTileEntity, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyId, ArmyState
 
-class ActionArmyDeployArgs(TeamActionArgs):
+class ActionArmyDeployArgs(ActionArgs):
     army: ArmyId
     tile: MapTileEntity
     goal: ArmyGoal

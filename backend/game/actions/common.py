@@ -1,7 +1,8 @@
 from __future__ import annotations
+from ctypes import Union
 
 from decimal import Decimal
-from game.entities import EntityId, ResourceBase
+from game.entities import Entity, EntityId, ResourceBase, Resource
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
@@ -40,8 +41,13 @@ class MessageBuilder(BaseModel):
     def addList(self, items: List[str]) -> None:
         self.add("\n".join(["- " + x for x in items]))
 
+    def addEntityDict(self, header: str, items: Dict[Entity, Union[int, float, Decimal]]):
+        with self.startList(header) as addLine:
+            for e, a in items.items():
+                addLine(f"<<{e.id}|{a}>>")
+
     def addListItem(self, item: str) -> None:
-        self.message += "\n" + item
+        self.message += "\n- " + item
 
     @property
     def empty(self) -> bool:
@@ -81,4 +87,49 @@ class ActionCost(BaseModel):
             raise ValueError("Nemůžu chtít puntíky a nespecifikovat kostky")
         return values
 
+    @property
+    def productions(self):
+        return {r: a for r, a in self.resources.items() if r.isProduction}
 
+    @property
+    def materials(self):
+        return {r: a for r, a in self.resources.items() if r.isMaterial}
+
+    def formatDice(self):
+        # Why isn't this in entities?
+        names = {
+            "die-lesy": "Lesní kostka",
+            "die-plane": "Planina kostka",
+            "die-hory": "Horská kostka"
+        }
+        if self.requiredDots == 0:
+            return "Akce nevyžaduje házení kostkou"
+        builder = MessageBuilder()
+        with builder.startList(f"Je třeba hodit {self.requiredDots} na jedné z:") as addDice:
+            for d in self.allowedDice:
+                addDice(names[d])
+        return builder.message
+
+class ActionResult(BaseModel):
+    message: str
+    reward: Dict[Resource, Decimal]
+    succeeded: bool
+
+    @property
+    def productions(self):
+        return {r: a for r, a in self.reward.items() if r.isProduction}
+
+    @property
+    def materials(self):
+        return {r: a for r, a in self.reward.items() if r.isMaterial}
+
+class InitiateResult(BaseModel):
+    materials: Dict[Resource, Decimal] = {}
+    missingProductions: Dict[Resource, Decimal] = {}
+
+    @property
+    def succeeded(self):
+        return len(self.missingProductions) == 0
+
+class CancelationResult(BaseModel):
+    materials: Dict[Resource, Decimal] = {}

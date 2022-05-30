@@ -232,6 +232,9 @@ class TeamState(StateModel):
     researching: Set[Tech] = set()
     armies: Dict[ArmyId, Army]
 
+    resources: Dict[Resource, Decimal]
+    storage: Dict[Resource, Decimal]
+
     def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
         dice = set()
         for unlock in entity.unlockedBy:
@@ -239,6 +242,13 @@ class TeamState(StateModel):
                 dice.add(unlock[1])
         return dice
 
+    @property
+    def work(self) -> Decimal:
+        # TBA: Think of a better way...
+        for r, a in self.resources.items():
+            if r.id == "res-prace":
+                return a
+        return 0
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
@@ -249,6 +259,13 @@ class TeamState(StateModel):
             blueCounter=0,
             techs=[entities["tec-start"]],
             armies=armies,
+            resources={
+                entities["res-prace"]: Decimal(50),
+                entities["pro-drevo"]: Decimal(20)
+            },
+            storage={
+                entities["mat-drevo"]: Decimal(10)
+            }
         )
 
 

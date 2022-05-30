@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import useSWR from "swr";
 import {
     FormRow,
@@ -11,13 +11,16 @@ import {
     CiviMarkdown,
     Dialog,
 } from "../elements";
+import { PerformAction } from "../elements/action";
 import { useTeamTechs } from "../elements/entities";
 import {
     useTeamFromUrl,
     TeamSelector,
     TeamRowIndicator,
 } from "../elements/team";
-import { Team, TeamEntityTech } from "../types";
+import { EntityTech, Task, Team, TeamEntityTech } from "../types";
+import { fetcher } from "../utils/axios";
+import { useEditableTasks } from "./tasks";
 
 export function TechMenu() {
     return null;
@@ -59,7 +62,7 @@ function sortTechs(techs: TeamEntityTech[]) {
 }
 
 function TechListing(props: { team: Team }) {
-    const { techs, loading, error } = useTeamTechs(props.team);
+    const { techs, loading, error, mutate } = useTeamTechs(props.team);
 
     if (loading || error || !techs)
         return (
@@ -80,35 +83,26 @@ function TechListing(props: { team: Team }) {
         Object.values(techs).filter((t) => t.status === "owned")
     );
 
-    console.log(techs);
-    console.log(researchingTechs);
-
     return (
         <>
-            <h2>
-                {props.team.name} aktuálně zkoumají:
-            </h2>
+            <h2>{props.team.name} aktuálně zkoumají:</h2>
             {researchingTechs ? (
-                <TechList team={props.team} techs={researchingTechs} />
+                <TechList team={props.team} techs={researchingTechs} onTaskMutation={mutate} />
             ) : (
                 <p>Tým {props.team.name} nic nezkoumá.</p>
             )}
-            <h2>
-                {props.team.name} mohou začít zkoumat:
-            </h2>
+            <h2>{props.team.name} mohou začít zkoumat:</h2>
             {availableTechs ? (
-                <TechList team={props.team} techs={availableTechs} />
+                <TechList team={props.team} techs={availableTechs} onTaskMutation={mutate} />
             ) : (
                 <p>
                     Tým {props.team.name} nemůže nic zkoumat. Ten je ale drný
                     nebo je to bug
                 </p>
             )}
-            <h2>
-                {props.team.name} mají vyzkoumáno:
-            </h2>
+            <h2>{props.team.name} mají vyzkoumáno:</h2>
             {ownedTechs ? (
-                <TechList team={props.team} techs={ownedTechs} />
+                <TechList team={props.team} techs={ownedTechs} onTaskMutation={mutate} />
             ) : (
                 <p>
                     Tým {props.team.name} nevlastní žádné technologie. Což je
@@ -119,21 +113,22 @@ function TechListing(props: { team: Team }) {
     );
 }
 
-function TechList(props: { team: Team; techs: TeamEntityTech[] }) {
+function TechList(props: { team: Team; techs: TeamEntityTech[];onTaskMutation: () => void } ) {
     return (
         <div className="pl-4">
             {props.techs.map((t) => (
-                <TechItem key={t.id} team={props.team} tech={t} />
+                <TechItem key={t.id} team={props.team} tech={t} onTaskMutation={props.onTaskMutation} />
             ))}
         </div>
     );
 }
 
-function TechItem(props: { team: Team; tech: TeamEntityTech }) {
+function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () => void }) {
     const [taskShown, setTaskShown] = useState<boolean>(false);
     const [changeTaskShown, setChangeTaskShown] = useState<boolean>(false);
     const [finishTaskShown, setFinishTaskShown] = useState<boolean>(false);
     const [startTaskShown, setStartTaskShown] = useState<boolean>(false);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const toggleTask = () => setTaskShown(!taskShown);
     const toggleChangeTask = () => setChangeTaskShown(!changeTaskShown);
@@ -144,7 +139,7 @@ function TechItem(props: { team: Team; tech: TeamEntityTech }) {
 
     return (
         <>
-            <div className="my-2 flex w-full flex-wrap rounded bg-white shadow py-2 px-4">
+            <div className="my-2 flex w-full flex-wrap rounded bg-white py-2 px-4 shadow">
                 <div className="my-2 w-full align-middle md:w-1/3">
                     <span className="mr-3 align-middle text-xl">
                         {tech.name}
@@ -173,10 +168,13 @@ function TechItem(props: { team: Team; tech: TeamEntityTech }) {
                             />
                             <Button
                                 label={
-                                    taskShown ? "Skrýt úkol" : "Zobrazit úkol"
+                                    tech?.assignedTask
+                                        ? (taskShown ? "Skrýt úkol" : "Zobrazit úkol")
+                                        : "Nebyl zadán úkol"
                                 }
                                 onClick={toggleTask}
                                 className="mr-0 bg-blue-500 hover:bg-blue-600"
+                                disabled={!tech?.assignedTask}
                             />
                         </>
                     ) : null}
@@ -216,16 +214,133 @@ function TechItem(props: { team: Team; tech: TeamEntityTech }) {
                         </div>
                     </div>
                 ) : null}
+                { taskShown && !tech.assignedTask ? (
+                    <p className="w-full text-center my-3">Nebyl zadán žádný úkol</p>
+                ) : null}
             </div>
             {changeTaskShown ? (
                 <Dialog onClose={toggleChangeTask}>Změnit úlohu</Dialog>
             ) : null}
             {finishTaskShown ? (
-                <Dialog onClose={toggleFinishTask}>Dokončit úlohu</Dialog>
+                <Dialog onClose={toggleFinishTask}><PerformAction
+                        actionName={`Dokončit zkoumání ${tech.name} pro ${props.team.name}`}
+                        actionId="ActionResearchFinish"
+                        actionArgs={{
+                            tech: tech.id,
+                            team: props.team.id,
+                        }}
+                        onFinish={() => {
+                            toggleFinishTask();
+                            props.onTaskMutation();
+                        }}
+                        onBack={toggleFinishTask}
+                        team={props.team}
+                    />
+                </Dialog>
             ) : null}
             {startTaskShown ? (
-                <Dialog onClose={toggleStartTask}>Začít úlohu</Dialog>
+                <Dialog onClose={toggleStartTask}>
+                    <PerformAction
+                        actionName={`Začít zkoumat ${tech.name} pro ${props.team.name}`}
+                        actionId="ActionResearchStart"
+                        actionArgs={{
+                            tech: tech.id,
+                            team: props.team.id,
+                            task: selectedTask ? selectedTask.id : null,
+                        }}
+                        extraPreview={
+                            <SelectTaskForTechForm
+                                team={props.team}
+                                tech={tech}
+                                selectedTask={selectedTask}
+                                onChange={(t) => setSelectedTask(t)}
+                            />
+                        }
+                        onFinish={() => {
+                            toggleStartTask();
+                            props.onTaskMutation();
+                        }}
+                        onBack={toggleStartTask}
+                        team={props.team}
+                    />
+                </Dialog>
             ) : null}
+        </>
+    );
+}
+
+function TaskSelectRow(props: { team: Team; task: Task }) {
+    let assigned = false;
+    props.task.assignments.forEach(x => {
+        if (x.team == props.team.id)
+            assigned = true;
+    })
+    return <option value={props.task.id}>
+        {props.task.id}: {props.task.name}
+        ({props.task.occupiedCount}/{props.task.capacity})
+        { assigned ? `${props.team.name} – už úkol absolvovali` : "" }
+    </option>;
+}
+
+function SelectTaskForTechForm(props: {
+    team: Team;
+    tech: EntityTech;
+    selectedTask: Task | null;
+    onChange: (t: Task) => void;
+}) {
+    const { data: tasks, error: taskError } = useSWR<Record<string, Task>>(
+        `/game/teams/${props.team.id}/tasks`, fetcher
+    );
+
+    if (!tasks) {
+        return (
+            <LoadingOrError
+                loading={!taskError && !tasks}
+                error={taskError}
+                message={"Nemůžu načíst úkoly ze serveru. Zkouším znovu"}
+            />
+        );
+    }
+
+    let recommendedTechs = Object.values(tasks).filter((t) => {
+        if (t.occupiedCount >= t.capacity) return false;
+        if (!t.techs?.includes(props.tech.id)) return false;
+        if (t.assignments.map((x) => x.team).includes(props.team.id))
+            return false;
+        return true;
+    });
+
+    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        props.onChange(tasks[event.target.value]);
+    };
+
+    return (
+        <>
+            <h1>Vyberte úkol</h1>
+            <FormRow label="Doporučené úkoly">
+                <select
+                    value={String(props.selectedTask?.id)}
+                    onChange={handleChange}
+                    className="select"
+                >
+                    <option>Nevybráno</option>
+                    {recommendedTechs.map((t) => (
+                        <TaskSelectRow key={t.id} team={props.team} task={t} />
+                    ))}
+                </select>
+            </FormRow>
+            <FormRow label="Všechny úkoly (pokud doporučený nevyhovuje)">
+                <select
+                    value={String(props.selectedTask?.id)}
+                    onChange={handleChange}
+                    className="select"
+                >
+                    <option>Nevybráno</option>
+                    {Object.values(tasks).map((t) => (
+                        <TaskSelectRow key={t.id} team={props.team} task={t} />
+                    ))}
+                </select>
+            </FormRow>
         </>
     );
 }

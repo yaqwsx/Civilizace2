@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Any, Tuple, Dict
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 
@@ -7,10 +7,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from core.serializers.team import TeamSerializer
-from game.entities import Entities, Tech
+from game.entities import Entities, Entity, Tech
 from game.gameGlue import serializeEntity
 
-from game.models import DbEntities, DbState, DbTaskAssignment
+from game.models import DbEntities, DbState, DbTask, DbTaskAssignment
+from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import TeamState
 
 from core.models import Team as DbTeam
@@ -36,7 +37,7 @@ class EntityViewSet(viewsets.ViewSet):
         return self._list("all")
 
     def _list(self, entityType):
-        entities = DbEntities.objects.get_revision()
+        entities = DbEntities.objects.get_revision()[1]
         subset = getattr(entities, entityType)
         return Response({id: serializeEntity(e) for id, e in subset.items()})
 
@@ -68,7 +69,25 @@ class TeamViewSet(viewsets.ViewSet):
 
     @action(detail=True)
     def resources(self, request, pk):
-        raise NotImplementedError("TBA")
+        self.validateAccess(request.user, pk)
+        entities = DbEntities.objects.get_revision()[1]
+        resources = self.getTeamState(pk).resources
+
+        def enrich(entity: Entity) -> Dict[str, Any]:
+            return {"available": resources.get(entity.id, 0)}
+
+        return Response({id: serializeEntity(e, enrich) for id, e in entities.resources.items()})
+
+    @action(detail=True)
+    def vyrobas(self, request, pk):
+        self.validateAccess(request.user, pk)
+        vyrobas = set()
+        for t in self.getTeamState(pk).techs:
+            vyrobas.update(t.unlocksVyrobas)
+        vList = list(vyrobas)
+        vList.sort(key=lambda x: x.id)
+        return Response({e.id: serializeEntity(e) for e in vList})
+
 
     @action(detail=True)
     def techs(self, request, pk):
@@ -87,9 +106,10 @@ class TeamViewSet(viewsets.ViewSet):
             if tech in state.techs:
                 return { "status": "owned" }
             if tech in state.researching:
-                assignment = DbTaskAssignment.objects\
-                    .get(team=team, techId=tech, finishedAt=None)
-                if assignment is None:
+                try:
+                    assignment = DbTaskAssignment.objects\
+                        .get(team=team, techId=tech.id, finishedAt=None)
+                except DbTaskAssignment.DoesNotExist:
                     return { "status": "researching" }
                 task = assignment.task
                 return {
@@ -109,6 +129,22 @@ class TeamViewSet(viewsets.ViewSet):
 
     @action(detail=True)
     def tasks(self, request, pk):
-        raise NotImplementedError("TBA")
+        self.validateAccess(request.user, pk)
+        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        if request.user.isOrg:
+            taskSet = DbTask.objects.all()
+            serializer = DbTaskSerializer
+        else:
+            taskSet = DbTask.objects.filter(assignments__team=team.pk)
+            serializer = PlayerDbTaskSerializer
 
+        return Response({t.id: serializer(t).data for t in taskSet})
 
+    @action(detail=True)
+    def work(self, request, pk):
+        self.validateAccess(request.user, pk)
+        state = self.getTeamState(pk)
+
+        return Response({
+            "work": state.work
+        })

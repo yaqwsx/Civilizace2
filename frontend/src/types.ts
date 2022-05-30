@@ -46,13 +46,19 @@ export interface EntityVyroba extends EntityWithCost {
     reward: [ResourceId, number];
     points: number;
     unlockedBy: [EntityId, DieId][];
-    techs: TechId[];
 }
 
 export enum TechStatus {
     Owned = "owned",
     Researching = "researching",
     Available = "available"
+}
+
+export interface TaskAssignment {
+    team: string;
+    techId: string;
+    assignedAt: Date;
+    finishedAt?: Date;
 }
 
 export interface Task {
@@ -62,9 +68,7 @@ export interface Task {
     orgDescription?: string; // Available only for orgs
     capacity: number;
     occupiedCount: number;
-}
-
-export interface EditableTask extends Task {
+    assignments: TaskAssignment[];
     techs: TechId[];
 }
 
@@ -116,4 +120,21 @@ export interface Round {
 
 export interface RoundSentinel {
     seq: number;
+}
+
+export enum ActionStatus {
+    Success = "success",
+    Fail = "fail"
+}
+
+
+export interface ActionResponse {
+    success: boolean;
+    message: string;
+    action?: Number;
+}
+
+export interface ActionCommitResponse {
+    dotsRequired: Number;
+    allowedDice: string[];
 }

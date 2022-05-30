@@ -1,8 +1,10 @@
-from game.actions.actionBase import TeamActionBase
+from game.actions.actionBase import ActionArgs, TeamActionBase
 from game.actions.common import ActionException, ActionCost, ActionException
 from game.actions.researchStart import ActionResearchArgs
+from game.entities import Tech
 
-ActionResearchFinishArgs = ActionResearchArgs
+class ActionResearchFinishArgs(ActionArgs):
+    tech: Tech
 
 class ActionResearchFinish(TeamActionBase):
     args: ActionResearchFinishArgs

@@ -1,9 +1,9 @@
 from typing import Dict
-from game.actions.actionBase import TeamActionBase, TeamActionArgs
+from game.actions.actionBase import TeamActionBase, ActionArgs
 from game.actions.common import ActionCost
 from game.entities import Vyroba, ResourceGeneric, Resource
 
-class ActionVyrobaArgs(TeamActionArgs):
+class ActionVyrobaArgs(ActionArgs):
     vyroba: Vyroba
     count: int
     genericProductions: Dict[ResourceGeneric, Resource]

@@ -2,7 +2,7 @@ from __future__ import annotations
 import decimal
 import json
 from enumfields import EnumField
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from django.db import models
 from django.db.models import QuerySet
 from pydantic import BaseModel
@@ -23,18 +23,18 @@ class DbEntitiesManager(models.Manager):
     def get_queryset(self) -> QuerySet[DbEntities]:
         return super().get_queryset().defer("data")
 
-    def get_revision(self, revision: Optional[int]=None) -> Entities:
+    def get_revision(self, revision: Optional[int]=None) -> Tuple[int, Entities]:
         if revision is None:
             revision = self.latest("id").id
         if revision in self.cache:
-            return self.cache[revision]
+            return revision, self.cache[revision]
         dbEntities = self.get(id=revision)
 
         def reportError(msg: str):
             raise RuntimeError(msg)
         entities = parseEntities(dbEntities.data, reportError=reportError).gameOnlyEntities
         self.cache[revision] = entities
-        return entities
+        return revision, entities
 
 class DbEntities(models.Model):
     """
@@ -52,7 +52,8 @@ class DbAction(models.Model):
     """
     actionType = models.CharField("actionType",max_length=64, null=False)
     entitiesRevision = models.IntegerField()
-    data = JSONField("data")
+    args = JSONField("data")
+    cost = JSONField("cost")
 
 class InteractionType(Enum):
     initiate = 0
@@ -64,9 +65,9 @@ class InteractionType(Enum):
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     phase = EnumField(InteractionType)
-    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False)
+    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False, related_name="interactions")
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
-    workConsumed = models.IntegerField()
+    workConsumed = models.IntegerField(default=0)
 
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
@@ -84,7 +85,7 @@ class DbMapState(models.Model):
 class DbStateManager(models.Manager):
     def createFromIr(self, ir: GameState) -> DbState:
         mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
-        state = self.create(turn=ir.turn, mapState=mapState, action=None)
+        state = self.create(turn=ir.turn, mapState=mapState, interaction=None)
         for t, ts in ir.teamStates.items():
             dbTs = DbTeamState.objects.create(
                 team=Team.objects.get(id=t.id),
@@ -94,12 +95,18 @@ class DbStateManager(models.Manager):
         return state
 
 class DbState(models.Model):
+    class Meta:
+        get_latest_by = "id"
     turn = models.IntegerField()
     mapState = models.ForeignKey(DbMapState, on_delete=models.PROTECT, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
-    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=True)
+    interaction = models.ForeignKey(DbInteraction, on_delete=models.PROTECT, null=True)
 
     objects = DbStateManager()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._teamStates = []
 
     def toIr(self) -> GameState:
         entities = self.entities
@@ -128,14 +135,31 @@ class DbState(models.Model):
                 self.dirty = True
                 ts.id = None
                 ts.data = sTs
+            self._teamStates.append(ts)
         if dirty:
             self.id = None
 
+    def save(self, *args, **kwargs):
+        if self.mapState.id is None:
+            self.mapState.save()
+        for t in self._teamStates:
+            if t.id is None:
+                t.save()
+        super().save(*args, **kwargs)
+        for t in self._teamStates:
+            self.teamStates.add(t)
+        self._teamStates = []
+
+
     @property
     def entities(self):
-        if self.action is None:
-            return DbEntities.objects.get_revision()
-        return DbEntities.objects.get_revision(self.action.entitiesRevision)
+        if self.interaction is None:
+            return DbEntities.objects.get_revision()[1]
+        return DbEntities.objects.get_revision(self.interaction.action.entitiesRevision)[1]
+
+class DbTaskManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("techs")
 
 
 class DbTask(models.Model):
@@ -145,10 +169,16 @@ class DbTask(models.Model):
     orgDescription = models.TextField()
     teamDescription = models.TextField()
 
+    objects = DbTaskManager()
+
     def save(self, *args, **kwargs):
         if self.id is None or self.id == "":
             self.id = f"ukol-{DbTask.objects.all().count() + 1}"
         super().save(*args, **kwargs)
+
+    @property
+    def occupiedCount(self):
+        return self.assignments.filter(finishedAt=None).count()
 
 class DbTaskAssignment(models.Model):
     class Meta:
@@ -156,10 +186,11 @@ class DbTaskAssignment(models.Model):
             models.UniqueConstraint(fields=['team', 'task', 'techId'], name='unique_assignment')
         ]
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    task = models.ForeignKey(DbTask, on_delete=models.CASCADE)
+    task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="assignments")
     techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now=True)
     finishedAt = models.DateTimeField(null=True)
+    abandoned = models.BooleanField(default=False)
 
 class DbTaskPreference(models.Model):
     class Meta:

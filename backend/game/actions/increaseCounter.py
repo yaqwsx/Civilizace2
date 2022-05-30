@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from game.actions.actionBase import TeamActionBase, TeamActionArgs
+from game.actions.actionBase import TeamActionBase, ActionArgs
 from game.entities import Resource
 from game.actions.common import ActionCost, ActionException, MessageBuilder, ActionException
 from typing import Optional
@@ -9,7 +9,7 @@ from typing import Optional
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
 # the player sacrificed to gods) and then it gains some blue counter
 
-class ActionIncreaseCounterArgs(TeamActionArgs):
+class ActionIncreaseCounterArgs(ActionArgs):
     red: Decimal
     resource: Optional[Resource]=None
 

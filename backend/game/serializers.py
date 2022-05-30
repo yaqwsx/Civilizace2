@@ -1,21 +1,28 @@
 from rest_framework import serializers
-from .models import DbTask, DbTaskPreference
+from .models import DbTask, DbTaskPreference, DbTaskAssignment
 
 from core.serializers.fields import IdRelatedField
+
+class DbTaskAssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DbTaskAssignment
+        fields = ["team", "techId", "assignedAt", "finishedAt"]
 
 class DbTaskSerializer(serializers.ModelSerializer):
     techs = IdRelatedField(slug_field="techId",
             many=True,
             read_only=False,
             queryset=DbTaskPreference.objects.all())
+    assignments = DbTaskAssignmentSerializer(many=True)
+    occupiedCount = serializers.IntegerField()
     class Meta:
         model = DbTask
         fields = "__all__"
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "assignments", "occupiedCount"]
 
     @staticmethod
     def _withoutTechs(data):
-        return {k: v for k, v in data.items() if k != "techs"}
+        return {k: v for k, v in data.items() if k not in ["techs", "assignments"]}
 
     def create(self, validated_data):
         task = DbTask.objects.create(**self._withoutTechs(validated_data))
@@ -32,3 +39,7 @@ class DbTaskSerializer(serializers.ModelSerializer):
         for tech in validated_data["techs"]:
             DbTaskPreference.objects.get_or_create(task=retval, techId=tech)
         return retval
+
+class PlayerDbTaskSerializer(DbTaskSerializer):
+    class Meta(DbTaskSerializer.Meta):
+        fields = ["id", "name", "teamDescription", "assignments"]

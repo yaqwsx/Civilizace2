@@ -1,16 +1,11 @@
-from typing import Dict
+from typing import Dict, Optional
 from collections import defaultdict
 from decimal import Decimal
 from pydantic import BaseModel
-from game.actions.common import ActionCost, ActionCost, ActionException, MessageBuilder
+from game.actions.common import ActionCost, ActionCost, ActionException, ActionResult, CancelationResult, InitiateResult, MessageBuilder
 from game.entities import Entities, Resource, Team
 
 from game.state import GameState, TeamState
-
-class ActionResult(BaseModel):
-    message: MessageBuilder
-    reward: Dict[Resource, Decimal]
-    succeeded: bool
 
 class ActionBase(BaseModel):
     class Config:
@@ -29,42 +24,116 @@ class ActionBase(BaseModel):
     def cost(self) -> ActionCost:
         return ActionCost()
 
-    def commit(self) -> ActionResult:
+    def initiate(self, cost: Optional[ActionCost]) -> InitiateResult:
+        raise NotImplementedError("ActionBase is an interface")
+
+    def commit(self, cost: Optional[ActionCost]=None) -> ActionResult:
         # Reward was not given to the team yet. Assuming that happens outside action, same as with postponed()
         self.errors = MessageBuilder()
         self.info = MessageBuilder()
-        cost = self.cost()
+
+        if cost is None:
+            cost = self.cost()
 
         self.info.add(self.commitInternal())
         if cost.postpone == 0:
             self.info.add(self.delayedInternal())
 
         if not self.errors.empty:
-            return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
-        return ActionResult(message=self.info, reward=self.reward, succeeded=True)
+            return ActionResult(message=self.errors.message, reward=self.reward, succeeded=False)
+        return ActionResult(message=self.info.message, reward=self.reward, succeeded=True)
+
+    def abandon(self, cost: Optional[ActionCost]) -> CancelationResult:
+        raise NotImplementedError("ActionBase is an interface")
+
+    def cancel(self, cost: Optional[ActionCost]) -> CancelationResult:
+        raise NotImplementedError("ActionBase is an interface")
 
     def commitInternal(self) -> str:
-        raise NotImplementedError("ActionBae is an interface")
+        raise NotImplementedError("ActionBase is an interface")
 
     def delayed(self) -> ActionResult:
         self.errors = MessageBuilder()
         self.info = MessageBuilder()
         self.info.add(self.delayedInternal())
         if not self.errors.empty:
-            return ActionResult(message=self.errors, reward=self.reward, succeeded=False)
-        return ActionResult(message=self.info, reward=self.reward, succeeded=True)
+            return ActionResult(message=self.errors.message, reward=self.reward, succeeded=False)
+        return ActionResult(message=self.info.message, reward=self.reward, succeeded=True)
 
     def delayedInternal(self) -> str:
         pass
+
+    def payWork(self, amount: int) -> bool:
+        """
+        Try to pay work, return if we succeeded
+        """
+        if amount != 0:
+            raise ActionException("Chce se zaplatit práce na akci, která není týmová")
+        return True
+
+    def commitReward(self, r: Dict[Resource, Decimal]) -> None:
+        """
+        Award resources for the action
+        """
+        if len(r) != 0:
+            raise ActionException("Chce se odměňovat na akci, která není týmová")
+
 
 class TeamActionBase(ActionBase):
     @property
     def teamState(self) -> TeamState:
         return self.state.teamStates[self.args.team]
 
-class ActionArgs(BaseModel):
-    pass
+    @property
+    def team(self) -> Team:
+        return self.args.team
 
-class TeamActionArgs(ActionArgs):
-    team: Team
+    def initiate(self, cost: Optional[ActionCost]) -> InitiateResult:
+        if self.team is None or cost is None:
+            return InitiateResult()
+        result = InitiateResult()
+        tState = self.state.teamStates[self.team]
+        productions = {r: a for r, a in cost.resources.items() if r.isProduction}
+        for r, required in productions:
+            available = tState.resources.get(r, 0)
+            if available < required:
+                result.missingProductions[r, required - available]
+        if not result.succeeded:
+            return result
+        for r, required in productions:
+            tState.resources[r] -= required
+        result.materials = {r: a for r, a in cost.resources.items() if r.isMaterial}
+        return result
+
+    def abandon(self, cost: Optional[ActionCost]) -> CancelationResult:
+        if self.team is None or cost is None:
+            return CancelationResult()
+        tState = self.state.teamStates[self.team]
+        productions = {r: a for r, a in cost.resources.items() if r.isProduction}
+        for r, required in productions:
+            tState.resources[r] += required
+        return CancelationResult()
+
+    def cancel(self, cost: Optional[ActionCost]) -> CancelationResult:
+        if self.team is None or cost is None:
+            return CancelationResult()
+        result = self.abandon(self.team, cost)
+        result.materials = {r: a for r, a in cost.resources.items() if r.isMaterial}
+        return result
+
+    def payWork(self, amount: int) -> bool:
+        currentWork = self.teamState.resources.get(self.entities.work, 0)
+        if currentWork - amount < 0:
+            return False
+        self.teamState.resources[self.entities.work] = currentWork - amount
+        return True
+
+    def commitReward(self, rew: Dict[Resource, Decimal]) -> None:
+        for r, a in rew.items():
+            if not r.isProduction:
+                raise ActionException("Je chtěno se odměnit něčím, co není produkce. Řekni to Maarovi")
+            self.teamState.resources[r] = self.teamState.resources.get(r, 0) + a
+
+class ActionArgs(BaseModel):
+    team: Optional[Team]
 

@@ -1,11 +1,17 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { Team, UserResponse } from "../types";
 import { fetcher } from "../utils/axios";
 import { ThreeDots } from "react-loader-spinner";
-import classNames from "classnames";
+import classNamesOriginal from "classnames";
 import ReactMarkdown from "react-markdown";
-import { JsxElement } from "typescript";
+import { overrideTailwindClasses } from "tailwind-override";
+
+import React from "react";
+import { EntityMdTag } from "./entities";
+
+export const classNames = (...args: any) =>
+    overrideTailwindClasses(classNamesOriginal(...args));
 
 // Avoid purging team background colors
 let teamColorPlaceholder = [
@@ -52,13 +58,13 @@ export function FormRow(props: FormRowProps) {
     return (
         <div className={className}>
             <div className="py-1 md:w-1/4">
-                <label className="mb-1 block pr-4 font-bold text-gray-500 md:mb-0 md:text-right w-full">
+                <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
                     {props.label}
                 </label>
                 <div className="mb-1 block w-full text-red-600 md:mb-0 md:text-right">
                     {props.error ? props.error : null}
                 </div>
-                <div className="mb-1 block pr-4 md:mb-0 md:text-right w-full">
+                <div className="mb-1 block w-full pr-4 md:mb-0 md:text-right">
                     {props.extra ? props.extra : null}
                 </div>
             </div>
@@ -159,6 +165,7 @@ export function Button(props: {
     className?: string;
     type?: "button" | "submit" | "reset" | undefined;
     disabled?: boolean;
+    style?: React.CSSProperties;
 }) {
     const className = classNames(
         "rounded",
@@ -177,14 +184,65 @@ export function Button(props: {
         props.className
     );
     return (
-        <button disabled={props.disabled} className={className} onClick={props.onClick} type={props.type}>
+        <button
+            disabled={props.disabled}
+            className={className}
+            onClick={props.onClick}
+            type={props.type ? props.type : "button"}
+            style={props.style}
+        >
             {props.label}
         </button>
     );
 }
 
+function reconstructCiviMark(tree: any) {
+    if (!tree?.children) return;
+    for (var i = 0; i < tree.children.length; i++) {
+        reconstructCiviMark(tree.children[i]);
+    }
+    for (var i = 1; i < tree.children.length - 1; i++) {
+        let prevNode = tree.children[i - 1];
+        let node = tree.children[i];
+        let nextNode = tree.children[i + 1];
+        if (node.type == "raw") {
+            if (prevNode.type != "text" || nextNode.type != "text") continue;
+            if (
+                !prevNode.value.endsWith("<") ||
+                !nextNode.value.startsWith(">")
+            )
+                continue;
+            prevNode.value = prevNode.value.slice(0, -1);
+            nextNode.value = nextNode.value.slice(1, nextNode.value.length);
+            node.type = "element";
+            node.tagName = "EntityMdTag";
+            node.value = node.value
+                .slice(1, -1)
+                .split("|")
+                // @ts-ignore
+                .map((x) => x.trim());
+            node.children = [];
+        }
+    }
+}
+
+export function civiMdPlugin() {
+    // @ts-ignore
+    return (tree, file) => {
+        reconstructCiviMark(tree);
+    };
+}
+
 export function CiviMarkdown(props: any) {
-    return <ReactMarkdown {...props} />;
+    return (
+        <ReactMarkdown
+            rehypePlugins={[civiMdPlugin]}
+            components={{
+                EntityMdTag,
+            }}
+            {...props}
+        />
+    );
 }
 
 export function CloseButton(props: {
@@ -214,7 +272,7 @@ export function CloseButton(props: {
         >
             <span className="sr-only">Close</span>
             <svg
-                className="h-4 w-4"
+                className={classNames("h-8 w-8 md:h-4 md:w-4")}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -259,11 +317,12 @@ export function Dialog(props: { children: any; onClose: () => void }) {
         <>
             <div className="fixed inset-0 z-30 h-screen w-screen bg-black opacity-50"></div>
             <div
-                className="fixed inset-0 z-50 h-screen w-screen py-5 px-2 grid place-items-center"
+                className="fixed inset-0 z-50 grid h-screen w-screen place-items-center py-1 px-1"
                 onClick={props.onClose}
             >
                 <div
-                    className="container mx-auto flex max-h-full flex-col rounded bg-white p-5"
+                    className="container mx-auto flex max-h-full flex-col rounded bg-white p-2 pt-0"
+                    style={{overflowY: "scroll", overflowX: "clip"}}
                     onClick={(e) => {
                         e.stopPropagation();
                     }}
@@ -274,11 +333,21 @@ export function Dialog(props: { children: any; onClose: () => void }) {
                             className="flex-none"
                         />
                     </div>
-                    <div className="w-full flex-1 overflow-y-auto">
+                    <div className="w-full flex-1 px-3">
                         {props.children}
                     </div>
                 </div>
             </div>
         </>
     );
+}
+
+
+export function useFocus(): any {
+    const htmlElRef = useRef<any>(null);
+
+    const setFocus = () => {
+        htmlElRef?.current &&  htmlElRef.current.focus();
+    };
+    return [ htmlElRef, setFocus ];
 }

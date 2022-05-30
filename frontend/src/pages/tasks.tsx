@@ -16,7 +16,7 @@ import {
     Row,
 } from "../elements";
 import { useEntities } from "../elements/entities";
-import { EditableTask, EntityTech, Task } from "../types";
+import { EntityTech, Task } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { combineErrors } from "../utils/error";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -24,6 +24,7 @@ import { useState } from "react";
 import { objectMap } from "../utils/functional";
 import { toast } from "react-toastify";
 import { toDate } from "date-fns/esm";
+import { data } from "autoprefixer";
 
 export function TasksMenu() {
     return null;
@@ -40,11 +41,15 @@ export function Tasks() {
     );
 }
 
-function TasksOverview() {
-    const { data: tasks, error: taskError, mutate: mutateTasks } = useSWR<EditableTask[]>(
+export function useEditableTasks() {
+    return useSWR<Task[]>(
         "game/tasks",
         fetcher
     );
+}
+
+function TasksOverview() {
+    const { data: tasks, error: taskError, mutate: mutateTasks } = useEditableTasks();
     const {
         data: techs,
         loading: techLoading,
@@ -84,7 +89,7 @@ function TasksOverview() {
 }
 
 function TaskItem(props: {
-    task: EditableTask;
+    task: Task;
     techs: Record<string, EntityTech>;
     onDelete: () => void;
 }) {
@@ -159,7 +164,7 @@ function TaskItem(props: {
     );
 }
 
-function DeleteDialog(props: { close: () => void; task: EditableTask; onDelete: () => void }) {
+function DeleteDialog(props: { close: () => void; task: Task; onDelete: () => void }) {
     let [deleting, setDeleting] = useState<boolean>(false);
 
     let handleDelete = () => {
@@ -211,7 +216,7 @@ function TaskEdit() {
         loading: techLoading,
         error: techError,
     } = useEntities<EntityTech>("techs");
-    const { data: task, error: taskError } = useSWR<EditableTask>(
+    const { data: task, error: taskError } = useSWR<Task>(
         () => (taskId ? `game/tasks/${taskId}` : null),
         fetcher
     );
@@ -226,7 +231,7 @@ function TaskEdit() {
         );
 
     const handleSubmit = (
-        data: EditableTask,
+        data: Task,
         { setErrors, setStatus, setSubmitting }: any
     ) => {
         setSubmitting(true);
@@ -295,6 +300,7 @@ function TaskEdit() {
                               capacity: 5,
                               occupiedCount: 0,
                               techs: [],
+                              assignments: []
                           }
                 }
                 onSubmit={handleSubmit}
@@ -313,7 +319,7 @@ function TaskEdit() {
 }
 
 function TaskEditForm(props: {
-    values: EditableTask;
+    values: Task;
     setFieldValue: (field: string, value: any, validate: boolean) => void;
     techs: EntityTech[];
     submitting: boolean;

@@ -1,10 +1,10 @@
-from game.actions.actionBase import TeamActionBase, TeamActionArgs
+from game.actions.actionBase import TeamActionBase, ActionArgs
 from game.actions.armyDeploy import ArmyGoal
 from game.actions.common import ActionException, ActionCost, DebugException
 from game.entities import Tech, Team
 from game.state import ArmyId, ArmyState
 
-class ActionRetreatArgs(TeamActionArgs):
+class ActionRetreatArgs(ActionArgs):
     team: Team
     prestige: int
 
@@ -25,7 +25,7 @@ class ActionRetreat(TeamActionBase):
             raise ActionException("Armáda <<{}>> se přesouvá na pole <<{}>>, takže ji nelze stáhnout.".format(self.args.armyId))
         if army.boost >= 0:
             raise ActionException("Nelze stáhnout armádu <<{}>> těsně před soubojem.".format(army.id))
-        
+
         tile = self.state.map.tiles.get(army.tile)
         for inboundId in tile.inbound:
             inbound = self.state.getArmy(inboundId)
@@ -33,5 +33,5 @@ class ActionRetreat(TeamActionBase):
                 raise ActionException("Nelze stáhnout armádu <<{}>> těsně před soubojem.".format(army.id))
 
         self.reward[self.entities.zbrane] += army.retreat(self.state)
-        
+
         return "Armáda <<{}>> se stáhla z pole <<{}>> a je připravena na další rozkazy".format(army.id, army.tile)
