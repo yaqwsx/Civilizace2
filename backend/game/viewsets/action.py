@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.db.models.functions import Now
-from typing import Optional
+from typing import Dict, Iterable, Optional, Set, Tuple
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -11,15 +11,18 @@ from game.actions.actionBase import ActionResult, InitiateResult
 from game.actions.common import ActionCost, ActionException, CancelationResult, MessageBuilder
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
-from game.entities import THROW_COST
+from game.entities import THROW_COST, Entities, Entity
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTask, DbTaskAssignment, InteractionType
 
 from core.models.team import Team
+from game.state import StateModel
 
 from game.viewsets.permissions import IsOrg
 
 from game.actions import GAME_ACTIONS
+
+StickerId = Tuple[Team, Entity]
 
 class MulticommitError(APIException):
     status_code = 409
@@ -32,7 +35,7 @@ class NotEnoughWork(APIException):
     default_code = 'not_enough_work'
 
 def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
-                        action: Optional[ActionResult]) -> str:
+                        action: Optional[ActionResult], stickers: Iterable[StickerId]) -> str:
     b = MessageBuilder()
     if action is None or not initiate.succeeded:
         b.add("Akce stojí:")
@@ -52,15 +55,16 @@ def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
     b.add(action.message)
     b.addEntityDict("Tým dostane:", action.productions)
     b.addEntityDict("Týmu vydáte:", action.materials)
-    b.add("Tady přibudou samolepky")
+    with b.startList("Tým dostane samolepky:") as addLine:
+        for t, e in stickers:
+            addLine(f"samolepka {e.name} pro tým {t.name}")
 
     if cost.postpone > 0:
         b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
-    # TBA stickers
     return b.message
 
 def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
-                          action: Optional[ActionResult]) -> str:
+                          action: Optional[ActionResult], stickers: Iterable[StickerId]) -> str:
     b = MessageBuilder()
     if not initiate.succeeded:
         b.add("Akce stojí:")
@@ -81,23 +85,26 @@ def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
         b.add(action.message)
         b.addEntityDict("Tým dostane:", action.productions)
         b.addEntityDict("Týmu vydáte:", action.materials)
-        b.add("Tady přibudou samolepky")
+        with b.startList("Tým dostane samolepky:") as addLine:
+            for t, e in stickers:
+                addLine(f"samolepka {e.name} pro tým {t.name}")
 
         if cost.postpone > 0:
             b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
     return b.message
 
-def actionCommitMessage(cost: ActionCost, action: ActionResult) -> str:
+def actionCommitMessage(cost: ActionCost, action: ActionResult, stickers: Iterable[StickerId]) -> str:
     b = MessageBuilder()
     b.add("### Efekt akce:")
     b.add(action.message)
     b.addEntityDict("Tým dostal:", action.productions)
     b.addEntityDict("Týmu vydejte:", action.materials)
-    b.add("Tady přibudou samolepky")
+    with b.startList("Tým dostane samolepky:") as addLine:
+        for t, e in stickers:
+            addLine(f"samolepka {e.name} pro tým {t.name}")
 
     if cost.postpone > 0:
         b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
-    # TBA stickers
     return b.message
 
 def actionCancelMessage(result: CancelationResult) -> str:
@@ -141,6 +148,17 @@ class ActionViewSet(viewsets.ViewSet):
                 t.finishedAt = Now()
                 t.save()
 
+    @staticmethod
+    def _computeStickers(prev: StateModel, post: StateModel) -> Set[StickerId]:
+        stickers = {t: s.collectStickerEntitySet() for t, s in post.teamStates.items()}
+        for t, s in prev.teamStates.items():
+            stickers[t].difference_update(s.collectStickerEntitySet())
+        res = set()
+        for t, sSet in stickers.items():
+            for e in sSet:
+                res.add((t, e))
+        return res
+
     @action(methods=["POST"], detail=False)
     def dry(self, request):
         deserializer = InitiateSerializer(data=request.data)
@@ -148,7 +166,10 @@ class ActionViewSet(viewsets.ViewSet):
         data = deserializer.validated_data
 
         _, entities = DbEntities.objects.get_revision()
-        state = DbState.objects.latest().toIr()
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+        sourceState = dbState.toIr()
+
         try:
             Action = GAME_ACTIONS[data["action"]]
             args = stateDeserialize(Action.argument, data["args"], entities)
@@ -162,9 +183,10 @@ class ActionViewSet(viewsets.ViewSet):
                         "message": actionPreviewMessage(cost, initiateResult, None)
                     })
             result = action.commit()
+            stickers = self._computeStickers(sourceState, state)
             return Response(data={
                 "success": result.succeeded,
-                "message": actionPreviewMessage(cost, initiateResult, result)
+                "message": actionPreviewMessage(cost, initiateResult, result, stickers)
             })
         except ActionException as e:
             return Response(data={
@@ -181,6 +203,7 @@ class ActionViewSet(viewsets.ViewSet):
         entityRevision, entities = DbEntities.objects.get_revision()
         dbState = DbState.objects.latest()
         state = dbState.toIr()
+        sourceState = dbState.toIr()
         try:
             Action = GAME_ACTIONS[data["action"]]
             args = stateDeserialize(Action.argument, data["args"], entities)
@@ -207,6 +230,7 @@ class ActionViewSet(viewsets.ViewSet):
             dbState.save()
 
             result = None
+            stickers = set()
             if cost.requiredDots == 0:
                 result = action.commit()
                 if result.succeeded:
@@ -220,12 +244,13 @@ class ActionViewSet(viewsets.ViewSet):
                 dbState.action = dbCommit
                 dbState.save()
                 self._handleExtraCommitSteps(action)
+                stickers = self._computeStickers(sourceState, state)
             # There will be dice throwing
             return Response(data={
                 "success": result is None or result.succeeded,
                 "action": dbAction.id,
                 "committed": result is not None,
-                "message": actionInitiateMessage(cost, initiateResult, result)
+                "message": actionInitiateMessage(cost, initiateResult, result, stickers)
             })
         except ActionException as e:
             return Response(data={
@@ -254,6 +279,7 @@ class ActionViewSet(viewsets.ViewSet):
 
         dbState = DbState.objects.latest()
         state = dbState.toIr()
+        sourceState = dbState.toIr()
 
         Action = GAME_ACTIONS[dbAction.actionType]
         args = stateDeserialize(Action.argument, dbAction.args, entities)
@@ -264,6 +290,7 @@ class ActionViewSet(viewsets.ViewSet):
             result = action.commit()
             if result.succeeded:
                 action.commitReward(result.productions)
+            stickers = self._computeStickers(sourceState, state)
             dbInitiate = DbInteraction(
                 phase=InteractionType.commit,
                 action=dbAction,
@@ -275,7 +302,7 @@ class ActionViewSet(viewsets.ViewSet):
             self._handleExtraCommitSteps(action)
             return Response({
                 "success": result.succeeded,
-                "message": actionCommitMessage(cost, result)
+                "message": actionCommitMessage(cost, result, stickers)
             })
         else:
             # There wasn't enough dots, abandon

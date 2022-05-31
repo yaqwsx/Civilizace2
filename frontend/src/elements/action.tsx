@@ -25,7 +25,6 @@ import { useTeamWork } from "./entities";
 function useActionPreview(actionId: string, actionArgs: any) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
-    console.log(actionArgs);
     useEffect(() => {
         setError(null);
         setPreview(null);
@@ -76,8 +75,6 @@ export function PerformAction(props: {
             data: data,
         });
     };
-
-    console.log(phase);
 
     if (phase.phase == ActionPhase.initiatePhase) {
         return (
@@ -152,7 +149,6 @@ function ActionPreviewPhase(props: {
             })
             .then((data) => {
                 setSubmitting(false);
-                console.log(data);
                 let result = data.data;
                 if (result.success) {
                     if (result.committed) {
@@ -237,7 +233,6 @@ function ActionDicePhase(props: {
                 })
                 .then((data) => {
                     setSubmitting(false);
-                    console.log(data);
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);
                 })
@@ -257,7 +252,6 @@ function ActionDicePhase(props: {
                 .post<any, any>(`/game/actions/${props.actionId}/cancel/`)
                 .then((data) => {
                     setSubmitting(false);
-                    console.log(data);
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);
                 })

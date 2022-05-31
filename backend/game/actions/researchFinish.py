@@ -15,12 +15,12 @@ class ActionResearchFinish(TeamActionBase):
 
     def commitInternal(self) -> None:
         if self.args.tech in self.teamState.techs:
-            raise ActionException("Technologie <<" + self.args.tech.id + ">> je již vyzkoumána.")
+            raise ActionException("Technologie [[" + self.args.tech.id + "]] je již vyzkoumána.")
 
         if not self.args.tech in self.teamState.researching:
-            raise ActionException("Výzkum technologie <<" + self.args.tech.id + ">> aktuálně neprobíhá, takže ji nelze dokončit.")
+            raise ActionException("Výzkum technologie [[" + self.args.tech.id + "]] aktuálně neprobíhá, takže ji nelze dokončit.")
 
         self.teamState.researching.remove(self.args.tech)
         self.teamState.techs.add(self.args.tech)
-        self.info += "Výzkum technologie <<" + self.args.tech.id + ">> byl dokončen."
+        self.info += "Výzkum technologie [[" + self.args.tech.id + "]] byl dokončen."
         # TODO: Přidat samolepky

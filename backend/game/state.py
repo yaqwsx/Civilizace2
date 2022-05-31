@@ -242,6 +242,19 @@ class TeamState(StateModel):
                 dice.add(unlock[1])
         return dice
 
+    def collectStickerEntitySet(self) -> set[Entity]:
+        stickers = set()
+        stickers.update(self.techs)
+        stickers.update(self.vyrobas)
+        return stickers
+
+    @property
+    def vyrobas(self) -> set[Vyroba]:
+        vyrobas = set()
+        for t in self.techs:
+            vyrobas.update(t.unlocksVyrobas)
+        return vyrobas
+
     @property
     def work(self) -> Decimal:
         # TBA: Think of a better way...

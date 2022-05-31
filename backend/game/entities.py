@@ -60,7 +60,7 @@ class ResourceType(EntityBase):
     colorVal: int
 
 
-class ResourceBase(EntityBase):
+class Resource(EntityBase):
     ### Any resource, base class for Resource, GenericResource;
     #   Do not instantiate
     #   TODO: Is there a simple way to disable __init__ for this base class? ###
@@ -73,24 +73,19 @@ class ResourceBase(EntityBase):
 
     @property
     def isMaterial(self) -> bool:
-        return self.id.startswith("mat-")
+        return self.id.startswith("mat-") or self.id.startswith("mge-")
 
     @property
     def isProduction(self) -> bool:
         return self.produces != None
 
-
-class Resource(ResourceBase):
-    ### Represents a specific resource (e.g., mat-drevo) ###
-    None
-
-class ResourceGeneric(ResourceBase):
-    ### Represents action cost using ResourceType rather than material itself (e.g., mat-palivo-3) ###
-    None
+    @property
+    def isGeneric(self) -> bool:
+        return self.id.startswith("pge-") or self.id.startswith("mge-")
 
 
 class EntityWithCost(EntityBase):
-    cost: Dict[ResourceBase, Decimal]
+    cost: Dict[Resource, Decimal]
     points: int
     unlockedBy: List[Tuple[EntityWithCost, DieId]]=[] # duplicates: items in Tech.unlocks
 

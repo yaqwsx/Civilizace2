@@ -2,7 +2,7 @@ from decimal import Decimal
 import json
 from typing import Any, Callable, Dict
 
-from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceGeneric, ResourceType, Team, Tech, TileFeature, Vyroba
+from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
@@ -50,7 +50,7 @@ class EntityParser():
         name = typ.productionName if id.startswith("pro") else typ.name
         name += " " + LEVEL_SYMBOLS_ROMAN[typData[1]]
 
-        res = ResourceGeneric(id=chunks[0], name=name, typ=typData)
+        res = Resource(id=chunks[0], name=name, typ=typData)
         return (res, Decimal(chunks[1]))
 
 
@@ -178,7 +178,7 @@ class EntityParser():
 
     def parseLineVyroba(self, line):
         reward = self.parseCostSingle(line[6])
-        assert not isinstance(reward[0], ResourceGeneric), "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
+        assert not reward[0].isGeneric, "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
         requiredFeatures = self.getFeaturesFromField(line[7])
         vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
@@ -266,6 +266,26 @@ class EntityParser():
             if count < 1:
                 self.errors.append("Tile index {} missing".format(i))
 
+    def buildGenericResources(self):
+        newResources = []
+        for e in self.entities.values():
+            if not isinstance(e, ResourceType):
+                continue
+            for i in range(1, 7):
+                newResources.append(Resource(
+                    id=f"mge-{e.id[4:]}-{i}",
+                    name=f"{e.name} {i}",
+                    typ=(e, i)
+                ))
+                newResources.append(Resource(
+                    id=f"pge-{e.id[4:]}-{i}",
+                    name=f"{e.productionName} {i}",
+                    typ=(e, i),
+                    produces=newResources[-1]
+                ))
+        for r in newResources:
+            self.entities[r.id] = r
+
 
     def parse(self) -> Entities:
         self.entities = {}
@@ -279,6 +299,8 @@ class EntityParser():
         self.parseTiles()
         self.parseVyrobas()
         self.parseTechs()
+
+        self.buildGenericResources()
 
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:

@@ -80,6 +80,7 @@ export function useTeamTechs(team?: Team) {
 
 export function EntityMdTag({node}: any) {
     let value = node.value;
+    console.log(node)
 
     const {data, error} = useSWR<Record<string, Entity>>("game/entities", fetcher);
     let name = value[0];
@@ -88,5 +89,5 @@ export function EntityMdTag({node}: any) {
     if (value.length == 1)
         return <>{name}</>
     else
-        return <>`${value[1]}× ${name}`</>
+        return <>{`${value[1]}× ${name}`}</>
 }

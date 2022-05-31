@@ -20,18 +20,18 @@ class ActionRetreat(TeamActionBase):
         if army == None:
             raise DebugException("Neznáná armáda {}".format(self.args.armyId))
         if army.state == ArmyState.Idle:
-            raise ActionException("Armáda <<{}>> není vyslána plnit žádný úkol, takže ji nelze stáhnout.".format(self.args.armyId))
+            raise ActionException("Armáda [[{}]] není vyslána plnit žádný úkol, takže ji nelze stáhnout.".format(self.args.armyId))
         if army.state == ArmyState.Marching:
-            raise ActionException("Armáda <<{}>> se přesouvá na pole <<{}>>, takže ji nelze stáhnout.".format(self.args.armyId))
+            raise ActionException("Armáda [[{}]] se přesouvá na pole [[{}]], takže ji nelze stáhnout.".format(self.args.armyId))
         if army.boost >= 0:
-            raise ActionException("Nelze stáhnout armádu <<{}>> těsně před soubojem.".format(army.id))
+            raise ActionException("Nelze stáhnout armádu [[{}]] těsně před soubojem.".format(army.id))
 
         tile = self.state.map.tiles.get(army.tile)
         for inboundId in tile.inbound:
             inbound = self.state.getArmy(inboundId)
             if inbound.isBoosted:
-                raise ActionException("Nelze stáhnout armádu <<{}>> těsně před soubojem.".format(army.id))
+                raise ActionException("Nelze stáhnout armádu [[{}]] těsně před soubojem.".format(army.id))
 
         self.reward[self.entities.zbrane] += army.retreat(self.state)
 
-        return "Armáda <<{}>> se stáhla z pole <<{}>> a je připravena na další rozkazy".format(army.id, army.tile)
+        return "Armáda [[{}]] se stáhla z pole [[{}]] a je připravena na další rozkazy".format(army.id, army.tile)

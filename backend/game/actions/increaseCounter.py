@@ -30,7 +30,7 @@ class ActionIncreaseCounter(TeamActionBase):
         if self.args.red < -10:
             error += "Hráč nemůže snížit počitadlo o více než 10"
         if self.args.resource is not None and self.args.resource.id == "mat-clovek":
-            error += "Hráči nemohou obětovat lidi - chtěli jste obětovat 1× <<mat-clovek>>"
+            error += "Hráči nemohou obětovat lidi - chtěli jste obětovat 1× [[mat-clovek]]"
 
         if not error.empty:
             raise ActionException(error)

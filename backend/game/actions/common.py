@@ -2,7 +2,7 @@ from __future__ import annotations
 from ctypes import Union
 
 from decimal import Decimal
-from game.entities import Entity, EntityId, ResourceBase, Resource
+from game.entities import Entity, EntityId, Resource
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
@@ -44,7 +44,7 @@ class MessageBuilder(BaseModel):
     def addEntityDict(self, header: str, items: Dict[Entity, Union[int, float, Decimal]]):
         with self.startList(header) as addLine:
             for e, a in items.items():
-                addLine(f"<<{e.id}|{a}>>")
+                addLine(f"[[{e.id}|{a}]]")
 
     def addListItem(self, item: str) -> None:
         self.message += "\n- " + item
@@ -63,7 +63,7 @@ class ActionCost(BaseModel):
     allowedDice: Set[str] = set()
     requiredDots: int = 0
     postpone: int = 0
-    resources: Dict[ResourceBase, Decimal] = {}
+    resources: Dict[Resource, Decimal] = {}
 
     @validator("allowedDice")
     def validateDice(cls, v: Iterable[str]) -> Set[str]:

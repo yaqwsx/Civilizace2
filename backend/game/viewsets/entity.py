@@ -88,10 +88,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def vyrobas(self, request, pk):
         self.validateAccess(request.user, pk)
-        vyrobas = set()
-        for t in self.getTeamState(pk).techs:
-            vyrobas.update(t.unlocksVyrobas)
-        vList = list(vyrobas)
+        vList = list(self.getTeamState(pk).vyrobas)
         vList.sort(key=lambda x: x.id)
         return Response({e.id: serializeEntity(e) for e in vList})
 

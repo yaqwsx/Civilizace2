@@ -26,8 +26,8 @@ class ActionBoost(TeamActionBase):
         if self.args.boost < 0:
             raise DebugException("Nelze podpořit armádu zápornou hodnotou.")
         if army.state != ArmyState.Marching:
-            raise ActionException("Armáda <<{}>> aktuálně neútočí na žádné pole.".format(self.args.armyId))
+            raise ActionException("Armáda [[{}]] aktuálně neútočí na žádné pole.".format(self.args.armyId))
         if army.goal == ArmyGoal.Supply:
-            raise ActionException("Armáda <<{}>> nelze podpořit, protože nebude na poli <<{}>> bojovat.".format(army.id, army.tile))
+            raise ActionException("Armáda [[{}]] nelze podpořit, protože nebude na poli [[{}]] bojovat.".format(army.id, army.tile))
         army.boost = self.args.boost
-        self.info.add("Armáda <<{}>> podpořena {} body pro souboj na poli <<{}>>".format(army.id, army.boost, army.tile))
+        self.info.add("Armáda [[{}]] podpořena {} body pro souboj na poli [[{}]]".format(army.id, army.boost, army.tile))

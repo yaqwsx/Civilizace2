@@ -10,7 +10,6 @@ import decimal
 from pydantic import BaseModel
 
 from game.entities import Resource, Tech, Vyroba, Entity, EntityBase
-from game.entities import ResourceBase, Tech, Vyroba, Entity
 
 # This is only a mock of proposed API for the game frontend. Therefore, we use
 # simple views, often with constant data or driven by static variables. No fancy
@@ -72,7 +71,7 @@ class EntityEncoder(json.JSONEncoder):
 
 def typeFilter(typespec, x):
     return (typespec is None) or \
-           (typespec == "resource" and isinstance(x, ResourceBase)) or \
+           (typespec == "resource" and isinstance(x, Resource)) or \
            (typespec == "tech" and isinstance(x, Tech)) or \
            (typespec == "vyroba" and isinstance(x, Vyroba))
 

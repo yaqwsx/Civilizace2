@@ -52,7 +52,7 @@ class ActionArmyDeploy(TeamActionBase):
 
         tile = self.state.map.tiles[self.args.tile.index]
         tile.inbound.add(army.id)
-        self.info.add("Armáda <<{}>> vyslána na pole <<{}>>. Dorazí v <<cas>>"\
+        self.info.add("Armáda [[{}]] vyslána na pole [[{}]]. Dorazí v [[cas]]"\
                     .format(army.id, army.tile))
 
 
@@ -65,17 +65,17 @@ class ActionArmyDeploy(TeamActionBase):
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
                 equipment = army.retreat(self.state)
                 self.reward[self.entities.zbrane] += equipment
-                return "Pole <<{}>> je prázdné, armáda <<{}>> se vrátila zpět"\
+                return "Pole [[{}]] je prázdné, armáda [[{}]] se vrátila zpět"\
                     .format(tile.entity.id, army.id)
             else:
                 army.occupy(tile)
-                return "Armáda <<{}>> obsadila pole <<{}>>".format(army.id, tile.entity.id)
+                return "Armáda [[{}]] obsadila pole [[{}]]".format(army.id, tile.entity.id)
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
                 equipment = army.retreat(self.state)
                 self.reward[self.entities.zbrane] += equipment
-                return "Pole <<{}>> už bylo obsazeno jinou vaší armádou <<{}>>. Armáda <<{}>> se vrátila domů."\
+                return "Pole [[{}]] už bylo obsazeno jinou vaší armádou [[{}]]. Armáda [[{}]] se vrátila domů."\
                     .format(tile, tile.occupiedBy, army.id)
             provider = defender if self.args.goal == ArmyGoal.Replace else army
             receiver = army if self.args.goal == ArmyGoal.Replace else defender
@@ -88,9 +88,9 @@ class ActionArmyDeploy(TeamActionBase):
             self.reward[self.entities.zbrane] += equipment
 
             if self.args.goal == ArmyGoal.Replace:
-                return "Armáda <<{}>> nahradila předchozí armádu. Její nová síla je <<{}>>. Armáda <<{}>> se vrátila domů."\
+                return "Armáda [[{}]] nahradila předchozí armádu. Její nová síla je [[{}]]. Armáda [[{}]] se vrátila domů."\
                     .format(army.id, army.strength, provider.id)
-            return "Armáda <<{}>> posílila armádu <<{}>> a vrátila se zpět. Nová síla obránce je <<{}>>."\
+            return "Armáda [[{}]] posílila armádu [[{}]] a vrátila se zpět. Nová síla obránce je [[{}]]."\
                 .format(army.id, army.strength, provider.id)
 
         if self.args.goal == ArmyGoal.Supply and self.args.friendlyTeam == defender.team:
@@ -98,13 +98,13 @@ class ActionArmyDeploy(TeamActionBase):
             equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
             # TODO: Notify defender
-            return "Armáda <<{}>> posílila armádu týmu <<{}>> o <<{}>> zbraní."\
+            return "Armáda [[{}]] posílila armádu týmu [[{}]] o [[{}]] zbraní."\
                 .format(army.id, defender.team, transfered)
 
         if self.args.goal == ArmyGoal.Supply:
             equipment = army.retreat(self.state)
             self.reward[self.entities.zbrane] += equipment
-            self.errors.add("Pole <<{}>> je obsazeno nepřátelksou armádou. Vaše armáda <<{}>> se vrátila domů."\
+            self.errors.add("Pole [[{}]] je obsazeno nepřátelksou armádou. Vaše armáda [[{}]] se vrátila domů."\
                 .format(tile.id, army.id))
             return
 
@@ -120,7 +120,7 @@ class ActionArmyDeploy(TeamActionBase):
         # resolve
         if defenderStrength >= attackertStrength:
             self.reward[self.entities.zbrane] += attacker.retreat(self.state)
-            self.errors.add("Armáda <<{}>> neuspěla v dobývání pole <<{}>> a vrátila se domů.")
+            self.errors.add("Armáda [[{}]] neuspěla v dobývání pole [[{}]] a vrátila se domů.")
 
             if defender.equipment == 0:
                 defender.retreat(self.state)
@@ -132,13 +132,13 @@ class ActionArmyDeploy(TeamActionBase):
 
         if attacker.equipment == 0:
             attacker.retreat(self.state)
-            return "Armáda <<{}>> dobyla pole <<{}>>. Nezbyly jí žádné zbraně, tak se vrátila domů."\
+            return "Armáda [[{}]] dobyla pole [[{}]]. Nezbyly jí žádné zbraně, tak se vrátila domů."\
                 .format(army.id, tile.entity)
 
         if self.args.goal == ArmyGoal.Eliminate:
             self.reward[self.entities.zbrane] += attacker.retreat(self.state)
-            return "Armáda <<{}>> vyčistila pole <<{}>> a vrátila se domů".format(army,id, tile.entity)
+            return "Armáda [[{}]] vyčistila pole [[{}]] a vrátila se domů".format(army,id, tile.entity)
 
         attacker.occupy(tile)
-        return "Armáda <<{}>> obsadila pole <<{}>>. Její aktuální síla je {}".format(army.id, tile.entity, army.strength)
+        return "Armáda [[{}]] obsadila pole [[{}]]. Její aktuální síla je {}".format(army.id, tile.entity, army.strength)
 

@@ -25,10 +25,10 @@ class ActionAssignTile(TeamActionBase):
         if self.args.index < 0:
             oldTile = map.getHomeTile(team)
             if oldTile == None:
-                self.info.add("<<{}>> did not have any tile assigned. State not changed".format(team.id))
+                self.info.add("[[{}]] did not have any tile assigned. State not changed".format(team.id))
                 return
             map.homeTiles[team] = None
-            self.info.add("Home tile removed for team <<{}>>".format(team.id))
+            self.info.add("Home tile removed for team [[{}]]".format(team.id))
             return
 
         newTile = map.tiles.get(self.args.index)
@@ -36,7 +36,7 @@ class ActionAssignTile(TeamActionBase):
             if not isinstance(newTile, HomeTile):
                 raise ActionException("New tile index is already used by a regular tile {}".format(newTile.name))
             else:
-                raise ActionException("The new index is already owned by team <<{}>>".format(newTile.team.id))
+                raise ActionException("The new index is already owned by team [[{}]]".format(newTile.team.id))
 
         oldTile = map.getHomeTile(team)
         if oldTile != None:

@@ -9,6 +9,7 @@ import { overrideTailwindClasses } from "tailwind-override";
 
 import React from "react";
 import { EntityMdTag } from "./entities";
+import { nodeModuleNameResolver } from "typescript";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -197,33 +198,41 @@ export function Button(props: {
 }
 
 function reconstructCiviMark(tree: any) {
+    const tagRe = /\[\[(.*?)\]\]/g;
+
     if (!tree?.children) return;
     for (var i = 0; i < tree.children.length; i++) {
         reconstructCiviMark(tree.children[i]);
     }
-    for (var i = 1; i < tree.children.length - 1; i++) {
-        let prevNode = tree.children[i - 1];
+    let newChildren = [];
+    for (var i = 0; i < tree.children.length; i++) {
         let node = tree.children[i];
-        let nextNode = tree.children[i + 1];
-        if (node.type == "raw") {
-            if (prevNode.type != "text" || nextNode.type != "text") continue;
-            if (
-                !prevNode.value.endsWith("<") ||
-                !nextNode.value.startsWith(">")
-            )
-                continue;
-            prevNode.value = prevNode.value.slice(0, -1);
-            nextNode.value = nextNode.value.slice(1, nextNode.value.length);
-            node.type = "element";
-            node.tagName = "EntityMdTag";
-            node.value = node.value
-                .slice(1, -1)
-                .split("|")
-                // @ts-ignore
-                .map((x) => x.trim());
-            node.children = [];
+        if (node.type == "text") {
+            let isText = true;
+            for (const x of node.value.split(tagRe)) {
+                if (isText) {
+                    newChildren.push({
+                        type: "text",
+                        value: x,
+                        children: []
+                    });
+                }
+                else {
+                    newChildren.push({
+                        type: "element",
+                        tagName: "EntityMdTag",
+                        value: x.split("|").map((x: any) => x.trim()),
+                        children: []
+                    })
+                }
+                isText = !isText;
+            }
+        }
+        else {
+            newChildren.push(node)
         }
     }
+    tree.children = newChildren;
 }
 
 export function civiMdPlugin() {
