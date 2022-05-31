@@ -1,5 +1,6 @@
 from typing import Any, Tuple, Dict
 from django.shortcuts import get_object_or_404
+from django.db.models.functions import Now
 from rest_framework import viewsets
 
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +11,8 @@ from core.serializers.team import TeamSerializer
 from game.entities import Entities, Entity, Tech
 from game.gameGlue import serializeEntity
 
+from rest_framework import serializers
+
 from game.models import DbEntities, DbState, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import TeamState
@@ -17,6 +20,10 @@ from game.state import TeamState
 from core.models import Team as DbTeam
 
 from .permissions import IsOrg
+
+class ChangeTaskSerializer(serializers.Serializer):
+    tech = serializers.CharField()
+    newTask = serializers.CharField(allow_blank=True, allow_null=True)
 
 class EntityViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
@@ -135,7 +142,7 @@ class TeamViewSet(viewsets.ViewSet):
             taskSet = DbTask.objects.all()
             serializer = DbTaskSerializer
         else:
-            taskSet = DbTask.objects.filter(assignments__team=team.pk)
+            taskSet = DbTask.objects.filter(assignments__team=team.pk, abandoned=False)
             serializer = PlayerDbTaskSerializer
 
         return Response({t.id: serializer(t).data for t in taskSet})
@@ -148,3 +155,29 @@ class TeamViewSet(viewsets.ViewSet):
         return Response({
             "work": state.work
         })
+
+    @action(detail=True, methods=["POST"])
+    def changetask(self, request, pk):
+        self.validateAccess(request.user, pk)
+        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+
+        deserializer = ChangeTaskSerializer(data=request.data)
+        deserializer.is_valid(raise_exception=True)
+        data = deserializer.validated_data
+
+        try:
+            assignment = DbTaskAssignment.objects\
+                            .get(team=team, techId=data["tech"], finishedAt=None)
+            assignment.finishedAt = Now()
+            assignment.abandoned = True
+            assignment.save()
+        except DbTaskAssignment.DoesNotExist:
+            pass
+
+        if data["newTask"]:
+            DbTaskAssignment.objects.create(
+                team=team,
+                task=get_object_or_404(DbTask.objects.all(), pk=data["newTask"]),
+                techId=data["tech"])
+        return Response({})
+

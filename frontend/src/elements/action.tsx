@@ -300,19 +300,21 @@ function ActionDicePhase(props: {
                 update={handleUpdate}
                 enabled={!submitting}
             />
-            <Button
-                label={submitting ? "Odesílám, počkej" : "Odeslat"}
-                className="my-1 mx-0 w-full bg-green-500  hover:bg-green-600 md:mx-3"
-                disabled={submitting}
-                onClick={handleSubmit}
-            />
 
-            <Button
+            <div className="row flex">
+<Button
                 label="Zrušit akci"
-                className="my-1 mx-0 mt-5 w-full  bg-red-300 hover:bg-red-400 md:mx-3"
+                className="my-1 mx-0 w-full md:w-1/2 bg-red-300 hover:bg-red-400 md:mx-3"
                 disabled={submitting}
                 onClick={handleCancel}
             />
+            <Button
+                label={submitting ? "Odesílám, počkej" : "Odeslat"}
+                className="my-1 mx-0 w-full md:w-1/2 bg-green-500  hover:bg-green-600 md:mx-3"
+                disabled={submitting}
+                onClick={handleSubmit}
+            />
+            </div>
         </>
     );
 }
@@ -351,7 +353,7 @@ function DiceThrowForm(props: {
     return (
         <div className="w-full">
             <div className="container mt-4 w-full">
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3">
+                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Teček:
                     </div>
@@ -370,7 +372,7 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3">
+                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Hodů:
                     </div>
@@ -389,7 +391,7 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3">
+                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Práce:
                     </div>
@@ -400,14 +402,14 @@ function DiceThrowForm(props: {
                 </div>
             </div>
 
-            <div className="my-5 w-full">
+            <div className="my-5 w-full flex flex-wrap">
                 <Button
                     label="0"
-                    className="mx-0 my-3 w-full  bg-red-500 hover:bg-red-600 md:mx-3"
+                    className="mx-1 my-3 w-full  bg-red-500 hover:bg-red-600 md:mx-4"
                     onClick={() => handleThrow(0)}
                     disabled={!props.enabled}
                 />
-                <div className="mx-auto grid grid-cols-5 gap-4 px-0">
+                <div className="mx-0 md:mx-3 w-full grid grid-cols-5 gap-4 px-0">
                     {Array.from(Array(20).keys()).map((i) => {
                         return (
                             <Button

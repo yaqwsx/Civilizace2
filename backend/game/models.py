@@ -181,10 +181,6 @@ class DbTask(models.Model):
         return self.assignments.filter(finishedAt=None).count()
 
 class DbTaskAssignment(models.Model):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['team', 'task', 'techId'], name='unique_assignment')
-        ]
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="assignments")
     techId = models.CharField(max_length=32)

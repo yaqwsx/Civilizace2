@@ -1,6 +1,8 @@
+import { Props } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { ChangeEvent, useState } from "react";
-import useSWR from "swr";
+import { toast } from "react-toastify";
+import useSWR, { mutate } from "swr";
 import {
     FormRow,
     InlineSpinner,
@@ -19,7 +21,7 @@ import {
     TeamRowIndicator,
 } from "../elements/team";
 import { EntityTech, Task, Team, TeamEntityTech } from "../types";
-import { fetcher } from "../utils/axios";
+import axiosService, { fetcher } from "../utils/axios";
 import { useEditableTasks } from "./tasks";
 
 export function TechMenu() {
@@ -87,13 +89,21 @@ function TechListing(props: { team: Team }) {
         <>
             <h2>{props.team.name} aktuálně zkoumají:</h2>
             {researchingTechs ? (
-                <TechList team={props.team} techs={researchingTechs} onTaskMutation={mutate} />
+                <TechList
+                    team={props.team}
+                    techs={researchingTechs}
+                    onTaskMutation={mutate}
+                />
             ) : (
                 <p>Tým {props.team.name} nic nezkoumá.</p>
             )}
             <h2>{props.team.name} mohou začít zkoumat:</h2>
             {availableTechs ? (
-                <TechList team={props.team} techs={availableTechs} onTaskMutation={mutate} />
+                <TechList
+                    team={props.team}
+                    techs={availableTechs}
+                    onTaskMutation={mutate}
+                />
             ) : (
                 <p>
                     Tým {props.team.name} nemůže nic zkoumat. Ten je ale drný
@@ -102,7 +112,11 @@ function TechListing(props: { team: Team }) {
             )}
             <h2>{props.team.name} mají vyzkoumáno:</h2>
             {ownedTechs ? (
-                <TechList team={props.team} techs={ownedTechs} onTaskMutation={mutate} />
+                <TechList
+                    team={props.team}
+                    techs={ownedTechs}
+                    onTaskMutation={mutate}
+                />
             ) : (
                 <p>
                     Tým {props.team.name} nevlastní žádné technologie. Což je
@@ -113,17 +127,30 @@ function TechListing(props: { team: Team }) {
     );
 }
 
-function TechList(props: { team: Team; techs: TeamEntityTech[];onTaskMutation: () => void } ) {
+function TechList(props: {
+    team: Team;
+    techs: TeamEntityTech[];
+    onTaskMutation: () => void;
+}) {
     return (
         <div className="pl-4">
             {props.techs.map((t) => (
-                <TechItem key={t.id} team={props.team} tech={t} onTaskMutation={props.onTaskMutation} />
+                <TechItem
+                    key={t.id}
+                    team={props.team}
+                    tech={t}
+                    onTaskMutation={props.onTaskMutation}
+                />
             ))}
         </div>
     );
 }
 
-function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () => void }) {
+function TechItem(props: {
+    team: Team;
+    tech: TeamEntityTech;
+    onTaskMutation: () => void;
+}) {
     const [taskShown, setTaskShown] = useState<boolean>(false);
     const [changeTaskShown, setChangeTaskShown] = useState<boolean>(false);
     const [finishTaskShown, setFinishTaskShown] = useState<boolean>(false);
@@ -131,9 +158,18 @@ function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () 
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const toggleTask = () => setTaskShown(!taskShown);
-    const toggleChangeTask = () => setChangeTaskShown(!changeTaskShown);
-    const toggleFinishTask = () => setFinishTaskShown(!finishTaskShown);
-    const toggleStartTask = () => setStartTaskShown(!startTaskShown);
+    const toggleChangeTask = () => {
+        setSelectedTask(null);
+        setChangeTaskShown(!changeTaskShown);
+    };
+    const toggleFinishTask = () => {
+        setSelectedTask(null);
+        setFinishTaskShown(!finishTaskShown);
+    };
+    const toggleStartTask = () => {
+        setSelectedTask(null);
+        setStartTaskShown(!startTaskShown);
+    };
 
     let tech = props.tech;
 
@@ -169,7 +205,9 @@ function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () 
                             <Button
                                 label={
                                     tech?.assignedTask
-                                        ? (taskShown ? "Skrýt úkol" : "Zobrazit úkol")
+                                        ? taskShown
+                                            ? "Skrýt úkol"
+                                            : "Zobrazit úkol"
                                         : "Nebyl zadán úkol"
                                 }
                                 onClick={toggleTask}
@@ -214,15 +252,25 @@ function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () 
                         </div>
                     </div>
                 ) : null}
-                { taskShown && !tech.assignedTask ? (
-                    <p className="w-full text-center my-3">Nebyl zadán žádný úkol</p>
+                {taskShown && !tech.assignedTask ? (
+                    <p className="my-3 w-full text-center">
+                        Nebyl zadán žádný úkol
+                    </p>
                 ) : null}
             </div>
             {changeTaskShown ? (
-                <Dialog onClose={toggleChangeTask}>Změnit úlohu</Dialog>
+                <Dialog onClose={toggleChangeTask}>
+                    <ChangeTaskDialog
+                        team={props.team}
+                        tech={tech}
+                        mutateTechs={props.onTaskMutation}
+                        onClose={toggleChangeTask}
+                    />
+                </Dialog>
             ) : null}
             {finishTaskShown ? (
-                <Dialog onClose={toggleFinishTask}><PerformAction
+                <Dialog onClose={toggleFinishTask}>
+                    <PerformAction
                         actionName={`Dokončit zkoumání ${tech.name} pro ${props.team.name}`}
                         actionId="ActionResearchFinish"
                         actionArgs={{
@@ -249,12 +297,15 @@ function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () 
                             task: selectedTask ? selectedTask.id : null,
                         }}
                         extraPreview={
-                            <SelectTaskForTechForm
-                                team={props.team}
-                                tech={tech}
-                                selectedTask={selectedTask}
-                                onChange={(t) => setSelectedTask(t)}
-                            />
+                            <>
+                                <h1>Vyberte úkol</h1>
+                                <SelectTaskForTechForm
+                                    team={props.team}
+                                    tech={tech}
+                                    selectedTask={selectedTask}
+                                    onChange={(t) => setSelectedTask(t)}
+                                />
+                            </>
                         }
                         onFinish={() => {
                             toggleStartTask();
@@ -271,15 +322,16 @@ function TechItem(props: { team: Team; tech: TeamEntityTech; onTaskMutation: () 
 
 function TaskSelectRow(props: { team: Team; task: Task }) {
     let assigned = false;
-    props.task.assignments.forEach(x => {
-        if (x.team == props.team.id)
-            assigned = true;
-    })
-    return <option value={props.task.id}>
-        {props.task.id}: {props.task.name}
-        ({props.task.occupiedCount}/{props.task.capacity})
-        { assigned ? `${props.team.name} – už úkol absolvovali` : "" }
-    </option>;
+    props.task.assignments.forEach((x) => {
+        if (x.team == props.team.id) assigned = true;
+    });
+    return (
+        <option value={props.task.id}>
+            {props.task.id}: {props.task.name}({props.task.occupiedCount}/
+            {props.task.capacity})
+            {assigned ? ` ${props.team.name} už úkol absolvovali` : ""}
+        </option>
+    );
 }
 
 function SelectTaskForTechForm(props: {
@@ -289,7 +341,8 @@ function SelectTaskForTechForm(props: {
     onChange: (t: Task) => void;
 }) {
     const { data: tasks, error: taskError } = useSWR<Record<string, Task>>(
-        `/game/teams/${props.team.id}/tasks`, fetcher
+        `/game/teams/${props.team.id}/tasks`,
+        fetcher
     );
 
     if (!tasks) {
@@ -316,7 +369,6 @@ function SelectTaskForTechForm(props: {
 
     return (
         <>
-            <h1>Vyberte úkol</h1>
             <FormRow label="Doporučené úkoly">
                 <select
                     value={String(props.selectedTask?.id)}
@@ -341,6 +393,57 @@ function SelectTaskForTechForm(props: {
                     ))}
                 </select>
             </FormRow>
+        </>
+    );
+}
+
+function ChangeTaskDialog(props: {
+    tech: TeamEntityTech;
+    team: Team;
+    mutateTechs: () => void;
+    onClose: () => void;
+}) {
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+
+    let handleSubmit = () => {
+        setSubmitting(true);
+        axiosService
+            .post<any, any>(`/game/teams/${props.team.id}/changetask/`, {
+                tech: props.tech.id,
+                newTask: selectedTask ? selectedTask?.id : null,
+            })
+            .then(() => {
+                setSubmitting(false);
+                toast.success("Úkol změněn");
+                props.mutateTechs();
+                props.onClose();
+            })
+            .catch((error) => {
+                setSubmitting(false);
+                toast.error(`Nastala neočekávaná chyba: ${error}`);
+            });
+    };
+
+    return (
+        <>
+            <h1>Změnit úlohu</h1>
+            Aktuální úkol:{" "}
+            {props.tech.assignedTask
+                ? `${props.tech.assignedTask} (${props.tech.assignedTask.name})`
+                : "Žádný úkol"}
+            <SelectTaskForTechForm
+                team={props.team}
+                tech={props.tech}
+                selectedTask={selectedTask}
+                onChange={(t) => setSelectedTask(t)}
+            />
+            <Button
+                label={submitting ? "Odesílám" : "Změnit úkol"}
+                className="w-full"
+                disabled={submitting}
+                onClick={handleSubmit}
+            />
         </>
     );
 }
