@@ -27,7 +27,7 @@ class ChangeTaskSerializer(serializers.Serializer):
     newTask = serializers.CharField(allow_blank=True, allow_null=True)
 
 class EntityViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated,)
 
     @action(detail=False)
     def resources(self, request):
