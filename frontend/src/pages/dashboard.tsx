@@ -407,7 +407,7 @@ function Announcement(props: {
     return (
         <div className={className}>
             <div className="m-2 inline-block w-full md:w-auto md:flex-grow">
-                <p>{props.content}</p>
+                <CiviMarkdown>{props.content}</CiviMarkdown>
             </div>
             {!props.read && !user.isOrg ? (
                 <div className="inline-block w-full md:w-auto">
