@@ -82,6 +82,11 @@ def _stateDeserializeSingleton(data, field, entities):
     if not field.required and data is None:
         return None
     expectedType = field.type_
+    if issubclass(expectedType, ArmyId):
+        vals = data.split(",")
+        return ArmyId(
+            team=entities[vals[0]],
+            prestige=int(vals[1]))
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):

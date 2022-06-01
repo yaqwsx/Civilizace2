@@ -2,12 +2,14 @@ from __future__ import annotations
 import enum
 import types
 import pydantic
-from pydantic import BaseModel, DictError
+from pydantic import BaseModel, PrivateAttr
 from typing import List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
 
 class StateModel(BaseModel):
+    _parent: Optional[StateModel]=PrivateAttr()
+
     def __eq__(self, other: Any) -> bool:
         if self.__class__ != other.__class__:
             return False
@@ -24,6 +26,9 @@ class StateModel(BaseModel):
             return value # This is the changed behavior
         return super().validate(cls, value)
 
+    def _setParent(self, parent: Optional[BaseModel]=None):
+        self._parent = parent
+
 class ArmyState(enum.Enum):
     Idle = 0
     Marching = 1
@@ -36,18 +41,9 @@ class ArmyGoal(enum.Enum):
     Replace = 3
 
 
-class ArmyId(StateModel):
+class ArmyId(BaseModel):
     prestige: int
     team: Team
-
-    def serialize(self):
-        return (self.team.id, self.prestige)
-
-    @classmethod
-    def deserialize(cls, data, entities):
-        return ArmyId(
-            prestige=data[1],
-            team=entities[data[0]])
 
     def __hash__(self):
         return self.team.__hash__() + self.prestige
@@ -65,6 +61,11 @@ class Army(StateModel):
     tile: Optional[MapTileEntity]=None
     state: ArmyState=ArmyState.Idle
     goal: Optional[ArmyGoal]=None
+
+    @property
+    def parent(self) -> TeamState:
+        assert isinstance(self._parent, TeamState)
+        return self._parent
 
     @property
     def capacity(self) -> int:
@@ -123,24 +124,10 @@ class MapTile(StateModel): # Game state elemnent
     buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
     inbound: Set[ArmyId]=set()
 
-    # We have to provide extra serialization/deserialization as the model uses
-    # polymorphism (MapTile/HomeTile)
-    def serialize(self):
-        vals = super().serialize()
-        vals["tt"] = "M"
-        return vals
-
-    @classmethod
-    def deserialize(cls, data, entities):
-        deducedCls = {
-            "H": HomeTile,
-            "M": MapTile
-        }[data["tt"]]
-
-        source = {}
-        for field in deducedCls.__fields__.values():
-            source[field.name] = deducedCls._deserialize(data[field.name], field, entities)
-        return deducedCls.parse_obj(source)
+    @property
+    def parent(self) -> MapState:
+        assert isinstance(self._parent, MapState)
+        return self._parent
 
     @property
     def name(self) -> str:
@@ -175,11 +162,6 @@ class HomeTile(MapTile):
     team: Team
     roadsTo: List[MapTileEntity]=[]
 
-    def serialize(self):
-        vals = super().serialize()
-        vals["tt"] = "H"
-        return vals
-
     @classmethod
     def createInitial(cls, team: Team, tile: MapTileEntity, entities: Entities) -> HomeTile:
         return HomeTile(name="Domovské pole " + team.name,
@@ -193,6 +175,18 @@ class MapState(StateModel):
     size: int=MAP_SIZE
     tiles: Dict[int, MapTile]
     homeTiles: Dict[Team, HomeTile]
+
+    def _setParent(self, parent: Optional[BaseModel]=None):
+        self._parent = parent
+        for t in self.tiles.values():
+            t._setParent(self)
+        for t in self.homeTiles.values():
+            t._setParent(self)
+
+    @property
+    def parent(self) -> GameState:
+        assert isinstance(self._parent, GameState)
+        return self._parent
 
     def _getRelativeIndex(self, team: Team, tile: MapTileEntity) -> int:
         home = self.homeTiles[team]
@@ -244,6 +238,16 @@ class TeamState(StateModel):
 
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
+
+    def _setParent(self, parent: Optional[BaseModel]=None):
+        self._parent = parent
+        for t in self.armies.values():
+            t._setParent(self)
+
+    @property
+    def parent(self) -> GameState:
+        assert isinstance(self._parent, GameState)
+        return self._parent
 
     def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
         dice = set()
@@ -297,6 +301,11 @@ class GameState(StateModel):
     teamStates: Dict[Team, TeamState]
     map: MapState
 
+    def _setParent(self) -> None:
+        for t in self.teamStates.values():
+            t._setParent(self)
+        self.map._setParent(self)
+
     def getArmy(self, id: ArmyId) -> Army:
         return self.teamStates[id.team].armies.get(id) if id != None else None
 
@@ -311,4 +320,9 @@ class GameState(StateModel):
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities)
         )
+
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._setParent()
 
