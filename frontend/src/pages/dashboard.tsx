@@ -72,7 +72,7 @@ function DashboardMenuImpl() {
     let subLinks = [
         { url: "", name: "Přehled" },
         { url: "tasks", name: "Úkoly" },
-        { url: "messages", name: "Zprávy" },
+        { url: "announcements", name: "Oznámení" },
     ];
 
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -149,7 +149,7 @@ export function Dashboard() {
             />
             <Route path=":teamId/" element={<TeamOverview />} />
             <Route path=":teamId/tasks" element={<TeamTasks />} />
-            <Route path=":teamId/messages" element={<TeamMessages />} />
+            <Route path=":teamId/announcements" element={<TeamMessages />} />
             <Route path="*" element={<Navigate to="" />} />
         </Routes>
     );
@@ -378,15 +378,17 @@ function Announcement(props: {
     content: string;
     read: boolean;
     deletable: boolean;
+    datetime: string;
+    readBy?: string[];
 }) {
     const user = useSelector((state: RootState) => state.auth.account?.user);
     const [submitting, setSubmitting] = useState(false);
     const [deleted, setDeleted] = useState(false);
 
-    if (!user || deleted) return null;
+    if (!user || deleted || !props.type) return null;
 
     let className = classNames(
-        "mb-4 w-full rounded bg-white py-2 px-4 shadow md:flex",
+        "mb-4 w-full rounded bg-white py-2 px-4 shadow",
         announcementColor(props.type)
     );
 
@@ -404,25 +406,41 @@ function Announcement(props: {
             });
     };
 
+    let datetime = new Date(props.datetime);
+
     return (
         <div className={className}>
-            <div className="m-2 inline-block w-full md:w-auto md:flex-grow">
-                <CiviMarkdown>{props.content}</CiviMarkdown>
-            </div>
-            {!props.read && !user.isOrg ? (
-                <div className="inline-block w-full md:w-auto">
-                    <Button
-                        label={
-                            !submitting
-                                ? "Označit jako přečtené"
-                                : "Označuji jako přečtené"
-                        }
-                        className="mx-0 my-0 w-full"
-                        disabled={submitting}
-                        onClick={handleSubmit}
-                    />
-                </div>
+            <p className="mx-2 mt-2 w-full text-xs font-bold uppercase text-gray-600">
+                {datetime.toLocaleString("cs-CZ", {
+                    weekday: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })}
+            </p>
+            {props.readBy ? (
+                <p className="text-xs uppercase text-gray-600 mx-2">
+                    Četl: {( props.readBy.length ? props.readBy : ["Nikdo"]).join(", ")}
+                </p>
             ) : null}
+            <div className="w-full md:flex">
+                <div className="m-2 inline-block w-full md:w-auto md:flex-grow">
+                    <CiviMarkdown>{props.content}</CiviMarkdown>
+                </div>
+                {!props.read && !user.isOrg ? (
+                    <div className="inline-block w-full md:w-auto">
+                        <Button
+                            label={
+                                !submitting
+                                    ? "Označit jako přečtené"
+                                    : "Označuji jako přečtené"
+                            }
+                            className="mx-0 my-0 w-full"
+                            disabled={submitting}
+                            onClick={handleSubmit}
+                        />
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

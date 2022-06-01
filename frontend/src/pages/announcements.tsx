@@ -238,9 +238,7 @@ function AnnouncementEdit() {
             () => (announcementId ? `/announcements/${announcementId}` : null),
             (url) =>
                 fetcher(url).then((a) => {
-                    console.log(a);
                     a.appearDatetime = new Date(a.appearDatetime);
-                    console.log(a);
                     return a;
                 })
         );
