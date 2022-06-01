@@ -56,10 +56,13 @@ class TeamViewSet(viewsets.ViewSet):
             raise PermissionDenied("Nedovolený přístup")
 
     def getTeamState(self, teamId: str) -> TeamState:
+        return self.getTeamStateAndEntities(teamId)[0]
+
+    def getTeamStateAndEntities(self, teamId: str) -> TeamState:
         dbState = DbState.objects.latest("id")
         state = dbState.toIr()
         entities = dbState.entities
-        return state.teamStates[entities[teamId]]
+        return state.teamStates[entities[teamId]], entities
 
     def list(self, request):
         if not request.user.isOrg:
@@ -178,3 +181,25 @@ class TeamViewSet(viewsets.ViewSet):
                 techId=data["tech"])
         return Response({})
 
+    @action(detail=True)
+    def dashboard(self, request, pk):
+        self.validateAccess(request.user, pk)
+        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        state, entities = self.getTeamStateAndEntities(pk)
+
+        return Response({
+            "population": {
+                "spec": "TBA",
+                "all": "TBA"
+            },
+            "work": state.work,
+            "round": "TBA",
+            "researchingTechs": [serializeEntity(x) for x in state.researching],
+            "productions": [
+                (r.id, a) for r, a in state.resources.items()
+                    if r.isProduction
+            ],
+            "storage": [
+                (r.id, a) for r, a in state.storage.items()
+            ]
+        })

@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, Children, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { Team, UserResponse } from "../types";
 import { fetcher } from "../utils/axios";
@@ -10,6 +10,8 @@ import { overrideTailwindClasses } from "tailwind-override";
 import React from "react";
 import { EntityMdTag } from "./entities";
 import { nodeModuleNameResolver } from "typescript";
+import { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -214,22 +216,20 @@ function reconstructCiviMark(tree: any) {
                     newChildren.push({
                         type: "text",
                         value: x,
-                        children: []
+                        children: [],
                     });
-                }
-                else {
+                } else {
                     newChildren.push({
                         type: "element",
                         tagName: "EntityMdTag",
                         value: x.split("|").map((x: any) => x.trim()),
-                        children: []
-                    })
+                        children: [],
+                    });
                 }
                 isText = !isText;
             }
-        }
-        else {
-            newChildren.push(node)
+        } else {
+            newChildren.push(node);
         }
     }
     tree.children = newChildren;
@@ -331,7 +331,7 @@ export function Dialog(props: { children: any; onClose: () => void }) {
             >
                 <div
                     className="container mx-auto flex max-h-full flex-col rounded bg-white p-2 pt-0"
-                    style={{overflowY: "scroll", overflowX: "clip"}}
+                    style={{ overflowY: "scroll", overflowX: "clip" }}
                     onClick={(e) => {
                         e.stopPropagation();
                     }}
@@ -342,21 +342,51 @@ export function Dialog(props: { children: any; onClose: () => void }) {
                             className="flex-none"
                         />
                     </div>
-                    <div className="w-full flex-1 px-3">
-                        {props.children}
-                    </div>
+                    <div className="w-full flex-1 px-3">{props.children}</div>
                 </div>
             </div>
         </>
     );
 }
 
-
 export function useFocus(): any {
     const htmlElRef = useRef<any>(null);
 
     const setFocus = () => {
-        htmlElRef?.current &&  htmlElRef.current.focus();
+        htmlElRef?.current && htmlElRef.current.focus();
     };
-    return [ htmlElRef, setFocus ];
+    return [htmlElRef, setFocus];
+}
+
+export function Card(props: {
+    color: string;
+    label: string;
+    children: any;
+    icon: IconDefinition;
+}) {
+    let bgColor = "bg-" + props.color;
+    let textColor = "text-" + props.color;
+    return (
+        <div className="w-full px-0 py-2  md:w-1/2 md:px-2 xl:w-1/3 m-0">
+            <div className="h-full rounded border bg-white p-2 shadow">
+                <div className="flex h-full flex-row items-center">
+                    <div className="h-full flex-shrink pr-4">
+                        <div className={`rounded ${bgColor} p-3`}>
+                            <FontAwesomeIcon
+                                icon={props.icon}
+                                className="fa fa-users fa-2x fa-fw fa-inverse"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="h-full flex-1 text-right md:text-center">
+                        <h5 className="font-bold uppercase text-gray-500 mt-0">
+                            {props.label}
+                        </h5>
+                        {props.children}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }

@@ -77,17 +77,20 @@ export function useTeamTechs(team?: Team) {
     }
 }
 
-
-export function EntityMdTag({node}: any) {
-    let value = node.value;
-    console.log(node)
-
+export function EntityTag(props: {id: string; quantity?: number}) {
     const {data, error} = useSWR<Record<string, Entity>>("game/entities", fetcher);
-    let name = value[0];
-    if (data && data[value[0]].name)
-        name = data[value[0]].name;
-    if (value.length == 1)
+    let name = props.id;
+    if (data && data[props.id]?.name)
+        name = data[props.id].name;
+    if (props.quantity == undefined)
         return <>{name}</>
     else
-        return <>{`${value[1]}× ${name}`}</>
+        return <>{`${props.quantity}× ${name}`}</>
+}
+
+
+export function EntityMdTag({node}: any) {
+    if (node.value.length == 1)
+        return <EntityTag id={node.value[0]}/>
+    return <EntityTag id={node.value[0]} quantity={node.value[1]}/>
 }

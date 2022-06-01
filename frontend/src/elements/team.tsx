@@ -13,9 +13,18 @@ const urlTeamAtom = atomWithHash<string | undefined>("team", undefined,
     });
 
 export function useTeams() {
-    const { data, error } = useSWR<Team[]>("/team/", fetcher);
+    const { data, error } = useSWR<Team[]>("/teams/", fetcher);
     return {
         teams: data,
+        loading: !error && !data,
+        error: error,
+    };
+}
+
+export function useTeam(teamId?: string) {
+    const { data, error } = useSWR<Team>(() => teamId ? `/teams/${teamId}` : null, fetcher);
+    return {
+        team: data,
         loading: !error && !data,
         error: error,
     };

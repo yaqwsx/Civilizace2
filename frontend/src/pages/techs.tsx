@@ -59,7 +59,8 @@ export function Tech() {
     );
 }
 
-function sortTechs(techs: TeamEntityTech[]) {
+export function sortTechs(techs: TeamEntityTech[]) {
+    // TBA
     return techs;
 }
 

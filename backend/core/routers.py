@@ -10,7 +10,7 @@ routes.register(r'auth/login', LoginViewSet, basename="auth-login")
 routes.register(r'auth/refresh', RefreshViewSet, basename="auth-refresh")
 
 routes.register(r'user', UserViewSet, basename="user")
-routes.register(r'team', TeamViewSet, basename="team")
+routes.register(r'teams', TeamViewSet, basename="teams")
 routes.register(r'announcements', AnnouncementViewSet, basename="announcements")
 
 urlpatterns = [

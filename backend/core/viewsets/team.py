@@ -20,7 +20,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     def get_object(self):
         lookupFieldValue = self.kwargs[self.lookup_field]
 
-        obj = self.get_queryset()(pk=lookupFieldValue)
+        obj = self.get_queryset().get(pk=lookupFieldValue)
         self.check_object_permissions(self.request, obj)
 
         return obj

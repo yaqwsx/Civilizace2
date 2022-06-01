@@ -24,6 +24,7 @@ import {
     faFlask,
     faCubesStacked,
     faStickyNote,
+    faMountainCity
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ import { ScannerDispatcher } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
 import { Rounds, RoundsMenu } from "./pages/rounds";
 import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
+import { MapMenu, MapAgenda } from "./pages/map"
 import "./index.css";
 
 import { Forbidden } from "./pages/forbidden";
@@ -210,6 +212,7 @@ function OrgMenu() {
             <MenuItem name="Kola" icon={faHistory} path="rounds" />
             <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
             <MenuItem name="Technologie" icon={faFlask} path="techs" />
+            <MenuItem name="Armády &amp; budovy" icon={faMountainCity} path="map"/>
             <MenuItem name="Úkoly" icon={faCubesStacked} path="tasks" />
             <MenuItem name="Vývěska" icon={faStickyNote} path="announcements" />
         </MenuRow>
@@ -221,11 +224,12 @@ function ApplicationMenu() {
         <>
             <OrgMenu />
             <Routes>
-                <Route path="/dashboard" element={<DashboardMenu />} />
+                <Route path="/dashboard/*" element={<DashboardMenu />} />
                 <Route path="/rounds" element={<RoundsMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu />} />
                 <Route path="/techs" element={<TechMenu />} />
                 <Route path="/tasks/*" element={<TasksMenu />} />
+                <Route path="/map/*" element={<MapMenu />} />
                 <Route
                     path="/announcements/*"
                     element={<AnnouncementsMenu />}
@@ -320,7 +324,7 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/dashboard"
+                                path="/dashboard/*"
                                 element={
                                     <RequireAuth>
                                         <Dashboard />
@@ -340,6 +344,14 @@ export default function App() {
                                 element={
                                     <RequireAuth>
                                         <Tech />
+                                    </RequireAuth>
+                                }
+                            />
+                            <Route
+                                path="/map"
+                                element={
+                                    <RequireAuth>
+                                        <MapAgenda />
                                     </RequireAuth>
                                 }
                             />
