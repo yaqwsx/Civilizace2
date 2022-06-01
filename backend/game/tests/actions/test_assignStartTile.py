@@ -25,6 +25,7 @@ def test_assignOne():
 
     args = ActionAssignTileArgs(team=TEAM_ADVANCED, index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
+    assert id(action.state) == id(state), "Pydantic copied state instead of using the argunemt"
     assert action.cost() == ActionCost(), "Assigning tile to team should be free"
 
     assert state.map.getHomeTile(TEAM_ADVANCED) == None, "Team should not have a home tile assigned by default"
