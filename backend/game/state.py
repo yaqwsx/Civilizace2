@@ -1,6 +1,8 @@
 from __future__ import annotations
 import enum
-from pydantic import BaseModel
+import types
+import pydantic
+from pydantic import BaseModel, DictError
 from typing import List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
 from game.entities import *
@@ -13,6 +15,14 @@ class StateModel(BaseModel):
             if getattr(self, field.name) != getattr(other, field.name):
                 return False
         return True
+
+    # By default, pydantic makes a copy of models on validation. We want to
+    # avoid this as state is shared. Therefore, we override the behavior
+    @classmethod
+    def validate(cls: types['pydantic.Model'], value: Any) -> 'pydantic.Model':
+        if isinstance(value, cls):
+            return value # This is the changed behavior
+        return super().validate(cls, value)
 
 class ArmyState(enum.Enum):
     Idle = 0

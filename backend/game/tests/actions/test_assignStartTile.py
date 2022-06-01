@@ -55,7 +55,7 @@ def test_assignAll():
         tile = state.map.getHomeTile(team)
         assert tile != None, "Home tile was not added for team {}".format(team.id)
         assert tile.entity.index == index*4 + 1, "Wrong home tile index for team {} (exp={}, act={})".format(team.id, index*4+1, tile.entity.index)
-    
+
 def test_assignDuplicate():
     reimport(__name__)
 
@@ -67,10 +67,10 @@ def test_assignDuplicate():
     action.commit()
     args = ActionAssignTileArgs(team=entities["tym-zluti"], index=1)
     action = ActionAssignTile(args=args, state=state, entities=entities)
-    
+
     with pytest.raises(ActionException) as einfo:
         action.commit()
-    
+
 def test_reassingnTeam():
     reimport(__name__)
 
@@ -85,7 +85,7 @@ def test_reassingnTeam():
     action.commit()
 
     assert action.errors.message == "", "Reassigning team to different home tile failed:{}".format(action.errors.message)
-    assert state.map.tiles.get(1) == None, "Unassigned tile remained on the map: {}".format(state.map.tiles.get(1)) 
+    assert state.map.tiles.get(1) == None, "Unassigned tile remained on the map: {}".format(state.map.tiles.get(1))
     assert state.map.tiles.get(5) != None, "Newly assigned tile #5 does not exist"
     assert state.map.getHomeTile(TEAM_ADVANCED) != None, "Team has no home tile after reassignment"
     assert state.map.getHomeTile(TEAM_ADVANCED).entity.index == 5, "Reassigned team home tile has wrong index {}".format(state.map.getHomeTile(TEAM_ADVANCED).entity.index)
@@ -96,4 +96,3 @@ def test_examineTestInitState():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    
