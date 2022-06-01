@@ -78,7 +78,7 @@ export function useTeamTechs(team?: Team) {
 }
 
 export function EntityTag(props: {id: string; quantity?: number}) {
-    const {data, error} = useSWR<Record<string, Entity>>("game/entities", fetcher);
+    const {data, error} = useSWR<Record<string, Entity>>("game/entities/resources", fetcher);
     let name = props.id;
     if (data && data[props.id]?.name)
         name = data[props.id].name;

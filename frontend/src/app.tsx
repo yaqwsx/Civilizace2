@@ -24,7 +24,7 @@ import {
     faFlask,
     faCubesStacked,
     faStickyNote,
-    faMountainCity
+    faMountainCity,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,7 @@ import { ScannerDispatcher } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
 import { Rounds, RoundsMenu } from "./pages/rounds";
 import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
-import { MapMenu, MapAgenda } from "./pages/map"
+import { MapMenu, MapAgenda } from "./pages/map";
 import "./index.css";
 
 import { Forbidden } from "./pages/forbidden";
@@ -40,7 +40,6 @@ import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
 import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
-
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -61,7 +60,6 @@ function RequireOrg({ children }: RequireOrgProps) {
         <Navigate to="/forbidden" />
     );
 }
-
 
 function IconHamburger() {
     return (
@@ -145,15 +143,6 @@ function UserMenu() {
                     <></>
                 )}
             </div>
-
-            <div className="block pr-4 lg:hidden">
-                <button
-                    onClick={toggleExpanded}
-                    className="float-right flex appearance-none place-items-end rounded border border-gray-600 px-3 py-2 text-gray-500 hover:border-teal-500 hover:text-gray-900 focus:outline-none"
-                >
-                    <IconHamburger />
-                </button>
-            </div>
         </>
     );
 }
@@ -212,7 +201,11 @@ function OrgMenu() {
             <MenuItem name="Kola" icon={faHistory} path="rounds" />
             <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
             <MenuItem name="Technologie" icon={faFlask} path="techs" />
-            <MenuItem name="Armády &amp; budovy" icon={faMountainCity} path="map"/>
+            <MenuItem
+                name="Armády &amp; budovy"
+                icon={faMountainCity}
+                path="map"
+            />
             <MenuItem name="Úkoly" icon={faCubesStacked} path="tasks" />
             <MenuItem name="Vývěska" icon={faStickyNote} path="announcements" />
         </MenuRow>
@@ -240,6 +233,10 @@ function ApplicationMenu() {
 }
 
 function ApplicationHeader() {
+    const [menuExpanded, setMenuExpanded] = useState(false);
+
+    let toggleExpanded = () => setMenuExpanded(!menuExpanded);
+
     return (
         <nav id="header" className="top-0 z-10 w-full bg-white shadow">
             <div className="container mx-auto mt-0 flex w-full flex-wrap items-center pt-3 pb-3 md:pb-0">
@@ -256,15 +253,29 @@ function ApplicationHeader() {
                     </Link>
                 </div>
 
-                <div className="w-1/2 pr-0">
-                    <div className="relative float-right inline-block">
+                <div className="w-1/2 pr-0 flex">
+                    <div className="relative float-left inline-block mr-3 md:mr-0">
                         <UserMenu />
                     </div>
+                    <div className="block pr-4 lg:hidden">
+                    <button
+                        onClick={toggleExpanded}
+                        className="float-right flex appearance-none place-items-end rounded border border-gray-600 px-3 py-2 text-gray-500 hover:border-teal-500 hover:text-gray-900 focus:outline-none"
+                    >
+                        <IconHamburger />
+                    </button>
+                </div>
                 </div>
 
-                <div className="z-20 mt-2 hidden w-full flex-grow bg-white lg:mt-0 lg:block lg:w-auto lg:items-center">
+
+                <div
+                    className={`z-20 mt-2 ${
+                        menuExpanded ? "" : "hidden"
+                    } w-full flex-grow bg-white lg:mt-0 lg:block lg:w-auto lg:items-center`}
+                >
                     <ApplicationMenu />
                 </div>
+
             </div>
         </nav>
     );
@@ -304,7 +315,7 @@ export default function App() {
             <PersistGate persistor={persistor} loading={null}>
                 <Router>
                     <AppFrame>
-                        <ToastProvider/>
+                        <ToastProvider />
                         <ScannerDispatcher />
                         <Routes>
                             <Route path="/login" element={<Login />} />

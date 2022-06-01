@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
 from game.entities import Entities, Entity, Tech
 from game.gameGlue import serializeEntity
@@ -26,7 +27,7 @@ class ChangeTaskSerializer(serializers.Serializer):
     newTask = serializers.CharField(allow_blank=True, allow_null=True)
 
 class EntityViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, IsOrg)
+    permission_classes = (IsAuthenticated)
 
     @action(detail=False)
     def resources(self, request):
@@ -34,13 +35,19 @@ class EntityViewSet(viewsets.ViewSet):
 
     @action(detail=False)
     def techs(self, request):
+        if not request.user.isOrg:
+            raise PermissionDenied()
         return self._list("techs")
 
     @action(detail=False)
     def vyrobas(self, request):
+        if not request.user.isOrg:
+            raise PermissionDenied()
         return self._list("vyrobas")
 
     def list(self, request):
+        if not request.user.isOrg:
+            raise PermissionDenied()
         return self._list("all")
 
     def _list(self, entityType):
@@ -63,6 +70,11 @@ class TeamViewSet(viewsets.ViewSet):
         state = dbState.toIr()
         entities = dbState.entities
         return state.teamStates[entities[teamId]], entities
+
+    def unreadAnnouncements(self, user, team):
+        if user.isOrg:
+            return Announcement.objects.getTeamUnread(team)
+        return Announcement.objects.getUnread(user)
 
     def list(self, request):
         if not request.user.isOrg:
@@ -201,5 +213,26 @@ class TeamViewSet(viewsets.ViewSet):
             ],
             "storage": [
                 (r.id, a) for r, a in state.storage.items()
+            ],
+            "announcements": [
+                {
+                    "id": a.id,
+                    "type": a.typeString(),
+                    "content": a.content,
+                    "read": False
+                } for a in self.unreadAnnouncements(request.user, team)
             ]
         })
+
+    @action(detail=True)
+    def announcements(self, request, pk):
+        self.validateAccess(request.user, pk)
+        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        return Response([
+            {
+                "id": a.id,
+                "type": a.typeString(),
+                "content": a.content,
+                "read": request.user in a.read.all()
+            } for a in Announcement.objects.getTeam(team)
+        ])
