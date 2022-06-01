@@ -128,7 +128,7 @@ function UserMenu() {
                         id="userMenu"
                         className="absolute top-0 right-0 z-30 mt-12 min-w-full overflow-auto rounded bg-white shadow-md lg:mt-6"
                     >
-                        <ul className="list-reset">
+                        <ul className="list-reset list-none">
                             <li>
                                 <button
                                     onClick={handleLogout}
@@ -253,8 +253,8 @@ function ApplicationHeader() {
                     </Link>
                 </div>
 
-                <div className="w-1/2 pr-0 flex">
-                    <div className="relative float-left inline-block mr-3 md:mr-0">
+                <div className="w-1/2 pr-0 flex md:block md:flex-1">
+                    <div className="relative float-right inline-block mr-3 md:mr-0">
                         <UserMenu />
                     </div>
                     <div className="block pr-4 lg:hidden">
