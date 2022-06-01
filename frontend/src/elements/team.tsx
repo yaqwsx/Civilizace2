@@ -30,6 +30,10 @@ export function useTeam(teamId?: string) {
     };
 }
 
+export function useTeamIdFromUrl() {
+    return useAtom(urlTeamAtom);
+}
+
 export function useTeamFromUrl() {
     const [teamId, setTeamId] = useAtom(urlTeamAtom);
     const { teams, loading, error } = useTeams();

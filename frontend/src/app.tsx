@@ -40,6 +40,7 @@ import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
 import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
+import { useTeamIdFromUrl } from "./elements/team";
 
 type RequireAuthProps = {
     children: JSX.Element | JSX.Element[];
@@ -190,24 +191,30 @@ function MenuItem(props: MenuItemProps) {
 
 function OrgMenu() {
     const account = useSelector((state: RootState) => state.auth.account);
+    const [teamId] = useTeamIdFromUrl();
 
     if (account === null || !account.user.isOrg) {
         return null;
     }
 
+    let MenuItemT = (props: MenuItemProps) => {
+        let {path, ...otherProps} = props;
+        return <MenuItem path={ teamId ? `${path}#team=${teamId}` : path} {...otherProps}/>
+    }
+
     return (
         <MenuRow>
-            <MenuItem name="Přehled týmů" icon={faChartLine} path="dashboard" />
-            <MenuItem name="Kola" icon={faHistory} path="rounds" />
-            <MenuItem name="Výroby" icon={faIndustry} path="vyrobas" />
-            <MenuItem name="Technologie" icon={faFlask} path="techs" />
-            <MenuItem
+            <MenuItemT name="Přehled týmů" icon={faChartLine} path="dashboard/" />
+            <MenuItemT name="Kola" icon={faHistory} path="rounds/" />
+            <MenuItemT name="Výroby" icon={faIndustry} path="vyrobas/" />
+            <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
+            <MenuItemT
                 name="Armády &amp; budovy"
                 icon={faMountainCity}
                 path="map"
             />
-            <MenuItem name="Úkoly" icon={faCubesStacked} path="tasks" />
-            <MenuItem name="Vývěska" icon={faStickyNote} path="announcements" />
+            <MenuItemT name="Úkoly" icon={faCubesStacked} path="tasks/" />
+            <MenuItemT name="Vývěska" icon={faStickyNote} path="announcements/" />
         </MenuRow>
     );
 }

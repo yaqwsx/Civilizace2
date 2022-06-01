@@ -15,7 +15,7 @@ import {
     classNames,
     LoadingOrError,
 } from "../elements";
-import { useTeam, useTeams } from "../elements/team";
+import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
 import { RootState } from "../store";
 import { Team } from "../types";
 import {
@@ -122,6 +122,7 @@ export function DashboardMenu() {
 export function Dashboard() {
     const user = useSelector((state: RootState) => state.auth.account?.user);
     const { teams, error: teamError } = useTeams();
+    const [urlTeamId] = useTeamIdFromUrl();
 
     if (!teams) {
         return (
@@ -133,6 +134,7 @@ export function Dashboard() {
         );
     }
 
+
     let firstTeam = teams[0];
 
     return (
@@ -141,7 +143,7 @@ export function Dashboard() {
                 path=""
                 element={
                     user?.isOrg ? (
-                        <Navigate to={`${firstTeam.id}/`} />
+                        <Navigate to={`${urlTeamId || firstTeam.id}/#team=${urlTeamId || firstTeam.id}`} />
                     ) : (
                         <Navigate to={`${user?.team.id}`} />
                     )
