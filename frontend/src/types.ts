@@ -111,15 +111,14 @@ export interface Announcement {
     read?: string[];
 }
 
-export interface Round {
-    seq: number;
-    start: Date;
-    editable: boolean;
-    length: number;
-}
-
-export interface RoundSentinel {
-    seq: number;
+export interface Turn {
+    id: number;
+    startedAt?: Date;
+    shouldStartAt?: Date;
+    enabled: boolean;
+    duration: number;
+    prev?: Turn;
+    next?: Turn;
 }
 
 export enum ActionStatus {

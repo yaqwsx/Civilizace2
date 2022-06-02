@@ -30,7 +30,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { ScannerDispatcher } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
-import { Rounds, RoundsMenu } from "./pages/rounds";
+import { Turns, TurnsMenu } from "./pages/turns";
 import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
 import { MapMenu, MapAgenda } from "./pages/map";
 import "./index.css";
@@ -205,7 +205,7 @@ function OrgMenu() {
     return (
         <MenuRow>
             <MenuItemT name="Přehled týmů" icon={faChartLine} path="dashboard/" />
-            <MenuItemT name="Kola" icon={faHistory} path="rounds/" />
+            <MenuItemT name="Kola" icon={faHistory} path="turns/" />
             <MenuItemT name="Výroby" icon={faIndustry} path="vyrobas/" />
             <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
             <MenuItemT
@@ -225,7 +225,7 @@ function ApplicationMenu() {
             <OrgMenu />
             <Routes>
                 <Route path="/dashboard/*" element={<DashboardMenu />} />
-                <Route path="/rounds" element={<RoundsMenu />} />
+                <Route path="/turns" element={<TurnsMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu />} />
                 <Route path="/techs" element={<TechMenu />} />
                 <Route path="/tasks/*" element={<TasksMenu />} />
@@ -390,10 +390,10 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/rounds"
+                                path="/turns"
                                 element={
                                     <RequireOrg>
-                                        <Rounds />
+                                        <Turns />
                                     </RequireOrg>
                                 }
                             />

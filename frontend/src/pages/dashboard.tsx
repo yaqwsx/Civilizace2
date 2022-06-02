@@ -33,6 +33,7 @@ import { EntityTag, useTeamTechs } from "../elements/entities";
 import { sortTechs } from "./techs";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { TurnCountdownSticker } from "../elements/turns";
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -134,26 +135,35 @@ export function Dashboard() {
         );
     }
 
-
     let firstTeam = teams[0];
 
     return (
-        <Routes>
-            <Route
-                path=""
-                element={
-                    user?.isOrg ? (
-                        <Navigate to={`${urlTeamId || firstTeam.id}/#team=${urlTeamId || firstTeam.id}`} />
-                    ) : (
-                        <Navigate to={`${user?.team.id}`} />
-                    )
-                }
-            />
-            <Route path=":teamId/" element={<TeamOverview />} />
-            <Route path=":teamId/tasks" element={<TeamTasks />} />
-            <Route path=":teamId/announcements" element={<TeamMessages />} />
-            <Route path="*" element={<Navigate to="" />} />
-        </Routes>
+        <>
+            <TurnCountdownSticker />
+            <Routes>
+                <Route
+                    path=""
+                    element={
+                        user?.isOrg ? (
+                            <Navigate
+                                to={`${urlTeamId || firstTeam.id}/#team=${
+                                    urlTeamId || firstTeam.id
+                                }`}
+                            />
+                        ) : (
+                            <Navigate to={`${user?.team.id}`} />
+                        )
+                    }
+                />
+                <Route path=":teamId/" element={<TeamOverview />} />
+                <Route path=":teamId/tasks" element={<TeamTasks />} />
+                <Route
+                    path=":teamId/announcements"
+                    element={<TeamMessages />}
+                />
+                <Route path="*" element={<Navigate to="" />} />
+            </Routes>
+        </>
     );
 }
 
@@ -212,7 +222,9 @@ function TeamOverview() {
                 </Card>
 
                 <Card label="Kolo" color={team.color} icon={faCalendar}>
-                    Právě probíhá {data.round}. kolo
+                    {data.turn == 0
+                        ? "Hra ještě nezačala."
+                        : `Hra se nachází v ${data.turn}. kole`}
                 </Card>
             </div>
 
@@ -367,10 +379,18 @@ function TeamMessages() {
     );
 }
 
-function announcementColor(type: string) {
+function announcementPalette(type: string) {
     return {
-        normal: "bg-blue-200",
-        important: "bg-orange-200",
+        normal: {
+            color: "blue-500",
+            border: "border-blue-500",
+            bg: "bg-blue-200",
+        },
+        important: {
+            color: "orange-500",
+            border: "border-orange-500",
+            bg: "bg-orange-200",
+        },
     }[type];
 }
 
@@ -389,9 +409,12 @@ function Announcement(props: {
 
     if (!user || deleted || !props.type) return null;
 
+    let colors = announcementPalette(props.type);
+
     let className = classNames(
-        "mb-4 w-full rounded bg-white py-2 px-4 shadow",
-        announcementColor(props.type)
+        "mb-4 rounded-b border-t-4 px-4 py-3 shadow-md",
+        colors?.border,
+        colors?.bg
     );
 
     let handleSubmit = () => {
@@ -420,8 +443,11 @@ function Announcement(props: {
                 })}
             </p>
             {props.readBy ? (
-                <p className="text-xs uppercase text-gray-600 mx-2">
-                    Četl: {( props.readBy.length ? props.readBy : ["Nikdo"]).join(", ")}
+                <p className="mx-2 text-xs uppercase text-gray-600">
+                    Četl:{" "}
+                    {(props.readBy.length ? props.readBy : ["Nikdo"]).join(
+                        ", "
+                    )}
                 </p>
             ) : null}
             <div className="w-full md:flex">
