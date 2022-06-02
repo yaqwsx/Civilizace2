@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Dict
+from typing import Any, Optional, Tuple, Dict
 from django.shortcuts import get_object_or_404
 from django.db.models.functions import Now
 from rest_framework import viewsets
@@ -16,7 +16,7 @@ from rest_framework import serializers
 
 from game.models import DbEntities, DbState, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
-from game.state import TeamState
+from game.state import GameState, TeamState
 
 from core.models import Team as DbTeam
 
@@ -65,7 +65,7 @@ class TeamViewSet(viewsets.ViewSet):
     def getTeamState(self, teamId: str) -> TeamState:
         return self.getTeamStateAndEntities(teamId)[0]
 
-    def getTeamStateAndEntities(self, teamId: str) -> TeamState:
+    def getTeamStateAndEntities(self, teamId: str):
         dbState = DbState.objects.latest("id")
         state = dbState.toIr()
         entities = dbState.entities
@@ -197,22 +197,26 @@ class TeamViewSet(viewsets.ViewSet):
     def dashboard(self, request, pk):
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
-        state, entities = self.getTeamStateAndEntities(pk)
+
+        dbState = DbState.objects.latest("id")
+        state = dbState.toIr()
+        entities = dbState.entities
+        teamState = state.teamStates[entities[pk]]
 
         return Response({
             "population": {
                 "spec": "TBA",
                 "all": "TBA"
             },
-            "work": state.work,
-            "round": "TBA",
-            "researchingTechs": [serializeEntity(x) for x in state.researching],
+            "work": teamState.work,
+            "turn": state.turn,
+            "researchingTechs": [serializeEntity(x) for x in teamState.researching],
             "productions": [
-                (r.id, a) for r, a in state.resources.items()
+                (r.id, a) for r, a in teamState.resources.items()
                     if r.isProduction
             ],
             "storage": [
-                (r.id, a) for r, a in state.storage.items()
+                (r.id, a) for r, a in teamState.storage.items()
             ],
             "announcements": [
                 {

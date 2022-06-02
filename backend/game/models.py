@@ -5,6 +5,7 @@ from enumfields import EnumField
 from typing import Any, Dict, Optional, Tuple
 from django.db import models
 from django.db.models import QuerySet
+from django.core.validators import MinValueValidator
 from pydantic import BaseModel
 from core.models.fields import JSONField
 from core.models import Team, User
@@ -195,3 +196,29 @@ class DbTaskPreference(models.Model):
         ]
     task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="techs")
     techId = models.CharField(max_length=32)
+
+class DbTurnManager(models.Manager):
+    def getActiveTurn(self):
+        return self.get_queryset() \
+            .filter(enabled=True, startedAt__isnull=False).latest()
+
+class DbTurn(models.Model):
+    class Meta:
+        get_latest_by = "id"
+    startedAt = models.DateTimeField(null=True)
+    enabled = models.BooleanField(default=False)
+    duration = models.IntegerField(default=1*60, validators=[MinValueValidator(0)]) # In seconds
+
+    objects = DbTurnManager()
+
+    @property
+    def next(self):
+        return DbTurn.objects.get(id=self.id + 1)
+
+    @property
+    def prev(self):
+        try:
+            return DbTurn.objects.get(id=self.id - 1)
+        except DbTurn.DoesNotExist:
+            return None
+

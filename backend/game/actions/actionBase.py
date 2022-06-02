@@ -25,7 +25,9 @@ class ActionBase(BaseModel):
         return ActionCost()
 
     def initiate(self, cost: Optional[ActionCost]) -> InitiateResult:
-        raise NotImplementedError("ActionBase is an interface")
+        if self.args.team is not None:
+            raise ActionException("Akce má specifikovaný tým, ale nestrhává mu zdroje")
+        return InitiateResult()
 
     def commit(self, cost: Optional[ActionCost]=None) -> ActionResult:
         # Reward was not given to the team yet. Assuming that happens outside action, same as with postponed()
@@ -133,6 +135,7 @@ class TeamActionBase(ActionBase):
             if not r.isProduction:
                 raise ActionException("Je chtěno se odměnit něčím, co není produkce. Řekni to Maarovi")
             self.teamState.resources[r] = self.teamState.resources.get(r, 0) + a
+
 
 class ActionArgs(BaseModel):
     team: Optional[Team]
