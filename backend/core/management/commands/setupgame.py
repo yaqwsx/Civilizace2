@@ -6,7 +6,7 @@ from core.models.announcement import Announcement
 from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import loadEntities
 from django.conf import settings
-from game.models import DbAction, DbEntities, DbInteraction, DbTurn, DbState, DbTeamState, DbMapState
+from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTurn, DbState, DbTeamState, DbMapState
 from core.models import User, Team
 from game.state import GameState
 
@@ -52,6 +52,7 @@ class Command(BaseCommand):
         self.createRounds()
 
     def clearGame(self):
+        DbDelayedEffect.all().delete()
         DbEntities.objects.all().delete()
         DbAction.objects.all().delete()
         DbInteraction.objects.all().delete()

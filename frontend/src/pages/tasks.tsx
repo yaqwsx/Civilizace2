@@ -174,7 +174,6 @@ function DeleteDialog(props: { close: () => void; task: Task; onDelete: () => vo
             props.close();
             toast.success(`Úkol ${props.task.name} (${props.task.id}) byl smazán`);
         }).catch(error => {
-            console.log("E", error)
             if (error?.response?.status === "403") {
                 toast.error(error.response.data.detail);
             } else {

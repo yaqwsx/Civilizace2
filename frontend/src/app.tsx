@@ -198,23 +198,32 @@ function OrgMenu() {
     }
 
     let MenuItemT = (props: MenuItemProps) => {
-        let {path, ...otherProps} = props;
-        return <MenuItem path={ teamId ? `${path}#team=${teamId}` : path} {...otherProps}/>
-    }
+        let { path, ...otherProps } = props;
+        return (
+            <MenuItem
+                path={teamId ? `${path}#team=${teamId}` : path}
+                {...otherProps}
+            />
+        );
+    };
 
     return (
         <MenuRow>
-            <MenuItemT name="Přehled týmů" icon={faChartLine} path="dashboard/" />
+            <MenuItemT
+                name="Přehled týmů"
+                icon={faChartLine}
+                path="dashboard/"
+            />
             <MenuItemT name="Kola" icon={faHistory} path="turns/" />
             <MenuItemT name="Výroby" icon={faIndustry} path="vyrobas/" />
             <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
-            <MenuItemT
-                name="Armády &amp; budovy"
-                icon={faMountainCity}
-                path="map"
-            />
+            <MenuItemT name="Mapa" icon={faMountainCity} path="map/" />
             <MenuItemT name="Úkoly" icon={faCubesStacked} path="tasks/" />
-            <MenuItemT name="Vývěska" icon={faStickyNote} path="announcements/" />
+            <MenuItemT
+                name="Vývěska"
+                icon={faStickyNote}
+                path="announcements/"
+            />
         </MenuRow>
     );
 }
@@ -260,29 +269,27 @@ function ApplicationHeader() {
                     </Link>
                 </div>
 
-                <div className="w-1/2 pr-0 flex md:block">
-                    <div className="relative float-right inline-block mr-3 md:mr-0">
+                <div className="flex w-1/2 pr-0 md:block">
+                    <div className="relative float-right mr-3 inline-block md:mr-0">
                         <UserMenu />
                     </div>
                     <div className="block pr-4 lg:hidden">
-                    <button
-                        onClick={toggleExpanded}
-                        className="float-right flex appearance-none place-items-end rounded border border-gray-600 px-3 py-2 text-gray-500 hover:border-teal-500 hover:text-gray-900 focus:outline-none"
-                    >
-                        <IconHamburger />
-                    </button>
+                        <button
+                            onClick={toggleExpanded}
+                            className="float-right flex appearance-none place-items-end rounded border border-gray-600 px-3 py-2 text-gray-500 hover:border-teal-500 hover:text-gray-900 focus:outline-none"
+                        >
+                            <IconHamburger />
+                        </button>
+                    </div>
                 </div>
-                </div>
-
 
                 <div
                     className={`z-20 mt-2 ${
                         menuExpanded ? "" : "hidden"
-                    } w-full flex-grow bg-white lg:mt-0 lg:block lg:w-auto lg:items-center md:flex-none`}
+                    } w-full flex-grow bg-white md:flex-none lg:mt-0 lg:block lg:w-auto lg:items-center`}
                 >
                     <ApplicationMenu />
                 </div>
-
             </div>
         </nav>
     );

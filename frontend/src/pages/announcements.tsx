@@ -196,7 +196,6 @@ function DeleteDialog(props: {
                 toast.success("Smazáno");
             })
             .catch((error) => {
-                console.log("E", error);
                 if (error?.response?.status === "403") {
                     toast.error(error.response.data.detail);
                 } else {

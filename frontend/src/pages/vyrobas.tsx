@@ -35,7 +35,6 @@ export function Vyroba() {
     }
 
     const handleTeamChange = (t: Team) => {
-        console.log(t);
         setTeam(t);
         setVyrobaId(undefined);
     };

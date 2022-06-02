@@ -25,14 +25,10 @@ axiosService.interceptors.request.use(async (config) => {
 axiosService.interceptors.response.use(
     (res) => {
         // @ts-ignore
-        console.debug('[Response]', res.config.baseURL + res.config.url, res.status, res.data);
+        // console.debug('[Response]', res.config.baseURL + res.config.url, res.status, res.data);
         return Promise.resolve(res);
     },
     (err) => {
-        // if (err.response && err.response.status === 401 ) {
-        //     store.dispatch(authSlice.actions.logout());
-        //     console.log("Token not valid, ")
-        // }
         console.debug(
             '[Response error]',
             err.config.baseURL + err.config.url,
@@ -67,7 +63,6 @@ const refreshAuthLogic = async (failedRequest) => {
             })
             .catch((err) => {
                 if (err.response && err.response.status === 401) {
-                    console.log("Logging out")
                     store.dispatch(authSlice.actions.logout());
                 }
             });

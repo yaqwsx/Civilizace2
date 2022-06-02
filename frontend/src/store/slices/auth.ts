@@ -17,7 +17,6 @@ const authSlice = createSlice({
             state: State,
             action: PayloadAction<{ token: string; refreshToken: string }>
         ) {
-            console.log("Setting refresh token: ", action.payload)
             if (action.payload.refreshToken)
                 state.refreshToken = action.payload.refreshToken;
             state.token = action.payload.token;
