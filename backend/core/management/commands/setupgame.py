@@ -52,7 +52,7 @@ class Command(BaseCommand):
         self.createRounds()
 
     def clearGame(self):
-        DbDelayedEffect.all().delete()
+        DbDelayedEffect.objects.all().delete()
         DbEntities.objects.all().delete()
         DbAction.objects.all().delete()
         DbInteraction.objects.all().delete()
