@@ -260,7 +260,7 @@ function ApplicationHeader() {
                     </Link>
                 </div>
 
-                <div className="w-1/2 pr-0 flex md:block md:flex-1">
+                <div className="w-1/2 pr-0 flex md:block">
                     <div className="relative float-right inline-block mr-3 md:mr-0">
                         <UserMenu />
                     </div>
@@ -278,7 +278,7 @@ function ApplicationHeader() {
                 <div
                     className={`z-20 mt-2 ${
                         menuExpanded ? "" : "hidden"
-                    } w-full flex-grow bg-white lg:mt-0 lg:block lg:w-auto lg:items-center`}
+                    } w-full flex-grow bg-white lg:mt-0 lg:block lg:w-auto lg:items-center md:flex-none`}
                 >
                     <ApplicationMenu />
                 </div>

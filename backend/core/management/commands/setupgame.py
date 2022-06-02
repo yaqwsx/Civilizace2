@@ -2,10 +2,11 @@ from typing import Dict
 import json
 from typing import List
 from django.core.management import BaseCommand
+from core.models.announcement import Announcement
 from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import loadEntities
 from django.conf import settings
-from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTeamState, DbMapState
+from game.models import DbAction, DbEntities, DbInteraction, DbTurn, DbState, DbTeamState, DbMapState
 from core.models import User, Team
 from game.state import GameState
 
@@ -48,16 +49,20 @@ class Command(BaseCommand):
         self.createTeams(ent.teams)
         self.createEntities(targetFile)
         self.createInitialState(ent)
+        self.createRounds()
 
     def clearGame(self):
-        User.objects.all().delete()
-        Team.objects.all().delete()
         DbEntities.objects.all().delete()
         DbAction.objects.all().delete()
         DbInteraction.objects.all().delete()
         DbTeamState.objects.all().delete()
-        DbMapState.objects.all().delete()
         DbState.objects.all().delete()
+        DbTurn.objects.all().delete()
+        DbMapState.objects.all().delete()
+
+        Announcement.objects.all().delete()
+        User.objects.all().delete()
+        Team.objects.all().delete()
 
     def createOrgs(self, orgs: Dict[EntityId, Org]) -> None:
         for o in orgs.values():
@@ -80,4 +85,8 @@ class Command(BaseCommand):
     def createInitialState(self, entities) -> None:
         irState = GameState.createInitial(entities)
         state = DbState.objects.createFromIr(irState)
+
+    def createRounds(self):
+        for i in range(200):
+            DbTurn.objects.create()
 

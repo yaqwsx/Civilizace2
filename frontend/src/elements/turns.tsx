@@ -47,7 +47,6 @@ export function CurrentTurnCountdown() {
     if (info?.id == -1 || !info?.end) return "Hra je aktuálně pozastavena";
 
     let remainingSecs = (info.end.getTime() - now.getTime()) / 1000;
-    console.log(remainingSecs);
     if (remainingSecs <= 0) {
         reload();
         remainingSecs = 0;
