@@ -14,6 +14,8 @@ from game.actions.researchStart import ActionResearchStart
 from game.entities import THROW_COST, Entities, Entity
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTask, DbTaskAssignment, InteractionType
+from django.db import transaction
+import traceback
 
 from core.models.team import Team
 from game.state import StateModel
@@ -148,6 +150,23 @@ class ActionViewSet(viewsets.ViewSet):
                 t.finishedAt = Now()
                 t.save()
 
+    def constructAction(self, actionType, args, entities, state):
+        Action = GAME_ACTIONS[actionType]
+        args = stateDeserialize(Action.argument, args, entities)
+        action = Action.action(entities=entities, state=state, args=args)
+        return action
+
+    def dbStoreInteraction(self, dbAction, dbState, interactionType, user, state):
+        interaction = DbInteraction(
+            phase=interactionType,
+            action=dbAction,
+            author=user
+        )
+        interaction.save()
+        dbState.updateFromIr(state)
+        dbState.action = interaction
+        dbState.save()
+
     @staticmethod
     def _computeStickers(prev: StateModel, post: StateModel) -> Set[StickerId]:
         stickers = {t: s.collectStickerEntitySet() for t, s in post.teamStates.items()}
@@ -171,10 +190,7 @@ class ActionViewSet(viewsets.ViewSet):
         sourceState = dbState.toIr()
 
         try:
-            Action = GAME_ACTIONS[data["action"]]
-            args = stateDeserialize(Action.argument, data["args"], entities)
-            action = Action.action(entities=entities, state=state, args=args)
-
+            action = self.constructAction(data["action"], data["args"], entities, state)
             cost = action.cost()
             initiateResult = action.initiate(cost)
             if not initiateResult.succeeded:
@@ -191,7 +207,13 @@ class ActionViewSet(viewsets.ViewSet):
         except ActionException as e:
             return Response(data={
                 "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}"
+                "message": f"Nesplněny prerekvizity akce: \n\n{e}"
+            })
+        except Exception as e:
+            tb = traceback.format_exc()
+            return Response(data={
+                "success": False,
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```"
             })
 
     @action(methods=["POST"], detail=False)
@@ -200,62 +222,61 @@ class ActionViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
 
-        entityRevision, entities = DbEntities.objects.get_revision()
-        dbState = DbState.objects.latest()
-        state = dbState.toIr()
-        sourceState = dbState.toIr()
         try:
-            Action = GAME_ACTIONS[data["action"]]
-            args = stateDeserialize(Action.argument, data["args"], entities)
-            action = Action.action(entities=entities, state=state, args=args)
-            cost = action.cost()
-            initiateResult = action.initiate(cost)
-            if not initiateResult.succeeded:
-                return Response(data={
-                        "success": False,
-                        "message": actionPreviewMessage(cost, initiateResult, None)
-                    })
-            # Initiate was successful, create action and related models:
-            dbAction = DbAction(
-                actionType=data["action"], entitiesRevision=entityRevision,
-                args=stateSerialize(args), cost=stateSerialize(cost))
-            dbAction.save()
-            dbInitiate = DbInteraction(
-                phase=InteractionType.initiate,
-                action=dbAction,
-                author=request.user)
-            dbInitiate.save()
-            dbState.updateFromIr(action.state)
-            dbState.action = dbInitiate
-            dbState.save()
+            with transaction.atomic():
+                entityRevision, entities = DbEntities.objects.get_revision()
+                dbState = DbState.objects.latest()
+                state = dbState.toIr()
+                sourceState = dbState.toIr()
+                dryState = dbState.toIr()
 
-            result = None
-            stickers = set()
-            if cost.requiredDots == 0:
-                result = action.commit()
-                if result.succeeded:
-                    action.commitReward(result.productions)
-                dbCommit = DbInteraction(
-                    phase=InteractionType.commit,
-                    action=dbAction,
-                    author=request.user)
-                dbCommit.save()
-                dbState.updateFromIr(action.state)
-                dbState.action = dbCommit
-                dbState.save()
-                self._handleExtraCommitSteps(action)
-                stickers = self._computeStickers(sourceState, state)
-            # There will be dice throwing
-            return Response(data={
-                "success": result is None or result.succeeded,
-                "action": dbAction.id,
-                "committed": result is not None,
-                "message": actionInitiateMessage(cost, initiateResult, result, stickers)
-            })
+                action = self.constructAction(data["action"], data["args"], entities, state)
+
+                cost = action.cost()
+                initiateResult = action.initiate(cost)
+                if not initiateResult.succeeded:
+                    return Response(data={
+                            "success": False,
+                            "message": actionPreviewMessage(cost, initiateResult, None)
+                        })
+
+                dbAction = DbAction(
+                        actionType=data["action"], entitiesRevision=entityRevision,
+                        args=stateSerialize(action.args), cost=stateSerialize(cost))
+                dbAction.save()
+                self.dbStoreInteraction(dbAction, dbState, InteractionType.initiate, request.user, state)
+
+                result = None
+                stickers = set()
+                if cost.requiredDots == 0:
+                    result = action.commit(cost)
+                    if result.succeeded:
+                        action.commitReward(result.productions)
+                    self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
+                    self._handleExtraCommitSteps(action)
+                    stickers = self._computeStickers(sourceState, state)
+                else:
+                    # Let's perform the commit on dryState since all the
+                    # validation happens in commit /o\
+                    dryAction = self.constructAction(data["action"], data["args"], entities, dryState)
+                    dryAction.initiate(cost)
+                    dryAction.commit(cost)
+                return Response(data={
+                    "success": result is None or result.succeeded,
+                    "action": dbAction.id,
+                    "committed": result is not None,
+                    "message": actionInitiateMessage(cost, initiateResult, result, stickers)
+                })
         except ActionException as e:
             return Response(data={
                 "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}"
+                "message": f"Nesplněny prerekvizity akce: \n\n{e}"
+            })
+        except Exception as e:
+            tb = traceback.format_exc()
+            return Response(data={
+                "success": False,
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```"
             })
 
     @action(methods=["POST", "GET"], detail=True)
@@ -273,58 +294,63 @@ class ActionViewSet(viewsets.ViewSet):
         if dbAction.interactions.count() != 1:
             raise MulticommitError()
 
-        deserializer = CommitSerializer(data=request.data)
-        deserializer.is_valid(raise_exception=True)
-        params = deserializer.validated_data
+        try:
+            with transaction.atomic():
+                deserializer = CommitSerializer(data=request.data)
+                deserializer.is_valid(raise_exception=True)
+                params = deserializer.validated_data
 
-        dbState = DbState.objects.latest()
-        state = dbState.toIr()
-        sourceState = dbState.toIr()
+                dbState = DbState.objects.latest()
+                state = dbState.toIr()
+                sourceState = dbState.toIr()
 
-        Action = GAME_ACTIONS[dbAction.actionType]
-        args = stateDeserialize(Action.argument, dbAction.args, entities)
-        action = Action.action(entities=entities, state=state, args=args)
+                action = self.constructAction(dbAction.actionType, dbAction.args, entities, state)
 
-        workCommitSucc = action.payWork(params["throws"] * THROW_COST)
-        if workCommitSucc and params["dots"] >= cost.requiredDots:
-            result = action.commit()
-            if result.succeeded:
-                action.commitReward(result.productions)
-            stickers = self._computeStickers(sourceState, state)
-            dbInitiate = DbInteraction(
-                phase=InteractionType.commit,
-                action=dbAction,
-                author=request.user)
-            dbInitiate.save()
-            dbState.updateFromIr(action.state)
-            dbState.action = dbInitiate
-            dbState.save()
-            self._handleExtraCommitSteps(action)
-            return Response({
-                "success": result.succeeded,
-                "message": actionCommitMessage(cost, result, stickers)
-            })
-        else:
-            # There wasn't enough dots, abandon
-            result = action.abandon(cost)
-            dbInitiate = DbInteraction(
-                phase=InteractionType.abandon,
-                action=dbAction,
-                author=request.user)
-            dbInitiate.save()
-            dbState.updateFromIr(action.state)
-            dbState.action = dbInitiate
-            dbState.save()
-            if workCommitSucc:
-                message = "# Tým nenaházel dostatek\n\nTýmu se vrací pouze produkce a tým nic nezískává"
-            else:
-                message = "# Týmu došla práce (asi házel i na jiném stanovišti)\n\nTýmů se vrací pouze produkce a tým nic nezískává"
-            return Response({
+                workCommitSucc = action.payWork(params["throws"] * THROW_COST)
+                if workCommitSucc and params["dots"] >= cost.requiredDots:
+                    result = action.commit()
+                    if result.succeeded:
+                        action.commitReward(result.productions)
+                    stickers = self._computeStickers(sourceState, state)
+                    self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
+                    self._handleExtraCommitSteps(action)
+                    return Response({
+                        "success": result.succeeded,
+                        "message": actionCommitMessage(cost, result, stickers)
+                    })
+                else:
+                    # There wasn't enough dots, abandon
+                    result = action.abandon(cost)
+                    self.dbStoreInteraction(dbAction, dbState, InteractionType.abandon, request.user, state)
+                    if workCommitSucc:
+                        message = "# Tým nenaházel dostatek\n\nTýmu se vrací pouze produkce a tým nic nezískává"
+                    else:
+                        message = "# Týmu došla práce (asi házel i na jiném stanovišti)\n\nTýmů se vrací pouze produkce a tým nic nezískává"
+                    return Response({
+                        "success": False,
+                        "message": message
+                    })
+        except ActionException as e:
+            result = action.cancel(cost)
+            self.dbStoreInteraction(dbAction, dbState, InteractionType.cancel, request.user, state)
+
+            return Response(data={
                 "success": False,
-                "message": message
+                "message": f"Nesplněny prerekvizity akce: \n\n{e}\n\n{actionCancelMessage(cost, result)}"
+            })
+        except Exception as e:
+            tb = traceback.format_exc()
+
+            result = action.cancel(cost)
+            self.dbStoreInteraction(dbAction, dbState, InteractionType.cancel, request.user, state)
+
+            return Response(data={
+                "success": False,
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n\n\n{actionCancelMessage(cost, result)}\n\n```\n{tb}\n```"
             })
 
     @action(methods=["POST"], detail=True)
+    @transaction.atomic()
     def cancel(self, request, pk=True):
         dbAction = get_object_or_404(DbAction, pk=pk)
         cost = stateDeserialize(ActionCost, dbAction.cost)
@@ -335,9 +361,7 @@ class ActionViewSet(viewsets.ViewSet):
         dbState = DbState.objects.latest()
         state = dbState.toIr()
 
-        Action = GAME_ACTIONS[dbAction.actionType]
-        args = stateDeserialize(Action.argument, dbAction.args, entities)
-        action = Action.action(entities=entities, state=state, args=args)
+        action = self.constructAction(dbAction.actionType, dbAction.args, entities, state)
 
         result = action.cancel()
         dbInitiate = DbInteraction(

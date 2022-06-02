@@ -126,6 +126,7 @@ class TeamActionBase(ActionBase):
     def payWork(self, amount: int) -> bool:
         currentWork = self.teamState.resources.get(self.entities.work, 0)
         if currentWork - amount < 0:
+            self.teamState.resources[self.entities.work] = 0
             return False
         self.teamState.resources[self.entities.work] = currentWork - amount
         return True
