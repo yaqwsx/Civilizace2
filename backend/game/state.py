@@ -244,6 +244,7 @@ class TeamState(StateModel):
 
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
+    granary: Dict[Resource, Decimal] = {}
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
