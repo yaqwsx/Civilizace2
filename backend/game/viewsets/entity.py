@@ -243,3 +243,17 @@ class TeamViewSet(viewsets.ViewSet):
                 "readBy": set([x.team.name for x in a.read.all()]) if request.user.isOrg else None
             } for a in Announcement.objects.getTeam(team)
         ])
+
+    @action(detail=True)
+    def armies(self, request, pk):
+        self.validateAccess(request.user, pk)
+
+        state = self.getTeamState(pk)
+        return Response({a.prestige: {
+                "prestige": a.prestige,
+                "equipment": a.equipment,
+                "boost": a.boost,
+                "tile": a.tile.id if a.tile is not None else None,
+                "state": str(a.state).split(".")[1],
+                "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
+            } for a in state.armies.values()})

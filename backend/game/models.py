@@ -61,7 +61,7 @@ class InteractionType(Enum):
     commit = 1
     abandon = 2
     cancel = 3
-    postpone = 4
+    delayed = 4
 
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
@@ -222,3 +222,9 @@ class DbTurn(models.Model):
         except DbTurn.DoesNotExist:
             return None
 
+class DbDelayedEffect(models.Model):
+    slug = models.SlugField(max_length=8)
+    round = models.IntegerField()
+    target = models.IntegerField() # In seconds
+    action = models.ForeignKey(DbAction, on_delete=models.PROTECT)
+    result = JSONField(null=True)
