@@ -157,6 +157,12 @@ class MapTile(StateModel): # Game state elemnent
     def defenseBonus(self) -> int:
         return 0
 
+    @property
+    def occupyingArmyState(self) -> Optional[Army]:
+        return None
+        # if self.occupiedBy == None:
+        #     return None
+        # self.parent.parent.teams[self.occupiedBy.team].
 
 class HomeTile(MapTile):
     team: Team

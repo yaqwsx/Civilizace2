@@ -2,7 +2,7 @@ from __future__ import annotations
 from ctypes import Union
 
 from decimal import Decimal
-from game.entities import Entity, EntityId, Resource
+from game.entities import Entity, EntityId, Resource, Team
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
@@ -114,6 +114,7 @@ class ActionResult(BaseModel):
     message: str
     reward: Dict[Resource, Decimal]
     succeeded: bool
+    notifications: Dict[Team, List[str]]={}
 
     @property
     def productions(self):
