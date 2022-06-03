@@ -311,7 +311,7 @@ class GameState(StateModel):
     turn: int
     teamStates: Dict[Team, TeamState]
     map: MapState
-    casteCount: 3
+    casteCount: int=3
 
     def _setParent(self) -> None:
         for t in self.teamStates.values():
