@@ -1,5 +1,6 @@
+import _ from "lodash";
 import onScan from "onscan.js";
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function decodeKeyEvent(event: KeyboardEvent) {
@@ -11,35 +12,21 @@ function decodeKeyEvent(event: KeyboardEvent) {
 }
 
 interface ScannerContextType {
-    subscribe: (callback: (content: string[]) => void) => void;
-    unsubscribe: (callback: (content: string[]) => void) => void;
+    items: string[];
 }
 
 export const ScannerContext = createContext<ScannerContextType>({
-    subscribe: () => {},
-    unsubscribe: () => {},
+    items: [],
 });
 
 export function ScannerDispatcher(props: { children: any }) {
-    const [consumers, setConsumers] = useState<((content: string[]) => void)[]>(
-        []
-    );
-    const handleCodes = (code: string) => {
-        console.log("Scanned " + code, consumers);
-        const items = code.split(" ").map((x) => x.trim());
-        consumers.forEach((c) => {
-            c(items);
-        });
-    };
+    const [items, setItems] = useState<string[]>([]);
 
-    let subscribe = useCallback((f: (content: string[]) => void) => {
-        console.log("Subscribed!", f, consumers.concat([f]));
-        setConsumers(consumers.concat([f]));
-    }, []);
-    let unsubscribe = useCallback((f: (content: string[]) => void) => {
-        console.log("Unsubscribed!", f);
-        setConsumers(consumers.filter((x) => x != f));
-    }, []);
+    const handleCodes = (code: string) => {
+        console.log("Scanned " + code);
+        const items = code.split(" ").map((x) => x.trim());
+        setItems(items);
+    };
 
     useEffect(() => {
         onScan.attachTo(document, {
@@ -49,16 +36,23 @@ export function ScannerDispatcher(props: { children: any }) {
         return () => {
             onScan.detachFrom(document);
         };
-    }, []);
+    }, [handleCodes]);
 
     return (
         <ScannerContext.Provider
             value={{
-                subscribe: subscribe,
-                unsubscribe: unsubscribe,
+                items: items,
             }}
         >
             {props.children}
         </ScannerContext.Provider>
     );
+}
+
+export function useScanner(callback: ((words: string[]) => void)) {
+    const {items} = useContext(ScannerContext);
+
+    useEffect(() => {
+        callback(items);
+    }, [items])
 }

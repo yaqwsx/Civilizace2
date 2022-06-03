@@ -64,7 +64,7 @@ export function FormRow(props: FormRowProps) {
                 <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
                     {props.label}
                 </label>
-                <div className="mb-1 block w-full text-red-600 md:mb-0 md:text-right pr-4">
+                <div className="mb-1 block w-full pr-4 text-red-600 md:mb-0 md:text-right">
                     {props.error ? props.error : null}
                 </div>
                 <div className="mb-1 block w-full pr-4 md:mb-0 md:text-right">
@@ -135,6 +135,20 @@ export function SpinboxInput(props: SpinboxInputType) {
     );
 }
 
+export function PrettyAxiosError(props: { error: any }) {
+    let response = props.error.response;
+    return (
+        <div className="w-full">
+            <h3>
+                {response.status} ({response.status_text}):
+            </h3>
+            <code className="overflow-hidden w-full">
+                <pre className="overflow-hidden w-full">{JSON.stringify(response.data, null, 2)}</pre>
+            </code>
+        </div>
+    );
+}
+
 export function LoadingOrError(props: {
     loading: boolean;
     error?: any;
@@ -144,7 +158,11 @@ export function LoadingOrError(props: {
         return (
             <ComponentError>
                 <p>{props.message}</p>
-                <p>{props.error.toString()}</p>
+                {props.error.isAxiosError && false ? (
+                    <PrettyAxiosError error={props.error} />
+                ) : (
+                    <p>{props.error.toString()}</p>
+                )}
             </ComponentError>
         );
     }
@@ -367,7 +385,7 @@ export function Card(props: {
     let bgColor = "bg-" + props.color;
     let textColor = "text-" + props.color;
     return (
-        <div className="w-full px-0 py-2  md:w-1/2 md:px-2 xl:w-1/3 m-0">
+        <div className="m-0 w-full px-0  py-2 md:w-1/2 md:px-2 xl:w-1/3">
             <div className="h-full rounded border bg-white p-2 shadow">
                 <div className="flex h-full flex-row items-center">
                     <div className="h-full flex-shrink pr-4">
@@ -380,7 +398,7 @@ export function Card(props: {
                     </div>
 
                     <div className="h-full flex-1 text-right md:text-center">
-                        <h5 className="font-bold uppercase text-gray-500 mt-0">
+                        <h5 className="mt-0 font-bold uppercase text-gray-500">
                             {props.label}
                         </h5>
                         {props.children}

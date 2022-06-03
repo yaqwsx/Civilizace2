@@ -60,7 +60,11 @@ def stateDeserialize(cls, data, entities):
             "M": MapTile
         }[data["tt"]]
     for field in cls.__fields__.values():
-        source[field.name] = _stateDeserialize(data[field.name], field, entities)
+        if not field.required:
+            d = data.get(field.name, None)
+        else:
+            d = data[field.name]
+        source[field.name] = _stateDeserialize(d, field, entities)
     return cls.parse_obj(source)
 
 def _stateDeserialize(data, field, entities):

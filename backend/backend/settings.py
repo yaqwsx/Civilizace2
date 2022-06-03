@@ -158,6 +158,8 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_HEADERS = ["Accept", "Accept-Language", "Authorization", "Content-Type"]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE"]
 
+handler500 = 'rest_framework.exceptions.server_error'
+
 # Import file settingLocal.py and override any keys
 # Useful when Windows need some tweaking
 try:

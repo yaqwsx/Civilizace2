@@ -1,6 +1,7 @@
+import json
 import math
 import traceback
-from typing import Dict, Iterable, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from core.models.announcement import Announcement, AnnouncementType
 
 from core.models.team import Team
@@ -72,7 +73,7 @@ def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
 def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
                           action: Optional[ActionResult],
                           stickers: Iterable[StickerId],
-                          ) -> str:
+                          delayedEffect: Optional[DbDelayedEffect]) -> str:
     b = MessageBuilder()
     if not initiate.succeeded:
         b.add("Akce stojí:")
@@ -97,8 +98,12 @@ def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
             for t, e in stickers:
                 addLine(f"samolepka {e.name} pro tým {t.name}")
 
-        if cost.postpone > 0:
-            b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
+    if delayedEffect is not None:
+        b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
+                {round(delayedEffect.target / 60)} minut.
+                Vyzvedává se kódem: {delayedEffect.slug}**""")
+    elif cost.postpone > 0:
+        b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
     return b.message
 
 def actionCommitMessage(action: ActionResult,
@@ -215,6 +220,7 @@ class ActionViewSet(viewsets.ViewSet):
             turnObject = turnObject.next
             if turnObject is None:
                 raise RuntimeError("Odložený efekt akce je moc daleko - nemám dost kol.")
+        turnObject = turnObject.prev
         targetTurnId = turnObject.id
         targetOffset = (effectTime - turnObject.shouldStartAt).total_seconds()
 
@@ -242,6 +248,25 @@ class ActionViewSet(viewsets.ViewSet):
         effect.result = stateSerialize(result)
         effect.stickers = list(stickers)
         effect.save()
+
+    @staticmethod
+    def awardDelayedEffect(effect: DbDelayedEffect) -> Tuple[ActionResult, List[StickerId]]:
+        Self = ActionViewSet
+
+        dbAction = effect.action
+        _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+
+        action = Self.constructAction(dbAction.actionType, dbAction.args, entities, state)
+        result = stateDeserialize(ActionResult, effect.result, entities)
+
+        action.commitReward(result.productions)
+
+        Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayedReward,
+                                None, action.state)
+
+        return result, effect.stickers
 
 
     @action(methods=["POST"], detail=False)
@@ -313,6 +338,7 @@ class ActionViewSet(viewsets.ViewSet):
                 self.dbStoreInteraction(dbAction, dbState, InteractionType.initiate, request.user, state)
 
                 result = None
+                effect = None
                 stickers = set()
                 if cost.requiredDots == 0:
                     result = action.commit(cost)
@@ -323,7 +349,7 @@ class ActionViewSet(viewsets.ViewSet):
                     self._handleExtraCommitSteps(action)
                     stickers = self._computeStickers(sourceState, state)
                     if cost.postpone > 0:
-                        self._markDelayedEffect(dbAction, cost)
+                        effect = self._markDelayedEffect(dbAction, cost)
                 else:
                     # Let's perform the commit on dryState since all the
                     # validation happens in commit /o\
@@ -334,7 +360,7 @@ class ActionViewSet(viewsets.ViewSet):
                     "success": result is None or result.succeeded,
                     "action": dbAction.id,
                     "committed": result is not None,
-                    "message": actionInitiateMessage(cost, initiateResult, result, stickers)
+                    "message": actionInitiateMessage(cost, initiateResult, result, stickers, effect)
                 })
         except ActionException as e:
             return Response(data={

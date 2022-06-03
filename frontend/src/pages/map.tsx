@@ -232,13 +232,13 @@ function ArmyDeployForm(props: {
 }) {
     const [tile, setTile] = useState<any>(null);
     const [goal, setGoal] = useState<any>(0);
-    const [equipment, setEquipment] = useState<number>(0);
+    const [equipment, setEquipment] = useState<number>(1);
     const [friendlyTeam, setFriendlyTeam] = useState<Team | undefined>(
         undefined
     );
 
     let argsValid = true;
-    if (!tile || !friendlyTeam)
+    if (!tile && equipment <= 0)
         argsValid = false;
     return (
         <Dialog onClose={props.onFinish}>
@@ -276,7 +276,7 @@ function ArmyDeployForm(props: {
                                 ))}
                             </select>
                         </FormRow>
-                        <FormRow label="Vyberte výbavu:">
+                        <FormRow label="Vyberte výbavu:" error={equipment <= 0 ? "Výbava nesmí být záporná" : null}>
                             <SpinboxInput
                                 value={equipment}
                                 onChange={setEquipment}

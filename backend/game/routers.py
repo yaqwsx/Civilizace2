@@ -6,6 +6,7 @@ from game.viewsets.entity import EntityViewSet, TeamViewSet
 from game.viewsets.tasks import TaskViewSet
 from game.viewsets.action import ActionViewSet
 from game.viewsets.turns import TurnsViewSet
+from game.viewsets.voucher import VoucherViewSet
 
 routes = SimpleRouter()
 routes.register(r'entities', EntityViewSet, basename="entities")
@@ -13,6 +14,7 @@ routes.register(r'teams', TeamViewSet, basename="gameteams")
 routes.register(r'tasks', TaskViewSet, basename="tasks")
 routes.register(r'actions', ActionViewSet, basename="actions")
 routes.register(r'turns', TurnsViewSet, basename="turns")
+routes.register(r'vouchers', VoucherViewSet, basename="vouchers")
 
 
 urlpatterns = [

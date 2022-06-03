@@ -29,7 +29,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ScannerContext, ScannerDispatcher } from "./pages/scanner";
+import { ScannerContext, ScannerDispatcher, useScanner } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
 import { Turns, TurnsMenu } from "./pages/turns";
 import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
@@ -329,9 +329,9 @@ function AppFrame(props: AppFrameProps) {
 
 function ScannerNavigator() {
     const navigate = useNavigate();
-    const {subscribe, unsubscribe} = useContext(ScannerContext);
 
-    const navigator = useCallback((items: string[]) => {
+    useScanner((items: string[]) => {
+        console.log("Scanner navigator", items)
         let args: string[] = [];
         let page = null;
         items.forEach((item) => {
@@ -349,18 +349,17 @@ function ScannerNavigator() {
                 page = "techs";
                 return;
             }
+            if (item.startsWith("vou-")) {
+                page = "vouchers";
+                return;
+            }
         });
         if (page) {
             console.log("Navigating to " + `${page}#${args.join("&")}`);
             navigate(page);
             window.location.hash = `#${args.join("&")}`;
         }
-    }, [navigate]);
-
-    useEffect(() => {
-        subscribe(navigator);
-        return () => {unsubscribe(navigator)}
-    }, [subscribe, unsubscribe, navigate])
+    });
     return null;
 }
 

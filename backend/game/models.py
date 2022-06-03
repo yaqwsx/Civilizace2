@@ -66,6 +66,7 @@ class InteractionType(Enum):
     abandon = 2
     cancel = 3
     delayed = 4
+    delayedReward = 5
 
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
