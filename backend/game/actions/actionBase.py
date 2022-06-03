@@ -119,7 +119,7 @@ class TeamActionBase(ActionBase):
     def cancel(self, cost: Optional[ActionCost]) -> CancelationResult:
         if self.team is None or cost is None:
             return CancelationResult()
-        result = self.abandon(self.team, cost)
+        result = self.abandon(cost)
         result.materials = {r: a for r, a in cost.resources.items() if r.isMaterial}
         return result
 

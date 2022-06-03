@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { Team } from "../types";
 import { fetcher } from "../utils/axios";
 import { useAtom } from "jotai";
@@ -6,14 +7,13 @@ import { atomWithHash } from "jotai/utils";
 import classNames from "classnames";
 import { InlineSpinner, ComponentError } from ".";
 
-const urlTeamAtom = atomWithHash<string | undefined>("team", undefined,
-    {
-        serialize: x => x ? x : "",
-        deserialize: x => x ? x : undefined
-    });
+const urlTeamAtom = atomWithHash<string | undefined>("team", undefined, {
+    serialize: (x) => (x ? x : ""),
+    deserialize: (x) => (x ? x : undefined),
+});
 
 export function useTeams() {
-    const { data, error } = useSWR<Team[]>("/teams/", fetcher);
+    const { data, error } = useSWRImmutable<Team[]>(() => "/teams/", fetcher);
     return {
         teams: data,
         loading: !error && !data,
@@ -22,7 +22,10 @@ export function useTeams() {
 }
 
 export function useTeam(teamId?: string) {
-    const { data, error } = useSWR<Team>(() => teamId ? `/teams/${teamId}` : null, fetcher);
+    const { data, error } = useSWRImmutable<Team>(
+        () => (teamId ? `/teams/${teamId}` : null),
+        fetcher
+    );
     return {
         team: data,
         loading: !error && !data,
@@ -61,9 +64,10 @@ export function useTeamFromUrl() {
 }
 
 type TeamSelectorProps = {
-    active?: Team;
-    onChange?: (selectedTeam: Team) => void;
+    active?: Team | null;
+    onChange?: (selectedTeam?: Team) => void;
     onError?: (message: string) => void;
+    allowNull?: boolean;
 };
 export function TeamSelector(props: TeamSelectorProps) {
     const { teams, loading, error } = useTeams();
@@ -100,6 +104,24 @@ type TeamSelectorImplProps = TeamSelectorProps & {
 function TeamSelectorImpl(props: TeamSelectorImplProps) {
     return (
         <>
+            {!props.allowNull || (
+                <button
+                    className={classNames(
+                        "bg-transparent",
+                        "rounded-md",
+                        "m-2",
+                        "flex-auto",
+                        {
+                        "border-4 border-black scale-110 font-bold": !props?.active?.id
+                        }
+                    )}
+                    onClick={() => {
+                        if (props.onChange) props.onChange(undefined);
+                    }}
+                >
+                    Nikdo
+                </button>
+            )}
             {props.teams.map((team) => {
                 let handleClick = () => {
                     if (props.onChange) props.onChange(team);
@@ -130,9 +152,14 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
     );
 }
 
-export function TeamRowIndicator(props: {team?: Team}) {
-    if (!props.team)
-        return null;
-    let className = classNames("w-full", "rounded", "h-4", "my-4", `bg-${props.team.color}`)
-    return <div className={className}/>
+export function TeamRowIndicator(props: { team?: Team }) {
+    if (!props.team) return null;
+    let className = classNames(
+        "w-full",
+        "rounded",
+        "h-4",
+        "my-4",
+        `bg-${props.team.color}`
+    );
+    return <div className={className} />;
 }

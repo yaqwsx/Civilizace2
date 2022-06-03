@@ -1,9 +1,12 @@
 
+from game.actions.common import ActionCost
 from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
-from game.gameGlue import stateSerialize
-from game.models import DbAction, DbEntities, DbInteraction, DbTurn, DbState, InteractionType
+from game.gameGlue import stateDeserialize, stateSerialize
+from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTurn, DbState, InteractionType
 from django.utils import timezone
 from django.db import transaction
+
+from game.viewsets.action import ActionViewSet
 
 @transaction.atomic
 def updateTurn():
@@ -77,10 +80,29 @@ def makeNextTurnAction():
     dbState.action = dbCommit
     dbState.save()
 
+def updateDelayedEffects():
+    try:
+        turn = DbTurn.objects.getActiveTurn()
+        secondsIn = (timezone.now() - turn.startedAt).total_seconds()
+    except DbTurn.DoesNotExist:
+        return
 
-def turnUpdate(get_response):
+    pending = DbDelayedEffect.objects \
+        .filter(result__isnull=True, round__lte=turn.id, target__lte=secondsIn)
+    for effect in pending:
+        ActionViewSet.performDelayedEffect(effect)
+
+def turnUpdateMiddleware(get_response):
     def middleware(request):
         updateTurn()
+        response = get_response(request)
+        return response
+    return middleware
+
+
+def delayedEffectsMiddleware(get_response):
+    def middleware(request):
+        updateDelayedEffects()
         response = get_response(request)
         return response
     return middleware

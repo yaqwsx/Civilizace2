@@ -48,7 +48,7 @@ class Command(BaseCommand):
         self.createOrgs(ent.orgs)
         self.createTeams(ent.teams)
         self.createEntities(targetFile)
-        self.createInitialState(ent)
+        self.createInitialState(ent, entities)
         self.createRounds()
 
     def clearGame(self):
@@ -83,8 +83,12 @@ class Command(BaseCommand):
             data = json.load(f)
         DbEntities.objects.create(data=data)
 
-    def createInitialState(self, entities) -> None:
-        irState = GameState.createInitial(entities)
+    def createInitialState(self, entities, setname) -> None:
+        if setname == "TEST":
+            from game.tests.actions.common import createTestInitState
+            irState = createTestInitState()
+        else:
+            irState = GameState.createInitial(entities)
         state = DbState.objects.createFromIr(irState)
 
     def createRounds(self):

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     ActionCommitResponse,
     ActionResponse,
@@ -18,31 +18,42 @@ import { ErrorMessage, SuccessMessage } from "./messages";
 import { toast } from "react-toastify";
 
 import _ from "lodash";
-import { Action } from "history";
 import useSWR from "swr";
 import { useTeamWork } from "./entities";
+import { useElementSize, useDebounce } from "usehooks-ts";
 
 function useActionPreview(actionId: string, actionArgs: any) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
+
+    const debouncedArgs = useDebounce(actionArgs, 500);
+
     useEffect(() => {
         setError(null);
         setPreview(null);
 
+        console.log("Request:", {
+            action: actionId,
+            args: debouncedArgs,
+        });
+
         axiosService
             .post<any, any>("/game/actions/dry/", {
                 action: actionId,
-                args: actionArgs,
+                args: debouncedArgs,
             })
             .then((data) => {
-                setError(null);
-                setPreview(data.data);
+                setTimeout(() => {
+                    setError(null);
+                    setPreview(data.data);
+                }, 0);
             })
             .catch((error) => {
                 setPreview(null);
                 setError(error);
             });
-    }, [actionId, actionArgs]);
+    }, [actionId, debouncedArgs]);
+
     return {
         preview: preview,
         error: error,
@@ -60,6 +71,7 @@ export function PerformAction(props: {
     actionName: string;
     actionId: string;
     actionArgs: any;
+    argsValid?: boolean;
     extraPreview?: any;
     onFinish: () => void;
     onBack: () => void;
@@ -68,6 +80,8 @@ export function PerformAction(props: {
         phase: ActionPhase.initiatePhase,
         data: null,
     });
+
+    let argsValid = props.argsValid === undefined ? true : props.argsValid;
 
     let changePhase = (phase: ActionPhase, data: any) => {
         setPhase({
@@ -86,6 +100,7 @@ export function PerformAction(props: {
                     actionArgs={props.actionArgs}
                     onAbort={props.onBack}
                     changePhase={changePhase}
+                    argsValid={argsValid}
                 />
             </>
         );
@@ -103,10 +118,21 @@ export function PerformAction(props: {
     }
 
     if (phase.phase == ActionPhase.finish) {
-        return <ActionFinishPhase response={phase.data} actionName={props.actionName} onFinish={props.onFinish}/>;
+        return (
+            <ActionFinishPhase
+                response={phase.data}
+                actionName={props.actionName}
+                onFinish={props.onFinish}
+            />
+        );
     }
 
-    return <ErrorMessage>Toto nemělo nastat. Není to nic vážného, ale až budeš mít chvíli, řekni o tom Honzovi</ErrorMessage>
+    return (
+        <ErrorMessage>
+            Toto nemělo nastat. Není to nic vážného, ale až budeš mít chvíli,
+            řekni o tom Honzovi
+        </ErrorMessage>
+    );
 }
 
 function ActionMessage(props: { response: ActionResponse }) {
@@ -124,6 +150,7 @@ function ActionPreviewPhase(props: {
     actionArgs: any;
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
+    argsValid: boolean
 }) {
     const { preview, error } = useActionPreview(
         props.actionId,
@@ -134,6 +161,10 @@ function ActionPreviewPhase(props: {
     const [initiateResult, setInitiateResult] = useState<ActionResponse | null>(
         null
     );
+    const [loaderHeight, setLoaderHeight] = useState(0);
+    const [messageRef, { height }] = useElementSize();
+
+    if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
     if (!_.isEqual(lastArgs, [props.actionId, props.actionArgs])) {
         setLastArgs([props.actionId, props.actionArgs]);
@@ -168,36 +199,41 @@ function ActionPreviewPhase(props: {
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
-
-    let header = <h1>Náhled efektu akce {props.actionName}</h1>;
-
-    if (!preview) {
-        return (
-            <>
-                {header}
-                <LoadingOrError
-                    loading={!preview && !error}
-                    error={error}
-                    message="Nemůžu načíst výsledek akce. Dejte o tom vědět Honzovi a Maarovi"
-                />
-            </>
-        );
-    }
-
     return (
         <>
-            {header}
-            <ActionMessage response={initiateResult || preview} />
+            <h1>Náhled efektu akce {props.actionName}</h1>
+            {preview ? (
+                <div ref={messageRef}>
+                    {props.argsValid ?
+                    <ActionMessage response={initiateResult || preview} /> :
+                    <ErrorMessage>
+                        Zadané argumenty jsou neplatné.
+                    </ErrorMessage>}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        height:
+                            loaderHeight > 0 ? loaderHeight + 48 : undefined,
+                    }}
+                >
+                    <LoadingOrError
+                        loading={!preview && !error}
+                        error={error}
+                        message="Nemůžu načíst výsledek akce. Dejte o tom vědět Honzovi a Maarovi"
+                    />
+                </div>
+            )}
             <div className="row">
                 <Button
                     label="Zpět"
-                    disabled={submitting}
+                    disabled={submitting || !preview}
                     onClick={props.onAbort}
                     className="my-4 mx-0 w-full bg-red-500 hover:bg-red-600 md:w-1/2"
                 />
                 <Button
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
-                    disabled={submitting || !preview.success}
+                    disabled={submitting || !preview?.success || !props.argsValid}
                     onClick={handleSubmit}
                     className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"
                 />
@@ -296,18 +332,18 @@ function ActionDicePhase(props: {
             />
 
             <div className="row flex">
-<Button
-                label="Zrušit akci"
-                className="my-1 mx-0 w-full md:w-1/2 bg-red-300 hover:bg-red-400 md:mx-3"
-                disabled={submitting}
-                onClick={handleCancel}
-            />
-            <Button
-                label={submitting ? "Odesílám, počkej" : "Odeslat"}
-                className="my-1 mx-0 w-full md:w-1/2 bg-green-500  hover:bg-green-600 md:mx-3"
-                disabled={submitting}
-                onClick={handleSubmit}
-            />
+                <Button
+                    label="Zrušit akci"
+                    className="my-1 mx-0 w-full bg-red-300 hover:bg-red-400 md:mx-3 md:w-1/2"
+                    disabled={submitting}
+                    onClick={handleCancel}
+                />
+                <Button
+                    label={submitting ? "Odesílám, počkej" : "Odeslat"}
+                    className="my-1 mx-0 w-full bg-green-500 hover:bg-green-600  md:mx-3 md:w-1/2"
+                    disabled={submitting}
+                    onClick={handleSubmit}
+                />
             </div>
         </>
     );
@@ -347,7 +383,7 @@ function DiceThrowForm(props: {
     return (
         <div className="w-full">
             <div className="container mt-4 w-full">
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Teček:
                     </div>
@@ -366,7 +402,7 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Hodů:
                     </div>
@@ -385,7 +421,7 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:w-1/3 md:inline-block">
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
                     <div className="inline-block w-1/3 px-3 text-right align-middle">
                         Práce:
                     </div>
@@ -396,14 +432,14 @@ function DiceThrowForm(props: {
                 </div>
             </div>
 
-            <div className="my-5 w-full flex flex-wrap">
+            <div className="my-5 flex w-full flex-wrap">
                 <Button
                     label="0"
                     className="mx-1 my-3 w-full  bg-red-500 hover:bg-red-600 md:mx-4"
                     onClick={() => handleThrow(0)}
                     disabled={!props.enabled}
                 />
-                <div className="mx-0 md:mx-3 w-full grid grid-cols-5 gap-4 px-0">
+                <div className="mx-0 grid w-full grid-cols-5 gap-4 px-0 md:mx-3">
                     {Array.from(Array(20).keys()).map((i) => {
                         return (
                             <Button
@@ -447,7 +483,11 @@ function ActionFinishPhase(props: {
         <>
             <h1>Akce {props.actionName} dokončena</h1>
             <ActionMessage response={props.response} />
-            <Button label="Budiž" className="w-full mb-20" onClick={props.onFinish} />
+            <Button
+                label="Budiž"
+                className="mb-20 w-full"
+                onClick={props.onFinish}
+            />
         </>
     );
 }

@@ -13,6 +13,7 @@ import {
 } from "../elements";
 import { PerformAction } from "../elements/action";
 import { EntityTag } from "../elements/entities";
+import { TileSelect } from "../elements/map";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -25,6 +26,13 @@ import { objectMap } from "../utils/functional";
 export function MapMenu() {
     return null;
 }
+
+const ARMY_GOALS = {
+    0: "Okupovat",
+    1: "Eliminovat",
+    2: "Zásobování",
+    3: "Nahradit",
+};
 
 enum MapActiontype {
     none = 0,
@@ -57,7 +65,7 @@ export function MapAgenda() {
         );
     }
 
-    const handleTeamChange = (t: Team) => {
+    const handleTeamChange = (t?: Team) => {
         setTeam(t);
         setAction(MapActiontype.none);
     };
@@ -222,7 +230,70 @@ function ArmyDeployForm(props: {
     army: any;
     onFinish: () => void;
 }) {
-    return <Dialog onClose={props.onFinish}>"TBA: Vyslat armádu"</Dialog>;
+    const [tile, setTile] = useState<any>(null);
+    const [goal, setGoal] = useState<any>(0);
+    const [equipment, setEquipment] = useState<number>(0);
+    const [friendlyTeam, setFriendlyTeam] = useState<Team | undefined>(
+        undefined
+    );
+
+    let argsValid = true;
+    if (!tile || !friendlyTeam)
+        argsValid = false;
+    return (
+        <Dialog onClose={props.onFinish}>
+            <PerformAction
+                actionName={`Vyslat armádu ${props.army.prestige} týmu ${props.team.name}`}
+                actionId="ActionArmyDeploy"
+                actionArgs={{
+                    team: props.team.id,
+                    army: `${props.team.id},${props.army.prestige}`,
+                    tile: tile?.id,
+                    goal: goal,
+                    equipment: equipment,
+                    friendlyTeam: friendlyTeam?.id
+                }}
+                onFinish={props.onFinish}
+                onBack={props.onFinish}
+                team={props.team}
+                argsValid={argsValid}
+                extraPreview={
+                    <>
+                        <h1>Zadejte extra parametry</h1>
+                        <FormRow label="Cílová destinace" error={!tile ? "Je třeba vyplnit" : null}>
+                            <TileSelect value={tile} onChange={setTile} />
+                        </FormRow>
+                        <FormRow label="Mód vyslání">
+                            <select
+                                className="select"
+                                value={goal}
+                                onChange={(e) => setGoal(parseInt(e.target.value))}
+                            >
+                                {Object.entries(ARMY_GOALS).map(([k, v]) => (
+                                    <option key={k} value={k}>
+                                        {v}
+                                    </option>
+                                ))}
+                            </select>
+                        </FormRow>
+                        <FormRow label="Vyberte výbavu:">
+                            <SpinboxInput
+                                value={equipment}
+                                onChange={setEquipment}
+                            />
+                        </FormRow>
+                        <FormRow label="Spřátelený tým:">
+                            <TeamSelector
+                                allowNull
+                                active={friendlyTeam}
+                                onChange={setFriendlyTeam}
+                            />
+                        </FormRow>
+                    </>
+                }
+            />
+        </Dialog>
+    );
 }
 
 function ArmyRetreatForm(props: {
@@ -233,7 +304,7 @@ function ArmyRetreatForm(props: {
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
-                actionName={`Stáhnout armádu ${props.army.prestige} týmů ${props.team.name}`}
+                actionName={`Stáhnout armádu ${props.army.prestige} týmu ${props.team.name}`}
                 actionId="ActionRetreat"
                 actionArgs={{
                     team: props.team.id,
@@ -258,7 +329,7 @@ function ArmyBoostForm(props: { team: Team; army: any; onFinish: () => void }) {
                 actionArgs={{
                     team: props.team.id,
                     prestige: props.army.prestige,
-                    boost: boost
+                    boost: boost,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
@@ -267,7 +338,7 @@ function ArmyBoostForm(props: { team: Team; army: any; onFinish: () => void }) {
                     <>
                         <h1>Zadejte extra parametry</h1>
                         <FormRow label="Vyberte boost:">
-                            <SpinboxInput value={boost} onChange={setBoost}/>
+                            <SpinboxInput value={boost} onChange={setBoost} />
                         </FormRow>
                     </>
                 }

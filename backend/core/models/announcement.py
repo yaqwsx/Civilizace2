@@ -7,6 +7,7 @@ from django.utils import timezone
 class AnnouncementType(models.IntegerChoices):
     normal = 1
     important = 2
+    game = 3
 
 class AnnouncementManager(models.Manager):
     def getUnread(self, user):
@@ -41,7 +42,8 @@ class Announcement(models.Model):
     def typeString(self):
         return {
             1: "normal",
-            2: "important"
+            2: "important",
+            3: "game"
         }[self.type]
 
     def allowedTeams(self):

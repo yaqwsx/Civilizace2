@@ -1,28 +1,31 @@
-from django.shortcuts import get_object_or_404
-from django.db.models.functions import Now
+import math
+import traceback
 from typing import Dict, Iterable, Optional, Set, Tuple
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework import serializers
-from rest_framework.exceptions import APIException
-from rest_framework.response import Response
+from core.models.announcement import Announcement, AnnouncementType
+
+from core.models.team import Team
+from django.db import transaction
+from django.db.models.functions import Now
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionResult, InitiateResult
-from game.actions.common import ActionCost, ActionException, CancelationResult, MessageBuilder
+from game.actions.common import (ActionCost, ActionException,
+                                 CancelationResult, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
 from game.entities import THROW_COST, Entities, Entity
 from game.gameGlue import stateDeserialize, stateSerialize
-from game.models import DbAction, DbEntities, DbInteraction, DbState, DbTask, DbTaskAssignment, InteractionType
-from django.db import transaction
-import traceback
-
-from core.models.team import Team
+from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction,
+                         DbState, DbTask, DbTaskAssignment, DbTurn,
+                         InteractionType)
 from game.state import StateModel
-
 from game.viewsets.permissions import IsOrg
-
-from game.actions import GAME_ACTIONS
+from rest_framework import serializers, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 StickerId = Tuple[Team, Entity]
 
@@ -37,7 +40,8 @@ class NotEnoughWork(APIException):
     default_code = 'not_enough_work'
 
 def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
-                        action: Optional[ActionResult], stickers: Iterable[StickerId]) -> str:
+                        action: Optional[ActionResult],
+                        stickers: Iterable[StickerId]) -> str:
     b = MessageBuilder()
     if action is None or not initiate.succeeded:
         b.add("Akce stojí:")
@@ -62,11 +66,13 @@ def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
             addLine(f"samolepka {e.name} pro tým {t.name}")
 
     if cost.postpone > 0:
-        b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
+        b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
     return b.message
 
 def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
-                          action: Optional[ActionResult], stickers: Iterable[StickerId]) -> str:
+                          action: Optional[ActionResult],
+                          stickers: Iterable[StickerId],
+                          ) -> str:
     b = MessageBuilder()
     if not initiate.succeeded:
         b.add("Akce stojí:")
@@ -92,10 +98,12 @@ def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
                 addLine(f"samolepka {e.name} pro tým {t.name}")
 
         if cost.postpone > 0:
-            b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
+            b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
     return b.message
 
-def actionCommitMessage(cost: ActionCost, action: ActionResult, stickers: Iterable[StickerId]) -> str:
+def actionCommitMessage(action: ActionResult,
+                        stickers: Iterable[StickerId],
+                        delayedEffect: Optional[DbDelayedEffect]) -> str:
     b = MessageBuilder()
     b.add("### Efekt akce:")
     b.add(action.message)
@@ -105,8 +113,10 @@ def actionCommitMessage(cost: ActionCost, action: ActionResult, stickers: Iterab
         for t, e in stickers:
             addLine(f"samolepka {e.name} pro tým {t.name}")
 
-    if cost.postpone > 0:
-        b.add(f"**Akce má odložený efekt za {cost.postpone} divnojednotek**")
+    if delayedEffect is not None:
+        b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
+                  {round(delayedEffect.target / 60)} minut.
+                  Vyzvedává se kódem: {delayedEffect.slug}**""")
     return b.message
 
 def actionCancelMessage(result: CancelationResult) -> str:
@@ -114,6 +124,18 @@ def actionCancelMessage(result: CancelationResult) -> str:
     b.add("### Akce byla zrušena, vraťte týmu:")
     b.addEntityDict("Tým dostal:", result.materials)
     return b.message
+
+def addResultNotifications(result: ActionResult) -> None:
+    now = timezone.now()
+    for t, messages in result.notifications.items():
+        team = Team.objects.get(pk=t)
+        for message in messages:
+            a = Announcement.create(
+                author=None,
+                appearDateTime=now,
+                type=AnnouncementType.game,
+                content=message)
+            a.teams.add(team)
 
 class InitiateSerializer(serializers.Serializer):
     action = serializers.ChoiceField(list(GAME_ACTIONS.keys()))
@@ -126,7 +148,8 @@ class CommitSerializer(serializers.Serializer):
 class ActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
-    def _handleExtraCommitSteps(self, action):
+    @staticmethod
+    def _handleExtraCommitSteps(action):
         team = None
         try:
             team = Team.objects.get(id=action.team.id)
@@ -150,13 +173,15 @@ class ActionViewSet(viewsets.ViewSet):
                 t.finishedAt = Now()
                 t.save()
 
-    def constructAction(self, actionType, args, entities, state):
+    @staticmethod
+    def constructAction(actionType, args, entities, state):
         Action = GAME_ACTIONS[actionType]
         args = stateDeserialize(Action.argument, args, entities)
         action = Action.action(entities=entities, state=state, args=args)
         return action
 
-    def dbStoreInteraction(self, dbAction, dbState, interactionType, user, state):
+    @staticmethod
+    def dbStoreInteraction(dbAction, dbState, interactionType, user, state):
         interaction = DbInteraction(
             phase=interactionType,
             action=dbAction,
@@ -178,6 +203,47 @@ class ActionViewSet(viewsets.ViewSet):
                 res.add((t, e))
         return res
 
+    @staticmethod
+    def _markDelayedEffect(dbAction: DbAction, cost: ActionCost):
+        now = timezone.now()
+        try:
+            turnObject = DbTurn.objects.getActiveTurn()
+        except DbTurn.DoesNotExist:
+            raise RuntimeError("Ještě nebyla započata hra, nemůžu provádět odložené efekty.") from None
+        effectTime = now + timezone.timedelta(seconds=cost.postpone)
+        while turnObject.shouldStartAt < effectTime:
+            turnObject = turnObject.next
+            if turnObject is None:
+                raise RuntimeError("Odložený efekt akce je moc daleko - nemám dost kol.")
+        targetTurnId = turnObject.id
+        targetOffset = (effectTime - turnObject.shouldStartAt).total_seconds()
+
+        effect = DbDelayedEffect.objects.create(round=targetTurnId, target=targetOffset, action=dbAction)
+        return effect
+
+    @staticmethod
+    @transaction.atomic
+    def performDelayedEffect(effect: DbDelayedEffect) -> None:
+        Self = ActionViewSet
+
+        dbAction = effect.action
+        _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+        sourceState = dbState.toIr()
+
+        action = Self.constructAction(dbAction.actionType, dbAction.args, entities, state)
+        result = action.delayed()
+        Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayed,
+                                None, action.state)
+        addResultNotifications(result)
+        stickers = Self._computeStickers(sourceState, state)
+
+        effect.result = stateSerialize(result)
+        effect.stickers = list(stickers)
+        effect.save()
+
+
     @action(methods=["POST"], detail=False)
     def dry(self, request):
         deserializer = InitiateSerializer(data=request.data)
@@ -196,7 +262,7 @@ class ActionViewSet(viewsets.ViewSet):
             if not initiateResult.succeeded:
                 return Response(data={
                         "success": False,
-                        "message": actionPreviewMessage(cost, initiateResult, None)
+                        "message": actionPreviewMessage(cost, initiateResult, None, [])
                     })
             result = action.commit()
             stickers = self._computeStickers(sourceState, state)
@@ -237,7 +303,7 @@ class ActionViewSet(viewsets.ViewSet):
                 if not initiateResult.succeeded:
                     return Response(data={
                             "success": False,
-                            "message": actionPreviewMessage(cost, initiateResult, None)
+                            "message": actionPreviewMessage(cost, initiateResult, None, [])
                         })
 
                 dbAction = DbAction(
@@ -250,11 +316,14 @@ class ActionViewSet(viewsets.ViewSet):
                 stickers = set()
                 if cost.requiredDots == 0:
                     result = action.commit(cost)
+                    addResultNotifications(result)
                     if result.succeeded:
                         action.commitReward(result.productions)
                     self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
                     self._handleExtraCommitSteps(action)
                     stickers = self._computeStickers(sourceState, state)
+                    if cost.postpone > 0:
+                        self._markDelayedEffect(dbAction, cost)
                 else:
                     # Let's perform the commit on dryState since all the
                     # validation happens in commit /o\
@@ -309,14 +378,18 @@ class ActionViewSet(viewsets.ViewSet):
                 workCommitSucc = action.payWork(params["throws"] * THROW_COST)
                 if workCommitSucc and params["dots"] >= cost.requiredDots:
                     result = action.commit()
+                    addResultNotifications(result)
                     if result.succeeded:
                         action.commitReward(result.productions)
                     stickers = self._computeStickers(sourceState, state)
                     self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
                     self._handleExtraCommitSteps(action)
+                    effect = None
+                    if result.succeeded and cost.postpone > 0:
+                        effect = self._markDelayedEffect(dbAction, cost)
                     return Response({
                         "success": result.succeeded,
-                        "message": actionCommitMessage(cost, result, stickers)
+                        "message": actionCommitMessage(result, stickers, effect)
                     })
                 else:
                     # There wasn't enough dots, abandon

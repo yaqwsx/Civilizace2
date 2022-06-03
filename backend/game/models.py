@@ -1,4 +1,5 @@
 from __future__ import annotations
+from django.utils.crypto import get_random_string
 import decimal
 import json
 from enumfields import EnumField
@@ -6,6 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 from django.db import models
 from django.db.models import QuerySet
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from pydantic import BaseModel
 from core.models.fields import JSONField
 from core.models import Team, User
@@ -13,6 +15,8 @@ from game.entities import Entities, Entity, EntityBase
 from game.entityParser import parseEntities
 from enum import Enum
 from game.gameGlue import stateDeserialize, stateSerialize
+from functools import cached_property
+import string
 
 from game.state import GameState, MapState, TeamState
 
@@ -211,16 +215,22 @@ class DbTurn(models.Model):
 
     objects = DbTurnManager()
 
-    @property
+    @cached_property
     def next(self):
         return DbTurn.objects.get(id=self.id + 1)
 
-    @property
+    @cached_property
     def prev(self):
         try:
             return DbTurn.objects.get(id=self.id - 1)
         except DbTurn.DoesNotExist:
             return None
+
+    @cached_property
+    def shouldStartAt(self):
+        if self.startedAt is not None:
+            return self.startedAt
+        return self.prev.shouldStartAt + timezone.timedelta(seconds=self.prev.duration)
 
 class DbDelayedEffect(models.Model):
     slug = models.SlugField(max_length=8)
@@ -228,3 +238,19 @@ class DbDelayedEffect(models.Model):
     target = models.IntegerField() # In seconds
     action = models.ForeignKey(DbAction, on_delete=models.PROTECT)
     result = JSONField(null=True)
+    stickers = JSONField(null=True)
+    withdrawn = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._generateSlug()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generateSlug() -> str:
+        slug = None
+        while slug is None:
+            slug = get_random_string(5, string.ascii_uppercase)
+            if DbDelayedEffect.objects.filter(slug=slug).exists():
+                slug = None
+        return slug

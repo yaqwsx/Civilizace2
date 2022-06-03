@@ -40,7 +40,7 @@ export function Tech() {
             />
         );
 
-    const handleTeamChange = (t: Team) => {
+    const handleTeamChange = (t?: Team) => {
         setTeam(t);
     };
 

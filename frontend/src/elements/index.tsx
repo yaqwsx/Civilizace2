@@ -64,7 +64,7 @@ export function FormRow(props: FormRowProps) {
                 <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
                     {props.label}
                 </label>
-                <div className="mb-1 block w-full text-red-600 md:mb-0 md:text-right">
+                <div className="mb-1 block w-full text-red-600 md:mb-0 md:text-right pr-4">
                     {props.error ? props.error : null}
                 </div>
                 <div className="mb-1 block w-full pr-4 md:mb-0 md:text-right">

@@ -98,7 +98,8 @@ export interface UserResponse {
 
 export enum AnnouncementType {
     Normal = "normal",
-    Important = "important"
+    Important = "important",
+    Game = "game"
 }
 
 export interface Announcement {

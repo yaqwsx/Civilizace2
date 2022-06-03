@@ -38,7 +38,7 @@ export function CurrentTurnCountdown() {
             setElapsed(elapsed + 1);
         }, 1000);
         return () => clearInterval(int);
-    });
+    }, []);
 
     let now = new Date();
 

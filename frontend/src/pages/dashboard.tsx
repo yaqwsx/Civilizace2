@@ -391,6 +391,11 @@ function announcementPalette(type: string) {
             border: "border-orange-500",
             bg: "bg-orange-200",
         },
+        game: {
+            color: "red-500",
+            border: "border-red-500",
+            bg: "bg-red-200",
+        },
     }[type];
 }
 

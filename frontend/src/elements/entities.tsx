@@ -1,4 +1,5 @@
 import useSWR, { mutate } from "swr";
+import useSWRImmutable from "swr/immutable";
 import { Entity, EntityResource, Team, TeamEntityResource, TeamEntityTech } from "../types";
 import { fetcher } from "../utils/axios";
 import { useAtom } from "jotai";
@@ -34,7 +35,7 @@ export function useTeamEntity<T>(entityType: string, team?: Team) {
 }
 
 export function useEntities<T>(entityType?: string) {
-    const {data, error, mutate} = useSWR<Record<string, T>>(
+    const {data, error, mutate} = useSWRImmutable<Record<string, T>>(
         () => entityType ? `game/entities/${entityType}` : `game/entities`, fetcher);
     return {
         data: data,

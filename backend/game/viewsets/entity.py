@@ -45,6 +45,12 @@ class EntityViewSet(viewsets.ViewSet):
             raise PermissionDenied()
         return self._list("vyrobas")
 
+    @action(detail=False)
+    def tiles(self, request):
+        if not request.user.isOrg:
+            raise PermissionDenied()
+        return self._list("tiles")
+
     def list(self, request):
         if not request.user.isOrg:
             raise PermissionDenied()

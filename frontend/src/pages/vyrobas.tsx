@@ -34,7 +34,7 @@ export function Vyroba() {
         );
     }
 
-    const handleTeamChange = (t: Team) => {
+    const handleTeamChange = (t?: Team) => {
         setTeam(t);
         setVyrobaId(undefined);
     };

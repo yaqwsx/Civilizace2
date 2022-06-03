@@ -58,7 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'game.middleware.turnUpdate',
+    'game.middleware.turnUpdateMiddleware',
+    'game.middleware.delayedEffectsMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -100,6 +101,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'OPTIONS': {
+            'timeout': 20,
+        }
     }
 }
 
