@@ -238,6 +238,9 @@ class TeamState(StateModel):
     redCounter: Decimal
     blueCounter: Decimal
 
+    turn: int = 0
+    population: int
+
     techs: Set[Tech]
     researching: Set[Tech] = set()
     armies: Dict[ArmyId, Army]
@@ -288,6 +291,7 @@ class TeamState(StateModel):
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         armies = {ArmyId(prestige=x, team=team): Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES}
         return TeamState(
+            population=100,
             team=team,
             redCounter=0,
             blueCounter=0,
@@ -307,6 +311,7 @@ class GameState(StateModel):
     turn: int
     teamStates: Dict[Team, TeamState]
     map: MapState
+    casteCount: 3
 
     def _setParent(self) -> None:
         for t in self.teamStates.values():
