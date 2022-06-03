@@ -83,6 +83,10 @@ class Resource(EntityBase):
     def isGeneric(self) -> bool:
         return self.id.startswith("pge-") or self.id.startswith("mge-")
 
+    @property
+    def isTracked(self) -> bool:
+        return not self.id.startswith("mat-")
+
 
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal]
@@ -160,6 +164,10 @@ class Entities(frozendict):
     @property
     def work(self) -> Resource:
         return self["res-prace"]
+
+    @property
+    def obyvatel(self) -> Resource:
+        return self["res-obyvatel"]
 
     @property
     def zbrane(self) -> Resource:

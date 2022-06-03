@@ -20,7 +20,7 @@ class ActionRedirect(TeamActionBase):
                 raise ActionException("[[" + str(resource) + "]] není produkce")
             if resource.typ == None or \
                         (resource.typ[0] != self.entities.get("typ-jidlo") and
-                         resource.typ != self.entities.get("typ-luxus")):
+                         resource.typ[0] != self.entities.get("typ-luxus")):
                 raise ActionException("[[" + str(resource) + "]] není produkce jídla ani luxusu")
             if self.teamState.resources[resource] < amount:
                 raise ActionException("Nelze přesměrovat [[" + str((resource, amount)) + "]], tým vlastní pouze [[" + str((resource, self.teamState.resources[resource]))+ "]]")

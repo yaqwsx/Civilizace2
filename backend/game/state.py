@@ -1,5 +1,6 @@
 from __future__ import annotations
 import enum
+from html import entities
 import types
 import pydantic
 from pydantic import BaseModel, PrivateAttr
@@ -239,7 +240,6 @@ class TeamState(StateModel):
     blueCounter: Decimal
 
     turn: int = 0
-    population: int
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
@@ -248,6 +248,7 @@ class TeamState(StateModel):
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
     granary: Dict[Resource, Decimal] = {}
+    storageCapacity = 10
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
@@ -272,6 +273,24 @@ class TeamState(StateModel):
         stickers.update(self.vyrobas)
         return stickers
 
+
+    def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False) -> Dict[Resource, Decimal]:
+        storage = {}
+        for resource, amount in resources.items():
+            if resource.isTracked:
+                self.resources[resource] = self.resources.get(resource, 0) + amount
+            else:
+                storage[resource] = amount
+        if instantWithdraw:
+            return storage
+        for resource, amount in storage.items():
+            amount = self.storage.get(resource, 0) + amount
+            if amount > self.storageCapacity:
+                amount = self.storageCapacity
+            self.storage[resource] = amount
+        return {}
+
+
     @property
     def vyrobas(self) -> set[Vyroba]:
         vyrobas = set()
@@ -287,18 +306,22 @@ class TeamState(StateModel):
                 return a
         return 0
 
+    @property
+    def population(self) -> int:
+        return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel", "res-zamestnanec"]])
+
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         armies = {ArmyId(prestige=x, team=team): Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES}
         return TeamState(
-            population=100,
             team=team,
             redCounter=0,
             blueCounter=0,
             techs=[entities["tec-start"]],
             armies=armies,
             resources={
-                entities["res-prace"]: Decimal(50),
+                entities.obyvatel: Decimal(100),
+                entities.work: Decimal(100),
                 entities["pro-drevo"]: Decimal(20)
             },
             storage={

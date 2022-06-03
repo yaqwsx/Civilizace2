@@ -287,6 +287,14 @@ class EntityParser():
             self.entities[r.id] = r
 
 
+    def hardcodeValues(self):
+        work = self.entities["res-prace"]
+        obyvatel = self.entities["res-obyvatel"]
+        culture = self.entities["res-kultura"]
+
+        obyvatel.produces = work
+        culture.produces = obyvatel
+
     def parse(self) -> Entities:
         self.entities = {}
 
@@ -301,6 +309,7 @@ class EntityParser():
         self.parseTechs()
 
         self.buildGenericResources()
+        self.hardcodeValues()
 
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:
