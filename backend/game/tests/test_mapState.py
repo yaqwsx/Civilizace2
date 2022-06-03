@@ -11,11 +11,11 @@ def test_rawDistance():
 
     state = createTestInitState()
 
-    expectations = [(1, 0), (0, 10), (31, 10), (3, 15), (30, 15)]
+    expectations = [(1, 0), (0, 600), (31, 600), (3, 900), (30, 900)]
 
     for index, expected in expectations:
         distance = state.map.getRawDistance(TEAM_ADVANCED, state.map.tiles[index].entity)
-        assert distance == expected, "Raw distance of tile {index} does not match (exp={expected}, act={distance})"
+        assert distance == expected, f"Raw distance of tile {index} does not match (exp={expected}, act={distance})"
 
 def test_actualDistance():
     reimport(__name__)
@@ -23,13 +23,13 @@ def test_actualDistance():
     state = createTestInitState()
 
     expectations = [(1, 0, "Home tile"), 
-                    (0, 5, "Occupied tile"),
-                    (6, 5, "Road to tile"),
-                    (3, Decimal(7.5), "Occupied distant tile"),
-                    (10, Decimal(7.5), "Road to distant tile"),
-                    (31, 8, "Around world"),
-                    (30, 6, "Occupied around world"),
-                    (24, 6, "Road around world"),
+                    (0, 300, "Occupied tile"),
+                    (6, 300, "Road to tile"),
+                    (3, 450, "Occupied distant tile"),
+                    (10, 450, "Road to distant tile"),
+                    (31, 480, "Around world"),
+                    (30, 360, "Occupied around world"),
+                    (24, 360, "Road around world"),
                     (2, 0, "Road and occupied")]
 
     for index, expected, message in expectations:

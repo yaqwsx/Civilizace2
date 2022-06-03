@@ -26,7 +26,7 @@ def test_cost():
 
     cost = action.cost()
     assert cost.resources == {entities.zbrane: 10}, "Requires {} (exp. {})".format(cost.resources, entities.zbrane)
-    assert cost.postpone == 10, "Deploying {} to tile {} should take 10 minutes (act={})"\
+    assert cost.postpone == 600, "Deploying {} to tile {} should take 10 minutes (act={})"\
         .format(armyId, tile, cost.postpone)
     
 
