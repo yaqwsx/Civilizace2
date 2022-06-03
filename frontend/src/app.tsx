@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
     BrowserRouter as Router,
     Routes,
@@ -25,10 +25,11 @@ import {
     faCubesStacked,
     faStickyNote,
     faMountainCity,
+    faTicket,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ScannerDispatcher } from "./pages/scanner";
+import { ScannerContext, ScannerDispatcher } from "./pages/scanner";
 import { DashboardMenu, Dashboard } from "./pages/dashboard";
 import { Turns, TurnsMenu } from "./pages/turns";
 import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
@@ -38,6 +39,7 @@ import "./index.css";
 import { Forbidden } from "./pages/forbidden";
 import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
+import { Vouchers, VouchersMenu } from "./pages/vouchers";
 import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
 import { useTeamIdFromUrl } from "./elements/team";
@@ -215,6 +217,7 @@ function OrgMenu() {
                 path="dashboard/"
             />
             <MenuItemT name="Kola" icon={faHistory} path="turns/" />
+            <MenuItemT name="Směnky" icon={faTicket} path="vouchers/"/>
             <MenuItemT name="Výroby" icon={faIndustry} path="vyrobas/" />
             <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
             <MenuItemT name="Mapa" icon={faMountainCity} path="map/" />
@@ -235,6 +238,7 @@ function ApplicationMenu() {
             <Routes>
                 <Route path="/dashboard/*" element={<DashboardMenu />} />
                 <Route path="/turns" element={<TurnsMenu />} />
+                <Route path="/vouchers" element={<VouchersMenu/>}/>
                 <Route path="/vyrobas" element={<VyrobaMenu />} />
                 <Route path="/techs" element={<TechMenu />} />
                 <Route path="/tasks/*" element={<TasksMenu />} />
@@ -323,6 +327,43 @@ function AppFrame(props: AppFrameProps) {
     );
 }
 
+function ScannerNavigator() {
+    const navigate = useNavigate();
+    const {subscribe, unsubscribe} = useContext(ScannerContext);
+
+    const navigator = useCallback((items: string[]) => {
+        let args: string[] = [];
+        let page = null;
+        items.forEach((item) => {
+            if (item.startsWith("tym-")) {
+                args.push(`team=${item}`);
+                return;
+            }
+            if (item.startsWith("vyr-")) {
+                args.push(`entity=${item}`);
+                page = "vyrobas";
+                return;
+            }
+            if (item.startsWith("tech-")) {
+                args.push(`entity=${item}`);
+                page = "techs";
+                return;
+            }
+        });
+        if (page) {
+            console.log("Navigating to " + `${page}#${args.join("&")}`);
+            navigate(page);
+            window.location.hash = `#${args.join("&")}`;
+        }
+    }, [navigate]);
+
+    useEffect(() => {
+        subscribe(navigator);
+        return () => {unsubscribe(navigator)}
+    }, [subscribe, unsubscribe, navigate])
+    return null;
+}
+
 export default function App() {
     return (
         <Provider store={store}>
@@ -330,81 +371,94 @@ export default function App() {
                 <Router>
                     <AppFrame>
                         <ToastProvider />
-                        <ScannerDispatcher />
-                        <Routes>
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/forbidden" element={<Forbidden />} />
-                            {/* Why such a weird way? Well, only <Route> is
+                        <ScannerDispatcher>
+                            <ScannerNavigator/>
+                            <Routes>
+                                <Route path="/login" element={<Login />} />
+                                <Route
+                                    path="/forbidden"
+                                    element={<Forbidden />}
+                                />
+                                {/* Why such a weird way? Well, only <Route> is
                                 allowed as a children of Routes. Also, we could
                                 build the structure of the application into
                                 data structure and construct this automatically,
                                 however, Civilizace seems small enough to just
                                 specify this directly */}
-                            <Route
-                                path="/"
-                                element={
-                                    <RequireAuth>
-                                        <Navigate to={"/dashboard"} />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/dashboard/*"
-                                element={
-                                    <RequireAuth>
-                                        <Dashboard />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/vyrobas"
-                                element={
-                                    <RequireAuth>
-                                        <Vyroba />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/techs"
-                                element={
-                                    <RequireAuth>
-                                        <Tech />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/map"
-                                element={
-                                    <RequireAuth>
-                                        <MapAgenda />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/tasks/*"
-                                element={
-                                    <RequireAuth>
-                                        <Tasks />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/announcements/*"
-                                element={
-                                    <RequireAuth>
-                                        <Announcements />
-                                    </RequireAuth>
-                                }
-                            />
-                            <Route
-                                path="/turns"
-                                element={
-                                    <RequireOrg>
-                                        <Turns />
-                                    </RequireOrg>
-                                }
-                            />
-                        </Routes>
+                                <Route
+                                    path="/"
+                                    element={
+                                        <RequireAuth>
+                                            <Navigate to={"/dashboard"} />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/dashboard/*"
+                                    element={
+                                        <RequireAuth>
+                                            <Dashboard />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/vyrobas"
+                                    element={
+                                        <RequireAuth>
+                                            <Vyroba />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/techs"
+                                    element={
+                                        <RequireAuth>
+                                            <Tech />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/map"
+                                    element={
+                                        <RequireAuth>
+                                            <MapAgenda />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/vouchers"
+                                    element={
+                                        <RequireAuth>
+                                            <Vouchers />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/tasks/*"
+                                    element={
+                                        <RequireAuth>
+                                            <Tasks />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/announcements/*"
+                                    element={
+                                        <RequireAuth>
+                                            <Announcements />
+                                        </RequireAuth>
+                                    }
+                                />
+                                <Route
+                                    path="/turns"
+                                    element={
+                                        <RequireOrg>
+                                            <Turns />
+                                        </RequireOrg>
+                                    }
+                                />
+                            </Routes>
+                        </ScannerDispatcher>
                     </AppFrame>
                 </Router>
             </PersistGate>
