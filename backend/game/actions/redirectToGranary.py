@@ -6,7 +6,7 @@ from game.entities import Resource, Team, Tech
 
 class ActionRedirectArgs(ActionArgs):
     team: Team
-    productions: Dict[Resource, int]
+    productions: Dict[Resource, int] # int is here on purpose - it does not make sense to use fractions of food
 
 class ActionRedirect(TeamActionBase):
     args: ActionRedirectArgs
