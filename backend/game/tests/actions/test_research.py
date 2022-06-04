@@ -1,7 +1,7 @@
 from typing import Set
-from game.actions.common import ActionException, ActionCost
-from game.actions.researchFinish import ActionResearchFinish
-from game.actions.researchStart import ActionResearchStart, ActionResearchArgs
+from game.actionsNew.actionBaseNew import ActionFailed
+from game.actionsNew.researchFinishNew import ActionResearchFinishNew
+from game.actionsNew.researchStartNew import ActionResearchArgsNew, ActionResearchStartNew
 from game.entities import DieId
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
@@ -24,14 +24,15 @@ def test_start():
     state = createTestInitState()
     tech = entities["tec-a"]
 
-    action = ActionResearchStart(
-        state=state, entities=entities, args=ActionResearchArgs(tech=tech, team=team))
+    action = ActionResearchStartNew(
+        state=state, entities=entities, args=ActionResearchArgsNew(tech=tech, team=team))
 
     cost = action.cost()
-    assert cost.resources == tech.cost
-    assert cost.allowedDice == set([DieId("die-lesy")])
+    dice = action.diceRequirements()
+    assert cost == tech.cost
+    assert dice == (set([DieId("die-lesy")]), 20)
 
-    action.commit()
+    action.applyCommit(1, 100)
 
     assert state.teamStates[team].researching == {tech}
 
@@ -40,13 +41,13 @@ def test_startOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchStart(
-        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-start"], team=team))
+    action = ActionResearchStartNew(
+        state=state, entities=entities, args=ActionResearchArgsNew(tech=entities["tec-start"], team=team))
 
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(ActionFailed) as einfo:
         action.cost()
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit()
 
 
 def test_startInProgress():
@@ -54,11 +55,11 @@ def test_startInProgress():
     state = createTestInitState()
     state.teamStates[team].researching.add(entities["tec-c"])
 
-    action = ActionResearchStart(
-        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-c"], team=team))
+    action = ActionResearchStartNew(
+        state=state, entities=entities, args=ActionResearchArgsNew(tech=entities["tec-c"], team=team))
 
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit(1, 100)
 
 
 def test_finish():
@@ -67,12 +68,12 @@ def test_finish():
     tech = entities["tec-c"]
     state.teamStates[team].researching.add(entities["tec-c"])
 
-    action = ActionResearchFinish(state=state, entities=entities,
-                                  args=ActionResearchArgs(tech=tech, team=team))
+    args = ActionResearchArgsNew(tech=tech, team=team)
+    action = ActionResearchFinishNew(state=state, entities=entities, args=args)
 
-    assert action.cost() == ActionCost()
+    assert action.cost() == {}
 
-    action.commit()
+    action.applyCommit(1, 100)
     assert len(state.teamStates[team].researching) == 0
     assert len(state.teamStates[team].techs) == 2
     assert tech in state.teamStates[team].techs
@@ -82,36 +83,36 @@ def test_finishOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchFinish(state=state, entities=entities,
-                                  args=ActionResearchArgs(tech=entities["tec-start"], team=team))
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    action = ActionResearchFinishNew(state=state, entities=entities,
+                                  args=ActionResearchArgsNew(tech=entities["tec-start"], team=team))
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit(1, 100)
 
 
 def test_finishUnknown():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchFinish(state=state, entities=entities,
-                                  args=ActionResearchArgs(tech=entities["tec-a"], team=team))
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    action = ActionResearchFinishNew(state=state, entities=entities,
+                                  args=ActionResearchArgsNew(tech=entities["tec-a"], team=team))
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit(1, 100)
 
 
 def test_compound():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    ActionResearchStart(state=state, entities=entities,
-                        args=ActionResearchArgs(tech=entities["tec-a"], team=team)).commit()
-    ActionResearchFinish(state=state, entities=entities,
-                         args=ActionResearchArgs(tech=entities["tec-a"], team=team)).commit()
-    ActionResearchStart(state=state, entities=entities,
-                        args=ActionResearchArgs(tech=entities["tec-c"], team=team)).commit()
-    ActionResearchFinish(state=state, entities=entities,
-                         args=ActionResearchArgs(tech=entities["tec-c"], team=team)).commit()
-    ActionResearchStart(state=state, entities=entities,
-                        args=ActionResearchArgs(tech=entities["tec-d"], team=team)).commit()
+    ActionResearchStartNew(state=state, entities=entities,
+                        args=ActionResearchArgsNew(tech=entities["tec-a"], team=team)).applyCommit(1, 100)
+    ActionResearchFinishNew(state=state, entities=entities,
+                         args=ActionResearchArgsNew(tech=entities["tec-a"], team=team)).applyCommit(1, 100)
+    ActionResearchStartNew(state=state, entities=entities,
+                        args=ActionResearchArgsNew(tech=entities["tec-c"], team=team)).applyCommit(1, 100)
+    ActionResearchFinishNew(state=state, entities=entities,
+                         args=ActionResearchArgsNew(tech=entities["tec-c"], team=team)).applyCommit(1, 100)
+    ActionResearchStartNew(state=state, entities=entities,
+                        args=ActionResearchArgsNew(tech=entities["tec-d"], team=team)).applyCommit(1, 100)
 
 
     teamState = state.teamStates[team]

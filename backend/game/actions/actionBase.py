@@ -117,7 +117,7 @@ class TeamActionBase(ActionBase):
             return result
         for r, required in productions:
             tState.resources[r] -= required
-        result.materials = {r: a for r, a in cost.resources.items() if r.isMaterial}
+        result.materials = {r: a for r, a in cost.resources.items() if r.isTracked}
         return result
 
     def abandon(self, cost: Optional[ActionCost]) -> CancelationResult:
@@ -133,7 +133,7 @@ class TeamActionBase(ActionBase):
         if self.team is None or cost is None:
             return CancelationResult()
         result = self.abandon(cost)
-        result.materials = {r: a for r, a in cost.resources.items() if r.isMaterial}
+        result.materials = {r: a for r, a in cost.resources.items() if r.isTracked}
         return result
 
     def payWork(self, amount: int) -> bool:

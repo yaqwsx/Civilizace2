@@ -1,13 +1,13 @@
 import contextlib
 from decimal import Decimal
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, PrivateAttr
 from game.actions.actionBase import ActionArgs
 from game.actions.common import MessageBuilder
 
 from game.entities import DieId, Entities, Resource, Team
-from game.state import GameState, TeamState
+from game.state import GameState, TeamState, printResourceListForMarkdown
 
 class ActionFailed(Exception):
     """
@@ -45,7 +45,7 @@ class ActionInterface(BaseModel):
         self._entities = entities
         self._generalArgs = args
 
-    def diceRequirements(self) -> Tuple[List[DieId], int]:
+    def diceRequirements(self) -> Tuple[Set[DieId], int]:
         """
         Řekne, kolik teček je třeba hodit na jedné z kostek. Pokud vrátí prázdný
         seznam, není třeba házet.
@@ -101,6 +101,7 @@ class ActionBaseNew(ActionInterface):
     # For example, initiate can reset these fields, call some functions that will
     # use them and then initiate can inspect them.
     _errors: MessageBuilder = PrivateAttr()
+    _warnings: MessageBuilder = PrivateAttr()
     _info: MessageBuilder = PrivateAttr()
 
     # The following fields are persistent:
@@ -116,10 +117,8 @@ class ActionBaseNew(ActionInterface):
 
     def _setupPrivateAttrs(self):
         self._errors = MessageBuilder()
+        self._warnings = MessageBuilder()
         self._info = MessageBuilder()
-
-    def _initiateImpl(self) -> None:
-        raise NotImplementedError("You hve to implement this")
 
     def _performThrow(self, throws: int, dots: int) -> bool:
         """
@@ -131,17 +130,18 @@ class ActionBaseNew(ActionInterface):
             return True
         tState = self.teamState
         _, dotsRequired = self.diceRequirements()
-        workConsumed = throws * 5 # TBA Use computed price
+        workConsumed = throws * self.teamState.throwCost
 
         tState.resources[self.entities.work] = max(0, tState.resources[self.entities.work] - workConsumed)
         if workConsumed > tState.work:
-            self._info.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " + \
+            self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " + \
                           "Akce nebude provedena.")
             return False
         if dotsRequired > dots:
-            self._info.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, hodil {dots}" + \
+            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, hodil {dots}" + \
                             "Akce nebude provedena.")
             return False
+        return True
 
     def _ensure(self, condition: bool, message: str) -> None:
         """
@@ -183,27 +183,27 @@ class ActionBaseNew(ActionInterface):
             return
         fail = False
         tState = self.teamState
-        productions = {r: a for r, a in what.items() if r.isProduction}
-        materials = {r: a for r, a in what.items() if r.isMaterial}
+        trackedResources = {r: a for r, a in what.items() if r.isTracked}
+        untrackedResources = {r: a for r, a in what.items() if not r.isTracked}
 
         with self._errors.startList("## Týmu chybějí následující zdroje:") as addLine:
-            for r, required in productions:
+            for r, required in trackedResources:
                 available = tState.resources.get(r, 0)
                 if available < required:
-                    addLine(f"[[{r.id}|{required - available}]]")
+                    addLine(f"- [[{r.id}|{required - available}]]")
                     fail = True
         if fail:
             return False
 
-        with self._info.startList("## Tým zaplatí:") as addLine:
-            for r, required in productions.items():
-                addLine(f"[[{r.id}|{required}]]")
+        with self._info.startList("## Týmu bylo strženo:") as addLine:
+            for r, required in trackedResources.items():
+                addLine(f"- [[{r.id}|{required}]]")
                 tState.resources[r] -= required
                 self.paid[r] = self.paid.get(r, 0) + required
         with self._info.startList("## Od týmu ještě vyberte:") as addLine:
-            for r, required in materials.items():
+            for r, required in untrackedResources.items():
                 self.paid[r] = self.paid.get(r, 0) + required
-                addLine(f"[[{r.id}|{required}]]")
+                addLine(f"- [[{r.id}|{required}]]")
         return True
 
     def _revertPaymentProductions(self) -> None:
@@ -225,43 +225,54 @@ class ActionBaseNew(ActionInterface):
         Reverts all material from payments via _makePayment. Adds message
         both to info and error
         """
-        materials = {r: a for r, a in self.paid.items() if r.isMaterial}
+        materials = {r: a for r, a in self.paid.items() if r.isTracked}
         with self._startBothLists("## Týmu vraťte:") as addLine:
             for r, a in materials.items():
                 addLine(f"[[{r.id}|{a}]]")
 
+
+    def diceRequirements(self) -> Tuple[Set[DieId], int]:
+        return (set(), 0)
+
+
     def applyInitiate(self) -> ActionResultNew:
-        self._setupPrivateAttrs()
-        self._initiateImpl()
-        if not self._errors.empty:
-            raise ActionFailed(self._errors)
+        cost = self.cost()
+        require = self.teamState.payResources(cost)
+        message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require)}"
+
+        ActionResultNew(
+            expected=True,
+            message=message)
+        
+
+    def revertInitiate(self) -> ActionResultNew:
+        cost = self.cost()
+        reward = self.teamState.receiveResources(cost, instantWithdraw=True)
+        message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward)}"
+
         return ActionResultNew(
             expected=True,
-            message=self._info.message)
+            message=message)
 
 
-    def applyCommit(self, throws: int, dots: int) -> ActionResultNew:
+    def applyCommit(self, throws: int=0, dots: int=0) -> ActionResultNew:
         self._setupPrivateAttrs()
         throwingSucc = self._performThrow(throws, dots)
         if not throwingSucc:
             self._revertPaymentProductions()
             return ActionResultNew(
                 expected=False,
-                message=self._info.message
+                message=self._warnings.message
             )
 
-        expected = self._commitImpl(self)
+        self._commitImpl()
 
         if not self._errors.empty:
             raise ActionFailed(self._errors)
-        return ActionResultNew(
-            expected=expected,
-            message=self._info.message)
-
-    def revertInitiate(self) -> ActionResultNew:
-        self._setupPrivateAttrs()
-        self._revertPaymentProductions()
-        self._revertPaymentMaterials()
+        if not self._warnings.empty:
+            return ActionResultNew(
+                expected=False,
+                message="**" + self._warnings.message + "**\n\n" + self._info.message)
         return ActionResultNew(
             expected=True,
             message=self._info.message)

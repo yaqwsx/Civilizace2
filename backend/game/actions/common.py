@@ -93,7 +93,7 @@ class ActionCost(BaseModel):
 
     @property
     def materials(self):
-        return {r: a for r, a in self.resources.items() if r.isMaterial}
+        return {r: a for r, a in self.resources.items() if r.isTracked}
 
     def formatDice(self):
         # Why isn't this in entities?
@@ -122,7 +122,7 @@ class ActionResult(BaseModel):
 
     @property
     def materials(self):
-        return {r: a for r, a in self.reward.items() if r.isMaterial}
+        return {r: a for r, a in self.reward.items() if r.isTracked}
 
 class InitiateResult(BaseModel):
     materials: Dict[Resource, Decimal] = {}

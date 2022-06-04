@@ -241,6 +241,7 @@ class TeamState(StateModel):
     blueCounter: Decimal
 
     turn: int = 0
+    throwCost: int = 10
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
@@ -296,7 +297,7 @@ class TeamState(StateModel):
                 tokens[resource] = amount
 
         if missing != {}:
-            raise ActionException(f"Nemáte dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
+            raise ActionException(f"Tým nemá dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
 
         return tokens
 

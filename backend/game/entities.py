@@ -69,10 +69,10 @@ class Resource(EntityBase):
 
     @property
     def isResource(self) -> bool:
-        return self.isMaterial or self.isProduction
+        return self.isTracked or self.isProduction
 
     @property
-    def isMaterial(self) -> bool:
+    def isTracked(self) -> bool:
         return self.id.startswith("mat-") or self.id.startswith("mge-")
 
     @property
@@ -181,7 +181,7 @@ class Entities(frozendict):
     @cached_property
     def materials(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Resource) and v.isMaterial})
+            if isinstance(v, Resource) and v.isTracked})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:
