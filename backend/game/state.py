@@ -6,6 +6,7 @@ import pydantic
 from pydantic import BaseModel, PrivateAttr
 from typing import List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
+from game.actions.common import ActionException
 from game.entities import *
 
 class StateModel(BaseModel):
@@ -274,6 +275,33 @@ class TeamState(StateModel):
         return stickers
 
 
+    def _addEmployees(self, amount: int) -> None:
+        for resource in self.resources.keys():
+            if resource.id == "res-zamestnanec":
+                self.resources[resource] += amount
+                return
+
+
+    def payResources(self, resources: Dict[Resource, Decimal]) -> Dict[Resource, Decimal]:
+        tokens = {}
+        missing = {}
+        for resource, amount in resources.items():
+            if resource.isTracked:
+                self.resources[resource] = self.resources.get(resource, 0) - amount
+                if resource.id == "res-obyvatel":
+                    self._addEmployees(amount)
+                if self.resources[resource] < 0:
+                    missing[resource] = -self.resources[resource]
+            else:
+                tokens[resource] = amount
+
+
+        if missing != {}:
+            raise ActionException(f"Nemáte dostatek zdrojů. Chybí: [[{missing}]]")
+
+        return tokens
+
+
     def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False) -> Dict[Resource, Decimal]:
         storage = {}
         for resource, amount in resources.items():
@@ -285,7 +313,7 @@ class TeamState(StateModel):
             return storage
         for resource, amount in storage.items():
             amount = self.storage.get(resource, 0) + amount
-            if amount > self.storageCapacity:
+            if amount > self.storageCapacity and resource.id != "mat-zbrane":
                 amount = self.storageCapacity
             self.storage[resource] = amount
         return {}

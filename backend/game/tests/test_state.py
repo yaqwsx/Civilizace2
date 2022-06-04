@@ -1,3 +1,5 @@
+import pytest
+from game.actions.common import ActionException
 from game.state import GameState
 from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
@@ -28,6 +30,88 @@ def test_serialize():
 
 
 team = TEAM_BASIC
+
+def test_payResources():
+    entities = TEST_ENTITIES
+    state = createTestInitState()    
+    teamState = state.teamStates[team]
+    teamState.resources = {
+        entities["res-prace"]: 100,
+        entities["res-obyvatel"]: 100,
+        entities["res-zamestnanec"]: 100,
+        entities["pro-bobule"]: 10,
+        entities["pro-drevo"]: 10,
+        entities["pro-kuze"]: 1,
+    }
+
+    result = teamState.payResources({entities["res-prace"]: 10})
+    assert result == {}
+    assert teamState.resources == {
+        entities["res-prace"]: 90,
+        entities["res-obyvatel"]: 100,
+        entities["res-zamestnanec"]: 100,
+        entities["pro-bobule"]: 10,
+        entities["pro-drevo"]: 10,
+        entities["pro-kuze"]: 1,
+    }
+
+    result = teamState.payResources({entities["res-obyvatel"]: 10})
+    assert result == {}
+    assert teamState.resources == {
+        entities["res-prace"]: 90,
+        entities["res-obyvatel"]: 90,
+        entities["res-zamestnanec"]: 110,
+        entities["pro-bobule"]: 10,
+        entities["pro-drevo"]: 10,
+        entities["pro-kuze"]: 1,
+    }
+
+    result = teamState.payResources({entities["pro-bobule"]: 2, entities["pro-drevo"]: 2})
+    assert result == {}
+    assert teamState.resources == {
+        entities["res-prace"]: 90,
+        entities["res-obyvatel"]: 90,
+        entities["res-zamestnanec"]: 110,
+        entities["pro-bobule"]: 8,
+        entities["pro-drevo"]: 8,
+        entities["pro-kuze"]: 1,
+    }
+
+    result = teamState.payResources({entities["mat-bobule"]: 2, entities["mat-drevo"]: 2, })
+    assert result == {entities["mat-bobule"]: 2, entities["mat-drevo"]: 2}
+    assert teamState.resources == {
+        entities["res-prace"]: 90,
+        entities["res-obyvatel"]: 90,
+        entities["res-zamestnanec"]: 110,
+        entities["pro-bobule"]: 8,
+        entities["pro-drevo"]: 8,
+        entities["pro-kuze"]: 1,
+    }
+
+    result = teamState.payResources({entities["mat-bobule"]: 2, entities["pro-drevo"]: 2, 
+                                     entities["res-obyvatel"]:5, entities["res-prace"]:20,})
+    assert result == {entities["mat-bobule"]: 2}
+    assert teamState.resources == {
+        entities["res-prace"]: 70,
+        entities["res-obyvatel"]: 85,
+        entities["res-zamestnanec"]: 115,
+        entities["pro-bobule"]: 8,
+        entities["pro-drevo"]: 6,
+        entities["pro-kuze"]: 1,
+    }
+
+    with pytest.raises(ActionException) as einfo:
+        teamState.payResources({entities["pro-bobule"]: 10})
+
+    with pytest.raises(ActionException) as einfo:
+        teamState.payResources({entities["pro-keramika"]: 10})
+
+    with pytest.raises(ActionException) as einfo:
+        teamState.payResources({entities["res-prace"]: 100})
+    
+
+
+
 
 def test_receiveResources():
     entities = TEST_ENTITIES
