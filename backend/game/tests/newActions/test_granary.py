@@ -1,8 +1,6 @@
 from typing import Set
-from game.actions.common import ActionException, ActionCost
-from game.actions.redirectToGranary import ActionRedirect, ActionRedirectArgs
-from game.actions.researchFinish import ActionResearchFinish
-from game.actions.researchStart import ActionResearchStart, ActionResearchArgs
+from game.actionsNew.actionBaseNew import ActionFailed
+from game.actionsNew.granary import ActionGranary, ActionGranaryArgs
 from game.entities import DieId
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
@@ -18,15 +16,13 @@ def test_empty():
 
     assert team.granary == {}, "Granary is not empty in initial state"
 
-    action = ActionRedirect(
-        state=state, entities=entities, args=ActionRedirectArgs(team=teamId, productions=productions))
+    action = ActionGranary(
+        state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     cost = action.cost()
-    assert cost.resources == {}
-    assert cost.allowedDice == set()
-    assert cost.requiredDots == 0
+    assert cost == {}
 
-    action.commit()
+    action.applyCommit()
 
     assert team.granary == {}, "Granary is not empty after adding an empty set of productions"
 
@@ -38,15 +34,13 @@ def test_successBulk():
     productions = {entities["pro-maso"]: 2, entities["pro-dobytek"]:1, entities["pro-bobule"]: 5}
     team.resources = productions.copy()
 
-    action = ActionRedirect(
-        state=state, entities=entities, args=ActionRedirectArgs(team=teamId, productions=productions))
+    action = ActionGranary(
+        state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     cost = action.cost()
-    assert cost.resources == productions
-    assert cost.allowedDice == set()
-    assert cost.requiredDots == 0
+    assert cost == productions
 
-    action.commit()
+    action.applyCommit()
 
     assert team.granary == productions, "Granary does not contain expected productions"
     assert sum(team.resources.values()) == 0, "Team resources should have been emptied"
@@ -61,11 +55,12 @@ def test_failInsufficient():
     team.resources = productions.copy()
     productions[entities["pro-dobytek"]] = 3
 
-    action = ActionRedirect(
-        state=state, entities=entities, args=ActionRedirectArgs(team=teamId, productions=productions))
+    action = ActionGranary(
+        state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit()
+
 
 
 def test_failWrong():
@@ -75,8 +70,9 @@ def test_failWrong():
     productions = {entities["pro-maso"]: 2, entities["mat-dobytek"]:1, entities["pro-bobule"]: 5}
     team.resources = productions.copy()
 
-    action = ActionRedirect(
-        state=state, entities=entities, args=ActionRedirectArgs(team=teamId, productions=productions))
+    action = ActionGranary(
+        state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
-    with pytest.raises(ActionException) as einfo:
-        action.commit()
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit()
+
