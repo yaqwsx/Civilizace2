@@ -103,10 +103,10 @@ class ActionBaseNew(ActionInterface):
     _errors: MessageBuilder = PrivateAttr()
     _warnings: MessageBuilder = PrivateAttr()
     _info: MessageBuilder = PrivateAttr()
+    _notifications: Dict[Team, List[str]] = PrivateAttr()
 
     # The following fields are persistent:
     paid: Dict[Resource, Decimal] = {}
-
 
     # Private API below
 
@@ -119,6 +119,7 @@ class ActionBaseNew(ActionInterface):
         self._errors = MessageBuilder()
         self._warnings = MessageBuilder()
         self._info = MessageBuilder()
+        self._notifications = {}
 
     def _performThrow(self, throws: int, dots: int) -> bool:
         """
@@ -272,7 +273,9 @@ class ActionBaseNew(ActionInterface):
         if not self._warnings.empty:
             return ActionResultNew(
                 expected=False,
-                message="**" + self._warnings.message + "**\n\n" + self._info.message)
+                message="**" + self._warnings.message + "**\n\n" + self._info.message,
+                notifications=self._notifications)
         return ActionResultNew(
             expected=True,
-            message=self._info.message)
+            message=self._info.message,
+            notifications=self._notifications)
