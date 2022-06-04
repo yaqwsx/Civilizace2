@@ -25,6 +25,7 @@ import {
     faCogs,
     faWarehouse,
     faWheatAwn,
+    faQrcode,
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
@@ -34,6 +35,8 @@ import { sortTechs } from "./techs";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { TurnCountdownSticker } from "../elements/turns";
+import QRCode from "react-qr-code";
+
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -294,6 +297,21 @@ function TeamOverview() {
                     </Card>
                 </div>
             </div>
+            <div className="section w-full">
+                <h2 className="text-xl" id="section-1">
+                    Různé
+                </h2>
+
+                <div className="flex w-full flex-wrap">
+                <Card
+                        label="Krmení"
+                        color={team.color}
+                        icon={faQrcode}
+                    >
+                        <QRCode value={`krm-${team.id}`} size={128} className="mx-auto m-10 max-h-40"/>
+                    </Card>
+                </div>
+            </div>
         </>
     );
 }
@@ -379,7 +397,7 @@ function TeamMessages() {
     );
 }
 
-function announcementPalette(type: string) {
+export function announcementPalette(type: string) {
     return {
         normal: {
             color: "blue-500",
@@ -405,7 +423,7 @@ function Announcement(props: {
     content: string;
     read: boolean;
     deletable: boolean;
-    datetime: string;
+    appearDatetime: string;
     readBy?: string[];
 }) {
     const user = useSelector((state: RootState) => state.auth.account?.user);
@@ -436,7 +454,7 @@ function Announcement(props: {
             });
     };
 
-    let datetime = new Date(props.datetime);
+    let datetime = new Date(props.appearDatetime);
 
     return (
         <div className={className}>
@@ -478,7 +496,7 @@ function Announcement(props: {
     );
 }
 
-function AnnouncementList(props: { announcements: any; deletable: boolean }) {
+export function AnnouncementList(props: { announcements: any; deletable: boolean }) {
     return (
         <>
             {props.announcements.map((a: any) => (

@@ -230,7 +230,7 @@ class TeamViewSet(viewsets.ViewSet):
                     "type": a.typeString(),
                     "content": a.content,
                     "read": False,
-                    "datetime": a.appearDatetime
+                    "appearDatetime": a.appearDatetime
                 } for a in self.unreadAnnouncements(request.user, team)
             ]
         })
@@ -245,7 +245,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "type": a.typeString(),
                 "content": a.content,
                 "read": request.user in a.read.all(),
-                "datetime": a.appearDatetime,
+                "appearDatetime": a.appearDatetime,
                 "readBy": set([x.team.name for x in a.read.all()]) if request.user.isOrg else None
             } for a in Announcement.objects.getTeam(team)
         ])

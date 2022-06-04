@@ -33,7 +33,7 @@ def updateTurn():
     # Check if there is a turn to be activated:
     candidate = DbTurn.objects \
         .filter(enabled=True, startedAt__isnull=True) \
-        .order_by("-id").first()
+        .order_by("id").first()
     if candidate is None:
         return
     prev = candidate.prev

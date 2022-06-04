@@ -7,10 +7,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
+from game.viewsets.permissions import IsOrg
+
 class AnnouncementViewSet(viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
     queryset = Announcement.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsOrg)
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["appearDatetime"]
     ordering = ["-appearDatetime"]
@@ -23,3 +25,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         announcement.save()
         return Response({})
 
+    @action(detail=False)
+    def public(self, request):
+        announcements = Announcement.objects.getPublic()[:5]
+        return Response(AnnouncementSerializer(announcements, many=True).data)

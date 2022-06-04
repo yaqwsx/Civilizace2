@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { Dialog, LoadingOrError } from "../elements";
+import { SuccessMessage } from "../elements/messages";
 import { useCurrentTurn } from "../elements/turns";
+import { fetcher } from "../utils/axios";
+import { AnnouncementList } from "./dashboard";
+import { useScanner } from "./scanner";
+import QRCode from "react-qr-code";
 
 export function InfoScreen() {
     return (
@@ -88,14 +94,58 @@ function Countdown() {
 }
 
 function PublicAnnouncements() {
+    const { data } = useSWR<any>("/announcements/public", fetcher, {
+        refreshInterval: 20000,
+    });
+
+    if (!data || data.length == 0) return null;
+
     return (
         <div className="container mx-auto">
             <h1>Poslední veřejná oznámení:</h1>
-            <div id="announcements" className="text-left"></div>
+            <div id="announcements" className="text-left">
+                <AnnouncementList announcements={data} deletable={false} />
+            </div>
         </div>
     );
 }
 
 function AutoFeedDialog() {
-    return null;
+    const [teamId, setTeamId] = useState<string | undefined>(undefined);
+
+    useScanner((items: string[]) => {
+        if (items.length != 1) return;
+        if (items[0].startsWith("ans-")) {
+            setTeamId(undefined);
+        }
+        if (items[0].startsWith("krm-")) {
+            let teamId = items[0].replace("krm-", "");
+            setTeamId(teamId);
+        }
+    });
+
+    if (!teamId) return null;
+
+    return (
+        <Dialog onClose={() => setTeamId(undefined)}>
+            <div className="text-left">
+                <h1>Automatické krmení</h1>
+
+                <SuccessMessage>
+                    <h1>Tady bude náhled krmení...</h1>
+                </SuccessMessage>
+                <h2>Přejete si pokračovat?</h2>
+                <div className="w-full flex my-6">
+                    <div className="mx-0 w-1/2 p-3 text-center">
+                        <h1>ANO</h1>
+                        <QRCode value="ans-yes" className="mx-auto" />
+                    </div>
+                    <div className="mx-0 w-1/2 p-3 text-center">
+                        <h1>NE</h1>
+                        <QRCode value="ans-no" className="mx-auto" />
+                    </div>
+                </div>
+            </div>
+        </Dialog>
+    );
 }

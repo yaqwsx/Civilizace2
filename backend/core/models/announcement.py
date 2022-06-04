@@ -1,7 +1,7 @@
 from django.db import models
 from core.models.user import User
 from core.models.team import Team
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 
 class AnnouncementType(models.IntegerChoices):
@@ -28,6 +28,11 @@ class AnnouncementManager(models.Manager):
         return self.get_queryset() \
             .filter(appearDatetime__lte=timezone.now()) \
             .order_by("-appearDatetime")
+
+    def getPublic(self):
+        tCount = Team.objects.filter(visible=True).count()
+        return self.get_queryset() \
+            .annotate(teams_count=Count("teams")).filter(teams_count__gte=tCount)
 
 class Announcement(models.Model):
     author = models.ForeignKey(User, on_delete=models.PROTECT, related_name="announcementsFrom", null=True)
