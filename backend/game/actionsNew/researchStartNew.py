@@ -9,8 +9,6 @@ class ActionResearchArgsNew(ActionArgs):
     task: Optional[str]=None
 
 class ActionResearchStartNew(ActionBaseNew):
-    args: ActionResearchArgsNew
-
 
     @property
     def args(self) -> ActionResearchArgsNew:

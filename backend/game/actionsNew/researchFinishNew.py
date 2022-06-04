@@ -4,13 +4,17 @@ from game.actionsNew.researchStartNew import ActionResearchArgsNew
 from game.entities import Resource, Tech
 
 class ActionResearchFinishNew(ActionBaseNew):
-    args: ActionResearchArgsNew
+
+    @property
+    def args(self) -> ActionResearchArgsNew:
+        assert isinstance(self._generalArgs, ActionResearchArgsNew)
+        return self._generalArgs
 
 
     def cost(self) -> Dict[Resource, int]:
         return {}
 
-    def commitInternal(self) -> None:
+    def _commitImpl(self) -> None:
         if self.args.tech in self.teamState.techs:
             raise ActionFailed(f"Technologie [[{self.args.tech.id}]] je již vyzkoumána.")
 
