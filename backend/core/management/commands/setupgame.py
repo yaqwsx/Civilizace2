@@ -6,9 +6,10 @@ from core.models.announcement import Announcement
 from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import loadEntities
 from django.conf import settings
-from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTurn, DbState, DbTeamState, DbMapState
+from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTurn, DbState, DbTeamState, DbMapState
 from core.models import User, Team
 from game.state import GameState
+from django.db import transaction
 
 from .pullentities import setFilename
 
@@ -43,15 +44,17 @@ class Command(BaseCommand):
         targetFile = settings.ENTITY_PATH / setFilename(entities)
         ent = loadEntities(targetFile)
 
-        self.clearGame()
+        with transaction.atomic():
+            self.clearGame()
 
-        self.createOrgs(ent.orgs)
-        self.createTeams(ent.teams)
-        self.createEntities(targetFile)
-        self.createInitialState(ent, entities)
-        self.createRounds()
+            self.createOrgs(ent.orgs)
+            self.createTeams(ent.teams)
+            self.createEntities(targetFile)
+            self.createInitialState(ent, entities)
+            self.createRounds()
 
     def clearGame(self):
+        DbSticker.objects.all().delete()
         DbDelayedEffect.objects.all().delete()
         DbEntities.objects.all().delete()
         DbAction.objects.all().delete()

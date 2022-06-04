@@ -255,3 +255,14 @@ class DbDelayedEffect(models.Model):
             if DbDelayedEffect.objects.filter(slug=slug).exists():
                 slug = None
         return slug
+
+
+class DbSticker(models.Model):
+    team = models.ForeignKey(Team, related_name="stickers", on_delete=models.CASCADE)
+    entityId = models.CharField(max_length=32)
+    entityRevision = models.IntegerField()
+    awardedAt = models.DateTimeField(auto_now=True)
+
+    @cached_property
+    def entity(self) -> Entity:
+        return DbEntities.objects.get_revision(self.entityRevision)[self.entityId]

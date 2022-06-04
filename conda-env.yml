@@ -24,3 +24,5 @@ dependencies:
     - types-frozendict
     - django-enumfields==2.1.*
     - psycopg2==2.9.3
+    - Pillow==9.1.1
+    - qrcode==7.3.1
