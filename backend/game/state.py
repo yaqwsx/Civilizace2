@@ -390,5 +390,5 @@ class GameState(StateModel):
         self._setParent()
 
 
-def printResourceListForMarkdown(self, resources: Dict[Resource, Decimal]) -> str:
+def printResourceListForMarkdown(resources: Dict[Resource, Decimal]) -> str:
     return "\n".join([f"1. [[{resource.id}|{{amount}}]]" for resource, amount in resources.items()]) + "\n"
