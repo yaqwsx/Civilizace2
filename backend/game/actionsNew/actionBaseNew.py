@@ -19,9 +19,6 @@ class ActionFailed(Exception):
             super().__init__(message.message)
         super().__init__(message)
 
-class ImplementationError(Exception):
-    pass
-
 class ActionResultNew(BaseModel):
     expected: bool # Was the result expected or unexpected
     message: str
@@ -114,8 +111,7 @@ class ActionBaseNew(ActionInterface):
 
     @property
     def teamState(self) -> Optional[TeamState]:
-        if not hasattr(self._generalArgs, "team"):
-            raise ImplementationError("Cannot get a team state for non-team action")
+        assert hasattr(self._generalArgs, "team")
         return self.state.teamStates[self._generalArgs.team]
 
     def _setupPrivateAttrs(self):
@@ -153,6 +149,19 @@ class ActionBaseNew(ActionInterface):
         """
         if not condition:
             self._errors.add(message)
+
+    def _ensureStrong(self, condition: bool, message: str) -> None:
+        """
+        Checks the condition, if it doesn't hold, yield error
+        """
+        if not condition:
+            self._errors.add(message)
+            raise ActionFailed(self._errors)
+
+    @property
+    def _ensureValid(self) -> None:
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
 
     @contextlib.contextmanager
     def _startBothLists(self, header: str) -> Generator[Callable[[str], None], None, None]:
