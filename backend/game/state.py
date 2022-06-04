@@ -295,9 +295,8 @@ class TeamState(StateModel):
             else:
                 tokens[resource] = amount
 
-
         if missing != {}:
-            raise ActionException(f"Nemáte dostatek zdrojů. Chybí: [[{missing}]]")
+            raise ActionException(f"Nemáte dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
 
         return tokens
 
@@ -389,3 +388,6 @@ class GameState(StateModel):
         super().__init__(*args, **kwargs)
         self._setParent()
 
+
+def printResourceListForMarkdown(self, resources: Dict[Resource, Decimal]) -> str:
+    return "\n".join([f"1. [[{resource.id}|{{amount}}]]" for resource, amount in resources.items()]) + "\n"

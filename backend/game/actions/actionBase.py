@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from game.actions.common import ActionCost, ActionCost, ActionException, ActionResult, CancelationResult, InitiateResult, MessageBuilder
 from game.entities import Entities, Resource, Team
 
-from game.state import GameState, TeamState
+from game.state import GameState, TeamState, printResourceListForMarkdown
 
 class ActionBase(BaseModel):
     class Config:
@@ -17,7 +17,7 @@ class ActionBase(BaseModel):
     state: GameState
 
     errors: MessageBuilder = MessageBuilder()
-    info: MessageBuilder = MessageBuilder()
+    info: MessageBuilder = MessageBuilder()        
 
     reward: Dict[Resource, int] = defaultdict(Decimal)
 
@@ -89,6 +89,19 @@ class TeamActionBase(ActionBase):
     @property
     def team(self) -> Team:
         return self.args.team
+
+    
+    def applyInitiate(self):
+        cost = self.cost()
+        require = self.teamState.payResources(cost)
+        message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require)}"
+
+
+    def revertiInitiate(self):
+        cost = self.cost()
+        reward = self.teamState.receiveResources(cost, instantWithdraw=True)
+        message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward)}"
+
 
     def initiate(self, cost: Optional[ActionCost]) -> InitiateResult:
         if self.team is None or cost is None:
