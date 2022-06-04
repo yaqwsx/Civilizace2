@@ -361,7 +361,7 @@ function DiceThrowForm(props: {
     const { teamWork } = useTeamWork(props.team);
     useEffect(() => {
         setOtherInputFocus();
-    }, []);
+    }, [setOtherInputFocus]);
 
     const handleThrow = (amount: number) => {
         props.update(props.dots + amount, props.throws + 1);

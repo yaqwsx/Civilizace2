@@ -5,7 +5,6 @@ import { useState } from "react";
 import useSWR from "swr";
 import {
     Button,
-    CiviMarkdown,
     Dialog,
     FormRow,
     LoadingOrError,
@@ -21,7 +20,6 @@ import {
 } from "../elements/team";
 import { Team } from "../types";
 import { fetcher } from "../utils/axios";
-import { objectMap } from "../utils/functional";
 
 export function MapMenu() {
     return null;
