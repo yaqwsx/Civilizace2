@@ -42,5 +42,5 @@ class VoucherViewSet(viewsets.ViewSet):
         return Response({
             "stickers": list(stickers),
             "materials": {m.id: a for m, a in materials.items()},
-            "messages": "\n\n".join(messages)
+            "messages": "\n\n".join(messages) # Put slugs in between as headings
         })
