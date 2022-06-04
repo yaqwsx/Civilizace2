@@ -1,10 +1,11 @@
+from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Tuple
 
 from pydantic import BaseModel
-from game.actions.actionBase import TeamActionBase, ActionArgs
-from game.actions.common import ActionException, ActionCost
-from game.entities import Entities, Resource, Tech, Team
+from game.actions.actionBase import ActionArgs
+from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed
+from game.entities import Entities, Resource, Team
 from game.state import GameState
 
 class FeedRequirements(BaseModel):
@@ -38,8 +39,12 @@ class ActionFeedArgs(ActionArgs):
     team: Team
     materials: Dict[Resource, int]
 
-class ActionFeed(TeamActionBase):
-    args: ActionFeedArgs
+class ActionFeed(ActionBaseNew):
+
+    @property
+    def args(self) -> ActionFeedArgs:
+        assert isinstance(self._generalArgs, ActionFeedArgs)
+        return self._generalArgs
 
 
     def _addObyvatel(self, amount): # supports negative amounts
@@ -48,18 +53,18 @@ class ActionFeed(TeamActionBase):
             self.teamState.resources[self.entities["res-obyvatel"]] = 0
 
 
-    def cost(self) -> ActionCost:
-        return ActionCost(resources=self.args.materials)
+    def cost(self) -> Dict[Resource, Decimal]:
+        return self.args.materials
 
 
-    def commitInternal(self) -> None:
+    def _commitImpl(self) -> None:
         teamTurn = self.teamState.turn
         worldTurn = self.state.turn
 
         if teamTurn >= worldTurn:
-            raise ActionException(f"Tým už v kole {worldTurn} krmil")
+            raise ActionFailed(f"Tým už v kole {worldTurn} krmil")
 
-        req = computeFeedRequirements(self.state, self.entities, self.team)
+        req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
         paidFood = sum(amount for resource, amount in self.args.materials.items() if resource.typ[0] == self.entities["typ-jidlo"])
 
@@ -67,8 +72,7 @@ class ActionFeed(TeamActionBase):
         if req.tokensRequired > paidFood:
             starved = (req.tokensRequired - paidFood) * 5
             self._addObyvatel(-starved)
-            self.info += f"Chybí {req.tokensRequired - paidFood} jednotek jídla, takže uhynulo {starved} obyvatel"
-            # TODO: Make this a warning, not info
+            self._warnings += f"Chybí {req.tokensRequired - paidFood} jednotek jídla, takže uhynulo {starved} obyvatel"
         else:
             newborns += 10
 
@@ -91,7 +95,7 @@ class ActionFeed(TeamActionBase):
 
         self._addObyvatel(newborns)
 
-        self.info += f"Krmení úspěšně provedeno. Narodilo se {newborns} nových obyvatel."
+        self._info += f"Krmení úspěšně provedeno. Narodilo se {newborns} nových obyvatel."
         
 
         self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)
