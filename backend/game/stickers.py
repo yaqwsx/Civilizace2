@@ -1,10 +1,27 @@
-import contextlib
-from typing import List
-from PIL import Image, ImageDraw, ImageFont, ImageOps
-import qrcode
+if __name__ == "__main__":
+    import django
+    django.setup()
 
-ROBOTO_NORMAL = ImageFont.truetype("data/fonts/Roboto-Regular.ttf", 18)
-ROBOTO_BOLD = ImageFont.truetype("data/fonts/Roboto-Bold.ttf", 25)
+import contextlib
+import os
+from pathlib import Path
+from typing import List
+
+import qrcode
+from django.conf import settings
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+from core.models.team import Team
+
+from game.entities import Entity, Tech, Vyroba
+from game.models import DbDelayedEffect, DbEntities, DbSticker, StickerType
+from game.util import FileCache
+
+FONT_NORMAL = ImageFont.truetype(os.path.join(
+    settings.DATA_PATH, "fonts", "Roboto-Regular.ttf"), 22)
+FONT_BOLD = ImageFont.truetype(os.path.join(
+    settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 22)
+FONT_HEADER = ImageFont.truetype(os.path.join(
+    settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 30)
 
 
 def makeQrCode(content: str, pixelSize: int=3, borderQrPx: int=4) -> Image:
@@ -60,21 +77,23 @@ class StickerBuilder:
                 fill=(0,0,0))
             self.position = box[3]
 
-    def addBulletLine(self, bullet, text, font) -> int: # bullet offset
+    def addBulletLine(self, bullet, text, font, bulletFont=None) -> int: # bullet offset
+        if bulletFont is None:
+            bulletFont = font
         bulletBox = self.drawInt.textbbox(
             xy=(self.margin + self.offset, self.position),
             text=bullet,
-            font=font,
+            font=bulletFont
         )
         # Draw bullet:
         self.drawInt.text(
             xy=(self.margin + self.offset, self.position),
             text=bullet,
-            font=font,
+            font=bulletFont,
             anchor="la",
             align="left",
             fill=(0,0,0))
-        with self.withOffset(bulletBox[2]):
+        with self.withOffset(bulletBox[2] - self.margin):
             self.addText(text, font)
         return bulletBox[2]
 
@@ -90,7 +109,7 @@ class StickerBuilder:
     def skip(self, offset: int) -> None:
         self.position += offset
 
-    def hline(self, width: int=4, margin: int=10) -> None:
+    def hline(self, width: int=4, margin: int=0) -> None:
         self.drawInt.line([(self.margin + margin, self.position),
                            (self.img.width - self.margin - margin, self.position)],
                            fill=(0, 0, 0), width=width, joint="curve")
@@ -100,28 +119,118 @@ class StickerBuilder:
         bbox = ImageOps.invert(self.img).getbbox()
         return self.img.crop((0, 0, self.img.width, bbox[3] + self.margin))
 
+def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image:
+    if isinstance(e, Tech):
+        return makeTechSticker(e, t, stype)
+    if isinstance(e, Vyroba):
+        return makeVyrobaSticker(e, t, stype)
+    assert f"There is no recipe for making {type(e)} stickers"
 
-if __name__ == "__main__":
-    b = StickerBuilder(333, 15)
-    b.skip(10)
-    b.hline()
+def getDefaultStickerBuilder() -> StickerBuilder:
+    # return StickerBuilder(396, 15)
+    return StickerBuilder(int(80 // 25.4 * 180), int((80 / 25.4 * 180 - 396) // 2))
+
+def makeStickerHeader(e: Entity, builder: StickerBuilder) -> None:
+    builder.hline(3, 0)
+    builder.skip(100)
+    builder.hline(3, 0)
+    builder.skip(5)
+    qr = makeQrCode(e.id, pixelSize=3, borderQrPx=4)
+
+    builder.img.paste(qr, (builder.offset + builder.margin - 12, builder.position))
+    qrBottom = builder.position + qr.height
+    builder.skip(12)
+    with builder.withOffset(qr.width):
+        builder.addText(e.name, FONT_HEADER)
+    builder.position = max(builder.position, qrBottom) + 10
+    builder.hline(1, 0)
+    builder.skip(5)
+
+def makeStickerFooter(e: Entity, builder: StickerBuilder) -> None:
+    builder.skip(40)
+    builder.hline(3, 0)
+
+def makeTechSticker(e: Tech, t: Team, stype: StickerType) -> Image:
+    b = getDefaultStickerBuilder()
+    makeStickerHeader(e, b)
+
+    if stype == StickerType.techSmall:
+        makeStickerFooter(e, b)
+        return b.getImage()
+
+    uVyrobas = e.unlocksVyrobas
+    if len(uVyrobas) > 0:
+        vText = ", ".join([v.name for v in uVyrobas])
+        b.addBulletLine("Umožňuje: ", vText, FONT_NORMAL, bulletFont=FONT_BOLD)
+
+    uTechs = e.unlocksTechs
+    if len(uTechs) > 0:
+        b.skip(5)
+        b.addText("Odemyká směry bádání:", FONT_BOLD)
+        with b.withOffset(10):
+            for t in uTechs:
+                costText = ", ".join([f"{a}× {r.name}" for r, a in t.cost.items()])
+                b.addBulletLine(f"• {t.name}: ", costText, FONT_NORMAL, bulletFont=FONT_BOLD)
+
+    makeStickerFooter(e, b)
+    return b.getImage()
+
+def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
+    assert stype == StickerType.regular
+
+    b = getDefaultStickerBuilder()
+    makeStickerHeader(e, b)
+
+    featureText = ", ".join([f.name for f in e.requiredFeatures])
+    b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
     b.skip(5)
-    qr = makeQrCode("team-zeleni vyr-bobule", pixelSize=3)
+    b.addText("Vstupy:", FONT_BOLD)
+    with b.withOffset(10):
+        for r, a in e.cost.items():
+            b.addBulletLine("• ", f"{a}× {r.name}", FONT_NORMAL)
+    b.addBulletLine("Výstup: ", f"{e.reward[1]}× {e.reward[0].name}", FONT_NORMAL,
+        bulletFont=FONT_BOLD)
+
+    makeStickerFooter(e, b)
+    return b.getImage()
+
+def makeVoucherSticker(effect: DbDelayedEffect) -> Image:
+    b = getDefaultStickerBuilder()
+
+    b.hline(3, 0)
+    b.skip(100)
+    b.hline(3, 0)
+    b.skip(5)
+    qr = makeQrCode(f"vou-{effect.slug.upper()}", pixelSize=3, borderQrPx=4)
 
     b.img.paste(qr, (b.offset + b.margin - 12, b.position))
     qrBottom = b.position + qr.height
     b.skip(12)
     with b.withOffset(qr.width):
-        b.addText("Tady je nějaký dlouhý název výroby", ROBOTO_BOLD)
+        b.addText(f"Směnka pro {effect.team.name}", FONT_BOLD)
+        b.addText(f"Kód: {effect.slug.upper()}", FONT_BOLD)
     b.position = max(b.position, qrBottom) + 10
+    b.addText(f"Nabývá efektu v {effect.round}. kole, {round(effect.target // 60)} minut", FONT_BOLD)
+    b.hline(1, 0)
+    b.skip(5)
+    b.skip(40)
+    b.hline(3, 0)
+    return b.getImage()
 
-    for i in range(3):
-        offset = b.addBulletLine("•", "Same as arc, but also draws straight lines between the end points and the center of the bounding box.", ROBOTO_NORMAL)
-        with b.withOffset(offset):
-            for i in range(3):
-                b.addBulletLine("–", "Another, rather long, long, long, long text", ROBOTO_NORMAL)
-    b.skip(10)
-    b.hline()
+STICKER_CACHE = FileCache(settings.CACHE / "stickers", ".png")
 
-    b.getImage().show()
-    b.getImage().save("test.png")
+def getStickerFile(stickerModel: DbSticker) -> Path:
+    _, entities = DbEntities.objects.get_revision(stickerModel.entityRevision)
+    def render(path):
+        s = makeSticker(entities[stickerModel.entityId], stickerModel.team, stickerModel.type)
+        s.save(path)
+    return STICKER_CACHE.path(stickerModel.ident, render)
+
+if __name__ == "__main__":
+    from game.tests.actions.common import TEST_ENTITIES
+
+    vyroba = makeSticker(TEST_ENTITIES["vyr-drevo1Pro"], StickerType.regular)
+    # vyroba.show()
+    tech = makeSticker(TEST_ENTITIES["tec-start"], StickerType.regular)
+    tech.show()
+    tech.save("test.png")

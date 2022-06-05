@@ -1,11 +1,7 @@
 import os
 from django.conf import settings
 from game import entityParser
-from game.entities import Entities, Team, Tech, Vyroba, Resource
-from game.state import Army, ArmyId, ArmyState, GameState
 from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
-from decimal import Decimal
-from typing import Dict, List
 
 TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.DATA_PATH, "entities", "TEST.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
@@ -13,6 +9,8 @@ TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial stat
 
 
 def createTestInitState(entities=TEST_ENTITIES):
+    from game.state import Army, ArmyState, GameState
+
     state = GameState.createInitial(entities)
 
     #starting tiles

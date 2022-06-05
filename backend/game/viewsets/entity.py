@@ -14,11 +14,13 @@ from game.gameGlue import serializeEntity
 
 from rest_framework import serializers
 
-from game.models import DbEntities, DbState, DbTask, DbTaskAssignment
+from game.models import DbDelayedEffect, DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import GameState, TeamState
 
 from core.models import Team as DbTeam
+from game.viewsets.stickers import DbStickerSerializer
+from game.viewsets.voucher import DbDelayedEffectSerializer
 
 from .permissions import IsOrg
 
@@ -263,3 +265,16 @@ class TeamViewSet(viewsets.ViewSet):
                 "state": str(a.state).split(".")[1],
                 "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
             } for a in state.armies.values()})
+
+    @action(detail=True)
+    def stickers(self, request, pk):
+        self.validateAccess(request.user, pk)
+        stickers = DbSticker.objects.filter(team__id=pk).order_by("-awardedAt")
+        return Response(DbStickerSerializer(stickers, many=True).data)
+
+    @action(detail=True)
+    def vouchers(self, request, pk):
+        self.validateAccess(request.user, pk)
+        effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("round", "target")
+        return Response(DbDelayedEffectSerializer(effects, many=True).data)
+

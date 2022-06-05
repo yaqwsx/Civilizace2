@@ -26,3 +26,6 @@ dependencies:
     - psycopg2==2.9.3
     - Pillow==9.1.1
     - qrcode==7.3.1
+    - django-ipware==4.0.2
+    - Flask==2.1.2
+    - python-escpos==2.2.0

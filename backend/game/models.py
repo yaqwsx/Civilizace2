@@ -47,6 +47,8 @@ class DbEntities(models.Model):
     provides a method get_revision to get a particular revision in the form of
     Entities type. (cached)
     """
+    class Meta:
+        get_latest_by = "id"
     data = JSONField("data")
     objects = DbEntitiesManager()
 
@@ -235,6 +237,7 @@ class DbTurn(models.Model):
 
 class DbDelayedEffect(models.Model):
     slug = models.SlugField(max_length=8)
+    team = models.ForeignKey(Team, related_name="vouchers", null=True, on_delete=models.CASCADE)
     round = models.IntegerField()
     target = models.IntegerField() # In seconds
     action = models.ForeignKey(DbAction, on_delete=models.PROTECT)
@@ -256,13 +259,48 @@ class DbDelayedEffect(models.Model):
                 slug = None
         return slug
 
+class StickerType(models.IntegerChoices):
+    regular = 0
+    techSmall = 1
+    techFirst = 2
+
 
 class DbSticker(models.Model):
     team = models.ForeignKey(Team, related_name="stickers", on_delete=models.CASCADE)
     entityId = models.CharField(max_length=32)
     entityRevision = models.IntegerField()
+    type = models.IntegerField(choices=StickerType.choices)
     awardedAt = models.DateTimeField(auto_now=True)
+
+    def update(self) -> None:
+        self.entityRevision = DbEntities.objects.latest().id
+
+    def ident(self) -> str:
+        return f"sticker_{self.team.id}_{self.entityId}_{self.entityRevision}_{self.type}"
 
     @cached_property
     def entity(self) -> Entity:
         return DbEntities.objects.get_revision(self.entityRevision)[self.entityId]
+
+    @property
+    def stickerPaperRequired(self):
+        return self.entityId.startswith("tec-")
+
+class PrinterManager(models.Manager):
+    def prune(self):
+        """
+        Remove dead printers from database. Printer is considered dead after 1
+        minute of inactivity.
+        """
+        criticalPoint = timezone.now() - timezone.timedelta(minutes=1)
+        self.filter(registeredAt__lte=criticalPoint).delete()
+
+class Printer(models.Model):
+    name = models.CharField(max_length=200)
+    address = models.CharField(max_length=200)
+    port = models.IntegerField()
+    registeredAt = models.DateTimeField(auto_now=True)
+    printsStickers = models.BooleanField()
+
+    objects = PrinterManager()
+

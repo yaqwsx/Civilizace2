@@ -3,6 +3,7 @@ import {
     ActionCommitResponse,
     ActionResponse,
     ActionStatus,
+    Sticker,
     Team,
 } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
@@ -21,6 +22,7 @@ import _ from "lodash";
 import useSWR from "swr";
 import { useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
+import { PrintStickers, PrintVoucher } from "./printing";
 
 function useActionPreview(actionId: string, actionArgs: any) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
@@ -150,7 +152,7 @@ function ActionPreviewPhase(props: {
     actionArgs: any;
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
-    argsValid: boolean
+    argsValid: boolean;
 }) {
     const { preview, error } = useActionPreview(
         props.actionId,
@@ -204,11 +206,13 @@ function ActionPreviewPhase(props: {
             <h1>Náhled efektu akce {props.actionName}</h1>
             {preview ? (
                 <div ref={messageRef}>
-                    {props.argsValid ?
-                    <ActionMessage response={initiateResult || preview} /> :
-                    <ErrorMessage>
-                        Zadané argumenty jsou neplatné.
-                    </ErrorMessage>}
+                    {props.argsValid ? (
+                        <ActionMessage response={initiateResult || preview} />
+                    ) : (
+                        <ErrorMessage>
+                            Zadané argumenty jsou neplatné.
+                        </ErrorMessage>
+                    )}
                 </div>
             ) : (
                 <div
@@ -233,7 +237,9 @@ function ActionPreviewPhase(props: {
                 />
                 <Button
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
-                    disabled={submitting || !preview?.success || !props.argsValid}
+                    disabled={
+                        submitting || !preview?.success || !props.argsValid
+                    }
                     onClick={handleSubmit}
                     className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"
                 />
@@ -479,12 +485,37 @@ function ActionFinishPhase(props: {
     actionName: string;
     onFinish: () => void;
 }) {
+    const [canQuit, setCanQuit] = useState(false);
+
+    useEffect(() => {
+        if (!props.response.voucher && props.response.stickers.length == 0)
+            setCanQuit(true);
+    }, [props.response]);
+
     return (
         <>
             <h1>Akce {props.actionName} dokončena</h1>
             <ActionMessage response={props.response} />
+
+            {props.response.stickers.length > 0 && (
+                <PrintStickers
+                    stickers={props.response.stickers}
+                    onPrinted={() => setCanQuit(true)}
+                />
+            )}
+
+            {props.response.voucher && (
+                <PrintVoucher
+                    voucher={props.response.voucher}
+                    onPrinted={() => setCanQuit(true)}
+                />
+            )}
+
             <Button
-                label="Budiž"
+                label={
+                    canQuit ? "Budiž" : "Ještě je třeba vytisknout samolepky"
+                }
+                disabled={!canQuit}
                 className="mb-20 w-full"
                 onClick={props.onFinish}
             />

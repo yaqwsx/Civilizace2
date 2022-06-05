@@ -19,6 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(BASE_DIR, "data")
 ENTITY_PATH = Path(DATA_PATH) / "entities"
 TASK_PATH = Path(DATA_PATH) / "tasks"
+CACHE = Path(DATA_PATH) / "cache"
 
 
 # Quick-start development settings - unsuitable for production

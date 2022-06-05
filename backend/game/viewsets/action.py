@@ -18,8 +18,8 @@ from game.actions.researchStart import ActionResearchStart
 from game.entities import THROW_COST, Entities, Entity
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction,
-                         DbState, DbTask, DbTaskAssignment, DbTurn,
-                         InteractionType)
+                         DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn,
+                         InteractionType, StickerType)
 from game.state import StateModel
 from game.viewsets.permissions import IsOrg
 from rest_framework import serializers, viewsets
@@ -27,6 +27,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from game.viewsets.stickers import DbStickerSerializer
 
 StickerId = Tuple[Team, Entity]
 
@@ -209,6 +211,30 @@ class ActionViewSet(viewsets.ViewSet):
         return res
 
     @staticmethod
+    def _awardStickers(stickerIds: Iterable[str]) -> List[DbSticker]:
+        if len(stickerIds) > 0:
+            entRevision = DbEntities.objects.latest().id
+
+        awardedStickers = []
+        for t, s in stickerIds:
+            print(t)
+            team = Team.objects.get(pk=t.id)
+            if s.id.startswith("tec-") and not DbSticker.objects.filter(entityId=s).exists():
+                # The team is first, let's give him a special sticker
+                firstTech = DbSticker.objects.create(team=team, entityId=s.id,
+                    entityRevision=entRevision, type=StickerType.techFirst)
+                awardedStickers.append(firstTech)
+            if s.id.startswith("tec-"):
+                smallTech = DbSticker.objects.create(team=team, entityId=s.id,
+                    entityRevision=entRevision, type=StickerType.techSmall)
+                awardedStickers.append(smallTech)
+            model = DbSticker.objects.create(team=team, entityId=s.id,
+                    entityRevision=entRevision, type=StickerType.regular)
+            awardedStickers.append(model)
+        return awardedStickers
+
+
+    @staticmethod
     def _markDelayedEffect(dbAction: DbAction, cost: ActionCost):
         now = timezone.now()
         try:
@@ -224,7 +250,10 @@ class ActionViewSet(viewsets.ViewSet):
         targetTurnId = turnObject.id
         targetOffset = (effectTime - turnObject.shouldStartAt).total_seconds()
 
-        effect = DbDelayedEffect.objects.create(round=targetTurnId, target=targetOffset, action=dbAction)
+        team = Team.objects.get(pk=dbAction.args.get("team"))
+
+        effect = DbDelayedEffect.objects.create(round=targetTurnId, target=targetOffset,
+                                                action=dbAction, team=team)
         return effect
 
     @staticmethod
@@ -340,6 +369,7 @@ class ActionViewSet(viewsets.ViewSet):
                 result = None
                 effect = None
                 stickers = set()
+                awardedStickers = []
                 if cost.requiredDots == 0:
                     result = action.commit(cost)
                     addResultNotifications(result)
@@ -348,6 +378,7 @@ class ActionViewSet(viewsets.ViewSet):
                     self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
                     self._handleExtraCommitSteps(action)
                     stickers = self._computeStickers(sourceState, state)
+                    awardedStickers = self._awardStickers(stickers)
                     if cost.postpone > 0:
                         effect = self._markDelayedEffect(dbAction, cost)
                 else:
@@ -360,18 +391,24 @@ class ActionViewSet(viewsets.ViewSet):
                     "success": result is None or result.succeeded,
                     "action": dbAction.id,
                     "committed": result is not None,
-                    "message": actionInitiateMessage(cost, initiateResult, result, stickers, effect)
+                    "message": actionInitiateMessage(cost, initiateResult, result, stickers, effect),
+                    "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                    "voucher": effect.slug if effect is not None else None
                 })
         except ActionException as e:
             return Response(data={
                 "success": False,
-                "message": f"Nesplněny prerekvizity akce: \n\n{e}"
+                "message": f"Nesplněny prerekvizity akce: \n\n{e}",
+                "stickers": [],
+                "voucher": None
             })
         except Exception as e:
             tb = traceback.format_exc()
             return Response(data={
                 "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```"
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```",
+                "stickers": [],
+                "voucher": None
             })
 
     @action(methods=["POST", "GET"], detail=True)
@@ -410,12 +447,15 @@ class ActionViewSet(viewsets.ViewSet):
                     stickers = self._computeStickers(sourceState, state)
                     self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
                     self._handleExtraCommitSteps(action)
+                    awardedStickers = self._awardStickers(stickers)
                     effect = None
                     if result.succeeded and cost.postpone > 0:
                         effect = self._markDelayedEffect(dbAction, cost)
                     return Response({
                         "success": result.succeeded,
-                        "message": actionCommitMessage(result, stickers, effect)
+                        "message": actionCommitMessage(result, stickers, effect),
+                        "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                        "voucher": effect.slug if effect is not None else None
                     })
                 else:
                     # There wasn't enough dots, abandon
@@ -427,7 +467,9 @@ class ActionViewSet(viewsets.ViewSet):
                         message = "# Týmu došla práce (asi házel i na jiném stanovišti)\n\nTýmů se vrací pouze produkce a tým nic nezískává"
                     return Response({
                         "success": False,
-                        "message": message
+                        "message": message,
+                        "stickers": [],
+                        "voucher": None
                     })
         except ActionException as e:
             result = action.cancel(cost)
@@ -435,7 +477,9 @@ class ActionViewSet(viewsets.ViewSet):
 
             return Response(data={
                 "success": False,
-                "message": f"Nesplněny prerekvizity akce: \n\n{e}\n\n{actionCancelMessage(cost, result)}"
+                "message": f"Nesplněny prerekvizity akce: \n\n{e}\n\n{actionCancelMessage(cost, result)}",
+                "stickers": [],
+                "voucher": None
             })
         except Exception as e:
             tb = traceback.format_exc()
@@ -445,7 +489,9 @@ class ActionViewSet(viewsets.ViewSet):
 
             return Response(data={
                 "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n\n\n{actionCancelMessage(cost, result)}\n\n```\n{tb}\n```"
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n\n\n{actionCancelMessage(cost, result)}\n\n```\n{tb}\n```",
+                "stickers": [],
+                "voucher": None
             })
 
     @action(methods=["POST"], detail=True)

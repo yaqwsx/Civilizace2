@@ -13,11 +13,13 @@ import {
     Card,
     CiviMarkdown,
     classNames,
+    Dialog,
     LoadingOrError,
+    RequireOrg,
 } from "../elements";
 import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
 import { RootState } from "../store";
-import { Team } from "../types";
+import { Team, Sticker as StickerT } from "../types";
 import {
     faUsers,
     faBriefcase,
@@ -30,13 +32,14 @@ import {
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
 import { combineErrors } from "../utils/error";
-import { EntityTag, useTeamTechs } from "../elements/entities";
+import { EntityTag, useEntities, useTeamTechs } from "../elements/entities";
 import { sortTechs } from "./techs";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { TurnCountdownSticker } from "../elements/turns";
 import QRCode from "react-qr-code";
-
+import { strictEqual } from "assert";
+import { PrintStickers, PrintVoucher } from "../elements/printing";
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -74,10 +77,16 @@ function DashboardMenuImpl() {
     if (!teams) return null;
 
     let subLinks = [
-        { url: "", name: "Přehled" },
-        { url: "tasks", name: "Úkoly" },
-        { url: "announcements", name: "Oznámení" },
+        { url: "", name: "Přehled", orgOnly: false },
+        { url: "tasks", name: "Úkoly", orgOnly: false },
+        { url: "announcements", name: "Oznámení", orgOnly: false },
+        { url: "stickers", name: "Samolepky", orgOnly: true },
+        { url: "vouchers", name: "Směnky", orgOnly: true },
     ];
+
+    let accessibleSubLinks = user?.isOrg
+        ? subLinks
+        : subLinks.filter((x) => !x.orgOnly);
 
     let className = ({ isActive }: { isActive: boolean }) => {
         let classes =
@@ -94,7 +103,7 @@ function DashboardMenuImpl() {
         <>
             {user?.isOrg ? <MiddleTeamMenu teams={teams} /> : null}
             <ul className="list-reset w-full flex-1 items-center border-b-2 border-gray-600 px-4 md:px-0 lg:flex lg:border-none">
-                {subLinks.map((l) => (
+                {accessibleSubLinks.map((l) => (
                     <li key={l.url} className="my-2 mr-6 list-none md:my-0">
                         <NavLink
                             to={`/dashboard/${teamId}/${l.url}`}
@@ -163,6 +172,22 @@ export function Dashboard() {
                 <Route
                     path=":teamId/announcements"
                     element={<TeamMessages />}
+                />
+                <Route
+                    path=":teamId/stickers"
+                    element={
+                        <RequireOrg>
+                            <TeamStickers />
+                        </RequireOrg>
+                    }
+                />
+                <Route
+                    path=":teamId/vouchers"
+                    element={
+                        <RequireOrg>
+                            <TeamVouchers />
+                        </RequireOrg>
+                    }
                 />
                 <Route path="*" element={<Navigate to="" />} />
             </Routes>
@@ -303,12 +328,12 @@ function TeamOverview() {
                 </h2>
 
                 <div className="flex w-full flex-wrap">
-                <Card
-                        label="Krmení"
-                        color={team.color}
-                        icon={faQrcode}
-                    >
-                        <QRCode value={`krm-${team.id}`} size={128} className="mx-auto m-10 max-h-40"/>
+                    <Card label="Krmení" color={team.color} icon={faQrcode}>
+                        <QRCode
+                            value={`krm-${team.id}`}
+                            size={128}
+                            className="m-10 mx-auto max-h-40"
+                        />
                     </Card>
                 </div>
             </div>
@@ -496,12 +521,187 @@ function Announcement(props: {
     );
 }
 
-export function AnnouncementList(props: { announcements: any; deletable: boolean }) {
+export function AnnouncementList(props: {
+    announcements: any;
+    deletable: boolean;
+}) {
     return (
         <>
             {props.announcements.map((a: any) => (
                 <Announcement key={a.id} deletable={props.deletable} {...a} />
             ))}
         </>
+    );
+}
+
+function TeamStickers() {
+    const { teamId } = useParams();
+    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
+    const {
+        data,
+        error: dataError,
+        mutate,
+    } = useSWR<StickerT[]>(
+        () => (teamId ? `game/teams/${teamId}/stickers` : null),
+        fetcher
+    );
+
+    if (!team || !data) {
+        return (
+            <LoadingOrError
+                loading={teamLoading || (!data && !dataError)}
+                error={combineErrors([teamError, dataError])}
+                message={"Nedaří se spojit serverem"}
+            />
+        );
+    }
+
+    return (
+        <>
+            <h1>Přehled samolepek pro tým {team.name}</h1>
+            {data?.length == 0 ? (
+                <p>Zatím nemáte žádné samolepky</p>
+            ) : (
+                <div className="flex w-full flex-wrap">
+                    {data.map((s) => (
+                        <Sticker key={s.id} sticker={s} mutate={mutate} />
+                    ))}
+                </div>
+            )}
+        </>
+    );
+}
+
+function Sticker(props: { sticker: StickerT; mutate: () => void }) {
+    const auth = useSelector((state: RootState) => state.auth);
+    const { data: entities } = useEntities<any>();
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [isPrinting, setIsPrinting] = useState(false);
+
+    let awardedAt = new Date(props.sticker.awardedAt);
+
+    let handleUpdate = () => {
+        if (!props.sticker) return;
+        setIsUpdating(true);
+        axiosService
+            .post<any, any>(`/game/stickers/${props.sticker.id}/upgrade/`)
+            .then((data) => {
+                setIsUpdating(false);
+                toast.success(`Samolepka ${props.sticker.id} aktualizována`);
+                props.mutate();
+            })
+            .catch((error) => {
+                setIsUpdating(false);
+                toast.error(`Nastala neočekávaná chyba: ${error}`);
+            });
+    };
+
+    let imgUrl = `${process.env.REACT_APP_API_URL}/game/stickers/${props.sticker.id}/image`;
+    return (
+        <div className="m-2 flex flex flex-auto flex-col items-stretch rounded bg-white p-2 shadow">
+            <div className="self-stretch">
+                <a href={imgUrl}>
+                    <img
+                        src={imgUrl}
+                        className="mx-auto"
+                        style={{ maxWidth: "200px" }}
+                    />
+                </a>
+            </div>
+            <div className="w-full self-end">
+                <div className="w-full text-center">
+                    {entities && (
+                        <>
+                            {entities[props.sticker.entityId].name} varianta{" "}
+                            {props.sticker.type}
+                        </>
+                    )}
+                </div>
+                <div className="w-full text-center text-sm text-gray-600">
+                    Uděleno:{" "}
+                    {awardedAt.toLocaleString("cs-CZ", {
+                        weekday: "long",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })}
+                </div>
+
+                {auth.account?.user?.isOrg && (
+                    <div className="flex flex-wrap">
+                        <Button
+                            disabled={isUpdating}
+                            onClick={handleUpdate}
+                            label="Aktualizovat"
+                            className="focus:shadow-outline m-2 flex-auto rounded bg-purple-500 py-2 px-4 font-bold text-white shadow hover:bg-purple-400 focus:outline-none"
+                        />
+                        <Button
+                            disabled={isPrinting}
+                            onClick={() => setIsPrinting(true)}
+                            label="Vytisknout"
+                            className="focus:shadow-outline m-2 flex-auto rounded bg-purple-500 py-2 px-4 text-center font-bold text-white shadow hover:bg-purple-400 focus:outline-none"
+                        />
+                    </div>
+                )}
+            </div>
+            {isPrinting && (
+                <Dialog onClose={() => setIsPrinting(false)}>
+                    <PrintStickers
+                        stickers={[props.sticker]}
+                        onPrinted={() => setIsPrinting(false)}
+                    />
+                </Dialog>
+            )}
+        </div>
+    );
+}
+
+function TeamVouchers() {
+    const { teamId } = useParams();
+    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
+    const { data, error: dataError } = useSWR<any[]>(
+        () => (teamId ? `game/teams/${teamId}/vouchers` : null),
+        fetcher
+    );
+
+    if (!team || !data) {
+        return (
+            <LoadingOrError
+                loading={teamLoading || (!data && !dataError)}
+                error={combineErrors([teamError, dataError])}
+                message={"Nedaří se spojit serverem"}
+            />
+        );
+    }
+    return (
+        <>
+            <h1>Seznam směnek pro tým {team.name}</h1>
+            <div className="w-full">
+                {data.map((v) => (
+                    <Voucher key={v.id} voucher={v} />
+                ))}
+            </div>
+        </>
+    );
+}
+
+function Voucher(props: { voucher: any }) {
+    const [printing, setIsPrinting] = useState(false);
+
+    return (
+        <div className="w-full rounded bg-white p-5 shadow">
+            <h1>Odložený efekt {props.voucher.slug}</h1>
+            <Button
+                label={printing ? "Tisknu" : "Tisknout"}
+                onClick={() => setIsPrinting(true)}
+            />
+            {printing && (
+                <Dialog onClose={() => setIsPrinting(false)}>
+                    <PrintVoucher
+                        voucher={props.voucher.slug}
+                        onPrinted={() => setIsPrinting(false)}
+                    />
+                </Dialog>
+            )}
+        </div>
     );
 }

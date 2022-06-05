@@ -1,4 +1,5 @@
 import { EntityId } from "@reduxjs/toolkit";
+import { boolean } from "yup";
 
 export interface Team {
     id: string;
@@ -127,14 +128,34 @@ export enum ActionStatus {
     Fail = "fail"
 }
 
+export interface Sticker {
+    id: number;
+    entityId: string;
+    entityRevision: number;
+    type: number;
+    awardedAt: string;
+    team: string;
+}
+
 
 export interface ActionResponse {
     success: boolean;
     message: string;
     action?: Number;
+    voucher?: string;
+    stickers: Sticker[];
 }
 
 export interface ActionCommitResponse {
     dotsRequired: Number;
     allowedDice: string[];
+}
+
+export interface Printer {
+    id: number;
+    name: string;
+    address: string;
+    port: number;
+    registeredAt: string;
+    printsStickers: boolean;
 }

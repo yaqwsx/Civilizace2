@@ -12,9 +12,32 @@ import { EntityMdTag } from "./entities";
 import { nodeModuleNameResolver } from "typescript";
 import { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
+import { Navigate } from "react-router-dom";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
+
+type RequireAuthProps = {
+    children: JSX.Element | JSX.Element[];
+};
+export function RequireAuth({ children }: RequireAuthProps) {
+    const auth = useSelector((state: RootState) => state.auth);
+    return auth.account ? <>{children}</> : <Navigate to="/login" />;
+}
+
+type RequireOrgProps = {
+    children: JSX.Element | JSX.Element[];
+};
+export function RequireOrg({ children }: RequireOrgProps) {
+    const auth = useSelector((state: RootState) => state.auth);
+    return auth.account?.user?.isOrg ? (
+        <>{children}</>
+    ) : (
+        <Navigate to="/forbidden" />
+    );
+}
 
 // Avoid purging team background colors
 let teamColorPlaceholder = [
@@ -142,8 +165,10 @@ export function PrettyAxiosError(props: { error: any }) {
             <h3>
                 {response.status} ({response.status_text}):
             </h3>
-            <code className="overflow-hidden w-full">
-                <pre className="overflow-hidden w-full">{JSON.stringify(response.data, null, 2)}</pre>
+            <code className="w-full overflow-hidden">
+                <pre className="w-full overflow-hidden">
+                    {JSON.stringify(response.data, null, 2)}
+                </pre>
             </code>
         </div>
     );

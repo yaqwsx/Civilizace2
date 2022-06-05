@@ -44,26 +44,8 @@ import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
 import { useTeamIdFromUrl } from "./elements/team";
 import { InfoScreen } from "./pages/info";
+import { RequireOrg, RequireAuth} from "./elements";
 
-type RequireAuthProps = {
-    children: JSX.Element | JSX.Element[];
-};
-function RequireAuth({ children }: RequireAuthProps) {
-    const auth = useSelector((state: RootState) => state.auth);
-    return auth.account ? <>{children}</> : <Navigate to="/login" />;
-}
-
-type RequireOrgProps = {
-    children: JSX.Element | JSX.Element[];
-};
-function RequireOrg({ children }: RequireOrgProps) {
-    const auth = useSelector((state: RootState) => state.auth);
-    return auth.account?.user?.isOrg ? (
-        <>{children}</>
-    ) : (
-        <Navigate to="/forbidden" />
-    );
-}
 
 function IconHamburger() {
     return (
@@ -422,8 +404,8 @@ export default function App() {
                                 element={<Navigate to={"/dashboard"} />}
                             />
 
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/forbidden" element={<Forbidden />} />
+                            <Route path="/login" element={<AppFrame><Login /></AppFrame>} />
+                            <Route path="/forbidden" element={<AppFrame><Forbidden /></AppFrame>} />
                             <Route
                                 path="/info"
                                 element={

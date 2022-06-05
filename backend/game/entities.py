@@ -118,6 +118,10 @@ class Tech(EntityWithCost):
     def unlocksVyrobas(self) -> Set[Vyroba]:
         return set(x for x, _ in self.unlocks if isinstance(x, Vyroba))
 
+    @property
+    def unlocksTechs(self) -> Set[Vyroba]:
+        return set(x for x, _ in self.unlocks if isinstance(x, Tech))
+
 
 class TileFeature(EntityBase):
     pass
