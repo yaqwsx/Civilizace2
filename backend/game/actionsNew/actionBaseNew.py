@@ -29,6 +29,8 @@ class ActionInterface(BaseModel):
     _entities: Entities = PrivateAttr()      # Nor entities
     _generalArgs: Any = PrivateAttr()        # Nor args
 
+    description: Optional[str]               # This field should be filled by the initiate step
+
     # Private (and thus non-store args) have to start with underscore. Let's
     # give them normal names
     @property
@@ -244,7 +246,7 @@ class ActionBaseNew(ActionInterface):
         ActionResultNew(
             expected=True,
             message=message)
-        
+
 
     def revertInitiate(self) -> ActionResultNew:
         cost = self.cost()
