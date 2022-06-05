@@ -1,5 +1,6 @@
 import contextlib
 from decimal import Decimal
+from math import ceil
 from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, PrivateAttr
@@ -237,11 +238,15 @@ class ActionBaseNew(ActionInterface):
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         return (set(), 0)
 
+    
+    def requiresDelayedEffect(self) -> int:
+        return 0
+
 
     def applyInitiate(self) -> ActionResultNew:
         cost = self.cost()
         require = self.teamState.payResources(cost)
-        message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require)}"
+        message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require, ceil)}"
 
         ActionResultNew(
             expected=True,
@@ -251,11 +256,25 @@ class ActionBaseNew(ActionInterface):
     def revertInitiate(self) -> ActionResultNew:
         cost = self.cost()
         reward = self.teamState.receiveResources(cost, instantWithdraw=True)
-        message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward)}"
+        message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward, ceil)}"
 
         return ActionResultNew(
             expected=True,
             message=message)
+
+
+    def generateActionResult(self):
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
+        if not self._warnings.empty:
+            return ActionResultNew(
+                expected=False,
+                message="**" + self._warnings.message + "**\n\n" + self._info.message,
+                notifications=self._notifications)
+        return ActionResultNew(
+            expected=True,
+            message=self._info.message,
+            notifications=self._notifications)
 
 
     def applyCommit(self, throws: int=0, dots: int=0) -> ActionResultNew:
@@ -269,15 +288,29 @@ class ActionBaseNew(ActionInterface):
             )
 
         self._commitImpl()
+        if self.requiresDelayedEffect() == 0:
+            self._applyDelayedEffect()
+            self._applyDelayedReward()
 
-        if not self._errors.empty:
-            raise ActionFailed(self._errors)
-        if not self._warnings.empty:
-            return ActionResultNew(
-                expected=False,
-                message="**" + self._warnings.message + "**\n\n" + self._info.message,
-                notifications=self._notifications)
-        return ActionResultNew(
-            expected=True,
-            message=self._info.message,
-            notifications=self._notifications)
+        return self.generateActionResult()
+
+
+    def applyDelayedEffect(self) -> ActionResultNew:
+        self._setupPrivateAttrs()
+        self.__applyDelayedEffect()
+        return self.generateActionResult()
+
+
+    def applyDelayedReward(self) -> ActionResultNew:
+        self._setupPrivateAttrs()
+        self._applyDelayedReward()
+        return self.generateActionResult()
+
+
+    def _applyDelayedEffect(self):
+        None
+
+
+    def _applyDelayedReward(self):
+        None
+
