@@ -231,7 +231,7 @@ function ActionPreviewPhase(props: {
             <div className="row">
                 <Button
                     label="Zpět"
-                    disabled={submitting || !preview}
+                    disabled={submitting}
                     onClick={props.onAbort}
                     className="my-4 mx-0 w-full bg-red-500 hover:bg-red-600 md:w-1/2"
                 />

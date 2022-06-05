@@ -12,6 +12,7 @@ export interface User {
     username: string;
     isOrg: boolean;
     team: Team;
+    is_superuser: boolean;
 }
 
 type ResourceId = string;

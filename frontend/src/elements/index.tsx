@@ -39,6 +39,16 @@ export function RequireOrg({ children }: RequireOrgProps) {
     );
 }
 
+export function RequireSuperOrg({ children }: RequireOrgProps) {
+    const auth = useSelector((state: RootState) => state.auth);
+    return auth.account?.user?.isOrg && auth.account?.user?.is_superuser ? (
+        <>{children}</>
+    ) : (
+        <Navigate to="/forbidden" />
+    );
+}
+
+
 // Avoid purging team background colors
 let teamColorPlaceholder = [
     "bg-gray-600",

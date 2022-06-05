@@ -26,6 +26,8 @@
     "formik": "^2.2.9",
     "immer": "^9.0.12",
     "jotai": "^1.6.3",
+    "jsoneditor": "^9.8.0",
+    "jsoneditor-react": "^3.1.2",
     "lodash": "^4.17.21",
     "onscan.js": "^1.5.2",
     "postcss": "^8.0.0",

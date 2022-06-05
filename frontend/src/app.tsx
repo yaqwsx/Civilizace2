@@ -26,6 +26,7 @@ import {
     faStickyNote,
     faMountainCity,
     faTicket,
+    faSkullCrossbones,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -44,8 +45,8 @@ import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
 import { useTeamIdFromUrl } from "./elements/team";
 import { InfoScreen } from "./pages/info";
-import { RequireOrg, RequireAuth} from "./elements";
-
+import { RequireOrg, RequireAuth, RequireSuperOrg } from "./elements";
+import { GodMode, GodModeMenu } from "./pages/godmode";
 
 function IconHamburger() {
     return (
@@ -134,7 +135,7 @@ function UserMenu() {
 }
 
 type MenuRowProps = {
-    children?: JSX.Element | JSX.Element[];
+    children?: any;
 };
 function MenuRow(props: MenuRowProps) {
     return (
@@ -210,6 +211,13 @@ function OrgMenu() {
                 icon={faStickyNote}
                 path="announcements/"
             />
+            {account.user.is_superuser ? (
+                <MenuItemT
+                    name="God mode"
+                    icon={faSkullCrossbones}
+                    path="godmode/"
+                />
+            ) : null}
         </MenuRow>
     );
 }
@@ -226,6 +234,7 @@ function ApplicationMenu() {
                 <Route path="/techs" element={<TechMenu />} />
                 <Route path="/tasks/*" element={<TasksMenu />} />
                 <Route path="/map/*" element={<MapMenu />} />
+                <Route path="/godmode" element={<GodModeMenu />} />
                 <Route
                     path="/announcements/*"
                     element={<AnnouncementsMenu />}
@@ -385,7 +394,23 @@ function OrgPages() {
             <Route path="/tasks/*" element={<Tasks />} />
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
-            <Route path="*" element={<Error404/>}/>
+            <Route
+                path="*"
+                element={
+                    <RequireSuperOrg>
+                        <SuperOrgPages />
+                    </RequireSuperOrg>
+                }
+            />
+        </Routes>
+    );
+}
+
+function SuperOrgPages() {
+    return (
+        <Routes>
+            <Route path="/godmode" element={<GodMode />} />
+            <Route path="*" element={<Error404 />} />
         </Routes>
     );
 }
@@ -404,8 +429,22 @@ export default function App() {
                                 element={<Navigate to={"/dashboard"} />}
                             />
 
-                            <Route path="/login" element={<AppFrame><Login /></AppFrame>} />
-                            <Route path="/forbidden" element={<AppFrame><Forbidden /></AppFrame>} />
+                            <Route
+                                path="/login"
+                                element={
+                                    <AppFrame>
+                                        <Login />
+                                    </AppFrame>
+                                }
+                            />
+                            <Route
+                                path="/forbidden"
+                                element={
+                                    <AppFrame>
+                                        <Forbidden />
+                                    </AppFrame>
+                                }
+                            />
                             <Route
                                 path="/info"
                                 element={

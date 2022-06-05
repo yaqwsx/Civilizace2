@@ -7,5 +7,5 @@ class UserSerializer(serializers.ModelSerializer):
     team = TeamSerializer()
     class Meta:
         model = User
-        fields = ["id", "username", "isOrg", "team"]
+        fields = ["id", "username", "isOrg", "team", "is_superuser"]
         read_only_field = []

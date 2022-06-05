@@ -9,6 +9,7 @@ from game.viewsets.tasks import TaskViewSet
 from game.viewsets.action import ActionViewSet
 from game.viewsets.turns import TurnsViewSet
 from game.viewsets.voucher import VoucherViewSet
+from game.viewsets.state import StateViewSet
 
 routes = SimpleRouter()
 routes.register(r'entities', EntityViewSet, basename="entities")
@@ -19,6 +20,7 @@ routes.register(r'turns', TurnsViewSet, basename="turns")
 routes.register(r'vouchers', VoucherViewSet, basename="vouchers")
 routes.register(r'printers', PrinterViewSet, basename="printers")
 routes.register(r'stickers', StickerViewSet, basename="stickers")
+routes.register(r'state', StateViewSet, basename="states")
 
 urlpatterns = [
     *routes.urls
