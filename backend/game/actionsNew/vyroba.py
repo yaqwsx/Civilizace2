@@ -48,9 +48,9 @@ class ActionVyroba(ActionBaseNew):
 
         tokens = self.teamState.receiveResources(reward)
 
-        self._info += f"Tým obdržel [[{printResourceListForMarkdown(reward)}]]"
+        self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
         if tokens != {}:
-            self._info += f"Vydejte týmu [[{printResourceListForMarkdown(tokens, floor)}]]"
+            self._info += f"Vydejte týmu {printResourceListForMarkdown(tokens, floor)}"
 
         return ActionResultNew(
             expected=True,
