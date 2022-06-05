@@ -1,4 +1,4 @@
-from game.actionsNew.actionBaseNew import ActionFailed
+from game.actions.common import ActionFailed
 from game.actionsNew.withdraw import ActionWithdraw, ActionWithdrawArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
@@ -18,6 +18,7 @@ def test_withdraw():
 
     result = action.applyCommit()
     assert teamState.storage[entities["mat-drevo"]] == 8
+    assert teamState.resources[entities.work] == 98
 
     result = action.applyCommit()
     assert teamState.storage[entities["mat-drevo"]] == 6
@@ -28,7 +29,20 @@ def test_withdraw():
     assert teamState.storage == {entities["mat-drevo"]:3, entities["mat-bobule"]:0}
     assert "bobule" in result.message
     assert "drevo" in result.message
+    assert teamState.resources[entities.work] == 88
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()
 
+
+def test_noWork():
+    state = createTestInitState()
+    teamState = state.teamStates[team]
+    teamState.storage = sampleStorage.copy()
+    teamState.resources[entities.work] = 1
+
+    args = ActionWithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
+    action = ActionWithdraw(state=state, entities=entities, args=args)
+
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit()

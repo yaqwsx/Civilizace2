@@ -1,5 +1,6 @@
 from typing import Dict
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed
+from game.actions.common import ActionFailed
+from game.actionsNew.actionBaseNew import ActionBaseNew
 from game.actionsNew.researchStartNew import ActionResearchArgsNew
 from game.entities import Resource, Tech
 

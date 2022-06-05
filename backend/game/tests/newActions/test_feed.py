@@ -1,5 +1,4 @@
-from game.actions.common import ActionException
-from game.actionsNew.actionBaseNew import ActionFailed
+from game.actions.common import ActionException, ActionFailed
 from game.actionsNew.feedNew import ActionFeed, ActionFeedArgs, FeedRequirements, computeFeedRequirements
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 

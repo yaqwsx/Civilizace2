@@ -6,9 +6,10 @@ import pydantic
 from pydantic import BaseModel, PrivateAttr
 from typing import List, Dict, Optional, Iterable, Union, Set
 from decimal import Decimal
-from game.actions.common import ActionException
+from game.actions.common import ActionException, ActionFailed, MessageBuilder
 from game.entities import *
 
+        
 class StateModel(BaseModel):
     _parent: Optional[StateModel]=PrivateAttr()
 
@@ -297,7 +298,7 @@ class TeamState(StateModel):
                 tokens[resource] = amount
 
         if missing != {}:
-            raise ActionException(f"Tým nemá dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
+            raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
 
         return tokens
 

@@ -4,21 +4,11 @@ from math import ceil
 from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, PrivateAttr
-from game.actions.actionBase import ActionArgs
-from game.actions.common import MessageBuilder
+from game.actions.common import ActionFailed, MessageBuilder
 
 from game.entities import DieId, Entities, Resource, Team
 from game.state import GameState, TeamState, printResourceListForMarkdown
 
-class ActionFailed(Exception):
-    """
-    Expects a pretty (markdown-formatted) message. This message will be seen
-    by the user. That is raise ActionFailed(message)
-    """
-    def __init__(self, message):
-        if isinstance(message, MessageBuilder):
-            super().__init__(message.message)
-        super().__init__(message)
 
 class ActionResultNew(BaseModel):
     expected: bool # Was the result expected or unexpected

@@ -4,7 +4,8 @@ from typing import Dict, List, Tuple
 
 from pydantic import BaseModel
 from game.actions.actionBase import ActionArgs
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed
+from game.actions.common import ActionFailed
+from game.actionsNew.actionBaseNew import ActionBaseNew
 from game.entities import Entities, Resource, Team
 from game.state import GameState
 

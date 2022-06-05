@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Dict
 from game.actions.actionBase import ActionArgs
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed
+from game.actionsNew.actionBaseNew import ActionBaseNew
 from game.entities import Resource, Team, Tech
 
 class ActionGranaryArgs(ActionArgs):

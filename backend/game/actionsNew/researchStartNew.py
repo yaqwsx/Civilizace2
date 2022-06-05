@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed
+from game.actions.common import ActionFailed
+from game.actionsNew.actionBaseNew import ActionBaseNew
 from game.entities import DieId, Resource, Tech, Team
 
 class ActionResearchArgsNew(ActionArgs):

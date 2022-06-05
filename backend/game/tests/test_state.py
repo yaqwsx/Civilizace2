@@ -1,5 +1,5 @@
 import pytest
-from game.actions.common import ActionException
+from game.actions.common import ActionException, ActionFailed
 from game.state import GameState
 from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
@@ -100,13 +100,13 @@ def test_payResources():
         entities["pro-kuze"]: 1,
     }
 
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(ActionFailed) as einfo:
         teamState.payResources({entities["pro-bobule"]: 10})
 
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(ActionFailed) as einfo:
         teamState.payResources({entities["pro-keramika"]: 10})
 
-    with pytest.raises(ActionException) as einfo:
+    with pytest.raises(ActionFailed) as einfo:
         teamState.payResources({entities["res-prace"]: 100})
     
 

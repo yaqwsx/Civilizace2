@@ -3,7 +3,7 @@ from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
 from game.actionsNew.ArmyDeploy import ActionArmyDeployArgs
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionFailed, ActionResultNew
+from game.actionsNew.actionBaseNew import ActionBaseNew, ActionResultNew
 from game.entities import DieId, Resource, Vyroba
 from game.state import MapTile, printResourceListForMarkdown
 
@@ -46,7 +46,7 @@ class ActionVyroba(ActionBaseNew):
 
         reward = {resource: amount*multiplier}
 
-        tokens = self.teamState.receiveResources(reward)
+        tokens = self.teamState.receiveResources(reward, instantWithdraw=True)
 
         self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
         if tokens != {}:

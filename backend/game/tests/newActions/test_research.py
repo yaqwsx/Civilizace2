@@ -1,5 +1,5 @@
 from typing import Set
-from game.actionsNew.actionBaseNew import ActionFailed
+from game.actions.common import ActionFailed
 from game.actionsNew.researchFinishNew import ActionResearchFinishNew
 from game.actionsNew.researchStartNew import ActionResearchArgsNew, ActionResearchStartNew
 from game.entities import DieId

@@ -9,6 +9,16 @@ import contextlib
 
 from game.entityParser import DICE_IDS
 
+class ActionFailed(Exception):
+    """
+    Expects a pretty (markdown-formatted) message. This message will be seen
+    by the user. That is raise ActionFailed(message)
+    """
+    def __init__(self, message):
+        if isinstance(message, MessageBuilder):
+            super().__init__(message.message)
+        super().__init__(message)
+        
 class MessageBuilder(BaseModel):
     """
     The goal is to simplify building markdown messages and not thinking about
@@ -93,7 +103,7 @@ class ActionCost(BaseModel):
 
     @property
     def materials(self):
-        return {r: a for r, a in self.resources.items() if r.isTracked}
+        return {r: a for r, a in self.resources.items() if r.isMaterial}
 
     def formatDice(self):
         # Why isn't this in entities?
@@ -122,7 +132,7 @@ class ActionResult(BaseModel):
 
     @property
     def materials(self):
-        return {r: a for r, a in self.reward.items() if r.isTracked}
+        return {r: a for r, a in self.reward.items() if r.isMaterial}
 
 class InitiateResult(BaseModel):
     materials: Dict[Resource, Decimal] = {}
