@@ -5,11 +5,11 @@ from game.actions.actionBase import ActionArgs
 from game.actions.common import ActionFailed
 from game.actionsNew.actionBaseNew import ActionBaseNew
 from game.entities import DieId, Resource, Tech, Team
+from game.state import printResourceListForMarkdown
 
 class ActionTradeArgs(ActionArgs):
     receiver: Team
-    production: Resource
-    amount: Decimal
+    resources: Dict[Resource, Decimal]
 
 class ActionTrade(ActionBaseNew):
 
@@ -20,25 +20,33 @@ class ActionTrade(ActionBaseNew):
 
 
     def cost(self) -> Dict[Resource, Decimal]:
-        level = self.args.production.typ[1]
-        payResource = self.entities[f"mge-obchod-{level}"]
-        return {payResource:ceil(self.args.amount)}
+        cost = {}
+        for resource, amount in self.args.resources.items():
+            level = resource.typ[1]
+            payResource = self.entities[f"mge-obchod-{level}"]
+            cost[payResource] = cost.get(payResource, 0) + ceil(amount)
+
+        return cost
 
 
     def _commitImpl(self) -> None:
         team = self.teamState
 
-        available = team.resources.get(self.args.production, 0)
+        with self._errors.startList("Obchod nelze provést") as err:
+            for resource, amount in self.args.resources.items():
+                available = team.resources.get(resource, 0)
 
-        if self.args.production.id[:4] != "pro-":
-            raise ActionFailed(f"Nelze obchodovat [[{self.args.production}]]")
+                if resource.id[:4] != "pro-":
+                    err(f"Nelze obchodovat [[{resource}]]")
+                    continue
 
-        if self.args.amount > available:
-            raise ActionFailed(f"Tým {self.args.receiver.name} nemá dostatek [[{self.args.production}]] (dostupné: {available}, požadováno: {self.args.amount})")
+                if amount > available:
+                    err(f"Tým {self.args.receiver.name} nemá dostatek [[{resource}]] (dostupné: {available}, požadováno: {amount})")
+                    continue
 
-        them = self.state.teamStates[self.args.receiver]
-        team.resources[self.args.production] -= self.args.amount
-        them.resources[self.args.production] = them.resources.get(self.args.production, 0) + self.args.amount
+                them = self.state.teamStates[self.args.receiver]
+                team.resources[resource] -= amount
+                them.resources[resource] = them.resources.get(resource, 0) + amount
 
-        self._info += f"Úspěšně prodáno [[{self.args.production}|{self.args.amount}]] týmu {self.args.receiver.name}"
-        self._notifications = {self.args.receiver: [f"Dostali jste [[{self.args.production}|{self.args.amount}]] od týmu {self.args.team.name}"]}
+        self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}: {printResourceListForMarkdown(self.args.resources)}"
+        self._notifications = {self.args.receiver: [f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}"]}
