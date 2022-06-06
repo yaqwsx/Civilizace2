@@ -99,7 +99,7 @@ class EntityParser():
     def parseLineTeam(self, line):
         if len(line) != 6:
             raise RuntimeError(f"Team line {line} doesn't look like team line")
-        tiles = [tile for tile in self.entities if isinstance(tile, MapTileEntity) and tile.name == line[5]]
+        tiles = [tile for tile in self.entities.values() if isinstance(tile, MapTileEntity) and tile.name == line[5]]
         assert len(tiles) == 1
         team = Team(
             id=line[0],

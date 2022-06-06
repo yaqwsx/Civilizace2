@@ -144,7 +144,7 @@ class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
-    richness: int
+    richness: int        
 
 
 # Common type of all available entities

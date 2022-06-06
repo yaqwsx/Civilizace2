@@ -13,7 +13,7 @@ def test_initiate():
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
         count = 1,
-        tile = state.map.getHomeTile(teamId),
+        tile = team.homeTile,
         plunder = False,
         team = teamId
     )
@@ -56,7 +56,7 @@ def test_simple():
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
         count = 1,
-        tile = state.map.getHomeTile(teamId),
+        tile = team.homeTile,
         plunder = False,
         team = teamId
     )
@@ -79,7 +79,7 @@ def test_production():
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Pro"],
         count = 1,
-        tile = state.map.getHomeTile(teamId),
+        tile = team.homeTile,
         plunder = False,
         team = teamId
     )

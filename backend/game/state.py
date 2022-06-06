@@ -183,13 +183,10 @@ class HomeTile(MapTile):
 class MapState(StateModel):
     size: int=MAP_SIZE
     tiles: Dict[int, MapTile]
-    homeTiles: Dict[Team, HomeTile]
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
         for t in self.tiles.values():
-            t._setParent(self)
-        for t in self.homeTiles.values():
             t._setParent(self)
 
     @property
@@ -197,12 +194,18 @@ class MapState(StateModel):
         assert isinstance(self._parent, GameState)
         return self._parent
 
+    def getTileById(self, id: EntityId) -> Optional[MapTile]:
+        return [tile for tile in self.tiles.values() if tile.id == id][0]
+
+    def getHomeOfTeam(self, team: Team) -> MapTile:
+        return self.parent.teamStates[team].homeTile
+
     def _getRelativeIndex(self, team: Team, tile: MapTileEntity) -> int:
-        home = self.homeTiles[team]
+        home = self.getHomeOfTeam(team)
         assert home != None, "Team {} has no home tile".format(team.id)
         relIndex = tile.index - home.index
         relIndexOffset = relIndex + self.size/2
-        return (relIndexOffset % self.size) - self.size/2
+        return round((relIndexOffset % self.size) - self.size/2)
 
     def getRawDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
@@ -213,25 +216,24 @@ class MapState(StateModel):
         relativeIndex = self._getRelativeIndex(team, tile)
         assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
         distance = TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
-        home = self.homeTiles[team]
+        home = self.getHomeOfTeam(team)
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8) # Tiles are around the map
         multiplier = 1
-        if tile in home.roadsTo:
+        teamState = self.parent.teamStates[team]
+        if tile in teamState.roadsTo:
             multiplier -= 0.5
         tileState = self.tiles[tile.index]
         if tileState.occupiedBy != None and tileState.occupiedBy.team == team:
             multiplier -= 0.5
         return Decimal(float(distance) * multiplier)
 
-    def getHomeTile(self, team: Team) -> HomeTile:
-        return self.homeTiles.get(team)
 
 
     @classmethod
     def createInitial(cls, entities: Entities) -> MapState:
         return MapState(
-            tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values() if tile.index % 4 != 1},
+            tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values()},
             homeTiles = {}
         )
 
@@ -247,6 +249,7 @@ class TeamState(StateModel):
     techs: Set[Tech]
     researching: Set[Tech] = set()
     armies: Dict[ArmyId, Army]
+    roadsTo: Set[MapTileEntity] = set()
 
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
@@ -262,6 +265,11 @@ class TeamState(StateModel):
     def parent(self) -> GameState:
         assert isinstance(self._parent, GameState)
         return self._parent
+
+    @property
+    def homeTile(self) -> MapTile:
+        return self.parent.map.getTileById(self.team.homeTileId)
+
 
     def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
         dice = set()

@@ -11,5 +11,5 @@ def test_homeTiles():
 
     for tile in entities.tiles.values():
         teams = [team for team in entities.teams.values() if team.homeTileId == tile.id]
-        assert len(teams) == 1
+        assert len(teams) <= 1
     

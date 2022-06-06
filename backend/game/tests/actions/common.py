@@ -1,7 +1,6 @@
 import os
 from django.conf import settings
 from game import entityParser
-from game.actions.assignStartTile import ActionAssignTile, ActionAssignTileArgs
 
 TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.DATA_PATH, "entities", "TEST.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
@@ -13,10 +12,6 @@ def createTestInitState(entities=TEST_ENTITIES):
 
     state = GameState.createInitial(entities)
 
-    #starting tiles
-    for index, team in enumerate(entities.teams.values()):
-        ActionAssignTile(args=ActionAssignTileArgs(team=team, index=4*index + 1), state=state, entities=entities).commit()
-
     team = TEAM_ADVANCED
     teamState = state.teamStates[TEAM_ADVANCED]
 
@@ -24,8 +19,7 @@ def createTestInitState(entities=TEST_ENTITIES):
     teamState.researching.add(entities["tec-c"])
 
     # roads
-    home = state.map.getHomeTile(TEAM_ADVANCED)
-    home.roadsTo = [state.map.tiles[x].entity for x in [6, 10, 24, 2]]
+    state.teamStates[entities["tym-modri"]].roadsTo = set([state.map.tiles[x].entity for x in [6, 10, 24, 2]])
 
     # deploy armies
     for tileIndex, prestige, equipment in [(0, 10, 1), (3, 15, 5), (30, 20, 15),  (2, 25, 20)]:

@@ -110,9 +110,6 @@ def test_payResources():
         teamState.payResources({entities["res-prace"]: 100})
     
 
-
-
-
 def test_receiveResources():
     entities = TEST_ENTITIES
     state = createTestInitState()    
@@ -147,6 +144,14 @@ def test_receiveResources():
     assert withdraw == {}
 
 
+def test_homeTiles():
+    entities = TEST_ENTITIES
+    state = createTestInitState()    
+    
+    teamState = state.teamStates[entities["tym-zeleni"]]
+    tile = teamState.homeTile
+    id = tile.entity
+    assert id == entities["map-tile05"]
 
 
     
