@@ -91,3 +91,22 @@ def test_production():
     assert team.resources == {entities["res-prace"]:80, entities["res-obyvatel"]:98, entities["pro-drevo"]: 21}
     assert "Vydejte týmu" not in commitResult.message
     assert "Tým obdržel" in commitResult.message
+
+
+def test_distance():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[teamId]
+
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevo1Mat"],
+        count = 1,
+        tile = entities["map-tile06"],
+        plunder = False,
+        team = teamId
+    )
+    action = ActionVyroba(state=state, entities=entities, args=args)
+
+    distance = action.requiresDelayedEffect()
+
+    assert distance == 600

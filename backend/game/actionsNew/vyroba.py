@@ -4,13 +4,13 @@ from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
 from game.actionsNew.ArmyDeploy import ActionArmyDeployArgs
 from game.actionsNew.actionBaseNew import ActionBaseNew, ActionResultNew
-from game.entities import DieId, Resource, Vyroba
+from game.entities import DieId, MapTileEntity, Resource, Vyroba
 from game.state import MapTile, printResourceListForMarkdown
 
 class ActionVyrobaArgs(ActionArgs):
     vyroba: Vyroba
     count: Decimal
-    tile: MapTile
+    tile: MapTileEntity
     plunder: bool
     army: Optional[ActionArmyDeployArgs]
 
@@ -30,6 +30,10 @@ class ActionVyroba(ActionBaseNew):
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         points = (self.args.vyroba.points * (1 + self.args.count))
         return (self.teamState.getUnlockingDice(self.args.vyroba), ceil(points / 2))
+
+
+    def requiresDelayedEffect(self) -> int:
+        return self.state.map.getActualDistance(self.args.team, self.args.tile)
 
 
     def _commitImpl(self) -> None:
