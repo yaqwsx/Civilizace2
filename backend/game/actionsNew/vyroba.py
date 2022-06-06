@@ -37,10 +37,10 @@ class ActionVyroba(ActionBaseNew):
 
 
     def _commitImpl(self) -> None:
-        None
+        self._info += f"Zadání výroby bylo úspěšné. Akce se vzhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
 
 
-    def _applyDelayedReward(self) -> ActionResultNew:
+    def _applyDelayedReward(self) -> None:
         self._setupPrivateAttrs()
         reward = self.args.vyroba.reward
         resource = reward[0]
@@ -55,8 +55,3 @@ class ActionVyroba(ActionBaseNew):
         self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
         if tokens != {}:
             self._info += f"Vydejte týmu {printResourceListForMarkdown(tokens, floor)}"
-
-        return ActionResultNew(
-            expected=True,
-            message=self._info.message,
-        )
