@@ -97,14 +97,18 @@ class EntityParser():
         self.entities[line[0]] = e
 
     def parseLineTeam(self, line):
-        if len(line) != 5:
+        if len(line) != 6:
             raise RuntimeError(f"Team line {line} doesn't look like team line")
+        tiles = [tile for tile in self.entities if isinstance(tile, MapTileEntity) and tile.name == line[5]]
+        assert len(tiles) == 1
         team = Team(
             id=line[0],
             name=line[1],
             color=line[2],
             password=line[3],
-            visible=line[4])
+            visible=line[4],
+            homeTileId=tiles[0].id
+        )
         self.entities[team.id] = team
 
     def parseLineOrg(self, line):
@@ -189,16 +193,13 @@ class EntityParser():
     def parseLineTile(self, line, lineId):
         assert len(line[0]) == 1, "Map tiles should have single letter tag"
         id = "map-tile" + line[1].rjust(2,"0")
-        team=None
+        team = None
         name = line[0].upper()
-        if line[5] != "":
-            team = self.entities[line[5]]
-            id="hom-tile"+team.id[4:]
         assert not id in self.entities, "Id already exists: " + id
         index = int(line[1])
         resources = [self.entities[x.strip()] for x in line[2].split(",")]
         tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources,
-                            parcelCount=int(line[3]), richness=int(line[4]), homeTeam=team)
+                            parcelCount=int(line[3]), richness=int(line[4]))
         self.entities[id] = tile
 
 
@@ -218,6 +219,7 @@ class EntityParser():
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
+                raise e
         for e in self.errors:
             self.reportError("  " + e)
 
@@ -298,8 +300,6 @@ class EntityParser():
     def parse(self) -> Entities:
         self.entities = {}
 
-        self.parseTeams()
-        self.parseOrgs()
         self.parseTypes()
         self.parseMaterials()
         self.parseNaturalResources()
@@ -307,6 +307,9 @@ class EntityParser():
         self.parseTiles()
         self.parseVyrobas()
         self.parseTechs()
+
+        self.parseTeams()
+        self.parseOrgs()
 
         self.buildGenericResources()
         self.hardcodeValues()

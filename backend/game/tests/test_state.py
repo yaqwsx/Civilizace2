@@ -1,5 +1,5 @@
 import pytest
-from game.actions.common import ActionException, ActionFailed
+from game.actions.common import ActionFailed
 from game.state import GameState
 from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState

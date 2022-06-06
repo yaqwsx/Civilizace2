@@ -45,6 +45,7 @@ class Team(EntityBase):
     color: str
     password: Optional[str] # We use it to populate database
     visible: bool
+    homeTileId: EntityId
 
 class OrgRole(Enum):
     ORG = 0
