@@ -2,7 +2,7 @@ from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
-    from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
+    from game.actionsNew.nextTurn import ActionNextTurn, ActionNextTurnArgs
     from game.entities import Entities
     from game.state import GameState
     from game.tests.actions.common import TEST_ENTITIES
@@ -11,7 +11,6 @@ if not PYTEST_COLLECT:
 def test_turnCounter():
     reimport(__name__)
 
-    state = createTestInitState()
     entities = TEST_ENTITIES
     state = createTestInitState()
     args = ActionNextTurnArgs()
@@ -19,11 +18,11 @@ def test_turnCounter():
     action = ActionNextTurn(state = state, entities = entities, args = args)
 
     cost = action.cost()
-    assert len(cost.resources) == 0
-    action.commit()
+    assert cost == {}
+    action.applyCommit()
     assert state.turn == 1
 
     for i in range(20):
         action = ActionNextTurn(state = state, entities = entities, args = args)
-        action.commit()
+        action.applyCommit()
         assert state.turn == i+2
