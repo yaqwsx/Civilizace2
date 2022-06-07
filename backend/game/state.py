@@ -9,7 +9,7 @@ from decimal import Decimal
 from game.actions.common import ActionException, ActionFailed, MessageBuilder
 from game.entities import *
 
-        
+
 class StateModel(BaseModel):
     _parent: Optional[StateModel]=PrivateAttr()
 

@@ -5,6 +5,7 @@ from game.state import ArmyGoal, ArmyId
 
 
 class ActionArmyDeployArgs(ActionArgs):
+    team: Team
     army: ArmyId
     tile: MapTileEntity
     goal: ArmyGoal

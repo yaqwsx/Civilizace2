@@ -5,7 +5,7 @@ from game.actions.actionBase import ActionArgs
 from game.actions.ArmyDeploy import ActionArmyDeployArgs
 from game.actions.actionBase import ActionBase, ActionResult
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
-from game.state import MapTile, printResourceListForMarkdown
+from game.state import ArmyGoal, ArmyId, MapTile, printResourceListForMarkdown
 
 class ActionVyrobaArgs(ActionArgs):
     team: Team
@@ -13,7 +13,10 @@ class ActionVyrobaArgs(ActionArgs):
     count: Decimal
     tile: MapTileEntity
     plunder: bool
-    army: Optional[ActionArmyDeployArgs]
+
+    army: Optional[ArmyId]
+    goal: Optional[ArmyGoal]
+    equipment: Optional[int]
 
 
 class ActionVyroba(ActionBase):
