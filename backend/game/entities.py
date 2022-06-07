@@ -93,7 +93,7 @@ class Resource(EntityBase):
 
     @property
     def isTracked(self) -> bool:
-        return not self.id.startswith("mat-")
+        return not self.id.startswith("mat-") and not self.id.startswith("mge-")
 
 
 class EntityWithCost(EntityBase):
