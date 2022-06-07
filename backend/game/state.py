@@ -393,7 +393,7 @@ class GameState(StateModel):
             turn=0,
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities),
-            buildDemolitionCost={entities["res-obchod-3"]:10}
+            buildDemolitionCost={entities["mge-obchod-3"]:10}
         )
 
 
