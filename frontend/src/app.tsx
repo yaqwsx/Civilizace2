@@ -333,6 +333,7 @@ function ScannerNavigator() {
             }
             if (item.startsWith("vyr-")) {
                 args.push(`entity=${item}`);
+                args.push("vyrobaAction=vyroba");
                 page = "vyrobas";
                 return;
             }

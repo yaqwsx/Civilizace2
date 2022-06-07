@@ -144,8 +144,7 @@ def _entityFieldSerializer(e: Entity, field: str, value: Any) -> Any:
         t, l = value
         return {
             "level": l,
-            "name": t.name,
-            "prodName": t.productionName
+            "id": t.id
         }
     return _shallowEntity(value)
 

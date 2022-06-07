@@ -100,13 +100,12 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def resources(self, request, pk):
         self.validateAccess(request.user, pk)
-        entities = DbEntities.objects.get_revision()[1]
         resources = self.getTeamState(pk).resources
 
         def enrich(entity: Entity) -> Dict[str, Any]:
-            return {"available": resources.get(entity.id, 0)}
+            return {"available": resources[entity]}
 
-        return Response({id: serializeEntity(e, enrich) for id, e in entities.resources.items()})
+        return Response({r.id: serializeEntity(r, enrich) for r in resources.keys()})
 
     @action(detail=True)
     def vyrobas(self, request, pk):

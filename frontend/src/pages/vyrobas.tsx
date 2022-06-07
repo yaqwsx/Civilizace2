@@ -15,18 +15,20 @@ import {
     TeamSelector,
     TeamRowIndicator,
 } from "../elements/team";
-import { Team, EntityVyroba, EntityResource } from "../types";
+import { Team, EntityVyroba, EntityResource, Entity, TeamEntityResource } from "../types";
 import { useAtom } from "jotai";
 import { atomWithHash, RESET } from "jotai/utils";
 import { data } from "autoprefixer";
 import {
     EntityTag,
     urlEntityAtom,
+    useEntities,
     useResources,
+    useTeamEntity,
     useTeamResources,
     useTeamVyrobas,
 } from "../elements/entities";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useMemo, useState } from "react";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import _ from "lodash";
@@ -145,6 +147,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
 
     return (
         <>
+            <h2>Zadejte parametry výroby</h2>
             <FormRow label="Vyber výrobu:" className="my-8">
                 <select
                     value={String(vyrobaId)}
@@ -173,16 +176,76 @@ function SelectVyroba(props: SelectVyrobaProps) {
 }
 
 function sortCostItems(entries: [EntityResource, number][]) {
-    return entries;
+    return entries.sort((x, y) => {
+        let a = x[0];
+        let b = y[0];
+
+        if (a.id == "res-prace") return -1;
+        if (b.id == "res-prace") return 1;
+        if (a.id == "res-obyvatel") return -1;
+        if (b.id == "res-obyvatel") return 1;
+        if (isGeneric(a) && isGeneric(b)) return 0;
+        if (isGeneric(a)) return -1;
+        if (isGeneric(b)) return 1;
+        return 0;
+    });
+}
+
+function isGeneric(entity: Entity) {
+    return entity.id.startsWith("mge-") || entity.id.startsWith("pge-");
+}
+
+function isProduction(e: EntityResource) {
+    return e.id.startsWith("pro-") || e.id.startsWith("pge-");
+}
+
+function isConcretization(what: EntityResource, generic: EntityResource) {
+    if (!what || !generic || !what.typ || !generic.typ) return false;
+
+    return (
+        what?.typ?.id == generic?.typ?.id &&
+        what?.typ?.level >= generic?.typ?.level &&
+        isProduction(what) == isProduction(generic)
+    );
+}
+
+function computeConcretization(entities?: Record<string, EntityResource>) {
+    if (!entities) return {};
+    let generic = Object.values(entities).filter(isGeneric);
+    let mapping: Record<string, EntityResource[]> = Object.fromEntries(
+        generic.map((g) => [g.id, []])
+    );
+    Object.values(entities).forEach((e) => {
+        if (isGeneric(e)) return;
+        generic.forEach((g) => {
+            if (isConcretization(e, g)) mapping[g.id].push(e);
+        });
+    });
+    return mapping;
 }
 
 type PerformVyrobaProps = {
     vyroba: EntityVyroba;
-    resources: Record<string, EntityResource>;
+    resources: Record<string, TeamEntityResource>;
     team: Team;
 };
 function PerformVyroba(props: PerformVyrobaProps) {
     const [amount, setAmount] = useState<number>(1);
+    const { data: entities, error: eError } = useEntities<EntityResource>();
+    const mapping = useMemo(() => computeConcretization(entities), [entities]);
+    const [concretization, setConcretization] = useState<
+        Record<string, string>
+    >({});
+
+    if (!entities) {
+        return (
+            <LoadingOrError
+                loading={(!entities && !eError)}
+                error={eError}
+                message="Nepodařilo se načíst entity"
+            />
+        );
+    }
 
     const vyroba = props.vyroba;
 
@@ -193,7 +256,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     const cost = sortCostItems(
         Object.keys(vyroba.cost).map((k) => {
-            return [props.resources[k], vyroba.cost[k]];
+            return [entities[k], vyroba.cost[k]];
         })
     );
 
@@ -204,14 +267,73 @@ function PerformVyroba(props: PerformVyrobaProps) {
             </FormRow>
             <h2>
                 {amount}× {vyroba.name} → {amount * vyroba.reward[1]}×{" "}
-                {props.resources[vyroba.reward[0]].name}
+                <EntityTag id={vyroba.reward[0]} />
             </h2>
-            {
-                // cost.map(([resource, rAmount]) => {
-                //     <FormRow label={`${resource.name} (potřeba ${amount * rAmount}×)`}>
-                //     </FormRow>
-                // })
-            }
+            {cost.map(([resource, rAmount]) => {
+                let available = _.get(
+                    props.resources,
+                    resource.id,
+                    undefined
+                )?.available;
+                let error = undefined;
+                if (available !== undefined && available < rAmount)
+                    error = "Nedostatek zdroje";
+                let input = (
+                    <select className="field select w-full">
+                        <option>
+                            {resource.name} {available && `(${available}×)`}
+                        </option>
+                    </select>
+                );
+                if (isProduction(resource) && isGeneric(resource)) {
+                    let options = mapping[resource.id];
+                    let value = _.get(concretization, resource.id, "");
+
+                    let available = _.get(
+                        props.resources,
+                        value,
+                        undefined
+                    )?.available;
+                    if (available !== undefined && available < rAmount)
+                        error = "Nedostatek zdroje";
+
+                    input = (
+                        <select
+                            className="field select w-full bg-blue-300"
+                            value={value}
+                            onChange={(e) => {
+                                let newV = e.target.value;
+                                let newC = Object.create(concretization);
+                                concretization[resource.id] = newV;
+                                setConcretization(newC);
+                            }}
+                        >
+                            <option>Vyberte konkretizaci</option>
+                            {options.map((o) => {
+                                let available = _.get(
+                                    props.resources,
+                                    o.id,
+                                    undefined
+                                )?.available;
+                                return (
+                                    <option value={o.id}>
+                                        {o.name}{" "}
+                                        {available && `(${available}×)`}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    );
+                }
+                return (
+                    <FormRow
+                        label={`${amount * rAmount}× ${resource.name}: `}
+                        error={error}
+                    >
+                        {input}
+                    </FormRow>
+                );
+            })}
         </>
     );
 }

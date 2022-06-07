@@ -25,6 +25,7 @@ export interface EntityBase {
 }
 
 export interface ResourceType {
+    id: string;
     level: number;
     name: string;
     prodName: string;
@@ -36,7 +37,7 @@ export interface EntityResource extends EntityBase {
 }
 
 export interface TeamEntityResource extends EntityResource {
-    availabe: number
+    available: number
 }
 
 export interface EntityWithCost extends EntityBase {
