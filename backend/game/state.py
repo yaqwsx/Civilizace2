@@ -123,9 +123,10 @@ class Army(StateModel):
 
 class MapTile(StateModel): # Game state elemnent
     entity: MapTileEntity
-    occupiedBy: Optional[ArmyId]=None
-    buildings: Dict[Building, Optional[TeamId]]={} # TeamId is stored for stats purposes only
-    inbound: Set[ArmyId]=set()
+    unfinished: Dict[Team, Set[Building]]={}
+    buildings: Set[Building]=set()
+    occupiedBy: Optional[ArmyId]=None # TODO: Deprecated
+    inbound: Set[ArmyId]=set() # TODO: Deprecated
 
     @property
     def parent(self) -> MapState:
@@ -150,7 +151,7 @@ class MapTile(StateModel): # Game state elemnent
 
     @property
     def features(self) -> List[TileFeature]:
-        return self.entity.naturalResources + self.buildings.keys()
+        return self.entity.naturalResources + self.buildings
 
     @property
     def id(self) -> EntityId:
@@ -234,7 +235,6 @@ class MapState(StateModel):
     def createInitial(cls, entities: Entities) -> MapState:
         return MapState(
             tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values()},
-            homeTiles = {}
         )
 
 
@@ -373,6 +373,8 @@ class GameState(StateModel):
     map: MapState
     casteCount: int=3
 
+    buildDemolitionCost: Dict[Resource, int]
+
     def _setParent(self) -> None:
         for t in self.teamStates.values():
             t._setParent(self)
@@ -390,7 +392,8 @@ class GameState(StateModel):
         return GameState(
             turn=0,
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
-            map=MapState.createInitial(entities)
+            map=MapState.createInitial(entities),
+            buildDemolitionCost={entities["res-obchod-3"]:10}
         )
 
 

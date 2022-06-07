@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
 from game.actions.ArmyDeploy import ActionArmyDeployArgs
 from game.actions.actionBase import ActionBase, ActionResult
+from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import MapTile, printResourceListForMarkdown
 
@@ -42,7 +43,9 @@ class ActionBuild(ActionBase):
         self._setupPrivateAttrs()
         tile = self.state.map.tiles[self.args.tile.index]
 
-        tile.buildings[self.args.build] = self.args.team
+        unfinished = tile.unfinished.get(self.args.team, set())
+        unfinished.add(self.args.build)
+        tile.unfinished[self.args.team] = unfinished
         self._info += f"Budova {self.args.build.name} postavena na poli {tile.name}"
 
         if tile.parcelCount < len(tile.buildings):
