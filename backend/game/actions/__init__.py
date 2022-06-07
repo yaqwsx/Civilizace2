@@ -1,5 +1,5 @@
 import pkgutil
-from game.actions.actionBase import ActionBase, ActionArgs
+from game.actions.actionBase import ActionInterface, ActionArgs
 from collections import namedtuple
 import importlib
 import inspect
@@ -21,11 +21,15 @@ for pkg in pkgutil.iter_modules(__path__):
         item = getattr(actionPkg, name)
         if not inspect.isclass(item):
             continue
-        if issubclass(item, ActionBase):
+        if issubclass(item, ActionInterface):
             if action is None or not issubclass(action, item):
                 action = item
         elif issubclass(item, ActionArgs):
             if args is None or not issubclass(args, item):
                 args = item
+    if action is None:
+        raise RuntimeError(f"Modul {pkg.name} neobsahuje implementaci akce")
+    if args is None:
+        raise RuntimeError(f"Modul {pkg.name} neobsahuje implementaci argumentů")
     GAME_ACTIONS[actionId(action)] = GameAction(action, args)
 

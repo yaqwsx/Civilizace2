@@ -1,6 +1,6 @@
 from typing import Set
 from game.actions.common import ActionFailed
-from game.actionsNew.trade import ActionTrade, ActionTradeArgs
+from game.actions.trade import ActionTrade, ActionTradeArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
@@ -10,7 +10,7 @@ teamId = TEAM_BASIC
 def test_cost():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    
+
     team = state.teamStates[teamId]
     team.resources[entities["pro-bobule"]] = 3
     team.resources[entities["pro-cukr"]] = 2

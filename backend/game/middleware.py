@@ -1,6 +1,6 @@
 
 from game.actions.common import ActionCost
-from game.actionsNew.nextTurn import ActionNextTurn, ActionNextTurnArgs
+from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTurn, DbState, InteractionType
 from django.utils import timezone
@@ -47,38 +47,20 @@ def makeNextTurnAction():
     dbState = DbState.objects.latest()
     state = dbState.toIr()
 
-    action = ActionNextTurn(entities=entities, state=state, args=ActionNextTurnArgs())
-    cost = action.cost()
-
-        # Initiate the action
-    initiateResult = action.initiate(cost)
-    if not initiateResult.succeeded:
-        raise RuntimeError("Nemůžu pokročit v kole. Něco je fakt špatně. Křič na Honzu a Maaru.")
+    action = ActionViewSet.constructAction("ActionNextTurn", {}, entities, state)
     dbAction = DbAction(
-            actionType="ActionNextTurn", entitiesRevision=entityRevision,
-            args=stateSerialize(action.args), cost=stateSerialize(cost))
+            actionType="ActionNextTurn",
+            entitiesRevision=entityRevision,
+            args=stateSerialize(action.args))
     dbAction.save()
-    dbInitiate = DbInteraction(
-            phase=InteractionType.initiate,
-            action=dbAction,
-            author=None)
-    dbInitiate.save()
-    dbState.updateFromIr(action.state)
-    dbState.action = dbInitiate
-    dbState.save()
 
-        # Commit the action
-    result = action.commit()
-    if result.succeeded:
-        action.commitReward(result.productions)
-    dbCommit = DbInteraction(
-            phase=InteractionType.commit,
-            action=dbAction,
-            author=None)
-    dbCommit.save()
-    dbState.updateFromIr(action.state)
-    dbState.action = dbCommit
-    dbState.save()
+    action.applyInitiate()
+    ActionViewSet.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.initiate, None, state, action)
+
+    action.applyCommit(0, action.diceRequirements()[1])
+    ActionViewSet.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.commit, None, state, action)
 
 def updateDelayedEffects():
     try:
@@ -88,7 +70,7 @@ def updateDelayedEffects():
         return
 
     pending = DbDelayedEffect.objects \
-        .filter(result__isnull=True, round__lte=turn.id, target__lte=secondsIn)
+        .filter(performed=False, round__lte=turn.id, target__lte=secondsIn)
     for effect in pending:
         ActionViewSet.performDelayedEffect(effect)
 

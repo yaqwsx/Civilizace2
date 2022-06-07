@@ -13,9 +13,15 @@ import {
     CiviMarkdown,
     ComponentError,
     LoadingOrError,
+    SpinboxInput,
     useFocus,
 } from ".";
-import { ErrorMessage, SuccessMessage } from "./messages";
+import {
+    ErrorMessage,
+    NeutralMessage,
+    SuccessMessage,
+    WarningMessage,
+} from "./messages";
 import { toast } from "react-toastify";
 
 import _ from "lodash";
@@ -113,6 +119,7 @@ export function PerformAction(props: {
                 team={props.team}
                 actionId={phase.data.action}
                 message={phase.data.message}
+                dotsRequired={phase.data.dotsRequired}
                 actionName={props.actionName}
                 changePhase={changePhase}
             />
@@ -138,7 +145,11 @@ export function PerformAction(props: {
 }
 
 function ActionMessage(props: { response: ActionResponse }) {
-    let Message = props.response.success ? SuccessMessage : ErrorMessage;
+    let Message = props.response.success
+        ? props.response.expected
+            ? SuccessMessage
+            : WarningMessage
+        : ErrorMessage;
     return (
         <Message>
             <CiviMarkdown>{props.response.message}</CiviMarkdown>
@@ -250,7 +261,8 @@ function ActionPreviewPhase(props: {
 
 function ActionDicePhase(props: {
     team?: Team;
-    actionId: Number;
+    actionId: number;
+    dotsRequired: number;
     message: string;
     actionName: string;
     changePhase: (phase: ActionPhase, data: any) => void;
@@ -264,25 +276,30 @@ function ActionDicePhase(props: {
 
     let handleSubmit = () => {
         if (
-            throwInfo.dots != 0 ||
-            window.confirm("Opravdu tým naházel 0? Pokračovat?")
-        ) {
-            setSubmitting(true);
-            axiosService
-                .post<any, any>(`/game/actions/${props.actionId}/commit/`, {
-                    throws: throwInfo.throws,
-                    dots: throwInfo.dots,
-                })
-                .then((data) => {
-                    setSubmitting(false);
-                    let result = data.data;
-                    props.changePhase(ActionPhase.finish, result);
-                })
-                .catch((error) => {
-                    setSubmitting(false);
-                    toast.error(`Nastala neočekávaná chyba: ${error}`);
-                });
-        }
+            throwInfo.dots < props.dotsRequired &&
+            !window.confirm("Opravdu tým nenaházel dostatek?")
+        )
+            return;
+        if (
+            throwInfo.dots == 0 &&
+            !window.confirm("Opravdu tým naházel 0? Pokračovat?")
+        )
+            return;
+        setSubmitting(true);
+        axiosService
+            .post<any, any>(`/game/actions/${props.actionId}/commit/`, {
+                throws: throwInfo.throws,
+                dots: throwInfo.dots,
+            })
+            .then((data) => {
+                setSubmitting(false);
+                let result = data.data;
+                props.changePhase(ActionPhase.finish, result);
+            })
+            .catch((error) => {
+                setSubmitting(false);
+                toast.error(`Nastala neočekávaná chyba: ${error}`);
+            });
     };
     let handleCancel = () => {
         if (
@@ -328,11 +345,15 @@ function ActionDicePhase(props: {
     return (
         <>
             {header}
-            <CiviMarkdown>{props.message}</CiviMarkdown>
+            <NeutralMessage>
+                <CiviMarkdown>{props.message}</CiviMarkdown>
+                Cena hodu je {action.throwCost} práce.
+            </NeutralMessage>
             <DiceThrowForm
                 team={props.team}
                 dots={throwInfo.dots}
                 throws={throwInfo.throws}
+                throwCost={action.throwCost}
                 update={handleUpdate}
                 enabled={!submitting}
             />
@@ -359,6 +380,7 @@ function DiceThrowForm(props: {
     team?: Team;
     dots: number;
     throws: number;
+    throwCost: number;
     update: (dots: number, throws: number) => void;
     enabled: boolean;
 }) {
@@ -367,7 +389,7 @@ function DiceThrowForm(props: {
     const { teamWork } = useTeamWork(props.team);
     useEffect(() => {
         setOtherInputFocus();
-    }, [setOtherInputFocus]);
+    }, []);
 
     const handleThrow = (amount: number) => {
         props.update(props.dots + amount, props.throws + 1);
@@ -386,54 +408,49 @@ function DiceThrowForm(props: {
         }
     };
 
+    let throwsLeft = teamWork
+        ? Math.floor(
+              (teamWork - props.throws * props.throwCost) / props.throwCost
+          )
+        : "??";
+
     return (
         <div className="w-full">
             <div className="container mt-4 w-full">
-                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
-                    <div className="inline-block w-1/3 px-3 text-right align-middle">
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
+                    <div className="inline-block w-1/4 px-3 text-right align-middle">
                         Teček:
                     </div>
-                    <div className="field inline-block w-2/3 px-0 align-middle">
-                        <input
-                            type="number"
+                    <div className="field inline-block w-3/4 px-0 align-middle">
+                        <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
                             value={props.dots}
-                            onChange={(e: any) => {
-                                props.update(
-                                    parseInt(e.target.value),
-                                    props.throws
-                                );
+                            onChange={(value: number) => {
+                                props.update(value, props.throws);
                             }}
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
-                    <div className="inline-block w-1/3 px-3 text-right align-middle">
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
+                    <div className="inline-block w-1/4 px-3 text-right align-middle">
                         Hodů:
                     </div>
-                    <div className="field inline-block w-2/3 px-0 align-middle">
-                        <input
-                            type="number"
+                    <div className="field inline-block w-3/4 px-0 align-middle">
+                        <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
                             value={props.throws}
-                            onChange={(e: any) => {
-                                props.update(
-                                    props.dots,
-                                    parseInt(e.target.value)
-                                );
+                            onChange={(value: number) => {
+                                props.update(props.dots, value);
                             }}
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/3">
-                    <div className="inline-block w-1/3 px-3 text-right align-middle">
-                        Práce:
-                    </div>
-                    <div className="field inline-block w-2/3 px-0 align-middle">
-                        {props.throws * 5} /{" "}
-                        {teamWork !== null ? teamWork : "??"} (pouze odhad)
+                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/5">
+                    <div className="inline-block w-1/4 px-3 text-right align-middle"></div>
+                    <div className="field inline-block w-3/4 px-0 align-middle font-bold">
+                        Zbývá {throwsLeft} hodů (pouze odhad)
                     </div>
                 </div>
             </div>
@@ -488,16 +505,19 @@ function ActionFinishPhase(props: {
     const [canQuit, setCanQuit] = useState(false);
 
     useEffect(() => {
-        if (!props.response.voucher && props.response.stickers.length == 0)
+        if (
+            !props.response.voucher &&
+            (!props.response?.stickers || props.response.stickers.length == 0)
+        )
             setCanQuit(true);
     }, [props.response]);
 
     return (
         <>
-            <h1>Akce {props.actionName} dokončena</h1>
+            <h1>Akce {props.actionName} {props.response.success ? "dokončena" : "skončila s chybou"}</h1>
             <ActionMessage response={props.response} />
 
-            {props.response.stickers.length > 0 && (
+            {props.response?.stickers && props.response.stickers.length > 0 && (
                 <PrintStickers
                     stickers={props.response.stickers}
                     onPrinted={() => setCanQuit(true)}

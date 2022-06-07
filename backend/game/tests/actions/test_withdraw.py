@@ -1,5 +1,5 @@
 from game.actions.common import ActionFailed
-from game.actionsNew.withdraw import ActionWithdraw, ActionWithdrawArgs
+from game.actions.withdraw import ActionWithdraw, ActionWithdrawArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest

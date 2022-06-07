@@ -1,6 +1,6 @@
 from typing import Set
 from game.actions.common import ActionFailed
-from game.actionsNew.granary import ActionGranary, ActionGranaryArgs
+from game.actions.granary import ActionGranary, ActionGranaryArgs
 from game.entities import DieId
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 

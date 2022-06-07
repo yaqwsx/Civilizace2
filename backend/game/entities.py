@@ -5,6 +5,7 @@ from functools import cached_property
 from pydantic import BaseModel
 from typing import Any, Optional, Set, Tuple, Union, Iterable, Dict, List
 from enum import Enum
+import os
 
 EntityId = str
 TeamId = str # intentionally left weak
@@ -16,10 +17,16 @@ MAP_SIZE = 32
 TILE_DISTANCES_RELATIVE = {0: Decimal(0),
     -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
     -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
-TIME_PER_TILE_DISTANCE = Decimal(300)
+TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get("CIV_SPEED_RUN", None) != "1" else Decimal(30)
 DIE_IDS = [DieId("die-lesy"), DieId("die-plane"), DieId("die-hory")]
-THROW_COST = 5
 
+def dieName(id: DieId) -> str:
+    # Why isn't this in entities?
+    return {
+        "die-lesy": "Lesní kostka",
+        "die-plane": "Planina kostka",
+        "die-hory": "Horská kostka"
+    }[id]
 
 # Type Aliases
 
@@ -144,7 +151,7 @@ class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
     naturalResources: List[NaturalResource]
-    richness: int        
+    richness: int
 
 
 # Common type of all available entities

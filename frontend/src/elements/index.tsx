@@ -115,6 +115,7 @@ type SpinboxInputType = {
     value: number;
     onChange: (value: number) => void;
     className?: string;
+    disabled?: boolean;
 };
 export function SpinboxInput(props: SpinboxInputType) {
     const incValue = (amount: number) => {
@@ -154,6 +155,7 @@ export function SpinboxInput(props: SpinboxInputType) {
             </button>
             <input
                 type="number"
+                disabled={props.disabled}
                 onChange={handleChange}
                 value={String(props.value)}
                 className="numberinput mx-3 flex-1"

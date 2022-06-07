@@ -2,18 +2,19 @@ from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
-from game.actionsNew.ArmyDeploy import ActionArmyDeployArgs
-from game.actionsNew.actionBaseNew import ActionBaseNew, ActionResultNew
-from game.entities import Building, DieId, MapTileEntity, Resource, Vyroba
+from game.actions.ArmyDeploy import ActionArmyDeployArgs
+from game.actions.actionBase import ActionBase, ActionResult
+from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import MapTile, printResourceListForMarkdown
 
 class ActionBuildArgs(ActionArgs):
+    team: Team
     build: Building
     tile: MapTileEntity
     army: Optional[ActionArmyDeployArgs]
 
 
-class ActionBuild(ActionBaseNew):
+class ActionBuild(ActionBase):
 
     @property
     def args(self) -> ActionBuildArgs:

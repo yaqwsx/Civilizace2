@@ -11,6 +11,8 @@ from django.utils import timezone
 from pydantic import BaseModel
 from core.models.fields import JSONField
 from core.models import Team, User
+from game.actions import GAME_ACTIONS
+from game.actions.actionBase import ActionArgs, ActionInterface
 from game.entities import Entities, Entity, EntityBase
 from game.entityParser import parseEntities
 from enum import Enum
@@ -55,20 +57,29 @@ class DbEntities(models.Model):
 class DbAction(models.Model):
     """
     Represent an action that was input into the system. It stores which action
-    it is and what arguments does it use.
+    it is and what arguments does it use. The action itself is stored in the
+    DbInteractionModel.
     """
     actionType = models.CharField("actionType",max_length=64, null=False)
     entitiesRevision = models.IntegerField()
-    args = JSONField("data")
-    cost = JSONField("cost")
+    description = models.TextField(null=True)
+    args = JSONField()
+
+    @property
+    def lastInteraction(self):
+        return DbInteraction.objects.filter(action=self).latest("phase")
+
+    def getArgumentsIr(self, entities) -> ActionArgs:
+        ActionTypeInfo = GAME_ACTIONS[self.actionType]
+        return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
+
 
 class InteractionType(Enum):
     initiate = 0
     commit = 1
-    abandon = 2
-    cancel = 3
-    delayed = 4
-    delayedReward = 5
+    cancel = 2
+    delayed = 3
+    delayedReward = 4
 
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
@@ -76,6 +87,15 @@ class DbInteraction(models.Model):
     action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False, related_name="interactions")
     author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
     workConsumed = models.IntegerField(default=0)
+    actionObject = JSONField()
+
+    def getActionIr(self, entities, state) -> ActionInterface:
+        ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
+        action = stateDeserialize(ActionTypeInfo.action, self.actionObject, entities)
+        action._generalArgs = self.action.getArgumentsIr(entities)
+        action._state = state
+        action._entities = entities
+        return action
 
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.PROTECT)
@@ -214,7 +234,7 @@ class DbTurn(models.Model):
         get_latest_by = "id"
     startedAt = models.DateTimeField(null=True)
     enabled = models.BooleanField(default=False)
-    duration = models.IntegerField(default=1*60, validators=[MinValueValidator(0)]) # In seconds
+    duration = models.IntegerField(default=15*60, validators=[MinValueValidator(0)]) # In seconds
 
     objects = DbTurnManager()
 
@@ -241,8 +261,8 @@ class DbDelayedEffect(models.Model):
     round = models.IntegerField()
     target = models.IntegerField() # In seconds
     action = models.ForeignKey(DbAction, on_delete=models.PROTECT)
-    result = JSONField(null=True)
     stickers = JSONField(null=True)
+    performed = models.BooleanField(default=False)
     withdrawn = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):

@@ -1,4 +1,4 @@
-from game.actionsNew.vyroba import ActionVyroba, ActionVyrobaArgs
+from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 teamId = TEAM_ADVANCED

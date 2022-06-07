@@ -1,26 +1,28 @@
-from game.actions.actionBase import ActionArgs, TeamActionBase
-from game.actions.common import ActionException, ActionCost, ActionException
+from typing import Dict
+from game.actions.actionBase import ActionBase, ActionFailed
 from game.actions.researchStart import ActionResearchArgs
-from game.entities import Tech
+from game.entities import Resource, Tech
 
-class ActionResearchFinishArgs(ActionArgs):
-    tech: Tech
+class ActionResearchFinish(ActionResearchArgs):
+    pass
 
-class ActionResearchFinish(TeamActionBase):
-    args: ActionResearchFinishArgs
+class ActionResearchFinish(ActionBase):
+    @property
+    def args(self) -> ActionResearchArgs:
+        assert isinstance(self._generalArgs, ActionResearchArgs)
+        return self._generalArgs
 
 
-    def cost(self) -> ActionCost:
-        return ActionCost()
+    def cost(self) -> Dict[Resource, int]:
+        return {}
 
-    def commitInternal(self) -> None:
+    def _commitImpl(self) -> None:
         if self.args.tech in self.teamState.techs:
-            raise ActionException("Technologie [[" + self.args.tech.id + "]] je již vyzkoumána.")
+            raise ActionFailed(f"Technologie [[{self.args.tech.id}]] je již vyzkoumána.")
 
         if not self.args.tech in self.teamState.researching:
-            raise ActionException("Výzkum technologie [[" + self.args.tech.id + "]] aktuálně neprobíhá, takže ji nelze dokončit.")
+            raise ActionFailed(f"Výzkum technologie [[{self.args.tech.id}]] aktuálně neprobíhá, takže ji nelze dokončit.")
 
         self.teamState.researching.remove(self.args.tech)
         self.teamState.techs.add(self.args.tech)
-        self.info += "Výzkum technologie [[" + self.args.tech.id + "]] byl dokončen."
-        # TODO: Přidat samolepky
+        self._info += "Výzkum technologie [[" + self.args.tech.id + "]] byl dokončen."

@@ -2,7 +2,7 @@ from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
-    from game.actionsNew.nextTurn import ActionNextTurn, ActionNextTurnArgs
+    from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
     from game.entities import Entities
     from game.state import GameState
     from game.tests.actions.common import TEST_ENTITIES

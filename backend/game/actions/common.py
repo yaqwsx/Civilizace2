@@ -18,7 +18,7 @@ class ActionFailed(Exception):
         if isinstance(message, MessageBuilder):
             super().__init__(message.message)
         super().__init__(message)
-        
+
 class MessageBuilder(BaseModel):
     """
     The goal is to simplify building markdown messages and not thinking about
@@ -119,28 +119,3 @@ class ActionCost(BaseModel):
             for d in self.allowedDice:
                 addDice(names[d])
         return builder.message
-
-class ActionResult(BaseModel):
-    message: str
-    reward: Dict[Resource, Decimal]
-    succeeded: bool
-    notifications: Dict[Team, List[str]]={}
-
-    @property
-    def productions(self):
-        return {r: a for r, a in self.reward.items() if r.isProduction}
-
-    @property
-    def materials(self):
-        return {r: a for r, a in self.reward.items() if r.isMaterial}
-
-class InitiateResult(BaseModel):
-    materials: Dict[Resource, Decimal] = {}
-    missingProductions: Dict[Resource, Decimal] = {}
-
-    @property
-    def succeeded(self):
-        return len(self.missingProductions) == 0
-
-class CancelationResult(BaseModel):
-    materials: Dict[Resource, Decimal] = {}

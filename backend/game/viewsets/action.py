@@ -10,12 +10,11 @@ from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import ActionResult, InitiateResult
-from game.actions.common import (ActionCost, ActionException,
-                                 CancelationResult, MessageBuilder)
+from game.actions.actionBase import ActionInterface, ActionResult
+from game.actions.common import (ActionFailed, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
-from game.entities import THROW_COST, Entities, Entity
+from game.entities import DieId, Entities, Entity, dieName
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction,
                          DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn,
@@ -37,113 +36,6 @@ class MulticommitError(APIException):
     default_detail = "Akce již byla uzavřena. Není možné ji uzavřít znovu."
     default_code = 'conflict'
 
-class NotEnoughWork(APIException):
-    status_code = 409
-    default_detail = "Tým neměl dostatek práce, opakujte."
-    default_code = 'not_enough_work'
-
-def actionPreviewMessage(cost: ActionCost, initiate: InitiateResult,
-                        action: Optional[ActionResult],
-                        stickers: Iterable[StickerId]) -> str:
-    b = MessageBuilder()
-    if action is None or not initiate.succeeded:
-        b.add("Akce stojí:")
-        b.addEntityDict("", cost.materials)
-        b.addEntityDict("", cost.productions)
-        b.add(cost.formatDice())
-        b.addEntityDict("**Avšak týmu chybí:**", initiate.missingProductions)
-        b.add("**Akci nelze začít**")
-        return b.message
-
-    b.add("### Předpoklady")
-    b.addEntityDict("Akce stojí:", cost.productions)
-    b.addEntityDict("**Od týmu vyberte:**", cost.materials)
-    b.add(cost.formatDice())
-
-    b.add("### Efekt akce:")
-    b.add(action.message)
-    b.addEntityDict("Tým dostane:", action.productions)
-    b.addEntityDict("Týmu vydáte:", action.materials)
-    with b.startList("Tým dostane samolepky:") as addLine:
-        for t, e in stickers:
-            addLine(f"samolepka {e.name} pro tým {t.name}")
-
-    if cost.postpone > 0:
-        b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
-    return b.message
-
-def actionInitiateMessage(cost: ActionCost, initiate: InitiateResult,
-                          action: Optional[ActionResult],
-                          stickers: Iterable[StickerId],
-                          delayedEffect: Optional[DbDelayedEffect]) -> str:
-    b = MessageBuilder()
-    if not initiate.succeeded:
-        b.add("Akce stojí:")
-        b.addEntityDict("", cost.materials)
-        b.addEntityDict("", cost.productions)
-        b.add(cost.formatDice())
-        b.addEntityDict("**Avšak týmu chybí:**", initiate.missingProductions)
-        b.add("**Akci nelze začít**")
-        return b.message
-
-    b.add("### Cena")
-    b.addEntityDict("Týmu bylo odebráno:", cost.productions)
-    b.addEntityDict("**Od týmu vyberte:**", cost.materials)
-    b.add(cost.formatDice())
-
-    if action is not None:
-        b.add("### Efekt akce:")
-        b.add(action.message)
-        b.addEntityDict("Tým dostane:", action.productions)
-        b.addEntityDict("Týmu vydáte:", action.materials)
-        with b.startList("Tým dostane samolepky:") as addLine:
-            for t, e in stickers:
-                addLine(f"samolepka {e.name} pro tým {t.name}")
-
-    if delayedEffect is not None:
-        b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
-                {round(delayedEffect.target / 60)} minut.
-                Vyzvedává se kódem: {delayedEffect.slug}**""")
-    elif cost.postpone > 0:
-        b.add(f"**Akce má odložený efekt za {round(cost.postpone / 60)} minut**")
-    return b.message
-
-def actionCommitMessage(action: ActionResult,
-                        stickers: Iterable[StickerId],
-                        delayedEffect: Optional[DbDelayedEffect]) -> str:
-    b = MessageBuilder()
-    b.add("### Efekt akce:")
-    b.add(action.message)
-    b.addEntityDict("Tým dostal:", action.productions)
-    b.addEntityDict("Týmu vydejte:", action.materials)
-    with b.startList("Tým dostane samolepky:") as addLine:
-        for t, e in stickers:
-            addLine(f"samolepka {e.name} pro tým {t.name}")
-
-    if delayedEffect is not None:
-        b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
-                  {round(delayedEffect.target / 60)} minut.
-                  Vyzvedává se kódem: {delayedEffect.slug}**""")
-    return b.message
-
-def actionCancelMessage(result: CancelationResult) -> str:
-    b = MessageBuilder()
-    b.add("### Akce byla zrušena, vraťte týmu:")
-    b.addEntityDict("Tým dostal:", result.materials)
-    return b.message
-
-def addResultNotifications(result: ActionResult) -> None:
-    now = timezone.now()
-    for t, messages in result.notifications.items():
-        team = Team.objects.get(pk=t)
-        for message in messages:
-            a = Announcement.create(
-                author=None,
-                appearDateTime=now,
-                type=AnnouncementType.game,
-                content=message)
-            a.teams.add(team)
-
 class InitiateSerializer(serializers.Serializer):
     action = serializers.ChoiceField(list(GAME_ACTIONS.keys()))
     args = serializers.JSONField()
@@ -159,7 +51,7 @@ class ActionViewSet(viewsets.ViewSet):
     def _handleExtraCommitSteps(action):
         team = None
         try:
-            team = Team.objects.get(id=action.team.id)
+            team = Team.objects.get(id=action.args.team.id)
         except Team.DoesNotExist:
             pass
         if isinstance(action, ActionResearchStart):
@@ -183,21 +75,42 @@ class ActionViewSet(viewsets.ViewSet):
     @staticmethod
     def constructAction(actionType, args, entities, state):
         Action = GAME_ACTIONS[actionType]
-        args = stateDeserialize(Action.argument, args, entities)
-        action = Action.action(entities=entities, state=state, args=args)
+        argsObj = stateDeserialize(Action.argument, args, entities)
+        action = Action.action()
+        action._state = state
+        action._entities = entities
+        action._generalArgs = argsObj
         return action
 
     @staticmethod
-    def dbStoreInteraction(dbAction, dbState, interactionType, user, state):
+    def dbStoreInteraction(dbAction, dbState, interactionType, user, state, action):
         interaction = DbInteraction(
             phase=interactionType,
             action=dbAction,
-            author=user
+            author=user,
+            actionObject=stateSerialize(action)
         )
         interaction.save()
         dbState.updateFromIr(state)
         dbState.action = interaction
         dbState.save()
+
+        if action.description and len(action.description) > 0:
+            dbAction.description = action.description
+            action.save()
+
+    @staticmethod
+    def addResultNotifications(result: ActionResult) -> None:
+        now = timezone.now()
+        for t, messages in result.notifications.items():
+            team = Team.objects.get(pk=t)
+            for message in messages:
+                a = Announcement.create(
+                    author=None,
+                    appearDateTime=now,
+                    type=AnnouncementType.game,
+                    content=message)
+                a.teams.add(team)
 
     @staticmethod
     def _computeStickers(prev: StateModel, post: StateModel) -> Set[StickerId]:
@@ -217,7 +130,6 @@ class ActionViewSet(viewsets.ViewSet):
 
         awardedStickers = []
         for t, s in stickerIds:
-            print(t)
             team = Team.objects.get(pk=t.id)
             if s.id.startswith("tec-") and not DbSticker.objects.filter(entityId=s).exists():
                 # The team is first, let's give him a special sticker
@@ -235,13 +147,13 @@ class ActionViewSet(viewsets.ViewSet):
 
 
     @staticmethod
-    def _markDelayedEffect(dbAction: DbAction, cost: ActionCost):
+    def _markDelayedEffect(dbAction: DbAction, action: ActionInterface):
         now = timezone.now()
         try:
             turnObject = DbTurn.objects.getActiveTurn()
         except DbTurn.DoesNotExist:
             raise RuntimeError("Ještě nebyla započata hra, nemůžu provádět odložené efekty.") from None
-        effectTime = now + timezone.timedelta(seconds=cost.postpone)
+        effectTime = now + timezone.timedelta(seconds=action.requiresDelayedEffect())
         while turnObject.shouldStartAt < effectTime:
             turnObject = turnObject.next
             if turnObject is None:
@@ -263,19 +175,23 @@ class ActionViewSet(viewsets.ViewSet):
 
         dbAction = effect.action
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
         dbState = DbState.objects.latest()
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
-        action = Self.constructAction(dbAction.actionType, dbAction.args, entities, state)
-        result = action.delayed()
+        dbInteraction = dbAction.lastInteraction
+        action = dbInteraction.getActionIr(entities, state)
+
+        result = action.applyDelayedEffect()
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayed,
-                                None, action.state)
-        addResultNotifications(result)
+                                None, action.state, action)
+
+        Self._addResultNotifications(result)
         stickers = Self._computeStickers(sourceState, state)
 
-        effect.result = stateSerialize(result)
         effect.stickers = list(stickers)
+        effect.performed = True
         effect.save()
 
     @staticmethod
@@ -284,19 +200,102 @@ class ActionViewSet(viewsets.ViewSet):
 
         dbAction = effect.action
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
         dbState = DbState.objects.latest()
         state = dbState.toIr()
+        sourceState = dbState.toIr()
 
-        action = Self.constructAction(dbAction.actionType, dbAction.args, entities, state)
-        result = stateDeserialize(ActionResult, effect.result, entities)
+        dbInteraction = dbAction.lastInteraction
+        action = dbInteraction.getActionIr(entities, state)
 
-        action.commitReward(result.productions)
-
+        result = action.applyDelayedEffect()
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayedReward,
                                 None, action.state)
+        gainedStickers = Self._computeStickers(sourceState, state)
+        effect.stickers = effect.stickers + list(gainedStickers)
+        effect.withdrawn = True
+        effect.save()
 
-        return result, effect.stickers
+        Self._awardStickers(effect.stickers)
 
+        Self.addResultNotifications(result)
+        return result, gainedStickers
+
+    @staticmethod
+    def _previewMessage(initiateResult: ActionResult, dice: Tuple[Set[DieId], int],
+            commitResult: ActionResult, stickers: Iterable[StickerId], delayed: int) -> str:
+        b = MessageBuilder()
+        b.add("## Předpoklady")
+        b.add(initiateResult.message)
+        if dice[1]:
+            with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
+                for d in dice[0]:
+                    dieName(d)
+        else:
+            b.add("Akce nevyžaduje házení kostkou")
+
+        b.add("## Efekty")
+        b.add(commitResult.message)
+        with b.startList("Budou vydány samolepky:") as addLine:
+            for t, e in stickers:
+                addLine(f"samolepka {e.name} pro tým {t.name}")
+        if delayed > 0:
+            b.add(f"**Akce má odložený efekt za {round(delayed / 60)} minut**")
+        return b.message
+
+    @staticmethod
+    def _initiateMessage(initiateResult: ActionResult, dice: Tuple[Set[DieId], int],
+            commitResult: Optional[ActionResult], stickers: Iterable[StickerId],
+            delayedEffect: Optional[DbDelayedEffect]) -> str:
+        b = MessageBuilder()
+        b.add("## Předpoklady")
+        b.add(initiateResult.message)
+        if dice[1]:
+            with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
+                for d in dice[0]:
+                    addDice(dieName(d))
+        else:
+            b.add("Akce nevyžaduje házení kostkou")
+
+        if commitResult is not None:
+            b.add("## Efekty")
+            b.add(commitResult.message)
+            with b.startList("Budou vydány samolepky:") as addLine:
+                for t, e in stickers:
+                    addLine(f"samolepka {e.name} pro tým {t.name}")
+        if delayedEffect is not None:
+            b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
+                    {round(delayedEffect.target / 60)} minut.
+                    Vyzvedává se kódem: {delayedEffect.slug}**""")
+        return b.message
+
+    @staticmethod
+    def _commitMessage(commitResult: ActionResult,
+                         delayedEffect: Optional[DbDelayedEffect]) -> str:
+        b = MessageBuilder()
+
+        b.add("## Efekty")
+        b.add(commitResult.message)
+
+        if delayedEffect is not None:
+            b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
+                    {round(delayedEffect.target / 60)} minut.
+                    Vyzvedává se kódem: {delayedEffect.slug}**""")
+        return b.message
+
+    @staticmethod
+    def _actionFailedResponse(e: ActionFailed) -> Response:
+        return Response(data={
+            "success": False,
+            "message": f"Akci nelze zadat: \n\n{e}"
+        })
+
+    @staticmethod
+    def _unexpectedErrorResponse(e: Exception, traceback: str) -> Response:
+        return Response(data={
+            "success": False,
+            "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{traceback}\n```"
+        })
 
     @action(methods=["POST"], detail=False)
     def dry(self, request):
@@ -311,30 +310,24 @@ class ActionViewSet(viewsets.ViewSet):
 
         try:
             action = self.constructAction(data["action"], data["args"], entities, state)
-            cost = action.cost()
-            initiateResult = action.initiate(cost)
-            if not initiateResult.succeeded:
-                return Response(data={
-                        "success": False,
-                        "message": actionPreviewMessage(cost, initiateResult, None, [])
-                    })
-            result = action.commit()
-            stickers = self._computeStickers(sourceState, state)
+
+            initiateResult = action.applyInitiate()
+            commitResult = action.applyCommit(1, action.diceRequirements()[1])
+            delayed = action.requiresDelayedEffect()
+            stickers = self._computeStickers(sourceState, action._state)
+
             return Response(data={
-                "success": result.succeeded,
-                "message": actionPreviewMessage(cost, initiateResult, result, stickers)
+                "success": True,
+                "expected": initiateResult.expected and \
+                            (commitResult is None or commitResult.expected),
+                "message": self._previewMessage(initiateResult, action.diceRequirements(),
+                    commitResult, stickers, delayed)
             })
-        except ActionException as e:
-            return Response(data={
-                "success": False,
-                "message": f"Nesplněny prerekvizity akce: \n\n{e}"
-            })
+        except ActionFailed as e:
+            return self._actionFailedResponse(e)
         except Exception as e:
             tb = traceback.format_exc()
-            return Response(data={
-                "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```"
-            })
+            return self._unexpectedErrorResponse(e, tb)
 
     @action(methods=["POST"], detail=False)
     def initiate(self, request):
@@ -351,76 +344,80 @@ class ActionViewSet(viewsets.ViewSet):
                 dryState = dbState.toIr()
 
                 action = self.constructAction(data["action"], data["args"], entities, state)
+                dryAction = self.constructAction(data["action"], data["args"], entities, dryState)
 
-                cost = action.cost()
-                initiateResult = action.initiate(cost)
-                if not initiateResult.succeeded:
-                    return Response(data={
-                            "success": False,
-                            "message": actionPreviewMessage(cost, initiateResult, None, [])
-                        })
+                initiateResult = action.applyInitiate()
+                dryAction.applyInitiate()
+                diceReq = action.diceRequirements()
 
                 dbAction = DbAction(
-                        actionType=data["action"], entitiesRevision=entityRevision,
-                        args=stateSerialize(action.args), cost=stateSerialize(cost))
+                        actionType=data["action"],
+                        entitiesRevision=entityRevision,
+                        args=stateSerialize(action.args))
                 dbAction.save()
-                self.dbStoreInteraction(dbAction, dbState, InteractionType.initiate, request.user, state)
+                self.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.initiate, request.user, state, action)
 
-                result = None
-                effect = None
-                stickers = set()
+                commitResult = None
+                delayedEffect = None
+                gainedStickers = set()
                 awardedStickers = []
-                if cost.requiredDots == 0:
-                    result = action.commit(cost)
-                    addResultNotifications(result)
-                    if result.succeeded:
-                        action.commitReward(result.productions)
-                    self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
+                if diceReq[1] == 0:
+                    commitResult = action.applyCommit(0, 0)
+                    self.dbStoreInteraction(dbAction, dbState,
+                        InteractionType.commit,request.user, state, action)
                     self._handleExtraCommitSteps(action)
-                    stickers = self._computeStickers(sourceState, state)
-                    awardedStickers = self._awardStickers(stickers)
-                    if cost.postpone > 0:
-                        effect = self._markDelayedEffect(dbAction, cost)
+                    gainedStickers = self._computeStickers(sourceState, state)
+                    delayedRequirements = action.requiresDelayedEffect()
+                    if delayedRequirements:
+                        delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)
                 else:
-                    # Let's perform the commit on dryState since all the
-                    # validation happens in commit /o\
-                    dryAction = self.constructAction(data["action"], data["args"], entities, dryState)
-                    dryAction.initiate(cost)
-                    dryAction.commit(cost)
+                    # Let's perform the commit on dryState as some validation
+                    # happens in commit /o\
+                    dryAction.applyCommit()
+
+                awardedStickers = self._awardStickers(gainedStickers)
+                self.addResultNotifications(initiateResult)
+                if commitResult is not None:
+                    self.addResultNotifications(commitResult)
+
                 return Response(data={
-                    "success": result is None or result.succeeded,
+                    "success": True,
+                    "expected": initiateResult.expected and \
+                                (commitResult is None or commitResult.expected),
                     "action": dbAction.id,
-                    "committed": result is not None,
-                    "message": actionInitiateMessage(cost, initiateResult, result, stickers, effect),
+                    "committed": commitResult is not None,
+                    "message": self._initiateMessage(initiateResult, diceReq,
+                                    commitResult, gainedStickers, delayedEffect),
                     "stickers": DbStickerSerializer(awardedStickers, many=True).data,
-                    "voucher": effect.slug if effect is not None else None
+                    "voucher": delayedEffect.slug if delayedEffect is not None else None
                 })
-        except ActionException as e:
-            return Response(data={
-                "success": False,
-                "message": f"Nesplněny prerekvizity akce: \n\n{e}",
-                "stickers": [],
-                "voucher": None
-            })
+        except ActionFailed as e:
+            return self._actionFailedResponse(e)
         except Exception as e:
             tb = traceback.format_exc()
-            return Response(data={
-                "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{tb}\n```",
-                "stickers": [],
-                "voucher": None
-            })
+            return self._unexpectedErrorResponse(e, tb)
 
     @action(methods=["POST", "GET"], detail=True)
     def commit(self, request, pk=True):
         dbAction = get_object_or_404(DbAction, pk=pk)
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
-        cost = stateDeserialize(ActionCost, dbAction.cost, entities)
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+        sourceState = dbState.toIr()
+
+        dbInteraction = dbAction.lastInteraction
+        action = dbInteraction.getActionIr(entities, state)
+
+        diceReq = action.diceRequirements()
+
         if request.method == "GET":
             return Response({
-                "requiredDots": cost.requiredDots,
-                "allowedDice": list(cost.allowedDice)
+                "requiredDots": diceReq[1],
+                "allowedDice": list(diceReq[0]),
+                "throwCost": action.throwCost(),
+                "description": dbAction.description
             })
 
         if dbAction.interactions.count() != 1:
@@ -432,92 +429,57 @@ class ActionViewSet(viewsets.ViewSet):
                 deserializer.is_valid(raise_exception=True)
                 params = deserializer.validated_data
 
-                dbState = DbState.objects.latest()
-                state = dbState.toIr()
-                sourceState = dbState.toIr()
-
-                action = self.constructAction(dbAction.actionType, dbAction.args, entities, state)
-
-                workCommitSucc = action.payWork(params["throws"] * THROW_COST)
-                if workCommitSucc and params["dots"] >= cost.requiredDots:
-                    result = action.commit()
-                    addResultNotifications(result)
-                    if result.succeeded:
-                        action.commitReward(result.productions)
-                    stickers = self._computeStickers(sourceState, state)
-                    self.dbStoreInteraction(dbAction, dbState, InteractionType.commit, request.user, state)
-                    self._handleExtraCommitSteps(action)
-                    awardedStickers = self._awardStickers(stickers)
-                    effect = None
-                    if result.succeeded and cost.postpone > 0:
-                        effect = self._markDelayedEffect(dbAction, cost)
-                    return Response({
-                        "success": result.succeeded,
-                        "message": actionCommitMessage(result, stickers, effect),
-                        "stickers": DbStickerSerializer(awardedStickers, many=True).data,
-                        "voucher": effect.slug if effect is not None else None
-                    })
+                commitResult = action.applyCommit(params["throws"], params["dots"])
+                self.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.commit,request.user, state, action)
+                self._handleExtraCommitSteps(action)
+                gainedStickers = self._computeStickers(sourceState, state)
+                delayedRequirements = action.requiresDelayedEffect()
+                if delayedRequirements:
+                    delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)
                 else:
-                    # There wasn't enough dots, abandon
-                    result = action.abandon(cost)
-                    self.dbStoreInteraction(dbAction, dbState, InteractionType.abandon, request.user, state)
-                    if workCommitSucc:
-                        message = "# Tým nenaházel dostatek\n\nTýmu se vrací pouze produkce a tým nic nezískává"
-                    else:
-                        message = "# Týmu došla práce (asi házel i na jiném stanovišti)\n\nTýmů se vrací pouze produkce a tým nic nezískává"
-                    return Response({
-                        "success": False,
-                        "message": message,
-                        "stickers": [],
-                        "voucher": None
-                    })
-        except ActionException as e:
-            result = action.cancel(cost)
-            self.dbStoreInteraction(dbAction, dbState, InteractionType.cancel, request.user, state)
+                    delayedEffect = None
+                awardedStickers = self._awardStickers(gainedStickers)
+                self.addResultNotifications(commitResult)
 
-            return Response(data={
-                "success": False,
-                "message": f"Nesplněny prerekvizity akce: \n\n{e}\n\n{actionCancelMessage(cost, result)}",
-                "stickers": [],
-                "voucher": None
-            })
+
+                return Response(data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "message": self._commitMessage(commitResult, delayedEffect),
+                    "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                    "voucher": delayedEffect.slug if delayedEffect is not None else None
+                })
+        except ActionFailed as e:
+            return self._actionFailedResponse(e)
         except Exception as e:
             tb = traceback.format_exc()
-
-            result = action.cancel(cost)
-            self.dbStoreInteraction(dbAction, dbState, InteractionType.cancel, request.user, state)
-
-            return Response(data={
-                "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n\n\n{actionCancelMessage(cost, result)}\n\n```\n{tb}\n```",
-                "stickers": [],
-                "voucher": None
-            })
+            return self._unexpectedErrorResponse(e, tb)
 
     @action(methods=["POST"], detail=True)
     @transaction.atomic()
     def cancel(self, request, pk=True):
         dbAction = get_object_or_404(DbAction, pk=pk)
-        cost = stateDeserialize(ActionCost, dbAction.cost)
-        if dbAction.interactions.count() != 1:
-            raise MulticommitError()
-
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
         dbState = DbState.objects.latest()
         state = dbState.toIr()
 
-        action = self.constructAction(dbAction.actionType, dbAction.args, entities, state)
+        dbInteraction = dbAction.lastInteraction
+        action = dbInteraction.getActionIr(entities, state)
 
-        result = action.cancel()
-        dbInitiate = DbInteraction(
-            phase=InteractionType.cancel,
-            action=dbAction,
-            author=request.user)
-        dbInitiate.save()
-        dbState.updateFromIr(action.state)
-        dbState.action = dbInitiate
-        dbState.save()
-        return Response({
-            "success": True,
-            "message": actionCancelMessage(cost, result)
-        })
+        try:
+            with transaction.atomic():
+                result = action.revertInitiate()
+            self.dbStoreInteraction(dbAction, dbState, InteractionType.cancel,
+                request.user, state, action)
+            return Response({
+                "success": True,
+                "message": f"## Akce zrušena\n\n{result.message}"
+            })
+        except ActionFailed as e:
+            return self._actionFailedResponse(e)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return self._unexpectedErrorResponse(e, tb)
+

@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 from pydantic import BaseModel
 from game.actions.actionBase import ActionArgs
 from game.actions.common import ActionFailed
-from game.actionsNew.actionBaseNew import ActionBaseNew
+from game.actions.actionBase import ActionBase
 from game.entities import Entities, Resource, Team
 from game.state import GameState
 
@@ -40,7 +40,7 @@ class ActionFeedArgs(ActionArgs):
     team: Team
     materials: Dict[Resource, int]
 
-class ActionFeed(ActionBaseNew):
+class ActionFeed(ActionBase):
 
     @property
     def args(self) -> ActionFeedArgs:
@@ -92,19 +92,19 @@ class ActionFeed(ActionBaseNew):
         luxus.sort(key=lambda x: -x.typ[1])
 
         newborns += sum([x.typ[1] for x in food[:3]])
-        newborns += sum([x.typ[1] for x in luxus[:3]]) 
+        newborns += sum([x.typ[1] for x in luxus[:3]])
 
         self._addObyvatel(newborns)
 
         self._info += f"Krmení úspěšně provedeno. Narodilo se {newborns} nových obyvatel."
-        
+
 
         self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)
 
         reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces != None}
         self.teamState.receiveResources(reward)
-        
+
         self.teamState.turn = worldTurn
 
 
-        
+

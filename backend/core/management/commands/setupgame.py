@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 import json
 from typing import List
@@ -96,5 +97,5 @@ class Command(BaseCommand):
 
     def createRounds(self):
         for i in range(200):
-            DbTurn.objects.create()
+            DbTurn.objects.create(duration=15 * 60 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 60)
 

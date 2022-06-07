@@ -141,6 +141,7 @@ export interface Sticker {
 
 export interface ActionResponse {
     success: boolean;
+    expected: boolean;
     message: string;
     action?: Number;
     voucher?: string;
@@ -148,8 +149,9 @@ export interface ActionResponse {
 }
 
 export interface ActionCommitResponse {
-    dotsRequired: Number;
+    dotsRequired: number;
     allowedDice: string[];
+    throwCost: number;
 }
 
 export interface Printer {

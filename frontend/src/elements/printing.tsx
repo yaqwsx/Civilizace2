@@ -7,6 +7,7 @@ import { EntityTag } from "./entities";
 import axiosService, { fetcher } from "../utils/axios";
 import { useStore } from "react-redux";
 import { toast } from "react-toastify";
+import { useTeams } from "./team";
 
 export function usePrinters() {
     const { data: printers, error } = useSWR<Printer[]>(
@@ -47,6 +48,7 @@ export function PrintStickers(props: {
     stickers: Sticker[];
     onPrinted: () => void;
 }) {
+    const {teams, error: teamsError} = useTeams()
     const { printers, error } = usePrinters();
     const [stickerPrinter, setStickerPrinter] = useLocalStorage<
         string | undefined
@@ -68,11 +70,11 @@ export function PrintStickers(props: {
             setStickerPrinter(undefined);
     }, [paperPrinter, stickerPrinter]);
 
-    if (!printers) {
+    if (!printers || !teams) {
         return (
             <LoadingOrError
-                loading={!printers && !error}
-                error={error}
+                loading={(!printers && !error) || (!teams && !teamsError)}
+                error={error || teamsError}
                 message="Něco se nepovedlo. Zkouším znovu"
             />
         );
@@ -114,7 +116,7 @@ export function PrintStickers(props: {
                     {props.stickers.map((s) => (
                         <li key={s.id} className="list-disc">
                             <EntityTag id={s.entityId} /> typ {s.type} pro{" "}
-                            {s.team}
+                            {teams.find(x => x.id === s.team)?.name}
                         </li>
                     ))}
                 </ul>
