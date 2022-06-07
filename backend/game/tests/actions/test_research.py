@@ -1,4 +1,5 @@
 from typing import Set
+from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchArgs, ActionResearchStart
@@ -24,7 +25,7 @@ def test_start():
     state = createTestInitState()
     tech = entities["tec-a"]
 
-    action = ActionResearchStart(
+    action = makeAction(ActionResearchStart,
         state=state, entities=entities, args=ActionResearchArgs(tech=tech, team=team))
 
     cost = action.cost()
@@ -41,7 +42,7 @@ def test_startOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchStart(
+    action = makeAction(ActionResearchStart,
         state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-start"], team=team))
 
     with pytest.raises(ActionFailed) as einfo:
@@ -55,7 +56,7 @@ def test_startInProgress():
     state = createTestInitState()
     state.teamStates[team].researching.add(entities["tec-c"])
 
-    action = ActionResearchStart(
+    action = makeAction(ActionResearchStart,
         state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-c"], team=team))
 
     with pytest.raises(ActionFailed) as einfo:
@@ -69,7 +70,7 @@ def test_finish():
     state.teamStates[team].researching.add(entities["tec-c"])
 
     args = ActionResearchArgs(tech=tech, team=team)
-    action = ActionResearchFinish(state=state, entities=entities, args=args)
+    action = makeAction(ActionResearchFinish, state=state, entities=entities, args=args)
 
     assert action.cost() == {}
 
@@ -83,7 +84,7 @@ def test_finishOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchFinish(state=state, entities=entities,
+    action = makeAction(ActionResearchFinish, state=state, entities=entities,
                                   args=ActionResearchArgs(tech=entities["tec-start"], team=team))
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit(1, 100)
@@ -93,7 +94,7 @@ def test_finishUnknown():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = ActionResearchFinish(state=state, entities=entities,
+    action = makeAction(ActionResearchFinish, state=state, entities=entities,
                                   args=ActionResearchArgs(tech=entities["tec-a"], team=team))
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit(1, 100)
@@ -103,15 +104,15 @@ def test_compound():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    ActionResearchStart(state=state, entities=entities,
+    makeAction(ActionResearchStart,state=state, entities=entities,
                         args=ActionResearchArgs(tech=entities["tec-a"], team=team)).applyCommit(1, 100)
-    ActionResearchFinish(state=state, entities=entities,
+    makeAction(ActionResearchFinish, state=state, entities=entities,
                          args=ActionResearchArgs(tech=entities["tec-a"], team=team)).applyCommit(1, 100)
-    ActionResearchStart(state=state, entities=entities,
+    makeAction(ActionResearchStart,state=state, entities=entities,
                         args=ActionResearchArgs(tech=entities["tec-c"], team=team)).applyCommit(1, 100)
-    ActionResearchFinish(state=state, entities=entities,
+    makeAction(ActionResearchFinish, state=state, entities=entities,
                          args=ActionResearchArgs(tech=entities["tec-c"], team=team)).applyCommit(1, 100)
-    ActionResearchStart(state=state, entities=entities,
+    makeAction(ActionResearchStart,state=state, entities=entities,
                         args=ActionResearchArgs(tech=entities["tec-d"], team=team)).applyCommit(1, 100)
 
 

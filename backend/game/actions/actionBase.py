@@ -89,6 +89,13 @@ class ActionInterface(BaseModel):
         """
         raise NotImplementedError("You have to implement this")
 
+def makeAction(cls, state, entities, args):
+     action = cls()
+     action._state = state
+     action._entities = entities
+     action._generalArgs = args
+     return action
+
 class ActionBase(ActionInterface):
     # Anything that is specified as PrivateAttr is not persistent. I know that
     # you like to have a lot of objects passed implicitly between the function,

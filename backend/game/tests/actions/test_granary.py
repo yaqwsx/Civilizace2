@@ -1,4 +1,5 @@
 from typing import Set
+from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.granary import ActionGranary, ActionGranaryArgs
 from game.entities import DieId
@@ -16,7 +17,7 @@ def test_empty():
 
     assert team.granary == {}, "Granary is not empty in initial state"
 
-    action = ActionGranary(
+    action = makeAction(ActionGranary,
         state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     cost = action.cost()
@@ -34,7 +35,7 @@ def test_successBulk():
     productions = {entities["pro-maso"]: 2, entities["pro-dobytek"]:1, entities["pro-bobule"]: 5}
     team.resources = productions.copy()
 
-    action = ActionGranary(
+    action = makeAction(ActionGranary,
         state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     cost = action.cost()
@@ -55,7 +56,7 @@ def test_failInsufficient():
     team.resources = productions.copy()
     productions[entities["pro-dobytek"]] = 3
 
-    action = ActionGranary(
+    action = makeAction(ActionGranary,
         state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     with pytest.raises(ActionFailed) as einfo:
@@ -70,7 +71,7 @@ def test_failWrong():
     productions = {entities["pro-maso"]: 2, entities["mat-dobytek"]:1, entities["pro-bobule"]: 5}
     team.resources = productions.copy()
 
-    action = ActionGranary(
+    action = makeAction(ActionGranary,
         state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     with pytest.raises(ActionFailed) as einfo:

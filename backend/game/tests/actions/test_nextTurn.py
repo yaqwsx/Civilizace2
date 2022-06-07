@@ -1,3 +1,4 @@
+from game.actions.actionBase import makeAction
 from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
@@ -15,7 +16,7 @@ def test_turnCounter():
     state = createTestInitState()
     args = ActionNextTurnArgs()
 
-    action = ActionNextTurn(state = state, entities = entities, args = args)
+    action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
 
     cost = action.cost()
     assert cost == {}
@@ -23,6 +24,6 @@ def test_turnCounter():
     assert state.turn == 1
 
     for i in range(20):
-        action = ActionNextTurn(state = state, entities = entities, args = args)
+        action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
         action.applyCommit()
         assert state.turn == i+2

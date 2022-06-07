@@ -1,3 +1,4 @@
+from game.actions.actionBase import makeAction
 from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
@@ -17,7 +18,7 @@ def test_initiate():
         plunder = False,
         team = teamId
     )
-    action = ActionVyroba(state=state, entities=entities, args=args)
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 90
@@ -26,7 +27,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.count = 5
-    action =  ActionVyroba(state=state, entities=entities, args=args)
+    action =  makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -35,7 +36,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.vyroba = entities["vyr-drevo1Pro"]
-    action =  ActionVyroba(state=state, entities=entities, args=args)
+    action =  makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -60,7 +61,7 @@ def test_simple():
         plunder = False,
         team = teamId
     )
-    action = ActionVyroba(state=state, entities=entities, args=args)
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
@@ -83,7 +84,7 @@ def test_production():
         plunder = False,
         team = teamId
     )
-    action = ActionVyroba(state=state, entities=entities, args=args)
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
@@ -105,7 +106,7 @@ def test_distance():
         plunder = False,
         team = teamId
     )
-    action = ActionVyroba(state=state, entities=entities, args=args)
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
 
     distance = action.requiresDelayedEffect()
 
