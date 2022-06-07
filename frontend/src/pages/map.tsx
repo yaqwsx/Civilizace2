@@ -91,7 +91,7 @@ export function MapAgenda() {
                                 onClick={() => setAction(MapActiontype.army)}
                             />
                         </div>
-                        <div className="mx-0 mx-0 w-1/3 flex-initial px-1">
+                        <div className="mx-0 w-1/3 flex-initial px-1">
                             <Button
                                 label="Stavět"
                                 className="w-full"

@@ -278,3 +278,10 @@ class TeamViewSet(viewsets.ViewSet):
         effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("round", "target")
         return Response(DbDelayedEffectSerializer(effects, many=True).data)
 
+
+    @action(detail=True)
+    def storage(self, request, pk):
+        self.validateAccess(request.user, pk)
+        storage = self.getTeamState(pk).storage
+
+        return Response({r.id: a for r, a in storage.items() if a > 0})

@@ -82,7 +82,7 @@ export function ComponentError(props: ComponentErrorProps) {
 }
 
 type FormRowProps = {
-    label: string;
+    label: string | JSX.Element;
     className?: string;
     error?: any;
     children: any;

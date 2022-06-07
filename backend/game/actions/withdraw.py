@@ -18,6 +18,9 @@ class ActionWithdraw(ActionBase):
         assert isinstance(self._generalArgs, ActionWithdrawArgs)
         return self._generalArgs
 
+    def cost(self):
+        # Check if this is correct
+        return {}
 
     def _commitImpl(self) -> None:
         missing = {}
