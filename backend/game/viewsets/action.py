@@ -323,7 +323,10 @@ class ActionViewSet(viewsets.ViewSet):
             action = self.constructAction(data["action"], data["args"], entities, state)
 
             initiateResult = action.applyInitiate()
-            commitResult = action.applyCommit(1, action.diceRequirements()[1])
+
+            requiresDice = action.diceRequirements()[1] != 0
+            commitResult = action.applyCommit(1 if requiresDice else 0,
+                                              action.diceRequirements()[1])
             delayed = action.requiresDelayedEffect()
             stickers = self._computeStickers(sourceState, action._state)
 
