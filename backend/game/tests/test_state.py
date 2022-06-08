@@ -10,7 +10,7 @@ def test_stateEq():
     y = createTestInitState()
     assert x == y
 
-    y.turn = 42
+    y.world.turn = 42
     assert x != y
 
 
@@ -33,7 +33,7 @@ team = TEAM_BASIC
 
 def test_payResources():
     entities = TEST_ENTITIES
-    state = createTestInitState()    
+    state = createTestInitState()
     teamState = state.teamStates[team]
     teamState.resources = {
         entities["res-prace"]: 100,
@@ -88,7 +88,7 @@ def test_payResources():
         entities["pro-kuze"]: 1,
     }
 
-    result = teamState.payResources({entities["mat-bobule"]: 2, entities["pro-drevo"]: 2, 
+    result = teamState.payResources({entities["mat-bobule"]: 2, entities["pro-drevo"]: 2,
                                      entities["res-obyvatel"]:5, entities["res-prace"]:20,})
     assert result == {entities["mat-bobule"]: 2}
     assert teamState.resources == {
@@ -108,16 +108,16 @@ def test_payResources():
 
     with pytest.raises(ActionFailed) as einfo:
         teamState.payResources({entities["res-prace"]: 100})
-    
+
 
 def test_receiveResources():
     entities = TEST_ENTITIES
-    state = createTestInitState()    
+    state = createTestInitState()
     teamState = state.teamStates[team]
 
     teamState.storage = {}
     teamState.resources = {}
-    
+
     withdraw = teamState.receiveResources({})
     assert teamState.resources == {}
     assert teamState.storage == {}
@@ -146,12 +146,12 @@ def test_receiveResources():
 
 def test_homeTiles():
     entities = TEST_ENTITIES
-    state = createTestInitState()    
-    
+    state = createTestInitState()
+
     teamState = state.teamStates[entities["tym-zeleni"]]
     tile = teamState.homeTile
     id = tile.entity
     assert id == entities["map-tile05"]
 
 
-    
+

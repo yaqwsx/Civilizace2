@@ -216,7 +216,8 @@ class TeamViewSet(viewsets.ViewSet):
                 "all": "TBA"
             },
             "work": teamState.work,
-            "turn": state.turn,
+            "worldTurn": state.world.turn,
+            "teamTurn": teamState.turn,
             "researchingTechs": [serializeEntity(x) for x in teamState.researching],
             "productions": [
                 (r.id, a) for r, a in teamState.resources.items()

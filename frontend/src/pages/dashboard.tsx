@@ -250,9 +250,9 @@ function TeamOverview() {
                 </Card>
 
                 <Card label="Kolo" color={team.color} icon={faCalendar}>
-                    {data.turn == 0
+                    {data.worldTurn == 0
                         ? "Hra ještě nezačala."
-                        : `Hra se nachází v ${data.turn}. kole`}
+                        : `Hra se nachází v ${data.worldTurn}. kole, vy se nachzíte ${data.teamTurn}. kole`}
                 </Card>
             </div>
 

@@ -22,5 +22,5 @@ class ActionNextTurn(ActionBase):
 
 
     def _commitImpl(self) -> None:
-        self.state.turn += 1
-        self._info += f"Začalo kolo {self.state.turn}"
+        self.state.world.turn += 1
+        self._info += f"Začalo kolo {self.state.world.turn}"

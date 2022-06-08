@@ -19,7 +19,7 @@ class FeedRequirements(BaseModel):
 def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -> FeedRequirements:
     teamState = state.teamStates[team]
     tokensRequired = ceil(teamState.population / 20)
-    foodPerCaste = ceil(tokensRequired / (2*state.casteCount))
+    foodPerCaste = ceil(tokensRequired / (2*state.world.casteCount))
 
     automated = [(production.produces, amount) for production, amount in teamState.granary.items()]
     automatedCount = sum([amount for production, amount in automated if production.typ[0] == entities["typ-jidlo"]])
@@ -31,7 +31,7 @@ def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -
     return FeedRequirements(
         tokensRequired=tokensRequired-automatedCount,
         tokensPerCaste=foodPerCaste,
-        casteCount=state.casteCount,
+        casteCount=state.world.casteCount,
         automated=automated
     )
 
@@ -60,7 +60,7 @@ class ActionFeed(ActionBase):
 
     def _commitImpl(self) -> None:
         teamTurn = self.teamState.turn
-        worldTurn = self.state.turn
+        worldTurn = self.state.world.turn
 
         if teamTurn >= worldTurn:
             raise ActionFailed(f"Tým už v kole {worldTurn} krmil")

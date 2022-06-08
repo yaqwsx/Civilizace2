@@ -21,9 +21,9 @@ def test_turnCounter():
     cost = action.cost()
     assert cost == {}
     action.applyCommit()
-    assert state.turn == 1
+    assert state.world.turn == 1
 
     for i in range(20):
         action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
         action.applyCommit()
-        assert state.turn == i+2
+        assert state.world.turn == i+2

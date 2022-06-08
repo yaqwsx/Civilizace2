@@ -366,14 +366,16 @@ class TeamState(StateModel):
             }
         )
 
+class WorldState(StateModel):
+    turn: int=0
+    casteCount: int=3
+    buildDemolitionCost: Dict[Resource, int]
+
 
 class GameState(StateModel):
-    turn: int
     teamStates: Dict[Team, TeamState]
     map: MapState
-    casteCount: int=3
-
-    buildDemolitionCost: Dict[Resource, int]
+    world: WorldState
 
     def _setParent(self) -> None:
         for t in self.teamStates.values():
@@ -393,7 +395,7 @@ class GameState(StateModel):
             turn=0,
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities),
-            buildDemolitionCost={entities["mge-obchod-3"]:10}
+            world=WorldState(buildDemolitionCost={entities["mge-obchod-3"]:10})
         )
 
 

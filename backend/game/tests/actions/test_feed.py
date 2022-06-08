@@ -68,7 +68,7 @@ def test_feedRequirements_order():
 def test_simpleFeed():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 1
+    state.world.turn = 1
 
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
@@ -86,7 +86,7 @@ def test_simpleFeed():
 def test_starve():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 1
+    state.world.turn = 1
 
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
@@ -104,7 +104,7 @@ def test_starve():
 def test_highlevelFood():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 1
+    state.world.turn = 1
 
     state.teamStates[team].resources[entities["res-zamestnanec"]] = 20
     state.teamStates[team].resources[entities.obyvatel] = 80
@@ -128,7 +128,7 @@ def test_highlevelFood():
 def test_highlevelLuxury():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 10
+    state.world.turn = 10
 
     state.teamStates[team].resources = {}
     state.teamStates[team].storage = {}
@@ -161,7 +161,7 @@ def test_highlevelLuxury():
 def test_repeatedFeed():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 1
+    state.world.turn = 1
 
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
@@ -180,7 +180,7 @@ def test_repeatedFeed():
 def test_productions():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.turn = 1
+    state.world.turn = 1
 
     state.teamStates[team].resources = {
         entities["res-zamestnanec"]: 100,
