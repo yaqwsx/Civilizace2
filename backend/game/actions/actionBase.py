@@ -229,9 +229,16 @@ class ActionBase(ActionInterface):
     def requiresDelayedEffect(self) -> int:
         return 0
 
+    def costSubstituted(self):
+        cost = self.cost()
+        if hasattr(self._generalArgs, "genericsMapping"):
+            mapping = self._generalArgs.genericsMapping
+            cost = {(mapping[generic] if generic in mapping else generic): amount for generic, amount in cost.items()}
+        return cost
+
 
     def applyInitiate(self) -> ActionResult:
-        cost = self.cost()
+        cost = self.costSubstituted()        
         message = ""
         if len(cost) > 0:
             require = self.payResources(cost)
@@ -252,6 +259,11 @@ class ActionBase(ActionInterface):
             message=message)
 
 
+    def cancelAction(self):
+        cost = self.costSubstituted()
+        reward = self.receiveResources(cost, instantWithdraw=True)
+
+
     def generateActionResult(self):
         if not self._errors.empty:
             raise ActionFailed(self._errors)
@@ -270,11 +282,9 @@ class ActionBase(ActionInterface):
         self._setupPrivateAttrs()
         throwingSucc = self._performThrow(throws, dots)
         if not throwingSucc:
-            self._revertPaymentProductions()
-            return ActionResult(
-                expected=False,
-                message=self._warnings.message
-            )
+            self.cancelAction()
+            self._warnings += f"Házení kostkou neuspělo. Produkce byly týmu vráceny. O zaplacené materiály tým přišel a nic mu nevracíte."
+            return self.generateActionResult()
 
         self._commitImpl()
         if self.requiresDelayedEffect() == 0:

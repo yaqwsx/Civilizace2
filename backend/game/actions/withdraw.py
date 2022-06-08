@@ -33,6 +33,6 @@ class ActionWithdraw(ActionBase):
         if missing != {}:
             raise ActionFailed(f"Chybí zdroje ve skladu: {printResourceListForMarkdown(missing)}")
 
-        self.teamState.payResources({self.entities.work: sum(self.args.resources.values())})
+        self.payResources({self.entities.work: sum(self.args.resources.values())})
 
         self._info += f"Vydejte týmu zdroje: {printResourceListForMarkdown(self.args.resources)}"
