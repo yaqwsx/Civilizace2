@@ -27,7 +27,7 @@ class TurnsViewSet(viewsets.ViewSet):
     def list(self, request):
         if not request.user.isOrg:
             raise PermissionError()
-        turns = DbTurn.objects.all()
+        turns = DbTurn.objects.all().order_by("id")
         serializer = DbTurnSerializer(turns, many=True)
         return Response(serializer.data)
 
