@@ -7,7 +7,7 @@ function decodeKeyEvent(event: KeyboardEvent) {
     if (event.code === "Space") return " ";
     if (event.code.startsWith("Digit"))
         return event.code.charAt(event.code.length - 1);
-    if (event.code === "Slash") return "-";
+    if (event.code === "Minus" || event.code === "Slash") return "-";
     return onScan.decodeKeyEvent(event);
 }
 
