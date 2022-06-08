@@ -84,8 +84,8 @@ class InteractionType(Enum):
 class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now=True)
     phase = EnumField(InteractionType)
-    action = models.ForeignKey(DbAction, on_delete=models.PROTECT, null=False, related_name="interactions")
-    author = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
+    action = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
 
@@ -98,7 +98,7 @@ class DbInteraction(models.Model):
         return action
 
 class DbTeamState(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.PROTECT)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
     data = JSONField("data")
 
     def toIr(self, entities) -> TeamState:
@@ -132,10 +132,10 @@ class DbStateManager(models.Manager):
 class DbState(models.Model):
     class Meta:
         get_latest_by = "id"
-    mapState = models.ForeignKey(DbMapState, on_delete=models.PROTECT, null=False)
-    worldState = models.ForeignKey(DbWorldState, on_delete=models.PROTECT, null=False)
+    mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE, null=False)
+    worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
-    interaction = models.ForeignKey(DbInteraction, on_delete=models.PROTECT, null=True)
+    interaction = models.ForeignKey(DbInteraction, on_delete=models.CASCADE, null=True)
 
     objects = DbStateManager()
 
@@ -278,7 +278,7 @@ class DbDelayedEffect(models.Model):
     team = models.ForeignKey(Team, related_name="vouchers", null=True, on_delete=models.CASCADE)
     round = models.IntegerField()
     target = models.IntegerField() # In seconds
-    action = models.ForeignKey(DbAction, on_delete=models.PROTECT)
+    action = models.ForeignKey(DbAction, on_delete=models.CASCADE)
     stickers = JSONField(null=True)
     performed = models.BooleanField(default=False)
     withdrawn = models.BooleanField(default=False)

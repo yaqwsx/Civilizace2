@@ -280,6 +280,9 @@ function PerformVyroba(props: PerformVyrobaProps) {
         })
     );
 
+
+    console.log(concretization);
+
     return (
         <>
             <PerformAction
@@ -376,10 +379,12 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                         value={value}
                                         onChange={(e) => {
                                             let newV = e.target.value;
+                                            console.log("X", newV)
                                             let newC =
                                                 Object.create(concretization);
-                                            concretization[resource.id] = newV;
+                                            newC[resource.id] = newV;
                                             setConcretization(newC);
+                                            console.log("Y", resource.id, newC)
                                         }}
                                     >
                                         <option>Vyberte konkretizaci</option>
