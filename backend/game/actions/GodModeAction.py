@@ -34,12 +34,14 @@ class GodModeAction(ActionBase):
         for path, v in self.args.change.items():
             p = path.split(".")
             self._changeRec(p, self.state, json.loads(v), path)
-        for path, v in self.args.add.items():
-            p = path.split(".")
-            self._addRec(p, self.state, json.loads(v), path)
-        for path, v in self.args.remove.items():
-            p = path.split(".")
-            self._deleteRec(p, self.state, json.loads(v), path)
+        for path, vals in self.args.add.items():
+            for v in json.loads(vals):
+                p = path.split(".")
+                self._addRec(p, self.state, v, path)
+        for path, vals in self.args.remove.items():
+            for v in json.loads(vals):
+                p = path.split(".")
+                self._deleteRec(p, self.state, v, path)
 
         if not self._errors.empty:
             raise ActionFailed(self._errors)
@@ -86,15 +88,6 @@ class GodModeAction(ActionBase):
                 raise RuntimeError("Unknown object")
             return
         key = self.entities.get(path[0], path[0])
-        if len(path) == 1:
-            value = self.entities.get(value, value)
-            if isinstance(object, list) or isinstance(object, set):
-                return self._add
-            elif isinstance(object, dict):
-                object[key] = value
-            else:
-                setattr(object, key, value)
-            return
         if isinstance(object, dict):
             newObj = object[key]
         else:
@@ -110,13 +103,6 @@ class GodModeAction(ActionBase):
                 raise RuntimeError("Unknown object")
             return
         key = self.entities.get(path[0], path[0])
-        if len(path) == 1:
-            value = self.entities.get(value, value)
-            if isinstance(object, list) or isinstance(object, set):
-                return self._add
-            else:
-                raise RuntimeError("Cannot delete a property")
-            return
         if isinstance(object, dict):
             newObj = object[key]
         else:

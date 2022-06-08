@@ -317,6 +317,7 @@ class DbSticker(models.Model):
     def update(self) -> None:
         self.entityRevision = DbEntities.objects.latest().id
 
+    @property
     def ident(self) -> str:
         return f"sticker_{self.team.id}_{self.entityId}_{self.entityRevision}_{self.type}"
 

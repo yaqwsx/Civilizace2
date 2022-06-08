@@ -5,7 +5,7 @@ if __name__ == "__main__":
 import contextlib
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import qrcode
 from django.conf import settings
@@ -130,12 +130,17 @@ def getDefaultStickerBuilder() -> StickerBuilder:
     # return StickerBuilder(396, 15)
     return StickerBuilder(int(80 // 25.4 * 180), int((80 / 25.4 * 180 - 396) // 2))
 
-def makeStickerHeader(e: Entity, builder: StickerBuilder) -> None:
+def makeStickerHeader(e: Entity, t: Optional[Team], builder: StickerBuilder) -> None:
     builder.hline(3, 0)
     builder.skip(100)
     builder.hline(3, 0)
     builder.skip(5)
-    qr = makeQrCode(e.id, pixelSize=3, borderQrPx=4)
+
+    if t is not None:
+        code = f"{t.id} {e.id}"
+    else:
+        code = f"{e.id}"
+    qr = makeQrCode(code, pixelSize=3, borderQrPx=4)
 
     builder.img.paste(qr, (builder.offset + builder.margin - 12, builder.position))
     qrBottom = builder.position + qr.height
@@ -152,7 +157,7 @@ def makeStickerFooter(e: Entity, builder: StickerBuilder) -> None:
 
 def makeTechSticker(e: Tech, t: Team, stype: StickerType) -> Image:
     b = getDefaultStickerBuilder()
-    makeStickerHeader(e, b)
+    makeStickerHeader(e, t, b)
 
     if stype == StickerType.techSmall:
         makeStickerFooter(e, b)
@@ -179,7 +184,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
-    makeStickerHeader(e, b)
+    makeStickerHeader(e, t, b)
 
     featureText = ", ".join([f.name for f in e.requiredFeatures])
     b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
