@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { Button, Dialog, LoadingOrError } from "../elements";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
+import { objectMap } from "../utils/functional";
 
 export function GodModeMenu() {
     return null;
@@ -60,10 +61,12 @@ export function GodMode() {
                 <Dialog onClose={() => setIsSubmitting(false)}>
                     <PerformAction
                         actionName="GodMode"
-                        actionId="ActionGodMode"
+                        actionId="GodModeAction"
                         actionArgs={{
                             original: state,
-                            diff: diff,
+                            change: objectMap(diff.change, (v: any) => JSON.stringify(v)),
+                            add: objectMap(diff.add, (v: any) => JSON.stringify(v)),
+                            remove: objectMap(diff.remove, (v: any) => JSON.stringify(v))
                         }}
                         onFinish={() => {
                             setIsSubmitting(false);

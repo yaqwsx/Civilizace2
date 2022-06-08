@@ -23,9 +23,12 @@ class Command(BaseCommand):
         with open(targetFile, "r") as f:
             tasks = json.load(f)["úkoly"]
         for tLine in tasks[1:]:
+            print(tLine)
+            if len(tLine[0]) == 0:
+                continue
             task, _ = DbTask.objects.update_or_create(id=tLine[0], defaults={
                 "name": tLine[1],
-                "capacity": tLine[2],
+                "capacity": int(tLine[2]),
                 "orgDescription": tLine[3],
                 "teamDescription": tLine[4]})
             DbTaskPreference.objects.filter(task=tLine[0]).delete()

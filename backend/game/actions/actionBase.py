@@ -155,6 +155,8 @@ class ActionBase(ActionInterface):
         """
         if not condition:
             self._errors.add(message)
+            return False
+        return True
 
     def _ensureStrong(self, condition: bool, message: str) -> None:
         """

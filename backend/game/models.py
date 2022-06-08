@@ -178,7 +178,13 @@ class DbState(models.Model):
 
     def save(self, *args, **kwargs):
         if self.mapState.id is None:
-            self.mapState.save()
+            mstate = self.mapState
+            mstate.save()
+            self.mapState = mstate
+        if self.worldState.id is None:
+            wstate = self.worldState
+            wstate.save()
+            self.worldState = wstate
         for t in self._teamStates:
             if t.id is None:
                 t.save()

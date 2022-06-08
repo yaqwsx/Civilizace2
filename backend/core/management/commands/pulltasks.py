@@ -9,8 +9,8 @@ from game.entityParser import EntityParser
 from django.conf import settings
 
 TASK_SETS = {
-    "GAME": "1QO0p1Fquxp7u3CulvPwaFO-zF2q9mtI8LAHFeVJyu_A",
-    "TEST": "1IuPKQL3WnyENYIR9AV7Ti1c5b6AcwfBtm10NNzUGZqU"
+    "TEST": "1QO0p1Fquxp7u3CulvPwaFO-zF2q9mtI8LAHFeVJyu_A",
+    "GAME": "1IuPKQL3WnyENYIR9AV7Ti1c5b6AcwfBtm10NNzUGZqU"
 }
 
 def setFilename(name):

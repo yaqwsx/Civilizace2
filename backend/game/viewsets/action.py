@@ -51,7 +51,8 @@ class ActionViewSet(viewsets.ViewSet):
     def _handleExtraCommitSteps(action):
         team = None
         try:
-            team = Team.objects.get(id=action.args.team.id)
+            if hasattr(action.args, "team"):
+                team = Team.objects.get(id=action.args.team.id)
         except Team.DoesNotExist:
             pass
         if isinstance(action, ActionResearchStart):
@@ -97,7 +98,7 @@ class ActionViewSet(viewsets.ViewSet):
 
         if action.description and len(action.description) > 0:
             dbAction.description = action.description
-            action.save()
+            dbAction.save()
 
     @staticmethod
     def addResultNotifications(result: ActionResult) -> None:
