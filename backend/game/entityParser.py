@@ -222,7 +222,6 @@ class EntityParser():
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
-                raise e
         for e in self.errors:
             self.reportError("  " + e)
 
