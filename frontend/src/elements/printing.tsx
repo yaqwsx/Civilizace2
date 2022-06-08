@@ -12,7 +12,11 @@ import { useTeams } from "./team";
 export function usePrinters() {
     const { data: printers, error } = useSWR<Printer[]>(
         "/game/printers/",
-        fetcher
+        fetcher,
+        {
+            revalidateOnMount: true,
+            refreshInterval: 10000
+        }
     );
     return {
         printers,
