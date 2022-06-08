@@ -115,7 +115,7 @@ function Changelist(props: { items: Record<string, any> }) {
     return (
         <ul className="list-disc">
             {Object.entries(props.items).map(([k, v]) => (
-                <li>
+                <li key={k}>
                     {k}: {v}
                 </li>
             ))}

@@ -281,7 +281,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
     );
 
 
-    console.log(concretization);
+    console.log(tile);
 
     return (
         <>
@@ -293,7 +293,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     team: props.team.id,
                     vyroba: props.vyroba.id,
                     count: amount,
-                    tile: "map-tile06", // TBA
+                    tile: tile,
                     plunder: plunder,
                     genericsMapping: concretization,
                     // TBA army
