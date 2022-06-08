@@ -2,8 +2,7 @@ from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
-from game.actions.ArmyDeploy import ActionArmyDeployArgs
-from game.actions.actionBase import ActionBase, ActionResult
+from game.actions.actionBase import ActionBase
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal, ArmyId, MapTile, printResourceListForMarkdown
 
@@ -13,6 +12,7 @@ class ActionVyrobaArgs(ActionArgs):
     count: Decimal
     tile: MapTileEntity
     plunder: bool
+    generics: Dict[Resource, Resource]={}
 
     army: Optional[ArmyId]
     goal: Optional[ArmyGoal]

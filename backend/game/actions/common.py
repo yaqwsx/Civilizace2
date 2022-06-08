@@ -44,7 +44,8 @@ class MessageBuilder(BaseModel):
             yield lambda x: lines.append(x)
         finally:
             if len(lines) > 0:
-                self.add(header)
+                if header != "":
+                     self.add(header)
                 self.addList(lines)
 
 
