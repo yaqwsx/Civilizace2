@@ -142,8 +142,6 @@ function SelectVyroba(props: SelectVyrobaProps) {
     let team = props.team;
     let vyroba = vyrobaId ? vyrobas[vyrobaId] : null;
 
-    if (vyrobaId && !(vyrobaId in vyrobas)) setVyrobaId(RESET); // When the current entity doesn't match, clear it
-
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
         setVyrobaId(event.target.value);
     };
