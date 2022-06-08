@@ -229,6 +229,10 @@ class MapState(StateModel):
             multiplier -= 0.5
         return Decimal(float(distance) * multiplier)
 
+    def getReachableTiles(self, team: Team) -> List[MapTileEntity]:
+        index = self.getHomeOfTeam(team).index
+        indexes = [(index+i) % self.size for i in TILE_DISTANCES_RELATIVE]
+        return [self.tiles[i].entity for i in indexes]
 
 
     @classmethod
