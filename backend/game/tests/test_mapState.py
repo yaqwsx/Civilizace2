@@ -3,8 +3,7 @@ from game.state import ArmyId
 from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
-if not PYTEST_COLLECT:
-    from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
+from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 
 def test_rawDistance():
     reimport(__name__)
@@ -37,3 +36,15 @@ def test_actualDistance():
         distance = state.map.getActualDistance(TEST_ENTITIES["tym-modri"], state.map.tiles[index].entity)
         assert distance == expected, "Distance of tile {} does not match (exp={}, act={}): {}"\
                                      .format(index, expected, distance, message)
+
+
+def test_reachableTiles():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+
+    team = entities["tym-zluti"]
+
+    tiles = state.map.getReachableTiles(team)
+
+    assert len(tiles) == 11
+
