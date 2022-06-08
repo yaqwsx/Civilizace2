@@ -337,7 +337,7 @@ function ScannerNavigator() {
                 page = "vyrobas";
                 return;
             }
-            if (item.startsWith("tech-")) {
+            if (item.startsWith("tec-")) {
                 args.push(`entity=${item}`);
                 page = "techs";
                 return;
