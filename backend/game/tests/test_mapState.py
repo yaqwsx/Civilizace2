@@ -6,8 +6,7 @@ from testing import PYTEST_COLLECT, reimport
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 
 def test_rawDistance():
-    reimport(__name__)
-
+    reimport(__name__), 
     state = createTestInitState()
 
     expectations = [(5, 0), (4, 600), (3, 600), (7, 900), (2, 900)]
@@ -47,4 +46,5 @@ def test_reachableTiles():
     tiles = state.map.getReachableTiles(team)
 
     assert len(tiles) == 11
-
+    indexes = set([tile.index for tile in tiles])
+    assert indexes == set([20, 26, 27, 28, 29, 30, 31, 2, 3, 4, 6]) 
