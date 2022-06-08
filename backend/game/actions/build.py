@@ -28,7 +28,7 @@ class ActionBuild(ActionBase):
 
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
-        return self.teamState.getUnlockingDice(self.args.build)
+        return (self.teamState.getUnlockingDice(self.args.build), self.args.build.points)
 
 
     def requiresDelayedEffect(self) -> int:
@@ -36,12 +36,16 @@ class ActionBuild(ActionBase):
 
 
     def _commitImpl(self) -> None:
+        if self.args.build in self.state.map.tiles[self.args.tile.index].buildings:
+            raise ActionFailed(f"Budova {self.args.build.name} je už na poli {self.args.tile.name} postavena")
         self._info += f"Stavba začala. Za {ceil(self.requiresDelayedEffect() / 60)} minut můžete budovu přijít dokončit"
 
 
     def _applyDelayedReward(self) -> None:
         self._setupPrivateAttrs()
         tile = self.state.map.tiles[self.args.tile.index]
+
+        # TODO: check tile owner
 
         unfinished = tile.unfinished.get(self.args.team, set())
         unfinished.add(self.args.build)
