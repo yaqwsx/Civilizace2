@@ -289,6 +289,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     count: amount,
                     tile: "map-tile06", // TBA
                     plunder: plunder,
+                    genericsMapping: concretization
                     // TBA army
                 }}
                 onFinish={() => props.onReset()}
