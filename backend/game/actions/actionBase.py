@@ -10,7 +10,6 @@ from game.entities import DieId, Entities, Resource, Team
 from game.state import GameState, TeamState, printResourceListForMarkdown
 
 class ActionArgs(BaseModel):
-    genericsMapping: Dict[Resource, Resource]={}
     pass
 
 class ActionResult(BaseModel):

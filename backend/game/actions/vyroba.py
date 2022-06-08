@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
-from game.state import ArmyGoal, ArmyId, MapTile, printResourceListForMarkdown
+from game.state import ArmyGoal, ArmyId, printResourceListForMarkdown
 
 class ActionVyrobaArgs(ActionArgs):
     team: Team
@@ -12,6 +12,8 @@ class ActionVyrobaArgs(ActionArgs):
     count: Decimal
     tile: MapTileEntity
     plunder: bool
+    genericsMapping: Dict[Resource, Resource]={}
+
 
     army: Optional[ArmyId]
     goal: Optional[ArmyGoal]
