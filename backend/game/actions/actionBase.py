@@ -10,6 +10,7 @@ from game.entities import DieId, Entities, Resource, Team
 from game.state import GameState, TeamState, printResourceListForMarkdown
 
 class ActionArgs(BaseModel):
+    genericsMapping: Dict[Resource, Resource]={}
     pass
 
 class ActionResult(BaseModel):
@@ -180,63 +181,43 @@ class ActionBase(ActionInterface):
                 addELine(*args, **kwargs)
             yield addLine
 
-    def _makePayment(self, what: Dict[Resource, Decimal]) -> bool:
-        """
-        Pay resources (during initiate). Productions are deduced and store for
-        the possibility to revert them. Materials are formatted into the
-        message. When there are resources missing, they are formatted into
-        errors.
-        """
-        if len(what) == 0:
-            return
-        fail = False
-        tState = self.teamState
-        trackedResources = {r: a for r, a in what.items() if r.isTracked}
-        untrackedResources = {r: a for r, a in what.items() if not r.isTracked}
 
-        with self._errors.startList("## Týmu chybějí následující zdroje:") as addLine:
-            for r, required in trackedResources:
-                available = tState.resources.get(r, 0)
-                if available < required:
-                    addLine(f"- [[{r.id}|{required - available}]]")
-                    fail = True
-        if fail:
-            return False
+    def payResources(self, resources: Dict[Resource, Decimal]) -> Dict[Resource, Decimal]:
+        team = self.teamState
+        tokens = {}
+        missing = {}
+        for resource, amount in resources.items():
+            if resource.isTracked:
+                team.resources[resource] = team.resources.get(resource, 0) - amount
+                if resource.id == "res-obyvatel":
+                    team.addEmployees(amount)
+                if team.resources[resource] < 0:
+                    missing[resource] = -team.resources[resource]
+            else:
+                tokens[resource] = amount
 
-        with self._info.startList("## Týmu bylo strženo:") as addLine:
-            for r, required in trackedResources.items():
-                addLine(f"- [[{r.id}|{required}]]")
-                tState.resources[r] -= required
-                self.paid[r] = self.paid.get(r, 0) + required
-        with self._info.startList("## Od týmu ještě vyberte:") as addLine:
-            for r, required in untrackedResources.items():
-                self.paid[r] = self.paid.get(r, 0) + required
-                addLine(f"- [[{r.id}|{required}]]")
-        return True
+        if missing != {}:
+            raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
 
-    def _revertPaymentProductions(self) -> None:
-        """
-        Reverts all productions from payments via _makePayment. Adds message
-        both to info and error
-        """
-        productions = {r: a for r, a in self.paid.items() if r.isProduction}
-        if len(productions) == 0:
-            return
-        tState = self.teamState
-        with self._startBothLists("## Týmu se vrací:") as addLine:
-            for r, a in productions.items():
-                tState.resources[r] = tState.resources.get(r, 0) + a
-                addLine(f"[[{r.id}|{a}]]")
+        return tokens
 
-    def _revertPaymentMaterials(self) -> None:
-        """
-        Reverts all material from payments via _makePayment. Adds message
-        both to info and error
-        """
-        materials = {r: a for r, a in self.paid.items() if r.isTracked}
-        with self._startBothLists("## Týmu vraťte:") as addLine:
-            for r, a in materials.items():
-                addLine(f"[[{r.id}|{a}]]")
+
+    def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False) -> Dict[Resource, Decimal]:
+        team = self.teamState
+        storage = {}
+        for resource, amount in resources.items():
+            if resource.isTracked:
+                team.resources[resource] = team.resources.get(resource, 0) + amount
+            else:
+                storage[resource] = amount
+        if instantWithdraw:
+            return storage
+        for resource, amount in storage.items():
+            amount = team.storage.get(resource, 0) + amount
+            if amount > team.storageCapacity and resource.id != "mat-zbrane":
+                amount = team.storageCapacity
+            team.storage[resource] = amount
+        return {}
 
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
@@ -254,7 +235,7 @@ class ActionBase(ActionInterface):
         cost = self.cost()
         message = ""
         if len(cost) > 0:
-            require = self.teamState.payResources(cost)
+            require = self.payResources(cost)
             message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require, ceil)}"
 
         return ActionResult(
@@ -264,7 +245,7 @@ class ActionBase(ActionInterface):
 
     def revertInitiate(self) -> ActionResult:
         cost = self.cost()
-        reward = self.teamState.receiveResources(cost, instantWithdraw=True)
+        reward = self.receiveResources(cost, instantWithdraw=True)
         message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward, ceil)}"
 
         return ActionResult(

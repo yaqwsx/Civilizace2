@@ -12,7 +12,6 @@ class ActionVyrobaArgs(ActionArgs):
     count: Decimal
     tile: MapTileEntity
     plunder: bool
-    generics: Dict[Resource, Resource]={}
 
     army: Optional[ArmyId]
     goal: Optional[ArmyGoal]
@@ -41,7 +40,7 @@ class ActionVyroba(ActionBase):
 
 
     def _commitImpl(self) -> None:
-        self._info += f"Zadání výroby bylo úspěšné. Akce se vzhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
+        self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
 
 
     def _applyDelayedReward(self) -> None:
@@ -54,7 +53,7 @@ class ActionVyroba(ActionBase):
 
         reward = {resource: amount*multiplier}
 
-        tokens = self.teamState.receiveResources(reward, instantWithdraw=True)
+        tokens = self.receiveResources(reward, instantWithdraw=True)
 
         self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
         if tokens != {}:

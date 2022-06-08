@@ -102,7 +102,7 @@ class ActionFeed(ActionBase):
         self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)
 
         reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces != None}
-        self.teamState.receiveResources(reward)
+        self.receiveResources(reward)
 
         self.teamState.turn = worldTurn
 
