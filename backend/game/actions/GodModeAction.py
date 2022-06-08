@@ -60,10 +60,13 @@ class GodModeAction(ActionBase):
     def _changeRec(self, path: List[str], object, value, originalPath):
         key = self.entities.get(path[0], path[0])
         if len(path) == 1:
+            value = self.entities.get(value, value)
+            if isinstance(object, dict):
+                object[key] = value
+                return
             if not hasattr(object, key):
                 self._errors.add(f"Neznámý klíč {originalPath}")
                 return
-            value = self.entities.get(value, value)
             setattr(object, key, value)
             return
         if isinstance(object, dict):
