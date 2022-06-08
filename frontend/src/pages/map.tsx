@@ -25,7 +25,7 @@ export function MapMenu() {
     return null;
 }
 
-const ARMY_GOALS = {
+export const ARMY_GOALS = {
     0: "Okupovat",
     1: "Eliminovat",
     2: "Zásobování",

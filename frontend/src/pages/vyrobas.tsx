@@ -38,6 +38,7 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import _ from "lodash";
+import { ARMY_GOALS } from "./map";
 
 export const urlVyrobaActionAtom = atomWithHash<string | undefined>(
     "vyrobaAction",
@@ -248,6 +249,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
     >({});
     const [plunder, setPlunder] = useState(false);
     const [useArmy, setUseArmy] = useState(false);
+    const [equipment, setEquipment] = useState(1);
+    const [goal, setGoal] = useState<any>(0);
 
     useEffect(() => {
         if (!tiles || tile) return;
@@ -289,7 +292,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     count: amount,
                     tile: "map-tile06", // TBA
                     plunder: plunder,
-                    genericsMapping: concretization
+                    genericsMapping: concretization,
                     // TBA army
                 }}
                 onFinish={() => props.onReset()}
@@ -421,13 +424,45 @@ function PerformVyroba(props: PerformVyrobaProps) {
                         {useArmy && (
                             <>
                                 <FormRow label="Vyberte armádu:">
-                                    <></>
+                                    <select className="field select">
+                                        <option>
+                                            Armáda A (síla 10) stojí na poli 28
+                                        </option>
+                                        <option>
+                                            Armáda B (síla 10) stojí na poli 12
+                                        </option>
+                                        <option>
+                                            Armáda C (síla 10) stojí na poli 4
+                                        </option>
+                                    </select>
                                 </FormRow>
                                 <FormRow label="Mód:">
-                                    <></>
+                                    <select
+                                        className="select"
+                                        value={goal}
+                                        onChange={(e) =>
+                                            setGoal(parseInt(e.target.value))
+                                        }
+                                    >
+                                        {Object.entries(ARMY_GOALS).map(
+                                            ([k, v]) => {
+                                                if (k == "2")
+                                                    // Zásobování
+                                                    return null;
+                                                return (
+                                                    <option key={k} value={k}>
+                                                        {v}
+                                                    </option>
+                                                );
+                                            }
+                                        )}
+                                    </select>
                                 </FormRow>
                                 <FormRow label="Jakou bude mít výzbroj?">
-                                    <></>
+                                    <SpinboxInput
+                                        value={equipment}
+                                        onChange={setEquipment}
+                                    />
                                 </FormRow>
                             </>
                         )}
