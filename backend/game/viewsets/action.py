@@ -209,7 +209,7 @@ class ActionViewSet(viewsets.ViewSet):
         dbInteraction = dbAction.lastInteraction
         action = dbInteraction.getActionIr(entities, state)
 
-        result = action.applyDelayedEffect()
+        result = action.applyDelayedReward()
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayedReward,
                                 None, action.state, action)
         gainedStickers = Self._computeStickers(sourceState, state)

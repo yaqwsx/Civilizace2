@@ -372,6 +372,6 @@ def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFuncti
     message = MessageBuilder()
     with message.startList("") as addLine:
         for resource, amount in resources.items():
-            addLine(f"- [[{resource.id}|{roundFunction(amount)}]]")
+            addLine(f"[[{resource.id}|{roundFunction(amount)}]]")
     return message.message
     # return "\n".join([f"1. [[{resource.id}|{roundFunction(amount)}]]" for resource, amount in resources.items()]) + "\n"
