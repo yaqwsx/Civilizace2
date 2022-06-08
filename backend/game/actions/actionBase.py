@@ -304,7 +304,7 @@ class ActionBase(ActionInterface):
 
     def applyDelayedEffect(self) -> ActionResult:
         self._setupPrivateAttrs()
-        self.__applyDelayedEffect()
+        self._applyDelayedEffect()
         return self.generateActionResult()
 
 

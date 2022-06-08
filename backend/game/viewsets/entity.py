@@ -274,7 +274,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def vouchers(self, request, pk):
         self.validateAccess(request.user, pk)
-        effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("round", "target")
+        effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("-round", "-target")
         return Response(DbDelayedEffectSerializer(effects, many=True).data)
 
 

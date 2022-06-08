@@ -186,7 +186,10 @@ class EntityParser():
         requiredFeatures = self.getFeaturesFromField(line[7])
         vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
-        vyroba.cost[self.entities["res-obyvatel"]] = Decimal(line[5]) if len(line[5]) > 0 else 0
+
+        obyvatelCost = Decimal(line[5]) if len(line[5]) > 0 else 0
+        if obyvatelCost != 0:
+            vyroba.cost[self.entities["res-obyvatel"]] = obyvatelCost
         self.entities[line[0]] = vyroba
 
 

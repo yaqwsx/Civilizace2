@@ -687,13 +687,48 @@ function TeamVouchers() {
 function Voucher(props: { voucher: any }) {
     const [printing, setIsPrinting] = useState(false);
 
+    let v = props.voucher;
+
+    let className = classNames(
+        "w-full rounded bg-white p-5 shadow my-3",
+        v.withdrawn && "bg-gray-200",
+        v.performed && !v.withdrawn && "bg-green-200"
+    );
+
     return (
-        <div className="w-full rounded bg-white p-5 shadow">
+        <div className={className}>
             <h1>Odložený efekt {props.voucher.slug}</h1>
-            <Button
-                label={printing ? "Tisknu" : "Tisknout"}
-                onClick={() => setIsPrinting(true)}
-            />
+            <div className="flex w-full p-0">
+                <div className="m-0 w-full md:w-2/3">
+                    <ul>
+                        <li>
+                            <b>Popis: </b>
+                            {v?.description
+                                ? v.description
+                                : "Popisek nebyl implementován. Honza a Maara, uličníci jedni!"}
+                        </li>
+                        <li>
+                            <b>Vyplní se v: </b>
+                            {v.round}. kole, {Math.round(v.target / 60)}. minutě
+                        </li>
+                        <li>
+                            <b>Stav:</b>{" "}
+                            {v.performed
+                                ? v.withdrawn
+                                    ? "Vybráno"
+                                    : "Nevybráno"
+                                : "Čeká na vyplnění"}
+                        </li>
+                    </ul>
+                </div>
+                <div className="m-0 w-full md:w-1/3">
+                    <Button
+                        label={printing ? "Tisknu" : "Tisknout"}
+                        onClick={() => setIsPrinting(true)}
+                    />
+                </div>
+            </div>
+
             {printing && (
                 <Dialog onClose={() => setIsPrinting(false)}>
                     <PrintVoucher

@@ -1,5 +1,4 @@
-import { EntityId } from "@reduxjs/toolkit";
-import { boolean } from "yup";
+type EntityId = string;
 
 export interface Team {
     id: string;

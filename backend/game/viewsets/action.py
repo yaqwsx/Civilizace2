@@ -147,13 +147,13 @@ class ActionViewSet(viewsets.ViewSet):
 
 
     @staticmethod
-    def _markDelayedEffect(dbAction: DbAction, action: ActionInterface):
+    def _markDelayedEffect(dbAction: DbAction, delayedRequirements):
         now = timezone.now()
         try:
             turnObject = DbTurn.objects.getActiveTurn()
         except DbTurn.DoesNotExist:
             raise RuntimeError("Ještě nebyla započata hra, nemůžu provádět odložené efekty.") from None
-        effectTime = now + timezone.timedelta(seconds=action.requiresDelayedEffect())
+        effectTime = now + timezone.timedelta(seconds=int(delayedRequirements))
         while turnObject.shouldStartAt < effectTime:
             turnObject = turnObject.next
             if turnObject is None:
@@ -187,7 +187,7 @@ class ActionViewSet(viewsets.ViewSet):
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayed,
                                 None, action.state, action)
 
-        Self._addResultNotifications(result)
+        Self.addResultNotifications(result)
         stickers = Self._computeStickers(sourceState, state)
 
         effect.stickers = list(stickers)
@@ -210,7 +210,7 @@ class ActionViewSet(viewsets.ViewSet):
 
         result = action.applyDelayedEffect()
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayedReward,
-                                None, action.state)
+                                None, action.state, action)
         gainedStickers = Self._computeStickers(sourceState, state)
         effect.stickers = effect.stickers + list(gainedStickers)
         effect.withdrawn = True
@@ -297,6 +297,15 @@ class ActionViewSet(viewsets.ViewSet):
             "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{traceback}\n```"
         })
 
+    @staticmethod
+    def _ensureGameIsRunning(actionName) -> None:
+        if actionName in ["GodModeAction"]:
+            return
+        try:
+            DbTurn.objects.getActiveTurn()
+        except DbTurn.DoesNotExist:
+            raise ActionFailed("Hra neběží. Není možné zadávat akce.") from None
+
     @action(methods=["POST"], detail=False)
     def dry(self, request):
         deserializer = InitiateSerializer(data=request.data)
@@ -309,6 +318,7 @@ class ActionViewSet(viewsets.ViewSet):
         sourceState = dbState.toIr()
 
         try:
+            self._ensureGameIsRunning(data["action"])
             action = self.constructAction(data["action"], data["args"], entities, state)
 
             initiateResult = action.applyInitiate()
@@ -337,6 +347,8 @@ class ActionViewSet(viewsets.ViewSet):
 
         try:
             with transaction.atomic():
+                self._ensureGameIsRunning(data["action"])
+
                 entityRevision, entities = DbEntities.objects.get_revision()
                 dbState = DbState.objects.latest()
                 state = dbState.toIr()
@@ -401,6 +413,8 @@ class ActionViewSet(viewsets.ViewSet):
     @action(methods=["POST", "GET"], detail=True)
     def commit(self, request, pk=True):
         dbAction = get_object_or_404(DbAction, pk=pk)
+        self._ensureGameIsRunning(dbAction.actionType)
+
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
         dbState = DbState.objects.latest()

@@ -15,9 +15,10 @@ from game.viewsets.permissions import IsOrg
 
 
 class DbDelayedEffectSerializer(serializers.ModelSerializer):
+    description = serializers.CharField()
     class Meta:
         model = DbDelayedEffect
-        fields = ["slug", "round", "target", "result", "stickers", "withdrawn", "team"]
+        fields = ["slug", "description", "round", "target", "performed", "stickers", "withdrawn", "team"]
 
 class VoucherViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
@@ -33,18 +34,15 @@ class VoucherViewSet(viewsets.ViewSet):
         slugs = request.data.get("keys", [])
         stickers = set()
         messages = []
-        materials = {}
         for e in DbDelayedEffect.objects.filter(withdrawn=False, slug__in=slugs):
-            r, s = ActionViewSet.awardDelayedEffect(e)
-            e.withdraw = True
-            e.save()
-            stickers.update(s)
-            messages.append(r.message)
-            for m, a in r.materials.items():
-                materials[m] = materials.get(m, 0) + a
+            r, gainedStickers = ActionViewSet.awardDelayedEffect(e)
+            ActionViewSet.addResultNotifications(r)
+            stickers.update(e.stickers)
+            messages.append(f"## {e.description} ({e.slug})\n\n{r.message}")
+        if len(messages) == 0:
+            messages.append("Nebyly provedeny žádné výběry")
         return Response({
             "stickers": list(stickers),
-            "materials": {m.id: a for m, a in materials.items()},
             "messages": "\n\n".join(messages) # Put slugs in between as headings
         })
 

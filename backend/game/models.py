@@ -226,8 +226,11 @@ class DbTaskPreference(models.Model):
 
 class DbTurnManager(models.Manager):
     def getActiveTurn(self):
-        return self.get_queryset() \
+        object = self.get_queryset() \
             .filter(enabled=True, startedAt__isnull=False).latest()
+        if timezone.now() > object.startedAt + timezone.timedelta(seconds=object.duration):
+            raise DbTurn.DoesNotExist()
+        return object
 
 class DbTurn(models.Model):
     class Meta:
@@ -278,6 +281,10 @@ class DbDelayedEffect(models.Model):
             if DbDelayedEffect.objects.filter(slug=slug).exists():
                 slug = None
         return slug
+
+    @property
+    def description(self):
+        return self.action.description
 
 class StickerType(models.IntegerChoices):
     regular = 0

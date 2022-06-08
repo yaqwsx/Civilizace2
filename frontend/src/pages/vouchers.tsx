@@ -2,9 +2,16 @@ import { result } from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useSWR from "swr";
-import { Button, CiviMarkdown, Dialog, FormRow, LoadingOrError } from "../elements";
+import {
+    Button,
+    CiviMarkdown,
+    Dialog,
+    FormRow,
+    LoadingOrError,
+} from "../elements";
 import { EntityTag } from "../elements/entities";
 import { ErrorMessage, SuccessMessage } from "../elements/messages";
+import { PrintStickers } from "../elements/printing";
 import axiosService, { fetcher } from "../utils/axios";
 import { ScannerContext, useScanner } from "./scanner";
 
@@ -19,11 +26,9 @@ export function Vouchers() {
     const [result, setResult] = useState<any>(null);
 
     useScanner((items: string[]) => {
-        if (items.length != 1)
-            return;
-        if (!items[0].startsWith("vou-"))
-            return;
-        let code = items[0].replace("vou-", "").toUpperCase()
+        if (items.length != 1) return;
+        if (!items[0].startsWith("vou-")) return;
+        let code = items[0].replace("vou-", "").toUpperCase();
         if (vouchers.includes(code)) return;
         setVouchers(vouchers.concat([code]));
     });
@@ -44,7 +49,7 @@ export function Vouchers() {
         setSubmitting(true);
         axiosService
             .post<any, any>("/game/vouchers/withdraw/", {
-                keys: vouchers
+                keys: vouchers,
             })
             .then((data) => {
                 setSubmitting(false);
@@ -55,7 +60,7 @@ export function Vouchers() {
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
-    }
+    };
     console.log(result);
     return (
         <>
@@ -88,22 +93,31 @@ export function Vouchers() {
             ))}
 
             <Button
-                label={isSubmitting ? "Výbírám směnky, počkejte" : "Vybrat směnky"}
+                label={
+                    isSubmitting ? "Výbírám směnky, počkejte" : "Vybrat směnky"
+                }
                 className="my-4 w-full bg-green-500 hover:bg-green-600"
-                disabled={vouchers.length == 0}
+                disabled={vouchers?.length == 0}
                 onClick={handleSubmit}
             />
 
-            {
-                result && <Dialog onClose={() => setResult(null)}>
-                    <SuccessMessage>
-                        {result.messages}
-                    </SuccessMessage>
+            {result && (
+                <Dialog onClose={() => setResult(null)}>
+                    <SuccessMessage><CiviMarkdown>{result.messages}</CiviMarkdown></SuccessMessage>
                     {result.stickers.toString()}
-                    {result.materials.toString()}
-                    <Button className="w-full my-6" label="Budiž" onClick={() => setResult(null)}/>
+                    {result?.stickers?.length > 0 && (
+                        <PrintStickers
+                            stickers={result.stickers}
+                            onPrinted={() => setResult(null)}
+                        />
+                    )}
+                    <Button
+                        className="my-6 w-full"
+                        label="Budiž"
+                        onClick={() => setResult(null)}
+                    />
                 </Dialog>
-            }
+            )}
         </>
     );
 }
@@ -156,7 +170,7 @@ function VoucherBody(props: { data: any; error: any }) {
         );
     }
 
-    if (!data.result) {
+    if (!data.performed) {
         return (
             <ErrorMessage>
                 Směnka ještě není platná. Bude platná v kole {data.round} a{" "}
@@ -167,18 +181,20 @@ function VoucherBody(props: { data: any; error: any }) {
 
     return (
         <SuccessMessage>
-            Směnka je platná. Odložený výsledek akce je:
-            <CiviMarkdown>{data.result.message}</CiviMarkdown>
-            {
-                data.stickers.length > 0 && <>
-                <h4>Tým také dostane následující samolepky:</h4>
-                <ul>
-                    {
-                        data.stickers.map((s: string) => <li key={s} className="list-disc">Samolepka <EntityTag id={s}/></li>)
-                    }
-                </ul>
+            Směnka je platná. Jedná se o odložený výsledek akce{" "}
+            {String(data?.description)}
+            {data?.stickers?.length > 0 && (
+                <>
+                    <h4>Tým také dostane následující samolepky:</h4>
+                    <ul>
+                        {data.stickers.map((s: string) => (
+                            <li key={s} className="list-disc">
+                                Samolepka <EntityTag id={s} />
+                            </li>
+                        ))}
+                    </ul>
                 </>
-            }
+            )}
         </SuccessMessage>
     );
 }

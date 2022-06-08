@@ -15,7 +15,13 @@ import {
     TeamSelector,
     TeamRowIndicator,
 } from "../elements/team";
-import { Team, EntityVyroba, EntityResource, Entity, TeamEntityResource } from "../types";
+import {
+    Team,
+    EntityVyroba,
+    EntityResource,
+    Entity,
+    TeamEntityResource,
+} from "../types";
 import { useAtom } from "jotai";
 import { atomWithHash, RESET } from "jotai/utils";
 import { data } from "autoprefixer";
@@ -28,7 +34,7 @@ import {
     useTeamResources,
     useTeamVyrobas,
 } from "../elements/entities";
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import _ from "lodash";
@@ -105,7 +111,7 @@ export function Vyroba() {
 type SelectVyrobaProps = {
     team: Team;
     active?: EntityVyroba;
-    onChange?: (selectedVyroba: EntityVyroba) => void;
+    onChange?: (selectedVyroba?: EntityVyroba) => void;
 };
 function SelectVyroba(props: SelectVyrobaProps) {
     const {
@@ -147,7 +153,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
 
     return (
         <>
-            <h2>Zadejte parametry výroby</h2>
+            <h2>Vyberte výrobu</h2>
             <FormRow label="Vyber výrobu:" className="my-8">
                 <select
                     value={String(vyrobaId)}
@@ -169,6 +175,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
                     vyroba={vyroba}
                     team={team}
                     resources={resources}
+                    onReset={() => props.onChange && props.onChange(undefined)}
                 />
             ) : null}
         </>
@@ -228,20 +235,34 @@ type PerformVyrobaProps = {
     vyroba: EntityVyroba;
     resources: Record<string, TeamEntityResource>;
     team: Team;
+    onReset: () => void
 };
 function PerformVyroba(props: PerformVyrobaProps) {
-    const [amount, setAmount] = useState<number>(1);
     const { data: entities, error: eError } = useEntities<EntityResource>();
+    const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
     const mapping = useMemo(() => computeConcretization(entities), [entities]);
+
+    const [amount, setAmount] = useState<number>(1);
+    const [tile, setTile] = useState<string | undefined>(undefined);
     const [concretization, setConcretization] = useState<
         Record<string, string>
     >({});
+    const [plunder, setPlunder] = useState(false);
+    const [useArmy, setUseArmy] = useState(false);
 
-    if (!entities) {
+    const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!tiles || tile)
+            return;
+        setTile(tiles.find(t => t?.homeTeam === props.team.id).entity);
+    }, [tiles, props.team]);
+
+    if (!entities || !tiles) {
         return (
             <LoadingOrError
-                loading={(!entities && !eError)}
-                error={eError}
+                loading={!entities && !eError && !tiles && !tError}
+                error={eError || tError}
                 message="Nepodařilo se načíst entity"
             />
         );
@@ -264,6 +285,23 @@ function PerformVyroba(props: PerformVyrobaProps) {
         <>
             <FormRow label="Zadejte počet výrob:">
                 <SpinboxInput value={amount} onChange={handleAmountChange} />
+            </FormRow>
+            <FormRow label="Vyberte pole mapy pro výrobu:">
+                <select className="select field" value={tile} onChange={e => setTile(e.target.value)}>
+                    {
+                        tiles.map(t => <option key={t.entity} value={t.entity}>
+                            {t.name} {t?.homeTeam ? `(domovské ${t.homeTeam})` : null}
+                        </option>)
+                    }
+                </select>
+            </FormRow>
+            <FormRow label="Chcete pole drancovat (+25%)?">
+                <input
+                    className="checkboxinput"
+                    type="checkbox"
+                    checked={plunder}
+                    onChange={(e) => setPlunder(e.target.checked)}
+                />
             </FormRow>
             <h2>
                 {amount}× {vyroba.name} → {amount * vyroba.reward[1]}×{" "}
@@ -326,14 +364,52 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     );
                 }
                 return (
-                    <FormRow
-                        label={`${amount * rAmount}× ${resource.name}: `}
+                    <FormRow key={resource.id}
+                        label={`Je třeba ${amount * rAmount}× ${
+                            resource.name
+                        } a realizuje se jako: `}
                         error={error}
                     >
                         {input}
                     </FormRow>
                 );
             })}
+            <h2>Armádní posila</h2>
+            <FormRow label="Přejete si poslat armádu?">
+                <input
+                    className="checkboxinput"
+                    type="checkbox"
+                    checked={useArmy}
+                    onChange={(e) => setUseArmy(e.target.checked)}
+                />
+            </FormRow>
+            {useArmy && (
+                <>
+                    <FormRow label="Vyberte armádu:"><></></FormRow>
+                    <FormRow label="Mód:"><></></FormRow>
+                    <FormRow label="Jakou bude mít výzbroj?"><></></FormRow>
+                </>
+            )}
+            <Button className="w-full" label="Odeslat" onClick={() => setSubmitting(true)} />
+
+            {
+                submitting && <Dialog onClose={() => setSubmitting(false)}>
+                    <PerformAction
+                        team={props.team}
+                        actionName={"TBA"}
+                        actionId="ActionVyroba"
+                        actionArgs={{
+                            team: props.team.id,
+                            vyroba: props.vyroba.id,
+                            count: amount,
+                            tile: "map-tile06", // TBA
+                            plunder: plunder
+                            // TBA army
+                        }}
+                        onFinish={() => props.onReset()}
+                        onBack={() => setSubmitting(false)}/>
+                </Dialog>
+            }
         </>
     );
 }
