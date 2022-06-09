@@ -40,6 +40,7 @@ import { fetcher } from "../utils/axios";
 import _ from "lodash";
 import { ARMY_GOALS } from "./map";
 import { useHideMenu } from "./atoms";
+import { produce } from "immer";
 
 export const urlVyrobaActionAtom = atomWithHash<string | undefined>(
     "vyrobaAction",
@@ -281,11 +282,9 @@ function PerformVyroba(props: PerformVyrobaProps) {
         })
     );
 
-
     console.log(tile);
 
     return (
-        <>
             <PerformAction
                 team={props.team}
                 actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
@@ -384,7 +383,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                                 Object.create(concretization);
                                             newC[resource.id] = newV;
                                             setConcretization(newC);
-                                            console.log("Y", resource.id, newC)
+                                            console.log("Y", resource.id, newC);
                                         }}
                                     >
                                         <option>Vyberte konkretizaci</option>
@@ -474,7 +473,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     </>
                 }
             />
-        </>
     );
 }
 
@@ -506,7 +504,18 @@ function WithdrawStorage(props: { team: Team }) {
                 <FormRow
                     label={
                         <>
-                            <EntityTag id={r} /> (max {maxV}):{" "}
+                            <span
+                                className="cursor-pointer"
+                                onClick={() => {
+                                    setToWithdraw(
+                                        produce(toWithdraw, (next: any) => {
+                                            next[r] = maxV;
+                                        })
+                                    );
+                                }}
+                            >
+                                <EntityTag id={r} /> (max {maxV}):{" "}
+                            </span>
                         </>
                     }
                     key={r}
@@ -514,11 +523,13 @@ function WithdrawStorage(props: { team: Team }) {
                     <SpinboxInput
                         value={_.get(toWithdraw, r, 0)}
                         onChange={(v) => {
-                            if (v < 0) v = 0;
-                            if (v > maxV) v = maxV;
-                            let newW = Object.create(toWithdraw);
-                            newW[r] = v;
-                            setToWithdraw(newW);
+                            setToWithdraw(
+                                produce(toWithdraw, (next: any) => {
+                                    if (v < 0) v = 0;
+                                    if (v > maxV) v = maxV;
+                                    next[r] = v;
+                                })
+                            );
                         }}
                     />
                 </FormRow>
