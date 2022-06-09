@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Set, Tuple
 from game.actions.common import ActionFailed, MessageBuilder
 
 from game.entities import DieId
-from game.gameGlue import stateSerialize
+from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState
 from .actionBase import ActionBase, ActionArgs, ActionResult
 
@@ -49,7 +49,8 @@ class GodModeAction(ActionBase):
         if not self._errors.empty:
             raise ActionFailed(self._errors)
         try:
-            stateSerialize(self.state)
+            x = stateSerialize(self.state)
+            stateDeserialize(GameState, x, self.entities)
         except Exception as e:
             tb = traceback.format_exc()
             raise ActionFailed(f"Upravený stav není možné serializovat:\n\n```\n{tb}\n```")
