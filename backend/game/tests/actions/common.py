@@ -8,7 +8,7 @@ TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial stat
 
 
 def createTestInitState(entities=TEST_ENTITIES):
-    from game.state import Army, ArmyState, GameState
+    from game.state import Army, ArmyMode, GameState
 
     state = GameState.createInitial(entities)
 
@@ -24,7 +24,7 @@ def createTestInitState(entities=TEST_ENTITIES):
     # deploy armies
     for tileIndex, prestige, equipment in [(0, 10, 1), (3, 15, 5), (30, 20, 15),  (2, 25, 20)]:
         tile = state.map.tiles[tileIndex]
-        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment, state=ArmyState.Occupying)
+        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment, assignment=ArmyMode.Occupying)
         teamState.armies[army.id] = army
         tile.occupiedBy = army.id
 

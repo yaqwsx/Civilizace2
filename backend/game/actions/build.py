@@ -2,7 +2,7 @@ from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
-from game.actions.ArmyDeploy import ActionArmyDeployArgs
+from game.actions.armyDeploy import ActionArmyDeployArgs
 from game.actions.actionBase import ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba

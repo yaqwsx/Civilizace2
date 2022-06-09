@@ -276,7 +276,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "equipment": a.equipment,
                 "boost": a.boost,
                 "tile": a.tile.id if a.tile is not None else None,
-                "state": str(a.state).split(".")[1],
+                "state": str(a.assignment).split(".")[1],
                 "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
             } for a in state.armies.values()})
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 import enum
 from html import entities
+from statistics import mode
 import types
 import pydantic
 from pydantic import BaseModel, PrivateAttr
@@ -32,7 +33,7 @@ class StateModel(BaseModel):
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
 
-class ArmyState(enum.Enum):
+class ArmyMode(enum.Enum):
     Idle = 0
     Marching = 1
     Occupying = 2
@@ -43,26 +44,15 @@ class ArmyGoal(enum.Enum):
     Supply = 2
     Replace = 3
 
-
-class ArmyId(BaseModel):
-    prestige: int
-    team: Team
-
-    def __hash__(self):
-        return self.team.__hash__() + self.prestige
-
-    def __eq__(self, other):
-        if type(other) != type(self):
-            return False
-        return self.team == other.team and self.prestige == other.prestige
-
 class Army(StateModel):
     team: Team # duplicates: items in Team.armies
-    prestige: int
+    index: int
+    name: str
+    level: int
     equipment: int=0 # number of weapons the army currently carries
     boost: int=-1 # boost added by die throw
     tile: Optional[MapTileEntity]=None
-    state: ArmyState=ArmyState.Idle
+    mode: ArmyMode=ArmyMode.Idle
     goal: Optional[ArmyGoal]=None
 
     @property
@@ -72,11 +62,7 @@ class Army(StateModel):
 
     @property
     def capacity(self) -> int:
-        return self.prestige - BASE_ARMY_STRENGTH
-
-    @property
-    def id(self) -> ArmyId:
-        return ArmyId(prestige=self.prestige, team=self.team)
+        return self.level - BASE_ARMY_STRENGTH
 
     @property
     def strength(self) -> int:
@@ -93,12 +79,11 @@ class Army(StateModel):
     def retreat(self, state: GameState) -> int:
         result = self.equipment
         tile = state.map.tiles[self.tile.index]
-        if self.state == ArmyState.Occupying:
+        if self.assignment == ArmyMode.Occupying:
             assert tile.occupiedBy == self.id, "Army {} thinks its occupying a tile occupied by {}".format(self.id, tile.occupiedBy)
             tile.occupiedBy = None
-        tile.inbound.discard(self.id)
 
-        self.state = ArmyState.Idle
+        self.assignment = ArmyMode.Idle
         self.equipment = 0
         self.boost = -1
         self.tile = None
@@ -109,9 +94,8 @@ class Army(StateModel):
         if tile.occupiedBy == self.id: return
         assert tile.occupiedBy == None, "Nelze obsadit pole obsazené cizí armádou"
         tile.occupiedBy = self.id
-        tile.inbound.discard(self.id)
 
-        self.state = ArmyState.Occupying
+        self.assignment = ArmyMode.Occupying
         self.boost = -1
         self.tile = tile.entity
         self.goal = None
@@ -125,8 +109,6 @@ class MapTile(StateModel): # Game state elemnent
     entity: MapTileEntity
     unfinished: Dict[Team, Set[Building]]={}
     buildings: Set[Building]=set()
-    occupiedBy: Optional[ArmyId]=None # TODO: Deprecated
-    inbound: Set[ArmyId]=set() # TODO: Deprecated
 
     @property
     def parent(self) -> MapState:
@@ -162,24 +144,13 @@ class MapTile(StateModel): # Game state elemnent
         return 0
 
     @property
-    def occupyingArmyState(self) -> Optional[Army]:
+    def occupiedBy(self) -> Optional[Army]:
         return None
-        # if self.occupiedBy == None:
-        #     return None
-        # self.parent.parent.teams[self.occupiedBy.team].
 
-class HomeTile(MapTile):
-    team: Team
-    roadsTo: List[MapTileEntity]=[]
-
-    @classmethod
-    def createInitial(cls, team: Team, tile: MapTileEntity, entities: Entities) -> HomeTile:
-        return HomeTile(name="Domovské pole " + team.name,
-                       index=tile.index,
-                       parcelCount=3,
-                       richness=0,
-                       naturalResources = tile.naturalResources)
-
+    @property
+    def inboundArmies(self) -> List[Army]:
+        return []
+    
 
 class MapState(StateModel):
     size: int=MAP_SIZE
@@ -252,7 +223,6 @@ class TeamState(StateModel):
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
-    armies: Dict[ArmyId, Army]
     roadsTo: Set[MapTileEntity] = set()
 
     resources: Dict[Resource, Decimal]
@@ -262,8 +232,6 @@ class TeamState(StateModel):
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
-        for t in self.armies.values():
-            t._setParent(self)
 
     @property
     def parent(self) -> GameState:
@@ -317,13 +285,11 @@ class TeamState(StateModel):
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
-        armies = {ArmyId(prestige=x, team=team): Army(team=team, prestige=x) for x in STARTER_ARMY_PRESTIGES}
         return TeamState(
             team=team,
             redCounter=0,
             blueCounter=0,
             techs=[entities["tec-start"]],
-            armies=armies,
             resources={
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),
