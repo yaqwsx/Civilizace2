@@ -64,7 +64,7 @@ export function UnfinishedActionBar() {
     );
 }
 
-function useActionPreview(actionId: string, actionArgs: any) {
+export function useActionPreview(actionId: string, actionArgs?: any) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
@@ -73,6 +73,9 @@ function useActionPreview(actionId: string, actionArgs: any) {
     useEffect(() => {
         setError(null);
         setPreview(null);
+
+        if (!actionArgs || !debouncedArgs)
+            return;
 
         console.log("Request:", {
             action: actionId,
@@ -176,7 +179,7 @@ export function PerformAction(props: {
     );
 }
 
-function ActionMessage(props: { response: ActionResponse }) {
+export function ActionMessage(props: { response: ActionResponse }) {
     let Message = props.response.success
         ? props.response.expected
             ? SuccessMessage

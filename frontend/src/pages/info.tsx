@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Dialog, LoadingOrError } from "../elements";
 import { SuccessMessage } from "../elements/messages";
 import { useCurrentTurn } from "../elements/turns";
-import { fetcher } from "../utils/axios";
+import axiosService, { fetcher } from "../utils/axios";
 import { AnnouncementList } from "./dashboard";
 import { useScanner } from "./scanner";
 import QRCode from "react-qr-code";
+import { ActionMessage, useActionPreview } from "../elements/action";
+import { toast } from "react-toastify";
 
 export function InfoScreen() {
     return (
@@ -125,9 +127,6 @@ function AutoFeedDialog() {
 
     useScanner((items: string[]) => {
         if (items.length != 1) return;
-        if (items[0].startsWith("ans-")) {
-            setTeamId(undefined);
-        }
         if (items[0].startsWith("krm-")) {
             let teamId = items[0].replace("krm-", "");
             setTeamId(teamId);
@@ -138,24 +137,85 @@ function AutoFeedDialog() {
 
     return (
         <Dialog onClose={() => setTeamId(undefined)}>
-            <div className="text-left">
-                <h1>Automatické krmení</h1>
-
-                <SuccessMessage>
-                    <h1>Tady bude náhled krmení...</h1>
-                </SuccessMessage>
-                <h2>Přejete si pokračovat?</h2>
-                <div className="my-6 flex w-full">
-                    <div className="mx-0 w-1/2 p-3 text-center">
-                        <h1>ANO</h1>
-                        <QRCode value="ans-yes" className="mx-auto" />
-                    </div>
-                    <div className="mx-0 w-1/2 p-3 text-center">
-                        <h1>NE</h1>
-                        <QRCode value="ans-no" className="mx-auto" />
-                    </div>
-                </div>
-            </div>
+            <AutoFeedDialogImpl
+                teamId={teamId}
+                onClose={() => setTeamId(undefined)}
+            />
         </Dialog>
+    );
+}
+
+function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
+    const actionArgs = useMemo(() => {
+        return { team: props.teamId, materials: {} };
+    }, [props.teamId]);
+    const { preview, error } = useActionPreview("ActionFeed", actionArgs);
+    const [submitting, setSubmitting] = useState(false);
+
+    useScanner((items: string[]) => {
+        if (items.length != 1) return;
+        if (items[0] == "ans-no") {
+            props.onClose();
+        }
+        if (items[0] == "ans-yes" && preview && preview.success) {
+            setSubmitting(true);
+            axiosService
+                .post<any, any>("/game/actions/initiate/", {
+                    action: "ActionFeed",
+                    args: actionArgs,
+                })
+                .then((data) => {
+                    toast.success("Akce provedena");
+                })
+                .catch((error) => {
+                    setSubmitting(false);
+                    toast.error(`Nastala neočekávaná chyba: ${error}`);
+                })
+                .finally(() => {
+                    setSubmitting(false);
+                    props.onClose();
+                });
+        }
+    });
+
+    if (!preview)
+        return (
+            <LoadingOrError
+                loading={!preview && !error}
+                error={error}
+                message="Něco se pokazilo. Řekni to Honzovi"
+            />
+        );
+
+    return (
+        <div className="text-left">
+            <h1>Automatické krmení</h1>
+
+            <ActionMessage response={preview} />
+            {submitting ? (
+                <div className="w-full text-center text-2xl py-14">Odesílám</div>
+            ) : (
+                <>
+                    <h2>Přejete si pokračovat?</h2>
+                    <div className="my-6 flex w-full">
+                        <div className="mx-0 w-1/2 p-3 text-center">
+                            {preview.success && (
+                                <>
+                                    <h1>ANO</h1>
+                                    <QRCode
+                                        value="ans-yes"
+                                        className="mx-auto"
+                                    />
+                                </>
+                            )}
+                        </div>
+                        <div className="mx-0 w-1/2 p-3 text-center">
+                            <h1>NE</h1>
+                            <QRCode value="ans-no" className="mx-auto" />
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
     );
 }
