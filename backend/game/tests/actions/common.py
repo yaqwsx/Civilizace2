@@ -22,10 +22,10 @@ def createTestInitState(entities=TEST_ENTITIES):
     state.teamStates[entities["tym-modri"]].roadsTo = set([state.map.tiles[x].entity for x in [6, 10, 24, 2]])
 
     # deploy armies
-    for tileIndex, prestige, equipment in [(0, 10, 1), (3, 15, 5), (30, 20, 15),  (2, 25, 20)]:
-        tile = state.map.tiles[tileIndex]
-        army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment, assignment=ArmyMode.Occupying)
-        teamState.armies[army.id] = army
-        tile.occupiedBy = army.id
+    # for tileIndex, prestige, equipment in [(0, 10, 1), (3, 15, 5), (30, 20, 15),  (2, 25, 20)]:
+    #     tile = state.map.tiles[tileIndex]
+        # army = Army(team=team, prestige=prestige, tile=tile.entity, equipment=equipment, assignment=ArmyMode.Occupying)
+        # teamState.armies[army.id] = army
+        # tile.occupiedBy = army.id
 
     return state

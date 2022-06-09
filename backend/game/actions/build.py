@@ -2,17 +2,19 @@ from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs
-from game.actions.armyDeploy import ActionArmyDeployArgs
 from game.actions.actionBase import ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
-from game.state import MapTile, printResourceListForMarkdown
+from game.state import ArmyGoal
 
 class ActionBuildArgs(ActionArgs):
     team: Team
     build: Building
     tile: MapTileEntity
-    army: Optional[ActionArmyDeployArgs]
+
+    armyIndex: Optional[int]
+    goal: Optional[ArmyGoal]
+    equipment: Optional[int]
 
 
 class ActionBuild(ActionBase):

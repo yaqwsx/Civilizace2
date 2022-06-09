@@ -1,5 +1,3 @@
-from decimal import Decimal
-from game.state import ArmyId
 from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 

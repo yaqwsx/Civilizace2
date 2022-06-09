@@ -8,11 +8,9 @@ from pydantic.fields import SHAPE_SINGLETON, MAPPING_LIKE_SHAPES, SHAPE_LIST, SH
 from game.actions.actionBase import ActionArgs
 
 from game.entities import EntityBase, Entity
-from game.state import ArmyId, HomeTile, MapTile, StateModel
+from game.state import MapTile, StateModel
 
 def _stateSerialize(what):
-    if isinstance(what, ArmyId):
-        return f"{what.team.id},{what.prestige}"
     if isinstance(what, StateModel) or isinstance(what, ActionArgs):
         return stateSerialize(what)
     if isinstance(what, EntityBase):
@@ -38,10 +36,8 @@ def stateSerialize(object: BaseModel) -> Dict[Any, Any]:
     value = {}
     for field in object.__fields__.values():
         value[field.name] = _stateSerialize(getattr(object, field.name))
-    # There is polymorphism on MapTile, reflect it:
-    if isinstance(object, HomeTile):
-        value["tt"] = "H"
-    elif isinstance(object, MapTile):
+    # There is polymorphism on MapTile, reflect it: //Not anymore, can be refactored out
+    if isinstance(object, MapTile):
         value["tt"] = "M"
     return value
 
@@ -49,14 +45,9 @@ def stateDeserialize(cls, data, entities):
     """
     Turn dictionary representation into a model
     """
-    if issubclass(cls, ArmyId):
-        data = data.split(",")
-        return ArmyId(prestige=int(data[1]), team=entities[data[0]])
-
     source = {}
     if issubclass(cls, MapTile):
         cls = {
-            "H": HomeTile,
             "M": MapTile
         }[data["tt"]]
     for field in cls.__fields__.values():
@@ -86,11 +77,6 @@ def _stateDeserializeSingleton(data, field, entities):
     if not field.required and data is None:
         return None
     expectedType = field.type_
-    if issubclass(expectedType, ArmyId):
-        vals = data.split(",")
-        return ArmyId(
-            team=entities[vals[0]],
-            prestige=int(vals[1]))
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):

@@ -3,13 +3,11 @@ from typing import Dict, Optional
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
 from game.entities import MapTileEntity, Resource, Team
-from game.state import Army, ArmyGoal, ArmyId, ArmyMode
+from game.state import Army, ArmyGoal, ArmyMode
 
 
 class ActionArmyDeployArgs(ActionArgs):
-    team: Team
-    army: ArmyId
-    tile: MapTileEntity
+    armyIndex: int
     goal: ArmyGoal
     equipment: int
     friendlyTeam: Optional[Team] # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
