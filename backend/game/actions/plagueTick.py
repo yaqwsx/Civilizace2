@@ -9,8 +9,10 @@ class ActionPlagueTickArgs(ActionArgs):
     pass
 
 class ActionPlagueTick(ActionBase):
-    args: ActionPlagueTickArgs
-
+    @property
+    def args(self) -> ActionPlagueTickArgs:
+        assert isinstance(self._generalArgs, ActionPlagueTickArgs)
+        return self._generalArgs
 
     def cost(self) -> Dict[Resource, Decimal]:
         return {}

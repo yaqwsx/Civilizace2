@@ -347,3 +347,7 @@ class Printer(models.Model):
 
     objects = PrinterManager()
 
+class DbTick(models.Model):
+    name = models.CharField(max_length=32)
+    lastTick = models.DateTimeField(auto_now=True)
+

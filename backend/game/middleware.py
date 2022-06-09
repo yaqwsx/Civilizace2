@@ -1,8 +1,9 @@
 
+import os
 from game.actions.common import ActionCost
 from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
 from game.gameGlue import stateDeserialize, stateSerialize
-from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTurn, DbState, InteractionType
+from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTick, DbTurn, DbState, InteractionType
 from django.utils import timezone
 from django.db import transaction
 
@@ -74,6 +75,35 @@ def updateDelayedEffects():
     for effect in pending:
         ActionViewSet.performDelayedEffect(effect)
 
+@transaction.atomic
+def updatePlague():
+    delta = 5 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 1
+    now = timezone.now()
+    tick, _ = DbTick.objects.get_or_create(name="plague", defaults={"lastTick": now})
+    if tick.lastTick + timezone.timedelta(minutes=delta) > now:
+        return
+    entityRevision, entities = DbEntities.objects.get_revision()
+    dbState = DbState.objects.latest()
+    state = dbState.toIr()
+
+    action = ActionViewSet.constructAction("ActionPlagueTick", {}, entities, state)
+    dbAction = DbAction(
+            actionType="ActionPlagueTick",
+            entitiesRevision=entityRevision,
+            args=stateSerialize(action.args))
+    dbAction.save()
+
+    action.applyInitiate()
+    ActionViewSet.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.initiate, None, state, action)
+
+    action.applyCommit(0, action.diceRequirements()[1])
+    ActionViewSet.dbStoreInteraction(dbAction, dbState,
+                    InteractionType.commit, None, state, action)
+
+    tick.lastTick = now
+    tick.save()
+
 def turnUpdateMiddleware(get_response):
     def middleware(request):
         updateTurn()
@@ -85,6 +115,13 @@ def turnUpdateMiddleware(get_response):
 def delayedEffectsMiddleware(get_response):
     def middleware(request):
         updateDelayedEffects()
+        response = get_response(request)
+        return response
+    return middleware
+
+def plagueUpdateMiddleware(get_response):
+    def middleware(request):
+        updatePlague()
         response = get_response(request)
         return response
     return middleware

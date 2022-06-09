@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'game.middleware.turnUpdateMiddleware',
     'game.middleware.delayedEffectsMiddleware',
+    'game.middleware.plagueUpdateMiddleware'
 ]
 
 ROOT_URLCONF = 'backend.urls'
