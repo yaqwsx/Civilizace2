@@ -7,6 +7,12 @@ import { Button, Dialog, LoadingOrError } from "../elements";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import { objectMap } from "../utils/functional";
+import AceEditor from "react-ace";
+
+import "ace-builds/webpack-resolver";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/ext-language_tools";
+import "ace-builds/src-noconflict/mode-javascript";
 
 export function GodModeMenu() {
     return null;
@@ -18,12 +24,15 @@ export function GodMode() {
         error,
         mutate,
     } = useSWR<any>("/game/state/latest", fetcher);
-    const [newState, setNewState] = useState<any>(undefined);
+    const [newStateStr, setNewStateStr] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editor, setEditor] = useState<any>(undefined);
 
     useEffect(() => {
-        if (!newState && state) setNewState(state);
-    }, [state]);
+        if ((!newStateStr || newStateStr.length == 0) && state)
+            setNewStateStr(JSON.stringify(state, undefined, 4));
+        if (editor) editor.execCommand("foldall");
+    }, [state, editor]);
 
     if (!state) {
         return (
@@ -35,21 +44,45 @@ export function GodMode() {
         );
     }
 
-    let diff =
-        newState && state
-            ? jsonDiff(newState, state)
-            : {
-                  add: {},
-                  change: {},
-                  remove: {},
-              };
-
+    let diff = {
+        add: {},
+        change: {},
+        remove: {},
+    };
+    if (newStateStr && state) {
+        try {
+            diff = jsonDiff(JSON.parse(newStateStr), state);
+        } catch (e) {}
+    }
     console.log(diff);
 
     return (
         <>
             <h1>God mode</h1>
-            <Editor value={state} onChange={setNewState} />
+            {/* <Editor value={state} onChange={setNewState} /> */}
+
+            <AceEditor
+                mode="javascript"
+                theme="github"
+                onChange={setNewStateStr}
+                name="godmodeeditor"
+                onLoad={setEditor}
+                fontSize={14}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={true}
+                value={newStateStr}
+                className="w-full"
+                maxLines={Infinity}
+                setOptions={{
+                    enableBasicAutocompletion: false,
+                    enableLiveAutocompletion: false,
+                    enableSnippets: false,
+                    showLineNumbers: false,
+                    tabSize: 4,
+                }}
+            />
+
             <h2 className="mt-10 mb-4">Chcete provést následující změny:</h2>
             <Changelog {...diff} />
             <Button
@@ -64,9 +97,15 @@ export function GodMode() {
                         actionId="GodModeAction"
                         actionArgs={{
                             original: state,
-                            change: objectMap(diff.change, (v: any) => JSON.stringify(v)),
-                            add: objectMap(diff.add, (v: any) => JSON.stringify(v)),
-                            remove: objectMap(diff.remove, (v: any) => JSON.stringify(v))
+                            change: objectMap(diff.change, (v: any) =>
+                                JSON.stringify(v)
+                            ),
+                            add: objectMap(diff.add, (v: any) =>
+                                JSON.stringify(v)
+                            ),
+                            remove: objectMap(diff.remove, (v: any) =>
+                                JSON.stringify(v)
+                            ),
                         }}
                         onFinish={() => {
                             setIsSubmitting(false);
