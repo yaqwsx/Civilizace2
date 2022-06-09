@@ -50,6 +50,8 @@ import { GodMode, GodModeMenu } from "./pages/godmode";
 import { ScanTest } from "./pages/scanTest";
 import { useAtom } from "jotai";
 import { menuShownAtom } from "./pages/atoms";
+import { UnfinishedActionBar } from "./elements/action";
+import { FinishAction } from "./pages/action";
 
 function IconHamburger() {
     return (
@@ -364,9 +366,14 @@ function Error404() {
 }
 
 function AppPages() {
+    const account = useSelector((state: RootState) => state.auth.account);
+
     return (
         <AppFrame>
             <ScannerNavigator />
+            {
+                account?.user?.isOrg ? <UnfinishedActionBar/> : <></>
+            }
             <Routes>
                 <Route
                     path="/dashboard/*"
@@ -399,6 +406,7 @@ function OrgPages() {
             <Route path="/tasks/*" element={<Tasks />} />
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
+            <Route path="/actions/:actionId" element={<FinishAction/>}/>
             <Route
                 path="*"
                 element={

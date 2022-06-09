@@ -149,9 +149,11 @@ export interface ActionResponse {
 }
 
 export interface ActionCommitResponse {
-    dotsRequired: number;
+    requiredDots: number;
     allowedDice: string[];
     throwCost: number;
+    description: string;
+    team: string;
 }
 
 export interface Printer {
@@ -161,4 +163,9 @@ export interface Printer {
     port: number;
     registeredAt: string;
     printsStickers: boolean;
+}
+
+export interface UnfinishedAction {
+    id: number;
+    description?: string
 }

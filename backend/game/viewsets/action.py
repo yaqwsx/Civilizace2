@@ -19,6 +19,7 @@ from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction,
                          DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn,
                          InteractionType, StickerType)
+from django.db.models import Q, Count
 from game.state import StateModel
 from game.viewsets.permissions import IsOrg
 from rest_framework import serializers, viewsets
@@ -435,7 +436,8 @@ class ActionViewSet(viewsets.ViewSet):
                 "requiredDots": diceReq[1],
                 "allowedDice": list(diceReq[0]),
                 "throwCost": action.throwCost(),
-                "description": dbAction.description
+                "description": dbAction.description,
+                "team": action.team
             })
 
         if dbAction.interactions.count() != 1:
@@ -500,4 +502,19 @@ class ActionViewSet(viewsets.ViewSet):
         except Exception as e:
             tb = traceback.format_exc()
             return self._unexpectedErrorResponse(e, tb)
+
+
+    @action(methods=["GET"], detail=False)
+    @transaction.atomic()
+    def unfinished(self, request):
+        unfinishedInteractions = DbInteraction.objects \
+            .filter(phase=InteractionType.initiate, author=request.user) \
+            .annotate(interaction_count=Count("action__interactions")) \
+            .filter(interaction_count=1)
+        unfinishedActions = DbAction.objects \
+            .filter(interactions__in=unfinishedInteractions).distinct()
+        return Response([{
+                "id": x.id,
+                "description": x.description
+            } for x in unfinishedActions])
 

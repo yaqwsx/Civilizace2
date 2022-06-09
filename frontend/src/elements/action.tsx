@@ -5,6 +5,7 @@ import {
     ActionStatus,
     Sticker,
     Team,
+    UnfinishedAction,
 } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 
@@ -26,9 +27,42 @@ import { toast } from "react-toastify";
 
 import _ from "lodash";
 import useSWR from "swr";
-import { useTeamWork } from "./entities";
+import { dieName, useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers, PrintVoucher } from "./printing";
+import { Link, Navigate } from "react-router-dom";
+
+export function useUnfinishedActions(refreshInterval?: number) {
+    const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
+        "game/actions/unfinished",
+        fetcher,
+        {
+            refreshInterval: refreshInterval,
+        }
+    );
+    return {
+        actions,
+        ...other,
+    };
+}
+
+export function UnfinishedActionBar() {
+    const { actions } = useUnfinishedActions(15000);
+
+    if (!actions || actions.length == 0) return null;
+    return (
+        <div className="red-500 mb-4 w-full border-t-4 border-red-500 bg-red-200 p-3 shadow-md">
+            {actions.map((a) => {
+                return (
+                    <Link key={a.id} to={`/actions/${a.id}`} className="block w-full">
+                        Máte nedokončenou akci {a.id}: {a.description}.
+                        Dokončete ji prosím kliknutím.
+                    </Link>
+                );
+            })}
+        </div>
+    );
+}
 
 function useActionPreview(actionId: string, actionArgs: any) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
@@ -68,7 +102,7 @@ function useActionPreview(actionId: string, actionArgs: any) {
     };
 }
 
-enum ActionPhase {
+export enum ActionPhase {
     initiatePhase = 0,
     diceThrowPhase = 1,
     finish = 2,
@@ -116,10 +150,8 @@ export function PerformAction(props: {
     if (phase.phase == ActionPhase.diceThrowPhase) {
         return (
             <ActionDicePhase
-                team={props.team}
                 actionId={phase.data.action}
                 message={phase.data.message}
-                dotsRequired={phase.data.dotsRequired}
                 actionName={props.actionName}
                 changePhase={changePhase}
             />
@@ -176,6 +208,12 @@ function ActionPreviewPhase(props: {
     );
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
+
+    const {actions} = useUnfinishedActions();
+
+    if (actions && actions.length !=0 ) {
+        return <Navigate to={`/actions/${actions[0].id}`}/>
+    }
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
@@ -259,10 +297,8 @@ function ActionPreviewPhase(props: {
     );
 }
 
-function ActionDicePhase(props: {
-    team?: Team;
+export function ActionDicePhase(props: {
     actionId: number;
-    dotsRequired: number;
     message: string;
     actionName: string;
     changePhase: (phase: ActionPhase, data: any) => void;
@@ -274,9 +310,24 @@ function ActionDicePhase(props: {
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
 
+    let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
+
+    if (!action) {
+        return (
+            <>
+                {header}
+                <LoadingOrError
+                    loading={!action && !actionErr}
+                    error={actionErr}
+                    message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
+                />
+            </>
+        );
+    }
+
     let handleSubmit = () => {
         if (
-            throwInfo.dots < props.dotsRequired &&
+            throwInfo.dots < action.requiredDots &&
             !window.confirm("Opravdu tým nenaházel dostatek?")
         )
             return;
@@ -327,30 +378,20 @@ function ActionDicePhase(props: {
             dots: dots,
         });
 
-    let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
-
-    if (!action) {
-        return (
-            <>
-                {header}
-                <LoadingOrError
-                    loading={!action && !actionErr}
-                    error={actionErr}
-                    message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
-                />
-            </>
-        );
-    }
-
     return (
         <>
             {header}
             <NeutralMessage>
                 <CiviMarkdown>{props.message}</CiviMarkdown>
-                Cena hodu je {action.throwCost} práce.
+                Je třeba naházet {action.requiredDots}. Cena hodu je {action.throwCost} práce. Je možné házet pomocí:{" "}
+                <ul>
+                    {action.allowedDice.map((x) => (
+                        <li key={x}>{dieName(x)}</li>
+                    ))}
+                </ul>
             </NeutralMessage>
             <DiceThrowForm
-                team={props.team}
+                teamId={action.team}
                 dots={throwInfo.dots}
                 throws={throwInfo.throws}
                 throwCost={action.throwCost}
@@ -367,7 +408,7 @@ function ActionDicePhase(props: {
                 />
                 <Button
                     label={submitting ? "Odesílám, počkej" : "Odeslat"}
-                    className="my-1 mx-0 py-8 md:py-1 w-full bg-green-500 hover:bg-green-600  md:mx-3 md:w-1/2"
+                    className="my-1 mx-0 w-full bg-green-500 py-8 hover:bg-green-600 md:mx-3  md:w-1/2 md:py-1"
                     disabled={submitting}
                     onClick={handleSubmit}
                 />
@@ -377,7 +418,7 @@ function ActionDicePhase(props: {
 }
 
 function DiceThrowForm(props: {
-    team?: Team;
+    teamId?: string;
     dots: number;
     throws: number;
     throwCost: number;
@@ -386,7 +427,7 @@ function DiceThrowForm(props: {
 }) {
     const [otherInput, setOtherInput] = useState<number | string>("");
     const [otherInputRef, setOtherInputFocus] = useFocus();
-    const { teamWork } = useTeamWork(props.team);
+    const { teamWork } = useTeamWork(props.teamId);
     useEffect(() => {
         setOtherInputFocus();
     }, []);
@@ -418,10 +459,10 @@ function DiceThrowForm(props: {
         <div className="w-full">
             <div className="container mt-4 w-full">
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
-                    <div className="inline-block w-full md:w-1/4 px-3 text-left md:text-right align-middle my-1">
+                    <div className="my-1 inline-block w-full px-3 text-left align-middle md:w-1/4 md:text-right">
                         Teček:
                     </div>
-                    <div className="field inline-block w-full md:w-3/4 px-0 align-middle">
+                    <div className="field inline-block w-full px-0 align-middle md:w-3/4">
                         <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
@@ -433,10 +474,10 @@ function DiceThrowForm(props: {
                     </div>
                 </div>
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
-                    <div className="inline-block w-full md:w-1/4 px-3 text-left md:text-right align-middle my-1">
+                    <div className="my-1 inline-block w-full px-3 text-left align-middle md:w-1/4 md:text-right">
                         Hodů:
                     </div>
-                    <div className="field inline-block w-full md:w-3/4 px-0 align-middle">
+                    <div className="field inline-block w-full px-0 align-middle md:w-3/4">
                         <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
@@ -447,8 +488,8 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-3 py-2 font-bold md:inline-block md:w-1/5 text-center">
-                        Zbývá {throwsLeft} hodů (pouze odhad)
+                <div className="mx-0 my-1 w-full px-3 py-2 text-center font-bold md:inline-block md:w-1/5">
+                    Zbývá {throwsLeft} hodů (pouze odhad)
                 </div>
             </div>
 
@@ -494,7 +535,7 @@ function DiceThrowForm(props: {
     );
 }
 
-function ActionFinishPhase(props: {
+export function ActionFinishPhase(props: {
     response: ActionResponse;
     actionName: string;
     onFinish: () => void;
@@ -511,7 +552,10 @@ function ActionFinishPhase(props: {
 
     return (
         <>
-            <h1>Akce {props.actionName} {props.response.success ? "dokončena" : "skončila s chybou"}</h1>
+            <h1>
+                Akce {props.actionName}{" "}
+                {props.response.success ? "dokončena" : "skončila s chybou"}
+            </h1>
             <ActionMessage response={props.response} />
 
             {props.response?.stickers && props.response.stickers.length > 0 && (

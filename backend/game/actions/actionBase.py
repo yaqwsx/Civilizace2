@@ -34,6 +34,12 @@ class ActionInterface(BaseModel):
     def entities(self):
         return self._entities
 
+    @property
+    def team(self):
+        if hasattr(self._generalArgs, "team"):
+            return self._generalArgs.team.id
+        return None
+
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         """
@@ -238,7 +244,7 @@ class ActionBase(ActionInterface):
 
 
     def applyInitiate(self) -> ActionResult:
-        cost = self.costSubstituted()        
+        cost = self.costSubstituted()
         message = ""
         if len(cost) > 0:
             require = self.payResources(cost)

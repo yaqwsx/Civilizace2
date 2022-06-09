@@ -380,7 +380,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                         value={value}
                                         onChange={(e) => {
                                             let newV = e.target.value;
-                                            console.log("X", newV)
                                             let newC =
                                                 Object.create(concretization);
                                             newC[resource.id] = newV;
