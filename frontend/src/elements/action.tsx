@@ -358,7 +358,7 @@ function ActionDicePhase(props: {
                 enabled={!submitting}
             />
 
-            <div className="row flex">
+            <div className="row md:flex">
                 <Button
                     label="Zrušit akci"
                     className="my-1 mx-0 w-full bg-red-300 hover:bg-red-400 md:mx-3 md:w-1/2"
@@ -367,7 +367,7 @@ function ActionDicePhase(props: {
                 />
                 <Button
                     label={submitting ? "Odesílám, počkej" : "Odeslat"}
-                    className="my-1 mx-0 w-full bg-green-500 hover:bg-green-600  md:mx-3 md:w-1/2"
+                    className="my-1 mx-0 py-8 md:py-1 w-full bg-green-500 hover:bg-green-600  md:mx-3 md:w-1/2"
                     disabled={submitting}
                     onClick={handleSubmit}
                 />
@@ -393,7 +393,6 @@ function DiceThrowForm(props: {
 
     const handleThrow = (amount: number) => {
         props.update(props.dots + amount, props.throws + 1);
-        setOtherInputFocus();
     };
     const handleArbitraryThrow = () => {
         // @ts-ignore
@@ -401,6 +400,7 @@ function DiceThrowForm(props: {
             // @ts-ignore
             props.update(props.dots + otherInput, props.throws + 1);
         setOtherInput("");
+        setOtherInputFocus();
     };
     const handleKeyDown = (event: any) => {
         if (event.key === "Enter") {
@@ -418,10 +418,10 @@ function DiceThrowForm(props: {
         <div className="w-full">
             <div className="container mt-4 w-full">
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
-                    <div className="inline-block w-1/4 px-3 text-right align-middle">
+                    <div className="inline-block w-full md:w-1/4 px-3 text-left md:text-right align-middle my-1">
                         Teček:
                     </div>
-                    <div className="field inline-block w-3/4 px-0 align-middle">
+                    <div className="field inline-block w-full md:w-3/4 px-0 align-middle">
                         <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
@@ -433,10 +433,10 @@ function DiceThrowForm(props: {
                     </div>
                 </div>
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
-                    <div className="inline-block w-1/4 px-3 text-right align-middle">
+                    <div className="inline-block w-full md:w-1/4 px-3 text-left md:text-right align-middle my-1">
                         Hodů:
                     </div>
-                    <div className="field inline-block w-3/4 px-0 align-middle">
+                    <div className="field inline-block w-full md:w-3/4 px-0 align-middle">
                         <SpinboxInput
                             disabled={!props.enabled}
                             className="numberinput w-full"
@@ -447,11 +447,8 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-1/5">
-                    <div className="inline-block w-1/4 px-3 text-right align-middle"></div>
-                    <div className="field inline-block w-3/4 px-0 align-middle font-bold">
+                <div className="mx-0 my-1 w-full px-3 py-2 font-bold md:inline-block md:w-1/5 text-center">
                         Zbývá {throwsLeft} hodů (pouze odhad)
-                    </div>
                 </div>
             </div>
 
