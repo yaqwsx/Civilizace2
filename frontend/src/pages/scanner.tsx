@@ -31,7 +31,7 @@ export function ScannerDispatcher(props: { children: any }) {
     useEffect(() => {
         onScan.attachTo(document, {
             onScan: handleCodes,
-            keyCodeMapper: decodeKeyEvent,
+            keyCodeMapper: decodeKeyEvent
         });
         return () => {
             onScan.detachFrom(document);

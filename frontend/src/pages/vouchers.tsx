@@ -36,7 +36,7 @@ export function Vouchers() {
     });
 
     let handleAddVoucher = () => {
-        let code = currentCode.toUpperCase().trim();
+        let code = currentCode.replace("vou-", "").toUpperCase().trim();
         if (code.length == 0) return;
         if (vouchers.includes(code)) return;
         setVouchers(vouchers.concat([code]));
@@ -63,7 +63,6 @@ export function Vouchers() {
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
-    console.log(result);
     return (
         <>
             <h1>Výběr směnek</h1>
