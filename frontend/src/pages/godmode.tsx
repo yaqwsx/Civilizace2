@@ -227,9 +227,9 @@ function jsonDiff(newJson: any, originalJson: any) {
     var change: Record<string, any> = {};
     mergeArrays(Object.keys(newJ), Object.keys(origJ)).forEach((key: any) => {
         if (!(key in newJ)) {
-            remove[key] = origJ[key];
+            remove[key] = [origJ[key]];
         } else if (!(key in origJ)) {
-            add[key] = newJ[key];
+            add[key] = [newJ[key]];
         } else if (newJ[key] != origJ[key]) {
             if (Array.isArray(newJ[key])) {
                 var newArr = newJ[key];

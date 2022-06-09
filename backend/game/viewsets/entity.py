@@ -9,8 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
+from game.actions.feed import computeFeedRequirements
 from game.entities import Entities, Entity, Tech
-from game.gameGlue import serializeEntity
+from game.gameGlue import serializeEntity, stateSerialize
 
 from rest_framework import serializers
 
@@ -299,3 +300,12 @@ class TeamViewSet(viewsets.ViewSet):
         storage = self.getTeamState(pk).storage
 
         return Response({r.id: a for r, a in storage.items() if a > 0})
+
+    @action(detail=True)
+    def feeding(self, request, pk):
+        self.validateAccess(request.user, pk)
+        teamState, entities = self.getTeamStateAndEntities(pk)
+        state = teamState.parent
+        team = entities[pk]
+
+        return Response(stateSerialize(computeFeedRequirements(state, entities, team)))

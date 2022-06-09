@@ -99,6 +99,11 @@ class GodModeAction(ActionBase):
         self._changeRec(path[1:], newObj, value, originalPath)
 
     def _addRec(self, path: List[str], object, value, originalPath):
+        key = self.entities.get(path[0], path[0])
+        if len(path) == 1 and isinstance(object, dict):
+            if key not in object or not isinstance(object[key], list):
+                object[key] = value
+                return
         if len(path) == 0:
             value = self.entities.get(value, value)
             if isinstance(object, list):
@@ -108,7 +113,6 @@ class GodModeAction(ActionBase):
             else:
                 raise RuntimeError("Unknown object")
             return
-        key = self.entities.get(path[0], path[0])
         if isinstance(object, dict):
             newObj = object[key]
         else:
@@ -116,6 +120,10 @@ class GodModeAction(ActionBase):
         self._addRec(path[1:], newObj, value, originalPath)
 
     def _deleteRec(self, path: List[str], object, value, originalPath):
+        if len(path) == 1 and isinstance(object, dict):
+            if key in object and not isinstance(object[key], list):
+                del object[key]
+                return
         if len(path) == 0:
             value = self.entities.get(value, value)
             if isinstance(object, list) or isinstance(object, set):
