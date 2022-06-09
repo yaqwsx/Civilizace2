@@ -48,6 +48,8 @@ import { InfoScreen } from "./pages/info";
 import { RequireOrg, RequireAuth, RequireSuperOrg } from "./elements";
 import { GodMode, GodModeMenu } from "./pages/godmode";
 import { ScanTest } from "./pages/scanTest";
+import { useAtom } from "jotai";
+import { menuShownAtom } from "./pages/atoms";
 
 function IconHamburger() {
     return (
@@ -246,7 +248,7 @@ function ApplicationMenu() {
 }
 
 function ApplicationHeader() {
-    const [menuExpanded, setMenuExpanded] = useState(false);
+    const [menuExpanded, setMenuExpanded] = useAtom(menuShownAtom);
 
     let toggleExpanded = () => setMenuExpanded(!menuExpanded);
 

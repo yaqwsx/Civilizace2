@@ -22,6 +22,7 @@ import {
 } from "../elements/team";
 import { EntityTech, Task, Team, TeamEntityTech } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
+import { useHideMenu } from "./atoms";
 import { useEditableTasks } from "./tasks";
 
 export function TechMenu() {
@@ -29,6 +30,7 @@ export function TechMenu() {
 }
 
 export function Tech() {
+    useHideMenu();
     const { team, setTeam, loading, error } = useTeamFromUrl();
 
     if (loading || error)

@@ -13,12 +13,15 @@ import "ace-builds/webpack-resolver";
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/mode-javascript";
+import { useHideMenu } from "./atoms";
 
 export function GodModeMenu() {
     return null;
 }
 
 export function GodMode() {
+    useHideMenu();
+
     const {
         data: state,
         error,

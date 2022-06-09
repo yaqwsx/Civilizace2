@@ -13,6 +13,7 @@ import { EntityTag } from "../elements/entities";
 import { ErrorMessage, SuccessMessage } from "../elements/messages";
 import { PrintStickers } from "../elements/printing";
 import axiosService, { fetcher } from "../utils/axios";
+import { useHideMenu } from "./atoms";
 import { ScannerContext, useScanner } from "./scanner";
 
 export function VouchersMenu() {
@@ -20,6 +21,7 @@ export function VouchersMenu() {
 }
 
 export function Vouchers() {
+    useHideMenu();
     const [currentCode, setCurrentCode] = useState("");
     const [vouchers, setVouchers] = useState<string[]>([]);
     const [isSubmitting, setSubmitting] = useState(false);

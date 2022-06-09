@@ -39,6 +39,7 @@ import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import _ from "lodash";
 import { ARMY_GOALS } from "./map";
+import { useHideMenu } from "./atoms";
 
 export const urlVyrobaActionAtom = atomWithHash<string | undefined>(
     "vyrobaAction",
@@ -54,6 +55,8 @@ export function VyrobaMenu() {
 }
 
 export function Vyroba() {
+    useHideMenu();
+
     const { team, setTeam, loading, error } = useTeamFromUrl();
     const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);

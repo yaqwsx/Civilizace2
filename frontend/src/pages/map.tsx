@@ -20,6 +20,7 @@ import {
 } from "../elements/team";
 import { Team } from "../types";
 import { fetcher } from "../utils/axios";
+import { useHideMenu } from "./atoms";
 
 export function MapMenu() {
     return null;
@@ -50,6 +51,7 @@ const urlMapActionAtom = atomWithHash<MapActiontype>(
 );
 
 export function MapAgenda() {
+    useHideMenu();
     const { team, setTeam, loading, error } = useTeamFromUrl();
     const [action, setAction] = useAtom(urlMapActionAtom);
 

@@ -26,12 +26,15 @@ import DateTime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { toast } from "react-toastify";
 import { objectMap } from "../utils/functional";
+import { useHideMenu } from "./atoms";
 
 export function AnnouncementsMenu() {
     return null;
 }
 
 export function Announcements() {
+    useHideMenu();
+
     return (
         <Routes>
             <Route path="" element={<AnnouncementsOverview />} />

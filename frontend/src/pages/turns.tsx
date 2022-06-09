@@ -15,12 +15,14 @@ import { ChangeEvent, useState } from "react";
 import { date } from "yup/lib/locale";
 import { toast } from "react-toastify";
 import { CurrentTurnCountdown } from "../elements/turns";
+import { useHideMenu } from "./atoms";
 
 export function TurnsMenu() {
     return null;
 }
 
 export function Turns() {
+    useHideMenu();
     const { mutate: globalMutate } = useSWRConfig();
     const { data: turns, error: roundsError } = useSWR<Turn[]>(
         "game/turns",

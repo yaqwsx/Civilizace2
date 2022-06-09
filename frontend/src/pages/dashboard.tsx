@@ -40,6 +40,7 @@ import { TurnCountdownSticker } from "../elements/turns";
 import QRCode from "react-qr-code";
 import { strictEqual } from "assert";
 import { PrintStickers, PrintVoucher } from "../elements/printing";
+import { useHideMenu } from "./atoms";
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -133,6 +134,8 @@ export function DashboardMenu() {
 }
 
 export function Dashboard() {
+    useHideMenu();
+
     const user = useSelector((state: RootState) => state.auth.account?.user);
     const { teams, error: teamError } = useTeams();
     const [urlTeamId] = useTeamIdFromUrl();

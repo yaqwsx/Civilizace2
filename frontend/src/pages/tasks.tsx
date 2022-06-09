@@ -25,6 +25,7 @@ import { objectMap } from "../utils/functional";
 import { toast } from "react-toastify";
 import { toDate } from "date-fns/esm";
 import { data } from "autoprefixer";
+import { useHideMenu } from "./atoms";
 
 export function TasksMenu() {
     return null;
@@ -49,6 +50,8 @@ export function useEditableTasks() {
 }
 
 function TasksOverview() {
+    useHideMenu();
+
     const { data: tasks, error: taskError, mutate: mutateTasks } = useEditableTasks();
     const {
         data: techs,
