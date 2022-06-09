@@ -36,8 +36,11 @@ class GodModeAction(ActionBase):
             self._changeRec(p, self.state, json.loads(v), path)
         for path, vals in self.args.add.items():
             for v in json.loads(vals):
-                p = path.split(".")
-                self._addRec(p, self.state, v, path)
+                if isinstance(v, str) and len(v) == 0:
+                    self._errors.add(f"Nemůžu přidat prázdný řetězec do klíče {path}")
+                else:
+                    p = path.split(".")
+                    self._addRec(p, self.state, v, path)
         for path, vals in self.args.remove.items():
             for v in json.loads(vals):
                 p = path.split(".")
@@ -57,7 +60,24 @@ class GodModeAction(ActionBase):
         """
         Ensures that the relevant pieces of the state weren't changed in between
         """
-        pass # TBA
+        paths = set()
+        paths.update(self.args.change.keys())
+        paths.update(self.args.add.keys())
+        paths.update(self.args.remove.keys())
+        for p in paths:
+            p = p.split(".")
+            if p[0] == "teamStates":
+                t = self.entities[p[1]]
+                if self.state.teamStates[t] != self.args.original.teamStates[t]:
+                    self._errors.add(f"Chcete měnit stav týmu {t.name}, ale v průběhu editace se jejich stav změnil. Zadejte znovu.")
+            if p[0] == "world":
+                if self.state.world != self.args.original.world:
+                    self._errors.add(f"Stav světa se změnil během vašich úprav, prosím opakujte")
+            if p[0] == "map":
+                if self.state.map != self.args.original.map:
+                    self._errors.add(f"Stav mapy se změnil během vašich úprav, prosím opakujte")
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
 
     def _changeRec(self, path: List[str], object, value, originalPath):
         key = self.entities.get(path[0], path[0])
@@ -108,7 +128,6 @@ class GodModeAction(ActionBase):
         else:
             newObj = getattr(object, key)
         self._deleteRec(path[1:], newObj, value, originalPath)
-
 
 
 
