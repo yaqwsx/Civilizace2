@@ -110,9 +110,23 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def vyrobas(self, request, pk):
         self.validateAccess(request.user, pk)
-        vList = list(self.getTeamState(pk).vyrobas)
+        teamState, entities = self.getTeamStateAndEntities(pk)
+        state = teamState.parent
+
+        vList = list(teamState.vyrobas)
+        teamReachableTiles = state.map.getReachableTiles(entities[pk])
+
+        def isTileSuitable(vyroba, tile):
+            tileFeatures = set(tile.buildings).union(tile.entity.naturalResources)
+            return all(f in tileFeatures for f in vyroba.requiredFeatures)
+
+        def enrich(vyroba: Entity) -> Dict[str, Any]:
+            return {
+                "allowedTiles": [t.id for t in teamReachableTiles if isTileSuitable(vyroba, t)]
+            }
+
         vList.sort(key=lambda x: x.id)
-        return Response({e.id: serializeEntity(e) for e in vList})
+        return Response({e.id: serializeEntity(e, enrich) for e in vList})
 
 
     @action(detail=True)

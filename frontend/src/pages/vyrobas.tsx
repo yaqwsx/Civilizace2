@@ -17,7 +17,7 @@ import {
 } from "../elements/team";
 import {
     Team,
-    EntityVyroba,
+    TeamEntityVyroba,
     EntityResource,
     Entity,
     TeamEntityResource,
@@ -115,7 +115,7 @@ export function Vyroba() {
 
 type SelectVyrobaProps = {
     team: Team;
-    active?: EntityVyroba;
+    active?: TeamEntityVyroba;
 };
 function SelectVyroba(props: SelectVyrobaProps) {
     const {
@@ -234,7 +234,7 @@ function computeConcretization(entities?: Record<string, EntityResource>) {
 }
 
 type PerformVyrobaProps = {
-    vyroba: EntityVyroba;
+    vyroba: TeamEntityVyroba;
     resources: Record<string, TeamEntityResource>;
     team: Team;
     onReset: () => void;
@@ -282,39 +282,41 @@ function PerformVyroba(props: PerformVyrobaProps) {
         })
     );
 
-    console.log(tile);
-
     return (
-            <PerformAction
-                team={props.team}
-                actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
-                actionId="ActionVyroba"
-                actionArgs={{
-                    team: props.team.id,
-                    vyroba: props.vyroba.id,
-                    count: amount,
-                    tile: tile,
-                    plunder: plunder,
-                    genericsMapping: concretization,
-                    // TBA army
-                }}
-                onFinish={() => props.onReset()}
-                onBack={() => props.onReset()}
-                extraPreview={
-                    <>
-                        <FormRow label="Zadejte počet výrob:">
-                            <SpinboxInput
-                                value={amount}
-                                onChange={handleAmountChange}
-                            />
-                        </FormRow>
-                        <FormRow label="Vyberte pole mapy pro výrobu:">
-                            <select
-                                className="select field"
-                                value={tile}
-                                onChange={(e) => setTile(e.target.value)}
-                            >
-                                {tiles.map((t) => (
+        <PerformAction
+            team={props.team}
+            actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
+            actionId="ActionVyroba"
+            actionArgs={{
+                team: props.team.id,
+                vyroba: props.vyroba.id,
+                count: amount,
+                tile: tile,
+                plunder: plunder,
+                genericsMapping: concretization,
+                // TBA army
+            }}
+            onFinish={() => props.onReset()}
+            onBack={() => props.onReset()}
+            extraPreview={
+                <>
+                    <FormRow label="Zadejte počet výrob:">
+                        <SpinboxInput
+                            value={amount}
+                            onChange={handleAmountChange}
+                        />
+                    </FormRow>
+                    <FormRow label="Vyberte pole mapy pro výrobu:">
+                        <select
+                            className="select field"
+                            value={tile}
+                            onChange={(e) => setTile(e.target.value)}
+                        >
+                            {tiles
+                                .filter((t) =>
+                                    vyroba.allowedTiles.includes(t.entity)
+                                )
+                                .map((t) => (
                                     <option key={t.entity} value={t.entity}>
                                         {t.name}{" "}
                                         {t?.homeTeam
@@ -322,157 +324,148 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                             : null}
                                     </option>
                                 ))}
+                        </select>
+                    </FormRow>
+                    <FormRow label="Chcete pole drancovat (+25%)?">
+                        <input
+                            className="checkboxinput"
+                            type="checkbox"
+                            checked={plunder}
+                            onChange={(e) => setPlunder(e.target.checked)}
+                        />
+                    </FormRow>
+                    <h2>
+                        {amount}× {vyroba.name} → {amount * vyroba.reward[1]}×{" "}
+                        <EntityTag id={vyroba.reward[0]} />
+                    </h2>
+                    {cost.map(([resource, rAmount]) => {
+                        let available = _.get(
+                            props.resources,
+                            resource.id,
+                            undefined
+                        )?.available;
+                        let error = undefined;
+                        if (available !== undefined && available < rAmount)
+                            error = "Nedostatek zdroje";
+                        let input = (
+                            <select className="field select w-full">
+                                <option>
+                                    {resource.name}{" "}
+                                    {available && `(${available}×)`}
+                                </option>
                             </select>
-                        </FormRow>
-                        <FormRow label="Chcete pole drancovat (+25%)?">
-                            <input
-                                className="checkboxinput"
-                                type="checkbox"
-                                checked={plunder}
-                                onChange={(e) => setPlunder(e.target.checked)}
-                            />
-                        </FormRow>
-                        <h2>
-                            {amount}× {vyroba.name} →{" "}
-                            {amount * vyroba.reward[1]}×{" "}
-                            <EntityTag id={vyroba.reward[0]} />
-                        </h2>
-                        {cost.map(([resource, rAmount]) => {
+                        );
+                        if (isProduction(resource) && isGeneric(resource)) {
+                            let options = mapping[resource.id];
+                            let value = _.get(concretization, resource.id, "");
+
                             let available = _.get(
                                 props.resources,
-                                resource.id,
+                                value,
                                 undefined
                             )?.available;
-                            let error = undefined;
                             if (available !== undefined && available < rAmount)
                                 error = "Nedostatek zdroje";
-                            let input = (
-                                <select className="field select w-full">
-                                    <option>
-                                        {resource.name}{" "}
-                                        {available && `(${available}×)`}
-                                    </option>
+
+                            input = (
+                                <select
+                                    className="field select w-full bg-blue-300"
+                                    value={value}
+                                    onChange={(e) => {
+                                        let newV = e.target.value;
+                                        let newC =
+                                            Object.create(concretization);
+                                        newC[resource.id] = newV;
+                                        setConcretization(newC);
+                                        console.log("Y", resource.id, newC);
+                                    }}
+                                >
+                                    <option>Vyberte konkretizaci</option>
+                                    {options.map((o) => {
+                                        let available = _.get(
+                                            props.resources,
+                                            o.id,
+                                            undefined
+                                        )?.available;
+                                        return (
+                                            <option key={o.id} value={o.id}>
+                                                {o.name}{" "}
+                                                {available && `(${available}×)`}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             );
-                            if (isProduction(resource) && isGeneric(resource)) {
-                                let options = mapping[resource.id];
-                                let value = _.get(
-                                    concretization,
-                                    resource.id,
-                                    ""
-                                );
-
-                                let available = _.get(
-                                    props.resources,
-                                    value,
-                                    undefined
-                                )?.available;
-                                if (
-                                    available !== undefined &&
-                                    available < rAmount
-                                )
-                                    error = "Nedostatek zdroje";
-
-                                input = (
-                                    <select
-                                        className="field select w-full bg-blue-300"
-                                        value={value}
-                                        onChange={(e) => {
-                                            let newV = e.target.value;
-                                            let newC =
-                                                Object.create(concretization);
-                                            newC[resource.id] = newV;
-                                            setConcretization(newC);
-                                            console.log("Y", resource.id, newC);
-                                        }}
-                                    >
-                                        <option>Vyberte konkretizaci</option>
-                                        {options.map((o) => {
-                                            let available = _.get(
-                                                props.resources,
-                                                o.id,
-                                                undefined
-                                            )?.available;
+                        }
+                        return (
+                            <FormRow
+                                key={resource.id}
+                                label={`Je třeba ${amount * rAmount}× ${
+                                    resource.name
+                                } a realizuje se jako: `}
+                                error={error}
+                            >
+                                {input}
+                            </FormRow>
+                        );
+                    })}
+                    <h2>Armádní posila</h2>
+                    <FormRow label="Přejete si poslat armádu?">
+                        <input
+                            className="checkboxinput"
+                            type="checkbox"
+                            checked={useArmy}
+                            onChange={(e) => setUseArmy(e.target.checked)}
+                        />
+                    </FormRow>
+                    {useArmy && (
+                        <>
+                            <FormRow label="Vyberte armádu:">
+                                <select className="field select">
+                                    <option>
+                                        Armáda A (síla 10) stojí na poli 28
+                                    </option>
+                                    <option>
+                                        Armáda B (síla 10) stojí na poli 12
+                                    </option>
+                                    <option>
+                                        Armáda C (síla 10) stojí na poli 4
+                                    </option>
+                                </select>
+                            </FormRow>
+                            <FormRow label="Mód:">
+                                <select
+                                    className="select"
+                                    value={goal}
+                                    onChange={(e) =>
+                                        setGoal(parseInt(e.target.value))
+                                    }
+                                >
+                                    {Object.entries(ARMY_GOALS).map(
+                                        ([k, v]) => {
+                                            if (k == "2")
+                                                // Zásobování
+                                                return null;
                                             return (
-                                                <option value={o.id}>
-                                                    {o.name}{" "}
-                                                    {available &&
-                                                        `(${available}×)`}
+                                                <option key={k} value={k}>
+                                                    {v}
                                                 </option>
                                             );
-                                        })}
-                                    </select>
-                                );
-                            }
-                            return (
-                                <FormRow
-                                    key={resource.id}
-                                    label={`Je třeba ${amount * rAmount}× ${
-                                        resource.name
-                                    } a realizuje se jako: `}
-                                    error={error}
-                                >
-                                    {input}
-                                </FormRow>
-                            );
-                        })}
-                        <h2>Armádní posila</h2>
-                        <FormRow label="Přejete si poslat armádu?">
-                            <input
-                                className="checkboxinput"
-                                type="checkbox"
-                                checked={useArmy}
-                                onChange={(e) => setUseArmy(e.target.checked)}
-                            />
-                        </FormRow>
-                        {useArmy && (
-                            <>
-                                <FormRow label="Vyberte armádu:">
-                                    <select className="field select">
-                                        <option>
-                                            Armáda A (síla 10) stojí na poli 28
-                                        </option>
-                                        <option>
-                                            Armáda B (síla 10) stojí na poli 12
-                                        </option>
-                                        <option>
-                                            Armáda C (síla 10) stojí na poli 4
-                                        </option>
-                                    </select>
-                                </FormRow>
-                                <FormRow label="Mód:">
-                                    <select
-                                        className="select"
-                                        value={goal}
-                                        onChange={(e) =>
-                                            setGoal(parseInt(e.target.value))
                                         }
-                                    >
-                                        {Object.entries(ARMY_GOALS).map(
-                                            ([k, v]) => {
-                                                if (k == "2")
-                                                    // Zásobování
-                                                    return null;
-                                                return (
-                                                    <option key={k} value={k}>
-                                                        {v}
-                                                    </option>
-                                                );
-                                            }
-                                        )}
-                                    </select>
-                                </FormRow>
-                                <FormRow label="Jakou bude mít výzbroj?">
-                                    <SpinboxInput
-                                        value={equipment}
-                                        onChange={setEquipment}
-                                    />
-                                </FormRow>
-                            </>
-                        )}
-                    </>
-                }
-            />
+                                    )}
+                                </select>
+                            </FormRow>
+                            <FormRow label="Jakou bude mít výzbroj?">
+                                <SpinboxInput
+                                    value={equipment}
+                                    onChange={setEquipment}
+                                />
+                            </FormRow>
+                        </>
+                    )}
+                </>
+            }
+        />
     );
 }
 

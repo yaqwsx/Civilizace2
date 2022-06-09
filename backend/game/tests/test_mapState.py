@@ -6,7 +6,7 @@ from testing import PYTEST_COLLECT, reimport
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 
 def test_rawDistance():
-    reimport(__name__), 
+    reimport(__name__),
     state = createTestInitState()
 
     expectations = [(5, 0), (4, 600), (3, 600), (7, 900), (2, 900)]
@@ -20,7 +20,7 @@ def test_actualDistance():
 
     state = createTestInitState()
 
-    expectations = [(1, 0, "Home tile"), 
+    expectations = [(1, 0, "Home tile"),
 #                    (0, 300, "Occupied tile"),
                     (6, 300, "Road to tile"),
 #                    (3, 450, "Occupied distant tile"),
@@ -43,8 +43,8 @@ def test_reachableTiles():
 
     team = entities["tym-zluti"]
 
-    tiles = state.map.getReachableTiles(team)
+    tiles = [x.entity for x in state.map.getReachableTiles(team)]
 
     assert len(tiles) == 11
     indexes = set([tile.index for tile in tiles])
-    assert indexes == set([20, 26, 27, 28, 29, 30, 31, 2, 3, 4, 6]) 
+    assert indexes == set([20, 26, 27, 28, 29, 30, 31, 2, 3, 4, 6])

@@ -50,6 +50,10 @@ export interface EntityVyroba extends EntityWithCost {
     unlockedBy: [EntityId, DieId][];
 }
 
+export interface TeamEntityVyroba extends EntityVyroba {
+    allowedTiles: string[]
+}
+
 export enum TechStatus {
     Owned = "owned",
     Researching = "researching",

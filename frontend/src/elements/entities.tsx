@@ -1,6 +1,6 @@
 import useSWR, { mutate } from "swr";
 import useSWRImmutable from "swr/immutable";
-import { Entity, EntityResource, Team, TeamEntityResource, TeamEntityTech } from "../types";
+import { Entity, EntityResource, Team, TeamEntityResource, TeamEntityTech, TeamEntityVyroba } from "../types";
 import { fetcher } from "../utils/axios";
 import { useAtom } from "jotai";
 import { atomWithHash } from "jotai/utils";
@@ -46,7 +46,7 @@ export function useEntities<T>(entityType?: string) {
 }
 
 export function useTeamVyrobas(team?: Team) {
-    const {data, ...rest} = useTeamEntity< EntityVyroba >("vyrobas", team);
+    const {data, ...rest} = useTeamEntity< TeamEntityVyroba >("vyrobas", team);
     return {
         vyrobas: data,
         ...rest
