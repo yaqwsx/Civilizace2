@@ -88,9 +88,10 @@ function Countdown() {
                 {paused
                     ? "Hra je aktuálně pozastavena"
                     : // @ts-ignore
-                      `Herní čas ${info.id}­–${String(minutesFow).padStart(2, "0")}:${String(
-                        secsFow
-                    ).padStart(2, "0")}`}
+                      `Herní čas ${info.id}­–${String(minutesFow).padStart(
+                          2,
+                          "0"
+                      )}:${String(secsFow).padStart(2, "0")}`}
             </h1>
             <div style={{ fontSize: "300px" }} className="leading-none">
                 {!paused &&
@@ -144,7 +145,7 @@ function AutoFeedDialog() {
                     <h1>Tady bude náhled krmení...</h1>
                 </SuccessMessage>
                 <h2>Přejete si pokračovat?</h2>
-                <div className="w-full flex my-6">
+                <div className="my-6 flex w-full">
                     <div className="mx-0 w-1/2 p-3 text-center">
                         <h1>ANO</h1>
                         <QRCode value="ans-yes" className="mx-auto" />

@@ -127,7 +127,7 @@ class MapTile(StateModel): # Game state elemnent
     @property
     def inboundArmies(self) -> List[Army]:
         return []
-    
+
 
 class MapState(StateModel):
     size: int=MAP_SIZE
@@ -338,6 +338,9 @@ class GameState(StateModel):
         for t in self.teamStates.values():
             t._setParent(self)
         self.map._setParent(self)
+
+    def getArmy(self, id) -> Army:
+        return self.teamStates[id.team].armies.get(id) if id != None else None
 
     @classmethod
     def createInitial(cls, entities: Entities) -> GameState:

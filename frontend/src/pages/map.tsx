@@ -1,6 +1,8 @@
 import classNames from "classnames";
+import produce from "immer";
 import { useAtom } from "jotai";
 import { atomWithHash } from "jotai/utils";
+import _, { rest } from "lodash";
 import { useState } from "react";
 import useSWR from "swr";
 import {
@@ -11,14 +13,14 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction } from "../elements/action";
-import { EntityTag } from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import { TileSelect } from "../elements/map";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import { Team } from "../types";
+import { EntityResource, Team, TeamEntityResource } from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -238,8 +240,7 @@ function ArmyDeployForm(props: {
     );
 
     let argsValid = true;
-    if (!tile && equipment <= 0)
-        argsValid = false;
+    if (!tile && equipment <= 0) argsValid = false;
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
@@ -251,7 +252,7 @@ function ArmyDeployForm(props: {
                     tile: tile?.id,
                     goal: goal,
                     equipment: equipment,
-                    friendlyTeam: friendlyTeam?.id
+                    friendlyTeam: friendlyTeam?.id,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
@@ -260,14 +261,19 @@ function ArmyDeployForm(props: {
                 extraPreview={
                     <>
                         <h1>Zadejte extra parametry</h1>
-                        <FormRow label="Cílová destinace" error={!tile ? "Je třeba vyplnit" : null}>
+                        <FormRow
+                            label="Cílová destinace"
+                            error={!tile ? "Je třeba vyplnit" : null}
+                        >
                             <TileSelect value={tile} onChange={setTile} />
                         </FormRow>
                         <FormRow label="Mód vyslání">
                             <select
                                 className="select"
                                 value={goal}
-                                onChange={(e) => setGoal(parseInt(e.target.value))}
+                                onChange={(e) =>
+                                    setGoal(parseInt(e.target.value))
+                                }
                             >
                                 {Object.entries(ARMY_GOALS).map(([k, v]) => (
                                     <option key={k} value={k}>
@@ -276,7 +282,14 @@ function ArmyDeployForm(props: {
                                 ))}
                             </select>
                         </FormRow>
-                        <FormRow label="Vyberte výbavu:" error={equipment <= 0 ? "Výbava nesmí být záporná" : null}>
+                        <FormRow
+                            label="Vyberte výbavu:"
+                            error={
+                                equipment <= 0
+                                    ? "Výbava nesmí být záporná"
+                                    : null
+                            }
+                        >
                             <SpinboxInput
                                 value={equipment}
                                 onChange={setEquipment}
@@ -347,10 +360,113 @@ function ArmyBoostForm(props: { team: Team; army: any; onFinish: () => void }) {
     );
 }
 
-export function FeedingAgenda(props: { team: Team }) {
+function FeedingForm(props: {
+    team: Team,
+    feeding: Record<string, number>;
+    updateResource: (resId: string, value: number) => void
+})
+{
+    const { data: feedReq, error: fError } = useSWR<any>(
+        `/game/teams/${props.team.id}/feeding`,
+        fetcher
+    );
+    const { data: entities, error: eError } = useEntities<EntityResource>();
+    if (!feedReq || !entities) {
+        return (
+            <LoadingOrError
+                loading={(!feedReq && !fError) || (!entities && !eError)}
+                error={fError || eError}
+                message="Něco se nepovedlo"
+            />
+        );
+    }
+
+    let automatedResIds = feedReq.automated.map((x: any) => x[0]);
+    // @ts-ignore
+    let automatedRes = feedReq.automated.map(([rId, recommended]) => [
+        entities[rId],
+        recommended,
+    ]);
+    let remaingRes = Object.values(entities)
+        .filter(
+            (e: any) =>
+                e.id.startsWith("mat-") &&
+                (e.typ.id === "typ-jidlo" || e.typ.id === "typ-luxus") &&
+                !automatedResIds.includes(e.id)
+        )
+        // @ts-ignore
+        .sort((a, b) => a.typ.level - b.typ.level);
     return (
         <>
             <h1>Krmení týmu {props.team.name}</h1>
+            <FormRow label="Kast">{feedReq.casteCount}</FormRow>
+            <FormRow label="Vyžadováno žetonů:">{feedReq.tokensRequired}</FormRow>
+            <FormRow label="Žetonů na kastu:">{feedReq.tokensPerCaste}</FormRow>
+
+            {["typ-jidlo", "typ-luxus"].map((resType) => (
+                <div key={resType}>
+                    <h2>{resType === "typ-jidlo" ? "Jídlo" : "Luxus"}</h2>
+                    {automatedRes
+                        .filter(([r, recommended]: any) => r.typ.id === resType)
+                        .map(([r, recommended]: any) => (
+                            <FormRow
+                                key={r.id}
+                                label={
+                                    <>
+                                        {r.name}
+                                        <br />
+                                        <span className="text-sm">
+                                            (doporučeno {recommended}
+                                        </span>
+                                        )
+                                    </>
+                                }
+                            >
+                                <SpinboxInput
+                                    value={_.get(props.feeding, r.id, 0)}
+                                    onChange={(v) => props.updateResource(r.id, v)}
+                                />
+                            </FormRow>
+                        ))}
+                    {remaingRes
+                        .filter((r) => r?.typ?.id === resType)
+                        .map((r) => (
+                            <FormRow key={r.id} label={r.name}>
+                                <SpinboxInput
+                                    value={_.get(props.feeding, r.id, 0)}
+                                    onChange={(v) => props.updateResource(r.id, v)}
+                                />
+                            </FormRow>
+                        ))}
+                </div>
+            ))}
         </>
     );
+}
+
+export function FeedingAgenda(props: { team: Team }) {
+    const [feeding, setFeeding] = useState<Record<string, number>>({});
+    const [action, setAction] = useAtom(urlMapActionAtom);
+
+
+    let updateResource = (rId: string, v: number) => {
+        if (v < 0) v = 0;
+        setFeeding(
+            produce(feeding, (orig) => {
+                orig[rId] = v;
+            })
+        );
+    };
+
+    return <PerformAction
+        actionId="ActionFeed"
+        actionName={`Krmení týmu ${props.team.name}`}
+        actionArgs={{
+            team: props.team.id,
+            materials: feeding
+        }}
+        extraPreview={<FeedingForm team={props.team} feeding={feeding} updateResource={updateResource}/>}
+        onBack={() => {}}
+        onFinish={() => {setAction(MapActiontype.none)}}
+    />
 }
