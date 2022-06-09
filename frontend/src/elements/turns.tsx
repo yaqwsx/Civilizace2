@@ -29,9 +29,6 @@ export function useCurrentTurn() {
     };
 }
 
-export function useCountdown() {
-}
-
 export function CurrentTurnCountdown() {
     const { info, reload, error } = useCurrentTurn();
     const [elapsed, setElapsed] = useState<number>(0);

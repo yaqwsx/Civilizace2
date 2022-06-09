@@ -3,6 +3,7 @@ if __name__ == "__main__":
     django.setup()
 
 import contextlib
+import math
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -215,7 +216,7 @@ def makeVoucherSticker(effect: DbDelayedEffect) -> Image:
         b.addText(f"Směnka pro {effect.team.name}", FONT_BOLD)
         b.addText(f"Kód: {effect.slug.upper()}", FONT_BOLD)
     b.position = max(b.position, qrBottom) + 10
-    b.addText(f"Nabývá efektu v {effect.round}. kole, {round(effect.target // 60)} minut", FONT_BOLD)
+    b.addText(f"Nabývá efektu v {effect.round}–{math.floor(effect.target // 60)}:{effect.target % 60}", FONT_BOLD)
     b.hline(1, 0)
     b.skip(5)
     b.skip(40)

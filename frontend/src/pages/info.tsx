@@ -59,10 +59,12 @@ function Countdown() {
         );
     }
 
-    let paused = info?.id == -1 || !info?.end;
+    let paused = info?.id == -1 || !info?.end || !info?.start;
 
-    let minutes = 0;
-    let secs = 0;
+    let minutesRem = 0;
+    let secsRem = 0;
+    let minutesFow = 0;
+    let secsFow = 0;
     if (!paused) {
         // @ts-ignore
         let remainingSecs = (info.end.getTime() - now.getTime()) / 1000;
@@ -71,8 +73,13 @@ function Countdown() {
             reload();
             remainingSecs = 0;
         }
-        minutes = Math.floor(remainingSecs / 60);
-        secs = Math.floor(remainingSecs % 60);
+        minutesRem = Math.floor(remainingSecs / 60);
+        secsRem = Math.floor(remainingSecs % 60);
+
+        // @ts-ignore
+        let forSecs = (now.getTime() - info.start.getTime()) / 1000;
+        minutesFow = Math.floor(forSecs / 60);
+        secsFow = Math.floor(forSecs % 60);
     }
 
     return (
@@ -81,12 +88,14 @@ function Countdown() {
                 {paused
                     ? "Hra je aktuálně pozastavena"
                     : // @ts-ignore
-                      `Probíhá ${info.id}. kolo`}
+                      `Herní čas ${info.id}­–${String(minutesFow).padStart(2, "0")}:${String(
+                        secsFow
+                    ).padStart(2, "0")}`}
             </h1>
             <div style={{ fontSize: "300px" }} className="leading-none">
                 {!paused &&
-                    `${String(minutes).padStart(2, "0")}:${String(
-                        secs
+                    `${String(minutesRem).padStart(2, "0")}:${String(
+                        secsRem
                     ).padStart(2, "0")}`}
             </div>
         </>
