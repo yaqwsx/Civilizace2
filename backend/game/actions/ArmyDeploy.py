@@ -1,8 +1,9 @@
 from decimal import Decimal
+from math import ceil
 from typing import Dict, Optional
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
-from game.entities import MapTileEntity, Resource, Team
+from game.entities import BASE_ARMY_STRENGTH, MapTileEntity, Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode
 
 
@@ -17,7 +18,7 @@ class ActionArmyDeploy(ActionBase):
     args: ActionArmyDeployArgs
 
     @property
-    def army(self):
+    def army(self) -> Army:
         return self.state.map.armies[self.args.armyIndex]
 
     @property

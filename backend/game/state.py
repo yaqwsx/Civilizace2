@@ -192,6 +192,12 @@ class MapState(StateModel):
                 return army
         return None
 
+    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:
+        for army in self.armies:
+            if army.tile == tile:
+                return army.team
+        return None
+
     def retreat(self, army: Army) -> int:
         result = army.equipment
         tile = self.getTileById(army.tile)
