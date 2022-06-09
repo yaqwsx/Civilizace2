@@ -8,22 +8,6 @@ from game.state import Army, ArmyGoal, ArmyMode
 
 class ActionArmyDeployArgs(ActionArgs):
     armyIndex: int
-    goal: ArmyGoal
-    equipment: int
-    friendlyTeam: Optional[Team] # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
-
-class ArmyDeploy(ActionBase):
-    pass
-
-
-
-
-#========================================================
-#========================================================
-#========================================================
-class ActionArmyDeployArgs(ActionArgs):
-    team: Team
-    armyName: str
     tile: MapTileEntity
     goal: ArmyGoal
     equipment: int
@@ -31,6 +15,14 @@ class ActionArmyDeployArgs(ActionArgs):
 
 class ActionArmyDeploy(ActionBase):
     args: ActionArmyDeployArgs
+
+    @property
+    def army(self):
+        return self.state.map.armies[self.args.armyIndex]
+
+    @property
+    def map(self):
+        return self.state.map
 
 
     def transferEquipment(self, provider: Army, receiver: Army) -> int:
@@ -45,19 +37,20 @@ class ActionArmyDeploy(ActionBase):
 
 
     def requiresDelayedEffect(self) -> int:
-        return self.state.map.getActualDistance(self.args.team, self.args.tile)
+        return self.state.map.getActualDistance(self.army.team, self.args.tile)
 
 
     def commitInternal(self) -> None:
-        if not self.args.army in self.teamState.armies: raise ActionFailed("Neznámá armáda {}".format(self.args.army))
+        if not self.army in self.map.armies: raise ActionFailed("Neznámá armáda {}".format(self.army))
 
-        army = self.teamState.armies[self.args.army]
+        army = self.army
         if army.assignment != ArmyMode.Idle:
-            assert army.tile != None, "Army {} is in inconsistent state".format(self.args.army)
+            assert army.tile != None, "Army {} is in inconsistent state".format(self.army)
             raise ActionFailed( "Armáda {} už je vyslána na pole {}."\
-                    .format(army.id, army.tile))
+                    .format(army.name, army.tile))
 
-        if self.args.equipment < 1: raise ActionFailed("Nelze poskytnout záporný počet zbraní ({}). Minimální počet je 1".format(self.args.equipment))
+        if self.args.equipment < 1: 
+            raise ActionFailed(f"Nelze poskytnout záporný počet zbraní ({self.args.equipment}). Minimální počet je 1")
         if self.args.equipment > army.capacity:
             raise ActionFailed("Armáda neunese {} zbraní. Maximální možná výzbroj je {}."\
                     .format(self.args.equipment, army.capacity))
