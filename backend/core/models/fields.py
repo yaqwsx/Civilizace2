@@ -5,11 +5,8 @@ import types
 import functools
 
 from django.conf import settings
-from django.contrib.postgres.fields import (
-    JSONField as DjangoJSONField,
-    ArrayField as DjangoArrayField,
-)
-from django.db.models import Field, Model
+from django.contrib.postgres.fields import ArrayField as DjangoArrayField
+from django.db.models import Field, Model, JSONField as DjangoJSONField
 from django.core import serializers
 
 
