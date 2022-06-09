@@ -40,8 +40,8 @@ def test_homeFinish():
     assert tile.unfinished.get(team) == set()
     assert tile.buildings == set([building])
 
-    with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit()
+    result = action.applyCommit()
+    assert not result.expected
 
 
 def test_failStartExisting():
