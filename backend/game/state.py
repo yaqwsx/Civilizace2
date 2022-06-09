@@ -232,6 +232,7 @@ class MapState(StateModel):
 
         return MapState(
             tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values()},
+            armies = armies
         )
 
 
