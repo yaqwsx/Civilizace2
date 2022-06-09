@@ -47,6 +47,7 @@ import { useTeamIdFromUrl } from "./elements/team";
 import { InfoScreen } from "./pages/info";
 import { RequireOrg, RequireAuth, RequireSuperOrg } from "./elements";
 import { GodMode, GodModeMenu } from "./pages/godmode";
+import { ScanTest } from "./pages/scanTest";
 
 function IconHamburger() {
     return (
@@ -363,6 +364,7 @@ function Error404() {
 function AppPages() {
     return (
         <AppFrame>
+            <ScannerNavigator />
             <Routes>
                 <Route
                     path="/dashboard/*"
@@ -423,7 +425,6 @@ export default function App() {
                 <Router>
                     <ToastProvider />
                     <ScannerDispatcher>
-                        <ScannerNavigator />
                         <Routes>
                             <Route
                                 path="/"
@@ -454,6 +455,7 @@ export default function App() {
                                     </RequireOrg>
                                 }
                             />
+                            <Route path="scanner" element={<ScanTest />} />
                             <Route path="*" element={<AppPages />} />
                         </Routes>
                     </ScannerDispatcher>
