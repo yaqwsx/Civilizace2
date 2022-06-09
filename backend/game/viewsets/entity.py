@@ -212,8 +212,8 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response({
             "population": {
-                "spec": "TBA",
-                "all": "TBA"
+                "nospec": teamState.resources[entities["res-obyvatel"]],
+                "all": teamState.population
             },
             "work": teamState.work,
             "worldTurn": state.world.turn,
@@ -221,7 +221,7 @@ class TeamViewSet(viewsets.ViewSet):
             "researchingTechs": [serializeEntity(x) for x in teamState.researching],
             "productions": [
                 (r.id, a) for r, a in teamState.resources.items()
-                    if r.isProduction
+                    if r.isProduction and r.id != "res-obyvatel"
             ],
             "storage": [
                 (r.id, a) for r, a in teamState.storage.items()

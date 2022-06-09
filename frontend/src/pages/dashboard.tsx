@@ -238,7 +238,7 @@ function TeamOverview() {
 
             <div className="flex w-full flex-wrap">
                 <Card label="Populace" color={team.color} icon={faUsers}>
-                    {data.population.spec}/{data.population.all}
+                    {data.population.nospec}/{data.population.all}
                     <div className="w-full text-center text-sm text-gray-400">
                         (nespecializovaných/celkem)
                     </div>

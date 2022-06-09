@@ -26,7 +26,7 @@ import {
 import { toast } from "react-toastify";
 
 import _ from "lodash";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { dieName, useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers, PrintVoucher } from "./printing";
@@ -309,6 +309,7 @@ export function ActionDicePhase(props: {
     );
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
+    const { mutate } = useSWRConfig()
 
     let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
 
@@ -362,6 +363,7 @@ export function ActionDicePhase(props: {
                 .post<any, any>(`/game/actions/${props.actionId}/cancel/`)
                 .then((data) => {
                     setSubmitting(false);
+                    mutate("/game/actions/unfinished");
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);
                 })
