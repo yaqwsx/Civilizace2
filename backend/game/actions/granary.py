@@ -9,6 +9,7 @@ class ActionGranaryArgs(ActionArgs):
     productions: Dict[Resource, int] # int is here on purpose - it does not make sense to use fractions of food
 
 class ActionGranary(ActionBase):
+    
     @property
     def args(self) -> ActionGranaryArgs:
         assert isinstance(self._generalArgs, ActionGranaryArgs)

@@ -312,10 +312,10 @@ class ActionBase(ActionInterface):
         return self.generateActionResult()
 
 
-    def _applyDelayedEffect(self):
+    def _applyDelayedEffect(self) -> None:
         pass
 
 
-    def _applyDelayedReward(self):
+    def _applyDelayedReward(self) -> None:
         pass
 

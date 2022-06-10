@@ -78,8 +78,9 @@ class Army(StateModel):
         return self.boost >= 0
 
     def destroyEquipment(self, casualties: int) -> int:
-        self.equipment = max(0, self.equipment - casualties)
-        return BASE_ARMY_STRENGTH + self.equipment
+        destroyed = min(self.equipment, casualties)
+        self.equipment -= destroyed
+        return destroyed
 
 
 class MapTile(StateModel): # Game state elemnent
@@ -144,8 +145,9 @@ class MapState(StateModel):
         assert isinstance(self._parent, GameState)
         return self._parent
 
-    def getTileById(self, id: EntityId) -> Optional[MapTile]:
-        return [tile for tile in self.tiles.values() if tile.id == id][0]
+    def getTileById(self, id: str) -> Optional[MapTile]:
+        tiles = [tile for tile in self.tiles.values() if tile.id == id]
+        return tiles[0]
 
     def getHomeOfTeam(self, team: Team) -> MapTile:
         return self.parent.teamStates[team].homeTile
@@ -173,8 +175,7 @@ class MapState(StateModel):
         teamState = self.parent.teamStates[team]
         if tile in teamState.roadsTo:
             multiplier -= 0.5
-        tileState = self.tiles[tile.index]
-        if tileState.occupiedBy != None and tileState.occupiedBy.team == team:
+        if self.getOccupyingTeam(tile) == team:
             multiplier -= 0.5
         return Decimal(float(distance) * multiplier)
 
@@ -198,28 +199,29 @@ class MapState(StateModel):
                 return army.team
         return None
 
-    def retreat(self, army: Army) -> int:
+    def retreatArmy(self, army: Army) -> int:
         result = army.equipment
         tile = self.getTileById(army.tile)
         if tile == None:
             return 0
 
-        self.assignment = ArmyMode.Idle
-        self.equipment = 0
-        self.boost = -1
-        self.tile = None
-        self.goal = None
+        army.mode = ArmyMode.Idle
+        army.equipment = 0
+        army.boost = -1
+        army.tile = None
+        army.goal = None
         return result
 
-    def occupy(self,  army: Army, tile: MapTile):
-        occupiedBy = self.getOccupyingArmy(tile.entity)
-        if occupiedBy == self.id: return
+    def occupyTile(self, army: Army, tile: MapTile):
+        assert self.getOccupyingArmy(tile.entity) == None
+        assert army.equipment > 0, "Nevyzbrojená armáda nemůže obsazovat pole"
+        assert army.tile == None
+        assert self.getRawDistance(army.team, tile.entity) != None
 
-        assert tile.occupiedBy == None, "Nelze obsadit pole obsazené cizí armádou"
-        self.assignment = ArmyMode.Occupying
-        self.boost = -1
-        self.tile = tile.entity
-        self.goal = None
+        army.mode = ArmyMode.Occupying
+        army.boost = -1
+        army.tile = tile.entity
+        army.goal = None
 
 
     @classmethod
@@ -327,6 +329,7 @@ class WorldState(StateModel):
     turn: int=0
     casteCount: int=3
     buildDemolitionCost: Dict[Resource, int]
+    combatRandomness: float = 0.5
 
 
 class GameState(StateModel):

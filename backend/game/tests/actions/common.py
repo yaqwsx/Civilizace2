@@ -11,6 +11,7 @@ def createTestInitState(entities=TEST_ENTITIES):
     from game.state import Army, ArmyMode, GameState
 
     state = GameState.createInitial(entities)
+    state.world.combatRandomness = 0
 
     team = TEAM_ADVANCED
     teamState = state.teamStates[TEAM_ADVANCED]
