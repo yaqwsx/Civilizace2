@@ -13,3 +13,8 @@ def test_homeTiles():
         teams = [team for team in entities.teams.values() if team.homeTileId == tile.id]
         assert len(teams) <= 1
     
+
+def test_fields():
+    entities = TEST_ENTITIES
+    assert "eureka" in entities["tec-d"].bonuses
+    assert "Well seasoned" == entities["tec-maso"].flavor
