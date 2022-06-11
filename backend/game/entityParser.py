@@ -146,7 +146,7 @@ class EntityParser():
 
 
     def parseLineTechCreateEntity(self, line):
-        tech = Tech(**self.kwargsEntityWithCost(line, includeEdges=False))
+        tech = Tech(bonuses=line[7], flavor=line[8], **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
 
@@ -184,7 +184,8 @@ class EntityParser():
         reward = self.parseCostSingle(line[6])
         assert not reward[0].isGeneric, "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
         requiredFeatures = self.getFeaturesFromField(line[7])
-        vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, **self.kwargsEntityWithCost(line))
+        flavor = line[8]
+        vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, flavor=flavor, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
 
         obyvatelCost = Decimal(line[5]) if len(line[5]) > 0 else 0

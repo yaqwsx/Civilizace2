@@ -121,6 +121,8 @@ class EntityWithCost(EntityBase):
 
 class Tech(EntityWithCost):
     unlocks: List[Tuple[Entity, DieId]]=[]
+    bonuses: str
+    flavor: str
 
     @property
     def unlocksVyrobas(self) -> Set[Vyroba]:
@@ -137,6 +139,7 @@ class TileFeature(EntityBase):
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
     requiredFeatures: List[TileFeature]
+    flavor: str
 
 
 class NaturalResource(TileFeature):
