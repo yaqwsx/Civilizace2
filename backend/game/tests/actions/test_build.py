@@ -62,3 +62,6 @@ def test_failStartExisting():
     with pytest.raises(ActionFailed) as einfo:
         start.applyCommit()
 
+
+def test_buildOnOccupied():
+    raise NotImplementedError()

@@ -9,11 +9,15 @@ class ActionGranaryArgs(ActionArgs):
     productions: Dict[Resource, int] # int is here on purpose - it does not make sense to use fractions of food
 
 class ActionGranary(ActionBase):
-    
+
     @property
     def args(self) -> ActionGranaryArgs:
         assert isinstance(self._generalArgs, ActionGranaryArgs)
         return self._generalArgs
+
+    @property
+    def description(self):
+        return f"Automatizace krmení ({self.args.team.name})"
 
 
     def cost(self) -> Dict[Resource, Decimal]:
@@ -30,7 +34,7 @@ class ActionGranary(ActionBase):
                 self._errors += "[[" + str(resource) + "]] není produkce jídla ani luxusu"
                 continue
             if self.teamState.resources[resource] < amount:
-                self._errors += "Nelze přesměrovat [[" + str((resource, amount)) + "]], tým vlastní pouze [[" + str((resource, self.teamState.resources[resource]))+ "]]"
+                self._errors += "Nelze automatizovat [[" + str((resource, amount)) + "]], tým vlastní pouze [[" + str((resource, self.teamState.resources[resource]))+ "]]"
                 continue
 
             self.teamState.resources[resource] -= amount

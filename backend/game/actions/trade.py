@@ -19,6 +19,10 @@ class ActionTrade(ActionBase):
         assert isinstance(self._generalArgs, ActionTradeArgs)
         return self._generalArgs
 
+    @property
+    def description(self):
+        return f"Prodej produkce týmu {self.args.receiver.name} ({self.args.team.name})"
+
 
     def cost(self) -> Dict[Resource, Decimal]:
         cost = {}

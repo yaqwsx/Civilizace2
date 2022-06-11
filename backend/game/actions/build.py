@@ -25,6 +25,10 @@ class ActionBuild(ActionBase):
         return self._generalArgs
 
 
+    @property
+    def description(self):
+        return f"Stavba budovy {self.args.build.name} na poli {self.args.tile.name} ({self.args.team.name})"
+
     def cost(self) -> Dict[Resource, Decimal]:
         return self.args.build.cost
 

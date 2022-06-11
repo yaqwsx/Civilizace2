@@ -37,6 +37,10 @@ class ActionArmyDeploy(ActionBase):
     def tile(self) -> MapTile:
         return self.state.map.getTileById(self.args.tile.id)
         
+    @property
+    def description(self):
+        return f"Vyslání armády {self.army.name} na pole {self.tile.name} ({self.args.team.name})"
+
 
     def transferEquipment(self, provider: Army, receiver: Army) -> int:
         amount = min(receiver.capacity - receiver.equipment, provider.equipment)
@@ -155,8 +159,8 @@ class ActionArmyDeploy(ActionBase):
 
         # randomize
         r = self.state.world.combatRandomness
-        defenderRandom = 1 + random(0, r) - random(0, r)
-        attackerRandom = 1 + random(0, r) - random(0, r)
+        defenderRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
+        attackerRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
         defenderCasualties *= defenderRandom
         attackerCasualties += attackerRandom
 

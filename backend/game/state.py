@@ -67,7 +67,7 @@ class Army(StateModel):
 
     @property
     def strength(self) -> int:
-        return self.equipment + BASE_ARMY_STRENGTH + max(0, self.boost)
+        return self.equipment + BASE_ARMY_STRENGTH
 
     @property
     def isMarching(self) -> bool:

@@ -15,6 +15,10 @@ class FeedRequirements(BaseModel):
     casteCount: int
     automated: List[Tuple[Resource, int]] # sorted in preferred display order
 
+    @property
+    def description(self):
+        return f"Krmení obyvatelstva ({self.args.team.name})"
+
 
 def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -> FeedRequirements:
     teamState = state.teamStates[team]

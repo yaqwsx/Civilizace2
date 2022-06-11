@@ -18,6 +18,11 @@ class ActionWithdraw(ActionBase):
         assert isinstance(self._generalArgs, ActionWithdrawArgs)
         return self._generalArgs
 
+    @property
+    def description(self):
+        return f"Výběr materiálů ze skladu ({self.args.team.name})"
+
+
     def cost(self):
         # Check if this is correct
         return {}

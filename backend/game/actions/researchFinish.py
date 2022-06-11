@@ -12,6 +12,9 @@ class ActionResearchFinish(ActionBase):
         assert isinstance(self._generalArgs, ActionResearchArgs)
         return self._generalArgs
 
+    @property
+    def description(self):
+        return f"Dokončení výzkumu {self.args.tech.name} ({self.args.team.name})"
 
     def cost(self) -> Dict[Resource, int]:
         return {}

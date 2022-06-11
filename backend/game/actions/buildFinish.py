@@ -18,6 +18,10 @@ class ActionBuildFinish(ActionBase):
         assert isinstance(self._generalArgs, ActionBuildFinishArgs)
         return self._generalArgs
 
+    @property
+    def description(self):
+        return f"Kolaudace budovy {self.args.build.name} na poli {self.args.tile.name} ({self.args.team.name})"
+
 
     def cost(self) -> Dict[Resource, int]:
         return self.state.world.buildDemolitionCost if self.args.demolish != None else {}
@@ -33,7 +37,8 @@ class ActionBuildFinish(ActionBase):
         if not self.args.build in tile.unfinished.get(self.args.team, []):
             raise ActionFailed(f"Budova {self.args.build.name} na poli {tile.name} neexistuje nebo nebyla dokončena. Zkontrolujte, že tým odevzdal směnku k dokončení budovy.")
 
-        # TODO: check tile owner
+        if (occupier := self.state.map.getOccupyingTeam(tile.entity)) != self.team:
+            raise ActionFailed(f"Pole není týmem obsazeno týmu, takže budovu nyní nelze zkolaudovat.")
     
         if tile.parcelCount == len(tile.buildings) and self.args.demolish == None:
             raise ActionFailed(f"Nedostatek parcel na poli {tile.name}. Je nutné vybrat budovu k demolici")

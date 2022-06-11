@@ -17,6 +17,10 @@ class ActionResearchStart(ActionBase):
         assert isinstance(self._generalArgs, ActionResearchArgs)
         return self._generalArgs
 
+    @property
+    def description(self):
+        return f"Výzkum technologie {self.args.tech.name} ({self.args.team.name})"
+
 
     def cost(self) -> Dict[Resource, Decimal]:
         dice = self.teamState.getUnlockingDice(self.args.tech)
