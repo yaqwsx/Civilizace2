@@ -63,7 +63,7 @@ class Army(StateModel):
 
     @property
     def capacity(self) -> int:
-        return (self.level+1)*5 - BASE_ARMY_STRENGTH
+        return (self.level+2)*5 - BASE_ARMY_STRENGTH
 
     @property
     def strength(self) -> int:
@@ -147,6 +147,8 @@ class MapState(StateModel):
 
     def getTileById(self, id: str) -> Optional[MapTile]:
         tiles = [tile for tile in self.tiles.values() if tile.id == id]
+        if len(tiles) != 1: 
+            return None
         return tiles[0]
 
     def getHomeOfTeam(self, team: Team) -> MapTile:
@@ -189,7 +191,7 @@ class MapState(StateModel):
 
     def getOccupyingArmy(self, tile: MapTileEntity) -> Optional[Army]:
         for army in self.armies:
-            if army.tile == tile:
+            if army.tile == tile and army.mode == ArmyMode.Occupying:
                 return army
         return None
 
@@ -201,7 +203,7 @@ class MapState(StateModel):
 
     def retreatArmy(self, army: Army) -> int:
         result = army.equipment
-        tile = self.getTileById(army.tile)
+        tile = self.getTileById(army.tile.id)
         if tile == None:
             return 0
 
@@ -215,7 +217,7 @@ class MapState(StateModel):
     def occupyTile(self, army: Army, tile: MapTile):
         assert self.getOccupyingArmy(tile.entity) == None
         assert army.equipment > 0, "Nevyzbrojená armáda nemůže obsazovat pole"
-        assert army.tile == None
+        assert army.mode != ArmyMode.Occupying
         assert self.getRawDistance(army.team, tile.entity) != None
 
         army.mode = ArmyMode.Occupying
