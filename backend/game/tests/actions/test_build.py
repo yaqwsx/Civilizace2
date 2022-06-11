@@ -65,3 +65,6 @@ def test_failStartExisting():
 
 def test_buildOnOccupied():
     raise NotImplementedError()
+
+def test_buildWithFeatures():
+    raise NotImplementedError()
