@@ -14,25 +14,23 @@
 import pytest
 from game.actions.ArmyDeploy import ActionArmyDeploy, ActionArmyDeployArgs
 from game.actions.actionBase import makeAction
+from game.actions.armyRetreat import ActionArmyRetreat, ActionArmyRetreatArgs
 from game.actions.common import ActionFailed
 from game.entities import Entities, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyMode, GameState, MapTile, StateModel
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
+    
 
-def deployArmies(state: GameState, entities: Entities):
+def test_cost():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
     armies = state.map.armies
     tiles = state.map.tiles
     armies[10].equipment = 5
     armies[18].equipment = 5
     state.map.occupyTile(armies[10], tiles[26])
     state.map.occupyTile(armies[18], tiles[18])
-    
-
-def test_cost():
-    state = createTestInitState()
-    entities = TEST_ENTITIES
-    deployArmies(state, entities)
 
     teams = list(entities.teams.values())
     army = state.map.armies[0]
@@ -474,3 +472,50 @@ def test_winReturnWeapons():
     exp = Army(index=1, team=entities["tym-cerveni"], name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
     assert state.map.armies[1] == exp
     assert "2 zbraní" in result.notifications[entities["tym-cerveni"]][0]
+
+
+def test_retreatArmy():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
+
+    sendArmyTo(entities, state, armies[2], tile, equipment=15, goal=ArmyGoal.Occupy)
+
+    args = ActionArmyRetreatArgs(armyIndex=army.index, team=army.team)
+    action = makeAction(ActionArmyRetreat, args=args, entities=entities, state=state)
+    result = action.applyCommit()
+
+    assert map.getOccupyingArmy(tile) == None
+    
+    exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
+    assert army == exp
+    assert "|15]]" in result.message
+
+
+def test_supplyFriend():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
+
+    sendArmyTo(entities, state, armies[1], entities["map-tile18"], equipment=12, goal=ArmyGoal.Occupy)
+    result = sendArmyTo(entities, state, army, tile, equipment=19, goal=ArmyGoal.Supply, friendlyTeam=entities["tym-cerveni"])
+
+    assert result.expected
+    assert " armádu týmu " in result.message
+    assert "o 8 " in result.message
+    assert "posílil vaši armádu A" in result.notifications[entities["tym-cerveni"]][0]
+
+    tile = state.map.tiles[18]
+    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
+    assert army == exp
+    exp = Army(index=1, team=entities["tym-cerveni"], name="A", equipment=20, level=3, tile=state.map.tiles[18].entity, mode=ArmyMode.Occupying)
+    assert state.map.armies[1] == exp
