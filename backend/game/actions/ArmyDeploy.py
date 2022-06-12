@@ -1,5 +1,5 @@
 from decimal import Decimal
-from math import ceil
+from math import ceil, floor
 import random
 from typing import Dict, Optional
 
@@ -62,12 +62,12 @@ class ActionArmyDeploy(ActionBase):
 
 
     def _returnWeaponsInfo(self, amount: int) -> None:
-        self._info += f"Vydejte týmu [[{self.entities.zbrane}|{amount}]]"
+        self._info += f"Vydejte týmu [[{self.entities.zbrane}|{floor(amount)}]]"
 
     def addNotification(self, team: Team, message: str) -> None:
-        notifications = self._notifications.get(self.args.friendlyTeam, [])
+        notifications = self._notifications.get(team, [])
         notifications.append(message)
-        self._notifications[self.args.friendlyTeam] = notifications
+        self._notifications[team] = notifications
 
 
     def _commitImpl(self) -> None:
@@ -100,19 +100,19 @@ class ActionArmyDeploy(ActionBase):
         if defender == None:
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
                 equipment = self.map.retreatArmy(army)
-                self._info += f"Pole [[{tile.entity.name}]] je prázdné, armáda [[{army.name}]] se vrátila zpět"
+                self._info += f"Pole {tile.entity.name} je prázdné, armáda {army.name} se vrátila zpět"
                 self._returnWeaponsInfo(equipment)
                 return
             else:
                 self.map.occupyTile(army, tile)
-                self._info += f"Armáda [[{army.name}]] obsadila pole [[{tile.name}]]"
+                self._info += f"Armáda {army.name} obsadila pole {tile.name}"
                 return
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
                 equipment = self.map.retreatArmy(army)
-                self._info += f"Pole [[{tile.name}]] už bylo obsazeno vaší armádou {defender.name}. \
-                    Armáda [[{army.name}]] se vrátila domů."
+                self._info += f"Pole {tile.name} už bylo obsazeno vaší armádou {defender.name}. \
+                    Armáda {army.name} se vrátila domů."
                 self._returnWeaponsInfo(equipment)
                 return
 
@@ -148,8 +148,8 @@ class ActionArmyDeploy(ActionBase):
             
         if self.args.goal == ArmyGoal.Supply:
             equipment = self.map.retreatArmy(army)
+            self._warnings += f"Pole {tile.name} je obsazeno nepřátelksou armádou. Vaše armáda {army.name} se vrátila domů."
             self._returnWeaponsInfo(equipment)
-            self._errors += f"Pole {tile.name} je obsazeno nepřátelksou armádou. Vaše armáda {army.name} se vrátila domů."
             return
 
         attacker = army
@@ -163,18 +163,18 @@ class ActionArmyDeploy(ActionBase):
         defenderRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
         attackerRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
         defenderCasualties *= defenderRandom
-        attackerCasualties += attackerRandom
+        attackerCasualties *= attackerRandom
 
         # prevent damage
         defenderShield = max(attackerCasualties - attacker.strength, 0)
         attackerShield = max(defenderCasualties - defender.strength, 0)
 
-        defenderLoss = defender.destroyEquipment(defenderCasualties - defenderShield)
-        attackertLoss = attacker.destroyEquipment(attackerCasualties - attackerShield)
+        defenderLoss = defender.destroyEquipment(ceil(max(defenderCasualties - defenderShield, 0)))
+        attackertLoss = attacker.destroyEquipment(ceil(max(attackerCasualties - attackerShield, 0)))
 
         # resolve
         if defender.strength >= attacker.strength:
-            self._errors += f"Armáda {army.name} neuspěla v dobývání pole {tile.name} a vrátila se domů."
+            self._warnings += f"Armáda {army.name} neuspěla v dobývání pole {tile.name} a vrátila se domů."
             self._returnWeaponsInfo(self.map.retreatArmy(army))
 
             if defender.equipment == 0:
@@ -195,7 +195,8 @@ class ActionArmyDeploy(ActionBase):
             equipment = self.map.retreatArmy(attacker)
             self._info += f"Armáda {army.name} vyčistila pole {tile.name} a vrátila se domů"
             self._returnWeaponsInfo(equipment)
+            return
 
-        self.map.occupyTile(attacker)
+        self.map.occupyTile(attacker, tile)
         self._info += f"Armáda {army.name} obsadila pole {tile.name}. Její aktuální síla je {army.strength}"
         return
