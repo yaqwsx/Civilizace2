@@ -78,7 +78,9 @@ class EntityParser():
             if die in DIE_ALIASES:
                 die = DIE_ALIASES[die]                
             if die == "die-any":
-                return DICE_IDS.copy()
+                for die in DICE_IDS:
+                     result.append((targetEntity, die))
+                continue
             assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
             result.append((targetEntity, die))
         return result
@@ -162,6 +164,9 @@ class EntityParser():
         unlocks = self.getEdgesFromField(line[5]) + self.getEdgesFromField(line[6])
         for unlock in unlocks:
             target = unlock[0]
+            if not isinstance(target, EntityWithCost):
+                print(target)
+                print(unlock)
             assert isinstance(target, EntityWithCost), "Cannot unlock entity without a cost: " + target
             target.unlockedBy.append((tech, unlock[1]))
         tech.unlocks = unlocks
