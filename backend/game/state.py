@@ -240,13 +240,13 @@ class MapState(StateModel):
         )
 
 
-class PlagueStats(StateModel):
-    sick: int
-    immune: int
+# class PlagueStats(StateModel):
+#     sick: int
+#     immune: int
 
-    spread: 20
-    mortality: 20
-    recovery: 0
+#     spread: 20
+#     mortality: 20
+#     recovery: 0
     
 
 class TeamState(StateModel):
@@ -265,7 +265,7 @@ class TeamState(StateModel):
     storage: Dict[Resource, Decimal]
     granary: Dict[Resource, Decimal] = {}
     storageCapacity = 10
-    plague: PlagueStats
+    # plague: PlagueStats
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent

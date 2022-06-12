@@ -4,7 +4,8 @@ from typing import Any, Callable, Dict
 
 from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
-DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
+DICE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
+DIE_ALIASES = {"die-les": "die-lesy"}
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
 
@@ -71,6 +72,8 @@ class EntityParser():
             assert len(split) == 2, "Invalid edge: " + chunk
             targetId = split[0]
             die = split[1]
+            if die in DIE_ALIASES:
+                die = DIE_ALIASES[die]                
             assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
             assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
             targetEntity = self.entities[targetId]
@@ -100,7 +103,7 @@ class EntityParser():
         if len(line) != 6:
             raise RuntimeError(f"Team line {line} doesn't look like team line")
         tiles = [tile for tile in self.entities.values() if isinstance(tile, MapTileEntity) and tile.name == line[5]]
-        assert len(tiles) == 1
+        assert len(tiles) == 1, f"Invalid set of team starting tiles: {tiles}"
         team = Team(
             id=line[0],
             name=line[1],
@@ -195,7 +198,6 @@ class EntityParser():
 
 
     def parseLineTile(self, line, lineId):
-        assert len(line[0]) == 1, "Map tiles should have single letter tag"
         id = "map-tile" + line[1].rjust(2,"0")
         team = None
         name = line[0].upper()
@@ -215,7 +217,7 @@ class EntityParser():
             try:
                 if asserts:
                     assert not line[0] in self.entities, "Id already exists: " + line[0]
-                    assert line[0][3] == '-', "Id prefix must be 3 chars long, got \"" + line[0] + "\""
+                    assert line[0][3] == '-', f"Id {line[0]} prefix must be 3 chars long, got \"" + line[0] + "\""
                     assert line[0][:3] in prefixes, "Invalid id prefix: \"" + line[0][:3] + "\" (allowed prefixes: " + prefixes + ")"
                     assert len(line[1]) >= 3, "Entity name cannot be empty"
                 parser(line, lineId) if includeIndex else parser(line)
@@ -223,6 +225,7 @@ class EntityParser():
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
+                
         for e in self.errors:
             self.reportError("  " + e)
 
@@ -320,7 +323,9 @@ class EntityParser():
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:
                 if not id in self.entities:
-                    self.errors.append("Missing required id \"" + id + "\"")
+                    message = f"Missing required id \"{id}\""
+                    self.errors.append(message)
+                    print(message)
             if len(self.errors) > 0:
                 raise RuntimeError("Invalid entities specified")
 

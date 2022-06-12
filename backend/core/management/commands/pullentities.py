@@ -9,7 +9,7 @@ from game.entityParser import EntityParser
 from django.conf import settings
 
 ENTITY_SETS = {
-    #"GAME": "1BNdnhzJoF9oSLHvpX_UsEPEROZ6U_nHNLsqNerNWIoA",
+    "GAME": "1BNdnhzJoF9oSLHvpX_UsEPEROZ6U_nHNLsqNerNWIoA",
     "TEST": "1_6Niwfwu896v6qi2B6l4436HzQ2lVwwlwmS1Xo0izQs"
 }
 

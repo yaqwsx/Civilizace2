@@ -21,26 +21,27 @@ class ActionPlagueTick(ActionBase):
 
 
     def _commitImpl(self) -> None:
+        None
 
-        for team in self.state.teamStates.values():
-            plague = team.plague
+        # for team in self.state.teamStates.values():
+            # plague = team.plague
 
-            # sireni
-            for i in range(ceil(plague.sick / 10)):
-                # pick 10 random people
-                # infect them
-                None
+            # # sireni
+            # for i in range(ceil(plague.sick / 10)):
+            #     # pick 10 random people
+            #     # infect them
+            #     None
             
-            # vyhodnoceni
-            for i in range(plague.sick):
-                result = random(100)
+            # # vyhodnoceni
+            # for i in range(plague.sick):
+            #     result = random(100)
 
-                if result < plague.mortality:
-                    #die
-                    None
-                if result > 100-plague.recovery:
-                    #heal
-                    None
+            #     if result < plague.mortality:
+            #         #die
+            #         None
+            #     if result > 100-plague.recovery:
+            #         #heal
+            #         None
 
 
         self._info += "Mor se rozšířil"
