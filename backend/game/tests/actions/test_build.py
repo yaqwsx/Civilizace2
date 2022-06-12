@@ -74,7 +74,3 @@ def test_buildOnOccupied():
         state=state, entities=entities, args=ActionBuildArgs(build=building, team=team, tile=tile.entity))
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()
-
-
-def test_buildWithFeatures():
-    raise NotImplementedError()

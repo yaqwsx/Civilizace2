@@ -31,8 +31,11 @@ class ActionBuildFinish(ActionBase):
         tile = self.state.map.tiles[self.args.tile.index]
 
         if self.args.build in tile.buildings:
-            self._warnings += f"Budova již na poli existuje a nelze postavit další. Směnka propadla"
+            self._warnings += f"Budova již na poli existuje a nelze postavit další."
             return
+        if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
+            raise ActionFailed(f"Budovu nelze postavit, protože pole {self.args.tile.name} není v držení týmu.")
+
 
         if not self.args.build in tile.unfinished.get(self.args.team, []):
             raise ActionFailed(f"Budova {self.args.build.name} na poli {tile.name} neexistuje nebo nebyla dokončena. Zkontrolujte, že tým odevzdal směnku k dokončení budovy.")
