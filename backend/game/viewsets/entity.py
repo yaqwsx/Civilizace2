@@ -98,6 +98,20 @@ class TeamViewSet(viewsets.ViewSet):
         serializer = TeamSerializer(t)
         return Response(serializer.data)
 
+    @staticmethod
+    def serializeArmy(a, reachableTiles):
+        return {
+            "team": a.team,
+            "name": a.name,
+            "level": a.level,
+            "equipment": a.equipment,
+            "boost": a.boost,
+            "tile": a.tile.id if a.tile is not None else None,
+            "mode": str(a.mode).split(".")[1],
+            "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
+            "reachableTiles": [t.id for t in reachableTiles] if reachableTiles is not None else None
+        }
+
     @action(detail=True)
     def resources(self, request, pk):
         self.validateAccess(request.user, pk)
@@ -241,6 +255,9 @@ class TeamViewSet(viewsets.ViewSet):
             "storage": [
                 (r.id, a) for r, a in teamState.storage.items()
             ],
+            "granary": [
+                (r.id, a) for r, a in teamState.granary.items()
+            ],
             "announcements": [
                 {
                     "id": a.id,
@@ -249,6 +266,9 @@ class TeamViewSet(viewsets.ViewSet):
                     "read": False,
                     "appearDatetime": a.appearDatetime
                 } for a in self.unreadAnnouncements(request.user, team)
+            ],
+            "armies": [
+                self.serializeArmy(a, None) for a in state.map.getTeamArmies(entities[pk])
             ]
         })
 
@@ -270,16 +290,12 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def armies(self, request, pk):
         self.validateAccess(request.user, pk)
+        tState, entities = self.getTeamStateAndEntities(pk)
+        state = tState.parent
+        reachableTiles = state.map.getReachableTiles(entities[pk])
 
-        state = self.getTeamState(pk)
-        return Response({a.prestige: {
-                "prestige": a.prestige,
-                "equipment": a.equipment,
-                "boost": a.boost,
-                "tile": a.tile.id if a.tile is not None else None,
-                "state": str(a.assignment).split(".")[1],
-                "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
-            } for a in state.armies.values()})
+        return Response({a.index: self.serializeArmy(a, reachableTiles)
+                            for a in state.map.getTeamArmies(entities[pk])})
 
     @action(detail=True)
     def stickers(self, request, pk):

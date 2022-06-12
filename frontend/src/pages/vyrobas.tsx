@@ -409,7 +409,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             </FormRow>
                         );
                     })}
-                    <h2>Armádní posila</h2>
+                    {/* <h2>Armádní posila</h2>
                     <FormRow label="Přejete si poslat armádu?">
                         <input
                             className="checkboxinput"
@@ -462,7 +462,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                 />
                             </FormRow>
                         </>
-                    )}
+                    )} */}
                 </>
             }
         />

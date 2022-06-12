@@ -28,6 +28,7 @@ import {
     faWarehouse,
     faWheatAwn,
     faQrcode,
+    faShieldHalved,
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
@@ -41,6 +42,7 @@ import QRCode from "react-qr-code";
 import { strictEqual } from "assert";
 import { PrintStickers, PrintVoucher } from "../elements/printing";
 import { useHideMenu } from "./atoms";
+import { ArmyDescription } from "./map";
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -321,8 +323,36 @@ function TeamOverview() {
                         color={team.color}
                         icon={faWheatAwn}
                     >
-                        Tady je obsah
+                        {data.granary.length ? (
+                            <ul className="list-disc text-left">
+                                {data.granary.map((p: any) => (
+                                    <li key={p[0]}>
+                                        <EntityTag id={p[0]} quantity={p[1]} />
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <span>Zatím nezásobujete centrum</span>
+                        )}
                     </Card>
+                </div>
+            </div>
+            <div className="section w-full">
+                <h2 className="text-xl" id="section-1">
+                    Armády
+                </h2>
+
+                <div className="flex w-full flex-wrap">
+                    {data.armies.map((a: any) => (
+                        <Card
+                            key={a.index}
+                            label={`Armáda ${a.name} ${'✱'.repeat(a.level)}`}
+                            color={team.color}
+                            icon={faShieldHalved}
+                        >
+                            <ArmyDescription army={a} orgView={false}/>
+                        </Card>
+                    ))}
                 </div>
             </div>
             <div className="section w-full">

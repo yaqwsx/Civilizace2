@@ -19,6 +19,10 @@ class ActionPlagueTick(ActionBase):
     def cost(self) -> Dict[Resource, Decimal]:
         return {}
 
+    @property
+    def description(self):
+        return "Morový tik"
+
 
     def _commitImpl(self) -> None:
         None
@@ -31,7 +35,7 @@ class ActionPlagueTick(ActionBase):
             #     # pick 10 random people
             #     # infect them
             #     None
-            
+
             # # vyhodnoceni
             # for i in range(plague.sick):
             #     result = random(100)

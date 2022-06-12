@@ -157,25 +157,53 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
     );
 }
 
+export function ArmyDescription(props: { army: any; orgView: boolean }) {
+    let modeMapping = {
+        Idle: "čeká na rozkazy",
+        Marching: "přesun",
+        Occupying: "okupace",
+    };
+
+    let attributes = {
+        // Úroveň: props.army.level,
+        "Stojí na": props.army.tile ? (
+            <EntityTag id={props.army.tile} />
+        ) : (
+            "domovském políčku"
+        ),
+        // @ts-ignore
+        Stav: modeMapping[props.army.mode],
+
+    };
+    if (props.army.mode !== "Idle") {
+        // @ts-ignore
+        attributes["Vybavení"] = props.army.equipment;
+    }
+    if (props.orgView) {
+        // @ts-ignore
+        attributes["boost"] = props.army.boost;
+    }
+
+    return (
+        <table className="w-full table-fixed">
+            <tbody>
+                {Object.entries(attributes).map(([k, v]) => (
+                    <tr key={k}>
+                        <td className="pr-3 text-right font-bold">{k}: </td>
+                        <td className="text-left">{v}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
 function ArmyBadge(props: { team: Team; army: any }) {
     const [selectedAction, setSelectedAction] = useState("");
 
     let className = classNames(
         "bg-white rounded p-4 mx-4 my-4 cursor-pointer shadow-lg flex flex-wrap md:flex-1"
     );
-
-    let attributes = {
-        Prestiž: props.army.prestige,
-        Vybavení: props.army.equipment,
-        Boost: props.army.boost,
-        "Stojí na": props.army.tile ? (
-            <EntityTag id={props.army.tile} />
-        ) : (
-            "Nikde"
-        ),
-        Stav: props.army.state,
-        Cíl: props.army.goal,
-    };
 
     let ActionForm: any = {
         armyDeploy: ArmyDeployForm,
@@ -185,19 +213,9 @@ function ArmyBadge(props: { team: Team; army: any }) {
 
     return (
         <div className={className}>
+            <h3 className="w-full">Armáda {props.army.name} {"✱".repeat(props.army.level)}</h3>
             <div className="w-full md:w-2/3">
-                <table className="w-full table-fixed">
-                    <tbody>
-                        {Object.entries(attributes).map(([k, v]) => (
-                            <tr key={k}>
-                                <td className="pr-3 text-right font-bold">
-                                    {k}:{" "}
-                                </td>
-                                <td className="text-left">{v}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <ArmyDescription army={props.army} orgView={true} />
             </div>
             <div className="w-full px-3 md:w-1/3">
                 <Button
@@ -361,11 +379,10 @@ function ArmyBoostForm(props: { team: Team; army: any; onFinish: () => void }) {
 }
 
 function FeedingForm(props: {
-    team: Team,
+    team: Team;
     feeding: Record<string, number>;
-    updateResource: (resId: string, value: number) => void
-})
-{
+    updateResource: (resId: string, value: number) => void;
+}) {
     const { data: feedReq, error: fError } = useSWR<any>(
         `/game/teams/${props.team.id}/feeding`,
         fetcher
@@ -400,7 +417,9 @@ function FeedingForm(props: {
         <>
             <h1>Krmení týmu {props.team.name}</h1>
             <FormRow label="Kast">{feedReq.casteCount}</FormRow>
-            <FormRow label="Vyžadováno žetonů:">{feedReq.tokensRequired}</FormRow>
+            <FormRow label="Vyžadováno žetonů:">
+                {feedReq.tokensRequired}
+            </FormRow>
             <FormRow label="Žetonů na kastu:">{feedReq.tokensPerCaste}</FormRow>
 
             {["typ-jidlo", "typ-luxus"].map((resType) => (
@@ -424,7 +443,9 @@ function FeedingForm(props: {
                             >
                                 <SpinboxInput
                                     value={_.get(props.feeding, r.id, 0)}
-                                    onChange={(v) => props.updateResource(r.id, v)}
+                                    onChange={(v) =>
+                                        props.updateResource(r.id, v)
+                                    }
                                 />
                             </FormRow>
                         ))}
@@ -434,7 +455,9 @@ function FeedingForm(props: {
                             <FormRow key={r.id} label={r.name}>
                                 <SpinboxInput
                                     value={_.get(props.feeding, r.id, 0)}
-                                    onChange={(v) => props.updateResource(r.id, v)}
+                                    onChange={(v) =>
+                                        props.updateResource(r.id, v)
+                                    }
                                 />
                             </FormRow>
                         ))}
@@ -448,7 +471,6 @@ export function FeedingAgenda(props: { team: Team }) {
     const [feeding, setFeeding] = useState<Record<string, number>>({});
     const [action, setAction] = useAtom(urlMapActionAtom);
 
-
     let updateResource = (rId: string, v: number) => {
         if (v < 0) v = 0;
         setFeeding(
@@ -458,15 +480,25 @@ export function FeedingAgenda(props: { team: Team }) {
         );
     };
 
-    return <PerformAction
-        actionId="ActionFeed"
-        actionName={`Krmení týmu ${props.team.name}`}
-        actionArgs={{
-            team: props.team.id,
-            materials: feeding
-        }}
-        extraPreview={<FeedingForm team={props.team} feeding={feeding} updateResource={updateResource}/>}
-        onBack={() => {}}
-        onFinish={() => {setAction(MapActiontype.none)}}
-    />
+    return (
+        <PerformAction
+            actionId="ActionFeed"
+            actionName={`Krmení týmu ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                materials: feeding,
+            }}
+            extraPreview={
+                <FeedingForm
+                    team={props.team}
+                    feeding={feeding}
+                    updateResource={updateResource}
+                />
+            }
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(MapActiontype.none);
+            }}
+        />
+    );
 }
