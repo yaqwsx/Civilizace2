@@ -95,7 +95,7 @@ class ActionArmyDeploy(ActionBase):
     def _applyDelayedEffect(self) -> None:
         army = self.army
         tile = self.tile
-        defender = self.map.getOccupyingArmy(tile)
+        defender = self.map.getOccupyingArmy(tile.entity)
 
         if defender == None:
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
@@ -110,7 +110,7 @@ class ActionArmyDeploy(ActionBase):
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
-                equipment = self.map.retreatArmy(self.state)
+                equipment = self.map.retreatArmy(army)
                 self._info += f"Pole [[{tile.name}]] už bylo obsazeno vaší armádou {defender.name}. \
                     Armáda [[{army.name}]] se vrátila domů."
                 self._returnWeaponsInfo(equipment)
@@ -123,7 +123,8 @@ class ActionArmyDeploy(ActionBase):
                 army.boost = defender.boost
 
             equipment = self.map.retreatArmy(provider)
-            self.map.occupyTile(receiver, tile)
+            if self.args.goal == ArmyGoal.Replace:
+                self.map.occupyTile(receiver, tile)
 
             if self.args.goal == ArmyGoal.Replace:
                 self._info += f"Armáda {army.name} nahradila předchozí armádu.\

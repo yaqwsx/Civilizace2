@@ -184,90 +184,103 @@ def test_supplyNobody():
     assert "prázdné" in result.message
 
 
-# def test_occupySelf():
-#     reimport(__name__)
-#     state = createTestInitState()
-#     entities = TEST_ENTITIES
-#     team = TEAM_BASIC
-#     armyId = ArmyId(team=team, prestige=15)
+def test_occupySelf():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
 
-#     sendArmyTo(entities, state, ArmyId(team=team, prestige=20), entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
-#     reward = sendArmyTo(entities, state, armyId, entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
+    sendArmyTo(entities, state, armies[18], entities["map-tile18"], equipment=4, goal=ArmyGoal.Occupy)
+    result = sendArmyTo(entities, state, army, tile, equipment=20, goal=ArmyGoal.Occupy, boost=2)
 
-#     tile = state.map.tiles[4]
-#     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
-#     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
-#     assert tile.occupiedBy == army20.id
-#     exp = Army(team=team, equipment=15, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
-#     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-#     exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
-#     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
-#     assert reward.reward == {entities.zbrane: 1}
-#     assert reward.succeeded
+    assert result.expected
+    assert "posílila" in result.message
+    assert "15." in result.message
+    assert "|14]]" in result.message
 
-
-# def test_replaceSelf():
-#     reimport(__name__)
-#     state = createTestInitState()
-#     entities = TEST_ENTITIES
-#     team = TEAM_BASIC
-
-#     sendArmyTo(entities, state, ArmyId(team=team, prestige=20), entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
-#     reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Replace, equipment=8)
-
-#     tile = state.map.tiles[4]
-#     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
-#     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
-#     assert tile.occupiedBy == army15.id
-#     exp = Army(team=team, equipment=10, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=15)
-#     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
-#     exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=20)
-#     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-#     assert reward.reward == {entities.zbrane: 6}
-#     assert reward.succeeded
+    tile = state.map.tiles[18]
+    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
+    assert army == exp
+    exp = Army(index=18, team=team.team, name="C", equipment=10, level=1, tile=state.map.tiles[18].entity, mode=ArmyMode.Occupying)
+    assert state.map.armies[18] == exp
 
 
-# def test_eliminateSelf():
-#     reimport(__name__)
-#     state = createTestInitState()
-#     entities = TEST_ENTITIES
-#     team = TEAM_BASIC
-#     armyId = ArmyId(team=team, prestige=15)
+def test_replaceSelf():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
 
-#     sendArmyTo(entities, state, ArmyId(team=team, prestige=20), entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
-#     reward = sendArmyTo(entities, state, armyId, entities["map-tile04"], goal=ArmyGoal.Eliminate, equipment=8, boost=2)
+    sendArmyTo(entities, state, armies[18], entities["map-tile18"], equipment=9, goal=ArmyGoal.Occupy)
+    result = sendArmyTo(entities, state, army, tile, equipment=15, goal=ArmyGoal.Replace, boost=2)
 
-#     tile = state.map.tiles[4]
-#     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
-#     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
-#     assert tile.occupiedBy == army20.id
-#     exp = Army(team=team, equipment=8, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
-#     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-#     exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
-#     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
-#     assert reward.reward == {entities.zbrane: 8}
-#     assert reward.succeeded
+    assert result.expected
+    assert "nahradila" in result.message
+    assert "25" in result.message
+    assert "|4]]" in result.message
+
+    tile = state.map.tiles[18]
+    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[2]
+    exp = Army(index=2, team=team.team, name="A", equipment=20, level=3, tile=tile.entity, mode=ArmyMode.Occupying)
+    assert army == exp
+    exp = Army(index=18, team=team.team, name="C", equipment=0, level=1, tile=None, mode=ArmyMode.Idle)
+    assert state.map.armies[18] == exp
 
 
-# def test_supportSelf():
-#     reimport(__name__)
-#     state = createTestInitState()
-#     entities = TEST_ENTITIES
-#     team = TEAM_BASIC
+def test_eliminateSelf():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
 
-#     sendArmyTo(entities, state, ArmyId(team=team, prestige=20), entities["map-tile04"], goal=ArmyGoal.Occupy, equipment=8, boost=2)
-#     reward = sendArmyTo(entities, state, ArmyId(team=team, prestige=15), entities["map-tile04"], goal=ArmyGoal.Supply, equipment=10)
+    sendArmyTo(entities, state, armies[18], entities["map-tile18"], equipment=9, goal=ArmyGoal.Occupy)
+    result = sendArmyTo(entities, state, army, tile, equipment=15, goal=ArmyGoal.Eliminate, boost=2)
 
-#     tile = state.map.tiles[4]
-#     army15 = state.teamStates[team].armies[ArmyId(team=team, prestige=15)]
-#     army20 = state.teamStates[team].armies[ArmyId(team=team, prestige=20)]
-#     assert tile.occupiedBy == army20.id
-#     exp = Army(team=team, equipment=15, tile=entities["map-tile04"], state=ArmyState.Occupying, prestige=20)
-#     assert army20 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army20)
-#     exp = Army(team=team, equipment=0, tile=None, state=ArmyState.Idle, prestige=15)
-#     assert army15 == exp, "Army in unexpected state:\n\nEXPECTED: {}\n\nACTUAL:  {}\n".format(exp, army15)
-#     assert reward.reward == {entities.zbrane: 3}
-#     assert reward.succeeded
+    assert result.expected
+    assert "obsazeno" in result.message
+    assert "|15]]" in result.message
+
+    tile = state.map.tiles[18]
+    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
+    assert army == exp
+    exp = Army(index=18, team=team.team, name="C", equipment=9, level=1, tile=state.map.tiles[18].entity, mode=ArmyMode.Occupying)
+    assert state.map.armies[18] == exp
+
+
+def test_supportSelf():
+    state = createTestInitState()
+    entities = TEST_ENTITIES
+    map = state.map
+    armies = map.armies
+    team = state.teamStates[entities["tym-ruzovi"]]
+    army = armies[2]
+    tile = entities["map-tile18"]
+
+    sendArmyTo(entities, state, armies[18], entities["map-tile18"], equipment=3, goal=ArmyGoal.Occupy)
+    result = sendArmyTo(entities, state, army, tile, equipment=20, goal=ArmyGoal.Occupy, boost=2)
+
+    assert result.expected
+    assert "posílila" in result.message
+    assert "15." in result.message
+    assert "|13]]" in result.message
+
+    tile = state.map.tiles[18]
+    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
+    assert army == exp
+    exp = Army(index=18, team=team.team, name="C", equipment=10, level=1, tile=state.map.tiles[18].entity, mode=ArmyMode.Occupying)
+    assert state.map.armies[18] == exp
 
 
 # def test_occupyWin():
