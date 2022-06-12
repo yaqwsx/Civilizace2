@@ -123,3 +123,19 @@ def test_compound():
     assert len(diff) == 0
     assert len(teamState.researching) == 1
     assert entities["tec-d"] in teamState.researching
+
+
+def test_bonusCheapDie():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    state.teamStates[team].techs.add(entities["tec-maso"])
+    state.teamStates[team].researching.add(entities["tec-slon"])
+
+    args = ActionResearchArgs(tech=entities["tec-slon"], team=team)
+    action = makeAction(ActionResearchFinish, state=state, entities=entities, args=args)
+
+    assert action.cost() == {}
+
+    action.applyCommit(1, 100)
+
+    assert state.teamStates[team].throwCost == 8

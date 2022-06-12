@@ -1,8 +1,9 @@
+from argparse import ArgumentError
 from decimal import Decimal
 import json
 from typing import Any, Callable, Dict
 
-from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
+from .entities import DIE_IDS, TECH_BONUS_TOKENS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 DIE_ALIASES = {"die-les": "die-lesy"}
@@ -154,6 +155,10 @@ class EntityParser():
 
 
     def parseLineTechCreateEntity(self, line):
+        for bonus in [x.strip() for x in line[7].split(",")]:
+            if bonus == "": continue
+            if not bonus.split("-")[0] in TECH_BONUS_TOKENS:
+                raise AssertionError(f"Unknown tech bonus \"{bonus}\"")
         tech = Tech(bonuses=line[7], flavor=line[8], **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
