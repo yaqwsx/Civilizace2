@@ -25,17 +25,17 @@ class ActionInterface(BaseModel):
     # Private (and thus non-store args) have to start with underscore. Let's
     # give them normal names
     @property
-    def state(self):
+    def state(self) -> GameState:
         return self._state
 
     @property
-    def entities(self):
+    def entities(self) -> Entities:
         return self._entities
 
     @property
-    def team(self):
+    def team(self) -> Team:
         if hasattr(self._generalArgs, "team"):
-            return self._generalArgs.team.id
+            return self._generalArgs.team
         return None
 
 

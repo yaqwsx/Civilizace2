@@ -195,10 +195,14 @@ class MapState(StateModel):
                 return army
         return None
 
-    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:
+    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:        
         for army in self.armies:
             if army.tile == tile:
                 return army.team
+
+        for team in self.parent.teamStates.keys():
+            if team.homeTileId == tile.id:
+                return team
         return None
 
     def retreatArmy(self, army: Army) -> int:
@@ -342,6 +346,8 @@ class WorldState(StateModel):
     casteCount: int=3
     buildDemolitionCost: Dict[Resource, int]
     combatRandomness: float = 0.5
+    roadCost: Dict[Resource, int]=[]
+    roadPoints: int=10
 
 
 class GameState(StateModel):
@@ -367,7 +373,11 @@ class GameState(StateModel):
             turn=0,
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities),
-            world=WorldState(buildDemolitionCost={entities["mge-obchod-3"]:10})
+            world=WorldState(
+                    buildDemolitionCost={entities["mge-obchod-3"]:10}, 
+                    roadCost={entities["mge-stavivo-2"]:10, 
+                              entities["mge-nastroj-2"]:10, 
+                              entities.work:50})
         )
 
 

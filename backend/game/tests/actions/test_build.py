@@ -64,7 +64,17 @@ def test_failStartExisting():
 
 
 def test_buildOnOccupied():
-    raise NotImplementedError()
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    building = entities["bui-pila"]
+    team = entities["tym-zluti"]
+    tile = state.map.tiles[28]
+
+    action = makeAction(ActionBuild,
+        state=state, entities=entities, args=ActionBuildArgs(build=building, team=team, tile=tile.entity))
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit()
+
 
 def test_buildWithFeatures():
     raise NotImplementedError()

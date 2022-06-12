@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict
 
 from .entities import DIE_IDS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
-DICE_IDS = ["die-lesy", "die-plane", "die-hory", "die-any"]
+DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
 DIE_ALIASES = {"die-les": "die-lesy"}
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
@@ -71,12 +71,15 @@ class EntityParser():
             split = chunk.split(":")
             assert len(split) == 2, "Invalid edge: " + chunk
             targetId = split[0]
+            assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
+            targetEntity = self.entities[targetId]
+
             die = split[1]
             if die in DIE_ALIASES:
                 die = DIE_ALIASES[die]                
+            if die == "die-any":
+                return DICE_IDS.copy()
             assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
-            assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
-            targetEntity = self.entities[targetId]
             result.append((targetEntity, die))
         return result
 

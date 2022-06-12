@@ -72,7 +72,7 @@ class ActionArmyDeploy(ActionBase):
 
     def _commitImpl(self) -> None:
         if not self.army in self.map.armies: raise ActionFailed(f"Neznámá armáda {self.army.name}({self.army.index})")
-        if self.army.team.id != self.team: raise ActionFailed(f"Nelze vyslat armádu cizího týmu")
+        if self.army.team != self.team: raise ActionFailed(f"Nelze vyslat armádu cizího týmu")
 
         army = self.army
         if army.mode != ArmyMode.Idle:
