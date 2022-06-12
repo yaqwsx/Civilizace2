@@ -24,7 +24,7 @@ def dieName(id: DieId) -> str:
     # Why isn't this in entities?
     return {
         "die-lesy": "Lesní kostka",
-        "die-plane": "Planina kostka",
+        "die-plane": "Planinná kostka",
         "die-hory": "Horská kostka"
     }[id]
 

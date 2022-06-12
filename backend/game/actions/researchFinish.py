@@ -1,7 +1,7 @@
 from typing import Dict
 from game.actions.actionBase import ActionBase, ActionFailed
 from game.actions.researchStart import ActionResearchArgs
-from game.entities import Resource, Tech
+from game.entities import Resource, Tech, dieName
 
 class ActionResearchFinish(ActionResearchArgs):
     pass
@@ -26,6 +26,8 @@ class ActionResearchFinish(ActionBase):
         if not self.args.tech in self.teamState.researching:
             raise ActionFailed(f"Výzkum technologie [[{self.args.tech.id}]] aktuálně neprobíhá, takže ji nelze dokončit.")
 
+
         self.teamState.researching.remove(self.args.tech)
         self.teamState.techs.add(self.args.tech)
         self._info += "Výzkum technologie [[" + self.args.tech.id + "]] byl dokončen."
+        self._info += f"Vydejte týmu technologický žeton {[dieName(die) for die in self.teamState.getUnlockingDice(self.args.tech)]}"
