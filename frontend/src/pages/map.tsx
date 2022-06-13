@@ -139,6 +139,9 @@ export function MapAgenda() {
                     {action == MapActiontype.automateFeeding ? (
                         <AutomateFeedingAgenda team={team} />
                     ) : null}
+                    {action == MapActiontype.trade ? (
+                        <TradeAgenda team={team} />
+                    ) : null}
                 </>
             ) : null}
         </>
@@ -352,6 +355,85 @@ export function BuildRoadAgenda(props: { team: Team }) {
                             onChange={setTile}
                         />
                     </FormRow>
+                </>
+            }
+        />
+    );
+}
+
+export function TradeAgenda(props: { team: Team }) {
+    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [recipient, setRecipient] = useState<Team | undefined>(undefined);
+    const [resources, setResources] = useState<Record<string, number>>({});
+
+    const {
+        data: availableProductions,
+        error,
+        mutate,
+    } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
+
+    if (!availableProductions) {
+        return (
+            <LoadingOrError
+                loading={!availableProductions && !error}
+                error={error}
+                message="Něco se nepovedlo"
+            />
+        );
+    }
+
+    let updateResource = (rId: string, v: number) => {
+        if (v < 0) v = 0;
+        if (v > availableProductions[rId].available)
+            v = availableProductions[rId].available;
+        setResources(
+            produce(resources, (orig) => {
+                orig[rId] = v;
+            })
+        );
+    };
+
+    return (
+        <PerformAction
+            actionId="ActionTrade"
+            actionName={`Obchod ${props.team.name} → ${recipient?.name}`}
+            actionArgs={{
+                team: props.team.id,
+                receiver: recipient?.id,
+                resources: resources,
+            }}
+            argsValid={Object.keys(resources).length > 0 && recipient !== undefined}
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(MapActiontype.none);
+            }}
+            extraPreview={
+                <>
+                    <h1>Obchodovat</h1>
+                    <FormRow label="Příjemce:">
+                        <TeamSelector
+                            allowNull={false}
+                            active={recipient}
+                            onChange={setRecipient}
+                            ignoredTeam={props.team}
+                        />
+                    </FormRow>
+                    {Object.keys(availableProductions).length > 0
+                        ? Object.values(availableProductions).map((a: any) => {
+                              if (["res-prace", "res-obyvatel"].includes(a.id))
+                                  return null;
+                              return (
+                                  <FormRow key={a.id} label={a.name}>
+                                      <SpinboxInput
+                                          value={_.get(resources, a.id, 0)}
+                                          onChange={(v) =>
+                                              updateResource(a.id, v)
+                                          }
+                                      />
+                                  </FormRow>
+                              );
+                          })
+                        : "Tým nemá žádné produkce které by mohl obchodovat"}
                 </>
             }
         />

@@ -68,6 +68,7 @@ type TeamSelectorProps = {
     onChange?: (selectedTeam?: Team) => void;
     onError?: (message: string) => void;
     allowNull?: boolean;
+    ignoredTeam?: Team;
 };
 export function TeamSelector(props: TeamSelectorProps) {
     const { teams, loading, error } = useTeams();
@@ -90,7 +91,10 @@ export function TeamSelector(props: TeamSelectorProps) {
                     <p>{error.toString()}</p>
                 </ComponentError>
             ) : teams ? (
-                <TeamSelectorImpl {...props} teams={teams} />
+                <TeamSelectorImpl
+                    {...props}
+                    teams={teams.filter((t) => t !== props.ignoredTeam)}
+                />
             ) : (
                 <InlineSpinner />
             )}
@@ -112,7 +116,8 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
                         "m-2",
                         "flex-auto",
                         {
-                        "border-4 border-black scale-110 font-bold": !props?.active?.id
+                            "scale-110 border-4 border-black font-bold":
+                                !props?.active?.id,
                         }
                     )}
                     onClick={() => {
