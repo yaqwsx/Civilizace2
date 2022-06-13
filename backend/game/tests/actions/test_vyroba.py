@@ -1,5 +1,8 @@
 from decimal import Decimal
+
+import pytest
 from game.actions.actionBase import makeAction
+from game.actions.common import ActionFailed
 from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
@@ -209,3 +212,23 @@ def test_plunderProduction():
     assert "+80%" in delayedResult.message
     assert "[[pro-drevo|11.2]]" in delayedResult.message
     assert tile.richnessTokens == 4
+
+
+def test_featureMissing():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[entities["tym-zluti"]]
+    tile = state.map.tiles[26]
+    
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevoProdLes"],
+        count = 2,
+        tile = tile.entity,
+        plunder = False,
+        team = team.team
+    )
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+
+    initResult = action.applyInitiate()
+    with pytest.raises(ActionFailed) as einfo:
+        action.applyCommit(1, 100)
