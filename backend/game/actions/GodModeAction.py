@@ -16,6 +16,10 @@ class GodModeArgs(ActionArgs):
 
 class GodModeAction(ActionBase):
     @property
+    def description(self):
+        return "Godmode"
+
+    @property
     def args(self) -> GodModeArgs:
         assert isinstance(self._generalArgs, GodModeArgs)
         return self._generalArgs
@@ -24,7 +28,6 @@ class GodModeAction(ActionBase):
         return (set(), 0)
 
     def applyInitiate(self) -> ActionResult:
-        self.description = "God mode. Smiř se s tím."
         return ActionResult(expected=True, message="")
 
     def applyCommit(self, throws: int, dots: int) -> ActionResult:

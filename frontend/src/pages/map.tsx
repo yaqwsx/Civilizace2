@@ -38,8 +38,11 @@ export const ARMY_GOALS = {
 enum MapActiontype {
     none = 0,
     building = 1,
-    feeding = 2,
-    army = 3,
+    finishBuilding = 2,
+    feeding = 3,
+    automateFeeding = 4,
+    army = 5,
+    trade = 6,
 }
 
 const urlMapActionAtom = atomWithHash<MapActiontype>(
@@ -81,29 +84,40 @@ export function MapAgenda() {
             {team ? (
                 <>
                     <FormRow label="Vyberte akci:">
-                        <div className="mx-0 w-1/3 flex-initial px-1">
-                            <Button
-                                label="Krmit"
-                                className="mx-0 w-full bg-green-600 hover:bg-green-700"
-                                onClick={() => setAction(MapActiontype.feeding)}
-                            />
-                        </div>
-                        <div className="mx-0 w-1/3 flex-initial px-1">
-                            <Button
-                                label="Armáda"
-                                className="mx-0 w-full bg-orange-600 hover:bg-orange-700"
-                                onClick={() => setAction(MapActiontype.army)}
-                            />
-                        </div>
-                        <div className="mx-0 w-1/3 flex-initial px-1">
-                            <Button
-                                label="Stavět"
-                                className="w-full"
-                                onClick={() =>
-                                    setAction(MapActiontype.building)
-                                }
-                            />
-                        </div>
+                        <Button
+                            label="Krmit"
+                            className="m-2 flex-1 bg-green-600 hover:bg-green-700"
+                            onClick={() => setAction(MapActiontype.feeding)}
+                        />
+                        <Button
+                            label="Automatizovat krmení"
+                            className="m-2 flex-1 bg-green-600 hover:bg-green-700"
+                            onClick={() =>
+                                setAction(MapActiontype.automateFeeding)
+                            }
+                        />
+                        <Button
+                            label="Armáda"
+                            className="m-2 flex-1 bg-orange-600 hover:bg-orange-700"
+                            onClick={() => setAction(MapActiontype.army)}
+                        />
+                        <Button
+                            label="Stavět"
+                            className="m-2 flex-1"
+                            onClick={() => setAction(MapActiontype.building)}
+                        />
+                        <Button
+                            label="Dokončit stavění"
+                            className="m-2 flex-1"
+                            onClick={() =>
+                                setAction(MapActiontype.finishBuilding)
+                            }
+                        />
+                        <Button
+                            label="Obchodovat"
+                            className="m-2 flex-1 bg-yellow-500 hover:bg-yellow-600"
+                            onClick={() => setAction(MapActiontype.trade)}
+                        />
                     </FormRow>
                     <TeamRowIndicator team={team} />
 
@@ -115,6 +129,9 @@ export function MapAgenda() {
                     ) : null}
                     {action == MapActiontype.feeding ? (
                         <FeedingAgenda team={team} />
+                    ) : null}
+                    {action == MapActiontype.automateFeeding ? (
+                        <AutomateFeedingAgenda team={team} />
                     ) : null}
                 </>
             ) : null}
@@ -173,7 +190,6 @@ export function ArmyDescription(props: { army: any; orgView: boolean }) {
         ),
         // @ts-ignore
         Stav: modeMapping[props.army.mode],
-
     };
     if (props.army.mode !== "Idle") {
         // @ts-ignore
@@ -213,7 +229,9 @@ function ArmyBadge(props: { team: Team; army: any }) {
 
     return (
         <div className={className}>
-            <h3 className="w-full">Armáda {props.army.name} {"✱".repeat(props.army.level)}</h3>
+            <h3 className="w-full">
+                Armáda {props.army.name} {"✱".repeat(props.army.level)}
+            </h3>
             <div className="w-full md:w-2/3">
                 <ArmyDescription army={props.army} orgView={true} />
             </div>
@@ -494,6 +512,71 @@ export function FeedingAgenda(props: { team: Team }) {
                     feeding={feeding}
                     updateResource={updateResource}
                 />
+            }
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(MapActiontype.none);
+            }}
+        />
+    );
+}
+
+export function AutomateFeedingAgenda(props: { team: Team }) {
+    const [productions, setProductions] = useState<Record<string, number>>({});
+    const {
+        data: availableProductions,
+        error,
+        mutate,
+    } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
+    const [action, setAction] = useAtom(urlMapActionAtom);
+
+    if (!availableProductions) {
+        return (
+            <LoadingOrError
+                loading={!availableProductions && !error}
+                error={error}
+                message="Něco se nepovedlo"
+            />
+        );
+    }
+
+    let food = Object.values(availableProductions).filter(
+        (a: any) => a?.typ?.id === "typ-jidlo" || a?.typ?.id == "typ-luxus"
+    );
+
+    let updateResource = (rId: string, v: number) => {
+        if (v < 0) v = 0;
+        if (v > availableProductions[rId].available)
+            v = availableProductions[rId].available;
+        setProductions(
+            produce(productions, (orig) => {
+                orig[rId] = v;
+            })
+        );
+    };
+
+    return (
+        <PerformAction
+            actionId="ActionGranary"
+            actionName={`Automatizace krmení ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                productions: productions,
+            }}
+            argsValid={Object.keys(productions).length > 0}
+            extraPreview={
+                <>
+                    {Object.keys(food).length > 0
+                        ? food.map((a: any) => (
+                              <FormRow key={a.id} label={a.name}>
+                                  <SpinboxInput
+                                      value={_.get(productions, a.id, 0)}
+                                      onChange={(v) => updateResource(a.id, v)}
+                                  />
+                              </FormRow>
+                          ))
+                        : "Tým nemá žádné produkce jídla či luxusu. Není možné automatizovat."}
+                </>
             }
             onBack={() => {}}
             onFinish={() => {

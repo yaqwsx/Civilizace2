@@ -252,7 +252,7 @@ class ActionBase(ActionInterface):
         message = ""
         if len(cost) > 0:
             require = self.payResources(cost)
-            message = f"Vyberte od týmu materiály:{printResourceListForMarkdown(require, ceil)}"
+            message = f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
 
         return ActionResult(
             expected=True,
@@ -262,7 +262,7 @@ class ActionBase(ActionInterface):
     def revertInitiate(self) -> ActionResult:
         cost = self.cost()
         reward = self.receiveResources(cost, instantWithdraw=True)
-        message = f"Vraťte týmu materiály:{printResourceListForMarkdown(reward, ceil)}"
+        message = f"Vraťte týmu materiály:\n\n{printResourceListForMarkdown(reward, ceil)}"
 
         return ActionResult(
             expected=True,

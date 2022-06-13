@@ -14,6 +14,7 @@ import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/mode-javascript";
 import { useHideMenu } from "./atoms";
+import _ from "lodash";
 
 export function GodModeMenu() {
     return null;
@@ -158,7 +159,7 @@ function Changelist(props: { items: Record<string, any> }) {
         <ul className="list-disc">
             {Object.entries(props.items).map(([k, v]) => (
                 <li key={k}>
-                    {k}: {v}
+                    {k}: {JSON.stringify(v)}
                 </li>
             ))}
         </ul>
@@ -235,10 +236,10 @@ function jsonDiff(newJson: any, originalJson: any) {
                 var newArr = newJ[key];
                 var origArr = origJ[key];
                 let toAdd = newArr.filter(
-                    (x: any) => !origArr.some((y: any) => x == y)
+                    (x: any) => !origArr.some((y: any) => _.isEqual(x, y))
                 );
                 let toRemove = origArr.filter(
-                    (x: any) => !newArr.some((y: any) => x == y)
+                    (x: any) => !newArr.some((y: any) => _.isEqual(x,y))
                 );
                 if (toAdd.length != 0) {
                     add[key] = toAdd;
