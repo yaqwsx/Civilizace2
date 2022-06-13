@@ -27,3 +27,19 @@ def test_turnCounter():
         action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
         action.applyCommit()
         assert state.world.turn == i+2
+
+def test_richnessIncrease():
+    reimport(__name__)
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    args = ActionNextTurnArgs()
+
+    action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
+    for tile in state.map.tiles.values():
+        assert tile.richnessTokens == 0
+
+    for i in range(6):
+        action.applyCommit()
+
+    for tile in state.map.tiles.values():
+        assert tile.richnessTokens == tile.entity.richness

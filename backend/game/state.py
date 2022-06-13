@@ -87,6 +87,7 @@ class MapTile(StateModel): # Game state elemnent
     entity: MapTileEntity
     unfinished: Dict[Team, Set[Building]]={}
     buildings: Set[Building]=set()
+    richnessTokens: int = 0
 
     @property
     def parent(self) -> MapState:
