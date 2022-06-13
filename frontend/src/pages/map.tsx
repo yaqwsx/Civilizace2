@@ -33,10 +33,11 @@ enum MapActiontype {
     none = 0,
     building = 1,
     finishBuilding = 2,
-    feeding = 3,
-    automateFeeding = 4,
-    army = 5,
-    trade = 6,
+    buildRoad = 3,
+    feeding = 4,
+    automateFeeding = 5,
+    army = 6,
+    trade = 7,
 }
 
 const urlMapActionAtom = atomWithHash<MapActiontype>(
@@ -108,6 +109,11 @@ export function MapAgenda() {
                             }
                         />
                         <Button
+                            label="Postavit cestu"
+                            className="m-2 flex-1"
+                            onClick={() => setAction(MapActiontype.buildRoad)}
+                        />
+                        <Button
                             label="Obchodovat"
                             className="m-2 flex-1 bg-yellow-500 hover:bg-yellow-600"
                             onClick={() => setAction(MapActiontype.trade)}
@@ -123,6 +129,9 @@ export function MapAgenda() {
                     ) : null}
                     {action == MapActiontype.finishBuilding ? (
                         <BuildingFinishAgenda team={team} />
+                    ) : null}
+                    {action == MapActiontype.buildRoad ? (
+                        <BuildRoadAgenda team={team} />
                     ) : null}
                     {action == MapActiontype.feeding ? (
                         <FeedingAgenda team={team} />
@@ -305,6 +314,42 @@ export function BuildingFinishAgenda(props: { team: Team }) {
                         <BuildingSelect
                             value={demolish}
                             onChange={setDemolish}
+                        />
+                    </FormRow>
+                </>
+            }
+        />
+    );
+}
+
+export function BuildRoadAgenda(props: { team: Team }) {
+    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [tile, setTile] = useState<any>(undefined);
+
+    return (
+        <PerformAction
+            actionId="ActionBuildRoad"
+            actionName={`Postavit cestu týmem ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                tile: tile?.entity.id,
+            }}
+            argsValid={tile?.entity.id || false}
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(MapActiontype.none);
+            }}
+            extraPreview={
+                <>
+                    <h1>Postavit cestu týmem {props.team.name}</h1>
+                    <FormRow
+                        label="Vyberte políčko kam se bude stavět"
+                        error={!tile ? "Je třeba vybrat pole" : null}
+                    >
+                        <TeamTileSelect
+                            team={props.team}
+                            value={tile}
+                            onChange={setTile}
                         />
                     </FormRow>
                 </>
