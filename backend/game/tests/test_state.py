@@ -1,4 +1,5 @@
 import pytest
+from core.management.commands.addarmies import addArmies
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.researchStart import ActionResearchArgs, ActionResearchStart
@@ -43,4 +44,16 @@ def test_homeTiles():
     assert id == entities["map-tile05"]
 
 
+def test_addArmies():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
 
+    addArmies(state)
+    assert len(state.map.armies) == 32
+    assert state.map.armies[30].team.id == "tym-fialovi"
+    assert state.map.armies[30].name == "D"
+
+    addArmies(state)
+    assert len(state.map.armies) == 40
+    assert state.map.armies[36].team.id == "tym-modri"
+    assert state.map.armies[36].name == "E"

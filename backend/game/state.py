@@ -112,7 +112,7 @@ class MapTile(StateModel): # Game state element
 
     @property
     def features(self) -> List[TileFeature]:
-        return self.entity.naturalResources + self.buildings
+        return self.entity.naturalResources + list(self.buildings)
 
     @property
     def id(self) -> EntityId:
