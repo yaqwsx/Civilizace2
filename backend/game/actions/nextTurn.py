@@ -13,6 +13,10 @@ class ActionNextTurn(ActionBase):
     args: ActionNextTurnArgs
 
     @property
+    def description(self):
+        return "Další kolo"
+
+    @property
     def args(self) -> ActionNextTurnArgs:
         assert isinstance(self._generalArgs, ActionNextTurnArgs)
         return self._generalArgs

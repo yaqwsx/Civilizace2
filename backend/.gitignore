@@ -3,3 +3,4 @@ __pycache__
 gauth.json
 .vscode
 data
+settingsLocal.py

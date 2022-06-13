@@ -1,26 +1,25 @@
 from __future__ import annotations
-from django.utils.crypto import get_random_string
-import decimal
-import json
-from enumfields import EnumField
-from typing import Any, Dict, Optional, Tuple
+
+import string
+from functools import cached_property
+from typing import Dict, Optional, Tuple
+
+from core.models import Team, User
+from core.models.fields import JSONField
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import QuerySet
-from django.core.validators import MinValueValidator
 from django.utils import timezone
-from pydantic import BaseModel
-from core.models.fields import JSONField
-from core.models import Team, User
+from django.utils.crypto import get_random_string
+from django_enumfield import enum
+
 from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionArgs, ActionInterface
-from game.entities import Entities, Entity, EntityBase
+from game.entities import Entities, Entity
 from game.entityParser import parseEntities
-from enum import Enum
 from game.gameGlue import stateDeserialize, stateSerialize
-from functools import cached_property
-import string
-
 from game.state import GameState, MapState, TeamState, WorldState
+
 
 class DbEntitiesManager(models.Manager):
     def __init__(self, *args, **kwargs):
@@ -30,7 +29,7 @@ class DbEntitiesManager(models.Manager):
     def get_queryset(self) -> QuerySet[DbEntities]:
         return super().get_queryset().defer("data")
 
-    def get_revision(self, revision: Optional[int]=None) -> Tuple[int, Entities]:
+    def get_revision(self, revision: Optional[int] = None) -> Tuple[int, Entities]:
         if revision is None:
             revision = self.latest("id").id
         if revision in self.cache:
@@ -39,9 +38,11 @@ class DbEntitiesManager(models.Manager):
 
         def reportError(msg: str):
             raise RuntimeError(msg)
-        entities = parseEntities(dbEntities.data, reportError=reportError).gameOnlyEntities
+        entities = parseEntities(
+            dbEntities.data, reportError=reportError).gameOnlyEntities
         self.cache[revision] = entities
         return revision, entities
+
 
 class DbEntities(models.Model):
     """
@@ -54,13 +55,14 @@ class DbEntities(models.Model):
     data = JSONField("data")
     objects = DbEntitiesManager()
 
+
 class DbAction(models.Model):
     """
     Represent an action that was input into the system. It stores which action
     it is and what arguments does it use. The action itself is stored in the
     DbInteractionModel.
     """
-    actionType = models.CharField("actionType",max_length=64, null=False)
+    actionType = models.CharField("actionType", max_length=64, null=False)
     entitiesRevision = models.IntegerField()
     description = models.TextField(null=True)
     args = JSONField()
@@ -74,28 +76,33 @@ class DbAction(models.Model):
         return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
 
 
-class InteractionType(Enum):
+class InteractionType(enum.Enum):
     initiate = 0
     commit = 1
     cancel = 2
     delayed = 3
     delayedReward = 4
 
+
 class DbInteraction(models.Model):
-    created = models.DateTimeField("Time of creating the action", auto_now=True)
-    phase = EnumField(InteractionType)
-    action = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
+    created = models.DateTimeField(
+        "Time of creating the action", auto_now=True)
+    phase = enum.EnumField(InteractionType)
+    action = models.ForeignKey(
+        DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
 
     def getActionIr(self, entities, state) -> ActionInterface:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
-        action = stateDeserialize(ActionTypeInfo.action, self.actionObject, entities)
+        action = stateDeserialize(
+            ActionTypeInfo.action, self.actionObject, entities)
         action._generalArgs = self.action.getArgumentsIr(entities)
         action._state = state
         action._entities = entities
         return action
+
 
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -104,11 +111,13 @@ class DbTeamState(models.Model):
     def toIr(self, entities) -> TeamState:
         return stateDeserialize(TeamState, self.data, entities)
 
+
 class DbMapState(models.Model):
     data = JSONField("data")
 
     def toIr(self, entities) -> TeamState:
         return stateDeserialize(MapState, self.data, entities)
+
 
 class DbWorldState(models.Model):
     data = JSONField("data")
@@ -116,11 +125,13 @@ class DbWorldState(models.Model):
     def toIr(self, entities) -> TeamState:
         return stateDeserialize(WorldState, self.data, entities)
 
+
 class DbStateManager(models.Manager):
     def createFromIr(self, ir: GameState) -> DbState:
         mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
         worldState = DbWorldState.objects.create(data=stateSerialize(ir.world))
-        state = self.create(worldState=worldState, mapState=mapState, interaction=None)
+        state = self.create(worldState=worldState,
+                            mapState=mapState, interaction=None)
         for t, ts in ir.teamStates.items():
             dbTs = DbTeamState.objects.create(
                 team=Team.objects.get(id=t.id),
@@ -129,13 +140,17 @@ class DbStateManager(models.Manager):
         state.save()
         return state
 
+
 class DbState(models.Model):
     class Meta:
         get_latest_by = "id"
-    mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE, null=False)
-    worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE, null=False)
+    mapState = models.ForeignKey(
+        DbMapState, on_delete=models.CASCADE, null=False)
+    worldState = models.ForeignKey(
+        DbWorldState, on_delete=models.CASCADE, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
-    interaction = models.ForeignKey(DbInteraction, on_delete=models.CASCADE, null=True)
+    interaction = models.ForeignKey(
+        DbInteraction, on_delete=models.CASCADE, null=True)
 
     objects = DbStateManager()
 
@@ -193,12 +208,12 @@ class DbState(models.Model):
             self.teamStates.add(t)
         self._teamStates = []
 
-
     @property
     def entities(self):
         if self.interaction is None:
             return DbEntities.objects.get_revision()[1]
         return DbEntities.objects.get_revision(self.interaction.action.entitiesRevision)[1]
+
 
 class DbTaskManager(models.Manager):
     def get_queryset(self):
@@ -223,21 +238,27 @@ class DbTask(models.Model):
     def occupiedCount(self):
         return self.assignments.filter(finishedAt=None).count()
 
+
 class DbTaskAssignment(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="assignments")
+    task = models.ForeignKey(
+        DbTask, on_delete=models.CASCADE, related_name="assignments")
     techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now=True)
     finishedAt = models.DateTimeField(null=True)
     abandoned = models.BooleanField(default=False)
 
+
 class DbTaskPreference(models.Model):
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['task', 'techId'], name='unique_preference')
+            models.UniqueConstraint(
+                fields=['task', 'techId'], name='unique_preference')
         ]
-    task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="techs")
+    task = models.ForeignKey(
+        DbTask, on_delete=models.CASCADE, related_name="techs")
     techId = models.CharField(max_length=32)
+
 
 class DbTurnManager(models.Manager):
     def getActiveTurn(self):
@@ -247,12 +268,14 @@ class DbTurnManager(models.Manager):
             raise DbTurn.DoesNotExist()
         return object
 
+
 class DbTurn(models.Model):
     class Meta:
         get_latest_by = "id"
     startedAt = models.DateTimeField(null=True)
     enabled = models.BooleanField(default=False)
-    duration = models.IntegerField(default=15*60, validators=[MinValueValidator(0)]) # In seconds
+    duration = models.IntegerField(
+        default=15*60, validators=[MinValueValidator(0)])  # In seconds
 
     objects = DbTurnManager()
 
@@ -273,11 +296,13 @@ class DbTurn(models.Model):
             return self.startedAt
         return self.prev.shouldStartAt + timezone.timedelta(seconds=self.prev.duration)
 
+
 class DbDelayedEffect(models.Model):
     slug = models.SlugField(max_length=8)
-    team = models.ForeignKey(Team, related_name="vouchers", null=True, on_delete=models.CASCADE)
+    team = models.ForeignKey(
+        Team, related_name="vouchers", null=True, on_delete=models.CASCADE)
     round = models.IntegerField()
-    target = models.IntegerField() # In seconds
+    target = models.IntegerField()  # In seconds
     action = models.ForeignKey(DbAction, on_delete=models.CASCADE)
     stickers = JSONField(null=True)
     performed = models.BooleanField(default=False)
@@ -301,6 +326,7 @@ class DbDelayedEffect(models.Model):
     def description(self):
         return self.action.description
 
+
 class StickerType(models.IntegerChoices):
     regular = 0
     techSmall = 1
@@ -308,7 +334,8 @@ class StickerType(models.IntegerChoices):
 
 
 class DbSticker(models.Model):
-    team = models.ForeignKey(Team, related_name="stickers", on_delete=models.CASCADE)
+    team = models.ForeignKey(
+        Team, related_name="stickers", on_delete=models.CASCADE)
     entityId = models.CharField(max_length=32)
     entityRevision = models.IntegerField()
     type = models.IntegerField(choices=StickerType.choices)
@@ -329,6 +356,7 @@ class DbSticker(models.Model):
     def stickerPaperRequired(self):
         return self.entityId.startswith("tec-")
 
+
 class PrinterManager(models.Manager):
     def prune(self):
         """
@@ -337,6 +365,7 @@ class PrinterManager(models.Manager):
         """
         criticalPoint = timezone.now() - timezone.timedelta(minutes=1)
         self.filter(registeredAt__lte=criticalPoint).delete()
+
 
 class Printer(models.Model):
     name = models.CharField(max_length=200)
@@ -347,7 +376,7 @@ class Printer(models.Model):
 
     objects = PrinterManager()
 
-class DbTick(models.Model):
-    name = models.CharField(max_length=32)
-    lastTick = models.DateTimeField(auto_now=True)
 
+class DbTick(models.Model):
+    name = models.CharField(max_length=32, primary_key=True)
+    lastTick = models.DateTimeField(auto_now=True)
