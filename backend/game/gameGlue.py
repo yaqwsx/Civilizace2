@@ -3,6 +3,7 @@ import decimal
 import enum
 import json
 from typing import Dict, Any, Callable, Optional
+import typing
 from pydantic import BaseModel
 from pydantic.fields import SHAPE_SINGLETON, MAPPING_LIKE_SHAPES, SHAPE_LIST, SHAPE_SET
 from game.actions.actionBase import ActionArgs
@@ -60,23 +61,37 @@ def stateDeserialize(cls, data, entities):
 
 def _stateDeserialize(data, field, entities):
     if field.shape == SHAPE_SINGLETON:
-        return _stateDeserializeSingleton(data, field, entities)
+        return _stateDeserializeSingleton(data, field.type_, field.required, entities)
     if field.shape in MAPPING_LIKE_SHAPES:
         return {
-            _stateDeserialize(k, field.key_field, entities): _stateDeserializeSingleton(v, field, entities)
+            _stateDeserialize(k, field.key_field, entities): _stateDeserializeSingleton(v, field.type_, field.required, entities)
             for k, v in data.items()}
     if field.shape == SHAPE_LIST:
-        return [_stateDeserializeSingleton(x, field, entities)
+        return [_stateDeserializeSingleton(x, field.type_, field.required, entities)
             for x in data]
     if field.shape == SHAPE_SET:
-        return set([_stateDeserializeSingleton(x, field, entities)
+        return set([_stateDeserializeSingleton(x, field.type_, field.required, entities)
             for x in data])
     raise NotImplementedError(f"Shape type {field.shape} not implemented")
 
-def _stateDeserializeSingleton(data, field, entities):
-    if not field.required and data is None:
+def _stateDeserializeGeneric(generic, data, entities):
+    if issubclass(generic.__origin__, set):
+        return set([_stateDeserializeSingleton(x, generic.__args__[0], True, entities)
+            for x in data])
+    if issubclass(generic.__origin__, list):
+        return [_stateDeserializeSingleton(x, generic.__args__[0], True, entities)
+            for x in data]
+    if issubclass(generic.__origin__, dict):
+        return {
+            _stateDeserializeSingleton(k, generic.__args__[0], True, entities): _stateDeserializeSingleton(v, generic.__args__[1], True, entities)
+            for k, v in data.items()}
+    assert(False)
+
+def _stateDeserializeSingleton(data, expectedType, required, entities):
+    if not required and data is None:
         return None
-    expectedType = field.type_
+    if hasattr(expectedType, "__origin__"):
+        return _stateDeserializeGeneric(expectedType, data, entities)
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):

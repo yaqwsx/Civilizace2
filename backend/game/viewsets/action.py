@@ -437,7 +437,7 @@ class ActionViewSet(viewsets.ViewSet):
                 "allowedDice": list(diceReq[0]),
                 "throwCost": action.throwCost(),
                 "description": dbAction.description,
-                "team": action.team
+                "team": action.team.id
             })
 
         if dbAction.interactions.count() != 1:

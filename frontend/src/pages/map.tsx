@@ -13,8 +13,9 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction } from "../elements/action";
+import { ArmyGoalSelect, ArmySelectBox } from "../elements/army";
 import { EntityTag, useEntities } from "../elements/entities";
-import { TileSelect } from "../elements/map";
+import { BuildingSelect, TeamTileSelect, TileSelect } from "../elements/map";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -27,13 +28,6 @@ import { useHideMenu } from "./atoms";
 export function MapMenu() {
     return null;
 }
-
-export const ARMY_GOALS = {
-    0: "Okupovat",
-    1: "Eliminovat",
-    2: "Zásobování",
-    3: "Nahradit",
-};
 
 enum MapActiontype {
     none = 0,
@@ -127,6 +121,9 @@ export function MapAgenda() {
                     {action == MapActiontype.building ? (
                         <BuildingAgenda team={team} />
                     ) : null}
+                    {action == MapActiontype.finishBuilding ? (
+                        <BuildingFinishAgenda team={team} />
+                    ) : null}
                     {action == MapActiontype.feeding ? (
                         <FeedingAgenda team={team} />
                     ) : null}
@@ -140,10 +137,179 @@ export function MapAgenda() {
 }
 
 export function BuildingAgenda(props: { team: Team }) {
+    const { data: availableBuildings, error } = useSWR<any>(
+        `game/teams/${props.team.id}/buildings`,
+        fetcher
+    );
+    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [building, setBuilding] = useState<any>(undefined);
+    const [tile, setTile] = useState<any>(undefined);
+    const [useArmy, setUseArmy] = useState(false);
+    const [army, setArmy] = useState<any>(undefined);
+    const [armyGoal, setArmyGoal] = useState<any>(undefined);
+    const [equipment, setEquipment] = useState<any>(0);
+
+    if (!availableBuildings || error) {
+        return (
+            <LoadingOrError
+                loading={!availableBuildings && !error}
+                error={error}
+                message="Něco se pokazilo"
+            />
+        );
+    }
+
     return (
         <>
             <h1>Stavění budovy pro tým {props.team.name}</h1>
+            <PerformAction
+                actionId="ActionBuild"
+                actionName={`Stavba budovy týmu ${props.team.name}`}
+                actionArgs={{
+                    team: props.team.id,
+                    build: building?.id,
+                    tile: tile?.entity.id,
+                    armyIndex: useArmy ? army.index : undefined,
+                    goal: useArmy ? armyGoal : undefined,
+                    equipment: useArmy ? equipment : undefined,
+                }}
+                argsValid={(building?.id && tile?.entity.id) || false}
+                onBack={() => {}}
+                onFinish={() => {
+                    setAction(MapActiontype.none);
+                }}
+                extraPreview={
+                    <>
+                        <FormRow
+                            label="Vyberte budovu"
+                            error={!building ? "Je třeba vybrat budovu" : null}
+                        >
+                            <BuildingSelect
+                                value={building}
+                                onChange={setBuilding}
+                                allowed={availableBuildings}
+                            />
+                        </FormRow>
+                        <FormRow
+                            label="Vyberte políčko"
+                            error={!tile ? "Je třeba vybrat pole" : null}
+                        >
+                            <TeamTileSelect
+                                team={props.team}
+                                value={tile}
+                                onChange={setTile}
+                            />
+                        </FormRow>
+
+                        <h2>Armádní posila</h2>
+                        <FormRow label="Přejete si poslat armádu?">
+                            <input
+                                className="checkboxinput"
+                                type="checkbox"
+                                checked={useArmy}
+                                onChange={(e) => setUseArmy(e.target.checked)}
+                            />
+                        </FormRow>
+                        {useArmy && (
+                            <>
+                                <FormRow label="Vyberte armádu:">
+                                    <ArmySelectBox
+                                        team={props.team}
+                                        value={army}
+                                        onChange={setArmy}
+                                    />
+                                </FormRow>
+                                <FormRow label="Mód:">
+                                    <ArmyGoalSelect
+                                        value={armyGoal}
+                                        onChange={setArmyGoal}
+                                    />
+                                </FormRow>
+                                <FormRow label="Jakou bude mít výzbroj?">
+                                    <SpinboxInput
+                                        value={equipment}
+                                        onChange={(value: number) => {
+                                            if (value < 0) return;
+                                            setEquipment(value);
+                                        }}
+                                    />
+                                </FormRow>
+                            </>
+                        )}
+                    </>
+                }
+            />
         </>
+    );
+}
+
+export function BuildingFinishAgenda(props: { team: Team }) {
+    const { data: availableBuildings, error: aError } = useSWR<any>(
+        `game/teams/${props.team.id}/buildings`,
+        fetcher
+    );
+    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [building, setBuilding] = useState<any>(undefined);
+    const [tile, setTile] = useState<any>(undefined);
+    const [demolish, setDemolish] = useState<any>(undefined);
+
+    if (!availableBuildings || aError) {
+        return (
+            <LoadingOrError
+                loading={!availableBuildings && !aError}
+                error={aError}
+                message="Něco se pokazilo"
+            />
+        );
+    }
+
+    return (
+        <PerformAction
+            actionId="ActionBuildFinish"
+            actionName={`Kolaudace budovy týmu ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                build: building?.id,
+                tile: tile?.entity.id,
+                demolish: demolish?.id,
+            }}
+            argsValid={(building?.id && tile?.entity.id) || false}
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(MapActiontype.none);
+            }}
+            extraPreview={
+                <>
+                    <h1>Kolaudace budovy pro {props.team.name}</h1>
+                    <FormRow
+                        label="Vyberte budovu"
+                        error={!building ? "Je třeba vybrat budovu" : null}
+                    >
+                        <BuildingSelect
+                            value={building}
+                            onChange={setBuilding}
+                            allowed={availableBuildings}
+                        />
+                    </FormRow>
+                    <FormRow
+                        label="Vyberte políčko"
+                        error={!tile ? "Je třeba vybrat pole" : null}
+                    >
+                        <TeamTileSelect
+                            team={props.team}
+                            value={tile}
+                            onChange={setTile}
+                        />
+                    </FormRow>
+                    <FormRow label="Vyberte budovu ke zbourání (volitelné)">
+                        <BuildingSelect
+                            value={demolish}
+                            onChange={setDemolish}
+                        />
+                    </FormRow>
+                </>
+            }
+        />
     );
 }
 
@@ -304,31 +470,15 @@ function ArmyDeployForm(props: {
                             <TileSelect value={tile} onChange={setTile} />
                         </FormRow>
                         <FormRow label="Mód vyslání">
-                            <select
-                                className="select"
-                                value={goal}
-                                onChange={(e) =>
-                                    setGoal(parseInt(e.target.value))
-                                }
-                            >
-                                {Object.entries(ARMY_GOALS).map(([k, v]) => (
-                                    <option key={k} value={k}>
-                                        {v}
-                                    </option>
-                                ))}
-                            </select>
+                            <ArmyGoalSelect value={goal} onChange={setGoal} />
                         </FormRow>
-                        <FormRow
-                            label="Vyberte výbavu:"
-                            error={
-                                equipment <= 0
-                                    ? "Výbava nesmí být záporná"
-                                    : null
-                            }
-                        >
+                        <FormRow label="Vyberte výbavu:">
                             <SpinboxInput
                                 value={equipment}
-                                onChange={setEquipment}
+                                onChange={(v) => {
+                                    if (v < 0) return;
+                                    setEquipment(v);
+                                }}
                             />
                         </FormRow>
                         <FormRow label="Spřátelený tým:">

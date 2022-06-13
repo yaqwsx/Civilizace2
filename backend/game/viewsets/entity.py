@@ -48,6 +48,10 @@ class EntityViewSet(viewsets.ViewSet):
     def tiles(self, request):
         return self._list("tiles")
 
+    @action(detail=False)
+    def buildings(self, request):
+        return self._list("buildings")
+
     def list(self, request):
         return self._list("all")
 
@@ -93,6 +97,7 @@ class TeamViewSet(viewsets.ViewSet):
     @staticmethod
     def serializeArmy(a, reachableTiles):
         return {
+            "index": a.index,
             "team": a.team,
             "name": a.name,
             "level": a.level,
@@ -134,6 +139,16 @@ class TeamViewSet(viewsets.ViewSet):
 
         vList.sort(key=lambda x: x.id)
         return Response({e.id: serializeEntity(e, enrich) for e in vList})
+
+
+    @action(detail=True)
+    def buildings(self, request, pk):
+        self.validateAccess(request.user, pk)
+        teamState, entities = self.getTeamStateAndEntities(pk)
+
+        bList = list(teamState.buildings)
+        bList.sort(key=lambda x: x.name)
+        return Response({b.id: serializeEntity(b) for b in bList})
 
 
     @action(detail=True)
@@ -317,3 +332,18 @@ class TeamViewSet(viewsets.ViewSet):
         team = entities[pk]
 
         return Response(stateSerialize(computeFeedRequirements(state, entities, team)))
+
+    @action(detail=True)
+    def tiles(self, request, pk):
+        self.validateAccess(request.user, pk)
+        tState, entities = self.getTeamStateAndEntities(pk)
+        state = tState.parent
+        teamE = entities[pk]
+        reachableTiles = state.map.getReachableTiles(teamE)
+
+        return Response({t.entity.id: {
+            "entity": serializeEntity(t.entity),
+            "unfinished": [x.id for x in t.unfinished.get(teamE, [])],
+            "buildings": [x.id for x in t.buildings],
+            "richness": t.richness
+        } for t in reachableTiles})

@@ -1,6 +1,5 @@
 from typing import Dict, Optional
 from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
-from game.actions.researchStart import ActionResearchArgs
 from game.entities import Building, MapTileEntity, Resource, Team, Tech
 
 
@@ -42,7 +41,7 @@ class ActionBuildFinish(ActionBase):
 
         if (occupier := self.state.map.getOccupyingTeam(tile.entity)) != self.team:
             raise ActionFailed(f"Pole není týmem obsazeno týmu, takže budovu nyní nelze zkolaudovat.")
-    
+
         if tile.parcelCount == len(tile.buildings) and self.args.demolish == None:
             raise ActionFailed(f"Nedostatek parcel na poli {tile.name}. Je nutné vybrat budovu k demolici")
         if tile.parcelCount < len(tile.buildings) and self.args.demolish != None:

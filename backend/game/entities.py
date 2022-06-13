@@ -133,6 +133,10 @@ class Tech(EntityWithCost):
     def unlocksTechs(self) -> Set[Vyroba]:
         return set(x for x, _ in self.unlocks if isinstance(x, Tech))
 
+    @property
+    def unlocksBuilding(self) -> Set[Building]:
+        return set(x for x, _ in self.unlocks if isinstance(x, Building))
+
 
 class TileFeature(EntityBase):
     pass
@@ -218,6 +222,11 @@ class Entities(frozendict):
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
         return frozendict({k: v for k, v in self.items()
             if isinstance(v, MapTileEntity)})
+
+    @cached_property
+    def buildings(self) -> frozendict[EntityId, Building]:
+        return frozendict({k: v for k, v in self.items()
+            if isinstance(v, Building)})
 
     @cached_property
     def orgs(self) -> frozendict[EntityId, Org]:

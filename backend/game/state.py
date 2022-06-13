@@ -83,7 +83,7 @@ class Army(StateModel):
         return destroyed
 
 
-class MapTile(StateModel): # Game state elemnent
+class MapTile(StateModel): # Game state element
     entity: MapTileEntity
     unfinished: Dict[Team, Set[Building]]={}
     buildings: Set[Building]=set()
@@ -148,7 +148,7 @@ class MapState(StateModel):
 
     def getTileById(self, id: str) -> Optional[MapTile]:
         tiles = [tile for tile in self.tiles.values() if tile.id == id]
-        if len(tiles) != 1: 
+        if len(tiles) != 1:
             return None
         return tiles[0]
 
@@ -196,7 +196,7 @@ class MapState(StateModel):
                 return army
         return None
 
-    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:        
+    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:
         for army in self.armies:
             if army.tile == tile:
                 return army.team
@@ -252,7 +252,7 @@ class MapState(StateModel):
 #     spread: 20
 #     mortality: 20
 #     recovery: 0
-    
+
 
 class TeamState(StateModel):
     team: Team
@@ -312,6 +312,13 @@ class TeamState(StateModel):
         for t in self.techs:
             vyrobas.update(t.unlocksVyrobas)
         return vyrobas
+
+    @property
+    def buildings(self) -> set[Building]:
+        buildings = set()
+        for t in self.techs:
+            buildings.update(t.unlocksBuilding)
+        return buildings
 
     @property
     def work(self) -> Decimal:
@@ -375,9 +382,9 @@ class GameState(StateModel):
             teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities),
             world=WorldState(
-                    buildDemolitionCost={entities["mge-obchod-3"]:10}, 
-                    roadCost={entities["mge-stavivo-2"]:10, 
-                              entities["mge-nastroj-2"]:10, 
+                    buildDemolitionCost={entities["mge-obchod-3"]:10},
+                    roadCost={entities["mge-stavivo-2"]:10,
+                              entities["mge-nastroj-2"]:10,
                               entities.work:50})
         )
 

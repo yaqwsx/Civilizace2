@@ -38,7 +38,6 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import _ from "lodash";
-import { ARMY_GOALS } from "./map";
 import { useHideMenu } from "./atoms";
 import { produce } from "immer";
 
