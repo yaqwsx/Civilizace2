@@ -1,3 +1,4 @@
+from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
@@ -75,7 +76,6 @@ def test_production():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
-    originalResources = team.resources.copy()
 
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Pro"],
@@ -107,7 +107,105 @@ def test_distance():
         team = teamId
     )
     action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
-
     distance = action.requiresDelayedEffect()
-
     assert distance == 600
+
+
+def test_richnessMaterial():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[entities["tym-zluti"]]
+    tile = state.map.tiles[27]
+    
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevoLes"],
+        count = 2,
+        tile = tile.entity,
+        plunder = False,
+        team = team.team
+    )
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+
+    initResult = action.applyInitiate()
+    commitResult = action.applyCommit(1, 20)
+    delayedResult = action.applyDelayedReward()
+
+    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:100, entities["pro-drevo"]: 20}
+    assert "+80%" in delayedResult.message
+    assert "[[mat-drevo|3]]" in delayedResult.message
+    assert tile.richnessTokens == 8
+
+
+def test_richnessProduction():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[entities["tym-zluti"]]
+    tile = state.map.tiles[27]
+    
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevoProdLes"],
+        count = 2,
+        tile = tile.entity,
+        plunder = False,
+        team = team.team
+    )
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+
+    initResult = action.applyInitiate()
+    commitResult = action.applyCommit(1, 20)
+    delayedResult = action.applyDelayedReward()
+
+    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:98, entities["pro-drevo"]: Decimal("23.6")}
+    assert "+80%" in delayedResult.message
+    assert "[[pro-drevo|3.6]]" in delayedResult.message
+    assert tile.richnessTokens == 8
+
+
+def test_plunderMaterial():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[entities["tym-zluti"]]
+    tile = state.map.tiles[27]
+    
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevoLes"],
+        count = 2,
+        tile = tile.entity,
+        plunder = True,
+        team = team.team
+    )
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+
+    initResult = action.applyInitiate()
+    commitResult = action.applyCommit(1, 20)
+    delayedResult = action.applyDelayedReward()
+
+    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:100, entities["pro-drevo"]: 20}
+    assert "+80%" in delayedResult.message
+    assert "[[mat-drevo|5]]" in delayedResult.message
+    assert tile.richnessTokens == 6
+
+
+def test_plunderProduction():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    team = state.teamStates[entities["tym-zluti"]]
+    tile = state.map.tiles[27]
+    
+    args = ActionVyrobaArgs(
+        vyroba = entities["vyr-drevoProdLes"],
+        count = 4,
+        tile = tile.entity,
+        plunder = True,
+        team = team.team
+    )
+    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+
+    initResult = action.applyInitiate()
+    commitResult = action.applyCommit(1, 20)
+    delayedResult = action.applyDelayedReward()
+
+    assert team.resources == {entities["res-prace"]:50, entities["res-obyvatel"]:96, entities["pro-drevo"]: Decimal("31.2")}
+    assert "+80%" in delayedResult.message
+    assert "[[pro-drevo|11.2]]" in delayedResult.message
+    assert tile.richnessTokens == 4

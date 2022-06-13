@@ -36,9 +36,10 @@ def test_richnessIncrease():
 
     action = makeAction(ActionNextTurn, state = state, entities = entities, args = args)
     for tile in state.map.tiles.values():
-        assert tile.richnessTokens == 0
+        assert tile.richnessTokens == tile.richness
+        tile.richnessTokens = 0
 
-    for i in range(6):
+    for i in range(10):
         action.applyCommit()
 
     for tile in state.map.tiles.values():

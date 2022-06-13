@@ -7,7 +7,7 @@ from pydantic import BaseModel, PrivateAttr
 from game.actions.common import ActionFailed, MessageBuilder
 
 from game.entities import DieId, Entities, Resource, Team
-from game.state import GameState, TeamState, printResourceListForMarkdown
+from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
 class ActionArgs(BaseModel):
     pass
@@ -121,6 +121,12 @@ class ActionBase(ActionInterface):
     def teamState(self) -> Optional[TeamState]:
         if hasattr(self._generalArgs, "team"):
             return self.state.teamStates[self._generalArgs.team]
+        return None
+
+    @property
+    def tileState(self) -> Optional[MapTile]:
+        if hasattr(self._generalArgs, "tile"):
+            return self.state.map.getTileById(self._generalArgs.tile.id)
         return None
 
     def _setupPrivateAttrs(self):

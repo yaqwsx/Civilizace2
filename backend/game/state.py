@@ -87,7 +87,7 @@ class MapTile(StateModel): # Game state elemnent
     entity: MapTileEntity
     unfinished: Dict[Team, Set[Building]]={}
     buildings: Set[Building]=set()
-    richnessTokens: int = 0
+    richnessTokens: int
 
     @property
     def parent(self) -> MapState:
@@ -240,7 +240,7 @@ class MapState(StateModel):
         armies.extend([Army(team=team, index=i+16, name="C", level=1) for i, team in enumerate(teams)])
 
         return MapState(
-            tiles = {tile.index: MapTile(entity=tile) for tile in entities.tiles.values()},
+            tiles = {tile.index: MapTile(entity=tile, richnessTokens=tile.richness) for tile in entities.tiles.values()},
             armies = armies
         )
 

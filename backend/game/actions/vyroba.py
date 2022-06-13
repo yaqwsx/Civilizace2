@@ -55,11 +55,22 @@ class ActionVyroba(ActionBase):
         amount = reward[1] * self.args.count
 
         multiplier = 1
+        plundered = 0
 
-        reward = {resource: amount*multiplier}
+        tile = self.tileState
+        multiplier = 1 + (tile.richnessTokens/Decimal(10))
+        if self.args.plunder:
+            plundered = min(tile.richnessTokens, self.args.count)
+            tile.richnessTokens -= plundered
+
+        reward = {resource: amount*multiplier + plundered}
 
         tokens = self.receiveResources(reward, instantWithdraw=True)
 
         self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
+        if multiplier > 1:
+            self._info += f"Bonus za úrodnost výroby: +{ceil((multiplier-1)*100)}%"
+        if plundered > 0:
+            self._info += f"Odebráno {plundered} jednotek úrody"
         if tokens != {}:
             self._info += f"Vydejte týmu {printResourceListForMarkdown(tokens, floor)}"
