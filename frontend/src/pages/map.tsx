@@ -402,7 +402,9 @@ export function TradeAgenda(props: { team: Team }) {
                 receiver: recipient?.id,
                 resources: resources,
             }}
-            argsValid={Object.keys(resources).length > 0 && recipient !== undefined}
+            argsValid={
+                Object.keys(resources).length > 0 && recipient !== undefined
+            }
             onBack={() => {}}
             onFinish={() => {
                 setAction(MapActiontype.none);
@@ -507,6 +509,14 @@ export function ArmyDescription(props: { army: any; orgView: boolean }) {
     );
 }
 
+export function ArmyName(props: { army: any }) {
+    return (
+        <>
+            {props.army.name} {"✱".repeat(props.army.level)}
+        </>
+    );
+}
+
 function ArmyBadge(props: { team: Team; army: any }) {
     const [selectedAction, setSelectedAction] = useState("");
 
@@ -523,7 +533,7 @@ function ArmyBadge(props: { team: Team; army: any }) {
     return (
         <div className={className}>
             <h3 className="w-full">
-                Armáda {props.army.name} {"✱".repeat(props.army.level)}
+                Armáda <ArmyName army={props.army} />
             </h3>
             <div className="w-full md:w-2/3">
                 <ArmyDescription army={props.army} orgView={true} />
@@ -539,11 +549,11 @@ function ArmyBadge(props: { team: Team; army: any }) {
                     className="my-2 w-full bg-green-600 hover:bg-green-700"
                     onClick={() => setSelectedAction("armyRetreat")}
                 />
-                <Button
+                {/* <Button
                     label="Podpořit armádu"
                     className="my-2 w-full bg-blue-600 hover:bg-blue-700"
                     onClick={() => setSelectedAction("armyBoost")}
-                />
+                /> */}
             </div>
             {ActionForm ? (
                 <ActionForm
@@ -569,7 +579,7 @@ function ArmyDeployForm(props: {
     );
 
     let argsValid = true;
-    if (!tile && equipment <= 0) argsValid = false;
+    if (!tile || equipment <= 0) argsValid = false;
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
@@ -577,8 +587,8 @@ function ArmyDeployForm(props: {
                 actionId="ActionArmyDeploy"
                 actionArgs={{
                     team: props.team.id,
-                    army: `${props.team.id},${props.army.prestige}`,
-                    tile: tile?.id,
+                    armyIndex: props.army.index,
+                    tile: tile?.entity.id,
                     goal: goal,
                     equipment: equipment,
                     friendlyTeam: friendlyTeam?.id,
@@ -594,7 +604,11 @@ function ArmyDeployForm(props: {
                             label="Cílová destinace"
                             error={!tile ? "Je třeba vyplnit" : null}
                         >
-                            <TileSelect value={tile} onChange={setTile} />
+                            <TeamTileSelect
+                                team={props.team}
+                                value={tile}
+                                onChange={setTile}
+                            />
                         </FormRow>
                         <FormRow label="Mód vyslání">
                             <ArmyGoalSelect value={goal} onChange={setGoal} />
@@ -630,11 +644,16 @@ function ArmyRetreatForm(props: {
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
-                actionName={`Stáhnout armádu ${props.army.prestige} týmu ${props.team.name}`}
-                actionId="ActionRetreat"
+                actionName={
+                    <>
+                        Stáhnout armádu <ArmyName army={props.army} /> týmu{" "}
+                        {props.team.name}
+                    </>
+                }
+                actionId="ActionArmyRetreat"
                 actionArgs={{
                     team: props.team.id,
-                    prestige: props.army.prestige,
+                    armyIndex: props?.army?.index,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}

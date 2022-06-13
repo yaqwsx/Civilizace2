@@ -1,6 +1,5 @@
 from typing import Dict
 from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
-from game.actions.researchStart import ActionResearchArgs
 from game.entities import Resource, Team, Tech
 from game.state import ArmyMode
 
@@ -32,6 +31,6 @@ class ActionArmyRetreat(ActionBase):
 
         tile = army.tile
         equipment = self.state.map.retreatArmy(army)
-        
+
         self._info += f"Armáda {army.name} se stáhla z pole {tile.name}."
         self._info += f"Vydejte týmu [[{self.entities.zbrane}|{equipment}]]."

@@ -113,7 +113,7 @@ export enum ActionPhase {
 
 export function PerformAction(props: {
     team?: Team;
-    actionName: string;
+    actionName: any;
     actionId: string;
     actionArgs: any;
     argsValid?: boolean;
@@ -193,7 +193,7 @@ export function ActionMessage(props: { response: ActionResponse }) {
 }
 
 function ActionPreviewPhase(props: {
-    actionName: string;
+    actionName: any;
     actionId: string;
     actionArgs: any;
     onAbort: () => void;
@@ -303,7 +303,7 @@ function ActionPreviewPhase(props: {
 export function ActionDicePhase(props: {
     actionId: number;
     message: string;
-    actionName: string;
+    actionName: any;
     changePhase: (phase: ActionPhase, data: any) => void;
 }) {
     const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
@@ -542,7 +542,7 @@ function DiceThrowForm(props: {
 
 export function ActionFinishPhase(props: {
     response: ActionResponse;
-    actionName: string;
+    actionName: any;
     onFinish: () => void;
 }) {
     const [canQuit, setCanQuit] = useState(false);
