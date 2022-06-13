@@ -351,7 +351,7 @@ def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> E
     parser = EntityParser(data, reportError)
     return parser.parse()
 
-def loadEntities(fileName):
+def loadEntities(fileName) -> Entities:
     with open(fileName) as file:
         data = json.load(file)
 
