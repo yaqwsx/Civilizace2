@@ -52,6 +52,7 @@ import { useAtom } from "jotai";
 import { menuShownAtom } from "./pages/atoms";
 import { UnfinishedActionBar } from "./elements/action";
 import { FinishAction } from "./pages/action";
+import { MapDiff } from "./pages/mapdiff";
 
 function IconHamburger() {
     return (
@@ -462,6 +463,14 @@ export default function App() {
                                 element={
                                     <RequireOrg>
                                         <InfoScreen />
+                                    </RequireOrg>
+                                }
+                            />
+                            <Route
+                                path="/mapdiff"
+                                element={
+                                    <RequireOrg>
+                                        <MapDiff />
                                     </RequireOrg>
                                 }
                             />

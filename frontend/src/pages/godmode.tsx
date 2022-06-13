@@ -58,7 +58,6 @@ export function GodMode() {
             diff = jsonDiff(JSON.parse(newStateStr), state);
         } catch (e) {}
     }
-    console.log(diff);
 
     return (
         <>
@@ -101,6 +100,7 @@ export function GodMode() {
                         actionId="GodModeAction"
                         actionArgs={{
                             original: state,
+                            new: JSON.parse(newStateStr),
                             change: objectMap(diff.change, (v: any) =>
                                 JSON.stringify(v)
                             ),
@@ -185,11 +185,17 @@ function findNodeInJson(json, path) {
 }
 
 // @ts-ignore
+function isPrimitive(test) {
+    return test !== Object(test);
+}
+
+// @ts-ignore
 function flattenRec(o, root, result) {
-    if (o === null || !(o.constructor == Object)) {
+    if (isPrimitive(o)) {
         result[root] = o;
         return;
     }
+
     Object.keys(o).forEach((key) => {
         var delimiter = root.length != 0 ? "." : "";
         flattenRec(o[key], root + delimiter + key, result);
@@ -223,6 +229,7 @@ function mergeArrays(...arrays) {
 function jsonDiff(newJson: any, originalJson: any) {
     var newJ = flatten(newJson);
     var origJ = flatten(originalJson);
+    console.log("X", origJ);
     var add: Record<string, any> = {};
     var remove: Record<string, any> = {};
     var change: Record<string, any> = {};

@@ -86,7 +86,7 @@ class InteractionType(enum.Enum):
 
 class DbInteraction(models.Model):
     created = models.DateTimeField(
-        "Time of creating the action", auto_now=True)
+        "Time of creating the action", auto_now_add=True)
     phase = enum.EnumField(InteractionType)
     action = models.ForeignKey(
         DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
@@ -244,7 +244,7 @@ class DbTaskAssignment(models.Model):
     task = models.ForeignKey(
         DbTask, on_delete=models.CASCADE, related_name="assignments")
     techId = models.CharField(max_length=32)
-    assignedAt = models.DateTimeField(auto_now=True)
+    assignedAt = models.DateTimeField(auto_now_add=True)
     finishedAt = models.DateTimeField(null=True)
     abandoned = models.BooleanField(default=False)
 
@@ -339,7 +339,7 @@ class DbSticker(models.Model):
     entityId = models.CharField(max_length=32)
     entityRevision = models.IntegerField()
     type = models.IntegerField(choices=StickerType.choices)
-    awardedAt = models.DateTimeField(auto_now=True)
+    awardedAt = models.DateTimeField(auto_now_add=True)
 
     def update(self) -> None:
         self.entityRevision = DbEntities.objects.latest().id
@@ -371,7 +371,7 @@ class Printer(models.Model):
     name = models.CharField(max_length=200)
     address = models.CharField(max_length=200)
     port = models.IntegerField()
-    registeredAt = models.DateTimeField(auto_now=True)
+    registeredAt = models.DateTimeField(auto_now_add=True)
     printsStickers = models.BooleanField()
 
     objects = PrinterManager()
@@ -380,3 +380,20 @@ class Printer(models.Model):
 class DbTick(models.Model):
     name = models.CharField(max_length=32, primary_key=True)
     lastTick = models.DateTimeField(auto_now=True)
+
+
+class DiffType(models.IntegerChoices):
+    richness = 0
+    armyLevel = 1
+    armyMove = 2
+    armyCreate = 3
+
+
+class DbMapDiff(models.Model):
+    createdAt = models.DateTimeField(auto_now_add=True)
+    type = models.IntegerField(choices=DiffType.choices)
+    tile = models.CharField(max_length=32, null=True)
+    newRichness = models.IntegerField(null=True)
+    newLevel = models.IntegerField(null=True)
+    team = models.CharField(max_length=32, null=True)
+    armyName = models.CharField(max_length=32, null=True)

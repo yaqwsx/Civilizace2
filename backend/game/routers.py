@@ -4,6 +4,7 @@ from django.urls import path
 
 from game.viewsets.entity import EntityViewSet, TeamViewSet
 from game.viewsets.map import MapViewSet
+from game.viewsets.mapdiff import MapDiffViewSet
 from game.viewsets.printers import PrinterViewSet
 from game.viewsets.stickers import StickerViewSet
 from game.viewsets.tasks import TaskViewSet
@@ -22,7 +23,9 @@ routes.register(r'vouchers', VoucherViewSet, basename="vouchers")
 routes.register(r'printers', PrinterViewSet, basename="printers")
 routes.register(r'stickers', StickerViewSet, basename="stickers")
 routes.register(r'state', StateViewSet, basename="states")
+routes.register(r'mapupdates', MapDiffViewSet, basename="mapdiff")
 routes.register(r'map', MapViewSet, basename="map")
+
 
 urlpatterns = [
     *routes.urls

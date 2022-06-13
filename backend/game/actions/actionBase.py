@@ -159,7 +159,7 @@ class ActionBase(ActionInterface):
             return False
         return True
 
-    def _ensure(self, condition: bool, message: str) -> None:
+    def _ensure(self, condition: bool, message: str) -> bool:
         """
         Checks the condition, if it doesn't hold, yield error
         """

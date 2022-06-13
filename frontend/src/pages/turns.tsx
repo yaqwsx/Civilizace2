@@ -39,7 +39,7 @@ export function Turns() {
                         r.shouldStartAt = r.startedAt;
                     } else if (r.prev?.shouldStartAt && r.prev?.enabled) {
                         r.shouldStartAt = new Date(
-                            r.prev.shouldStartAt.getTime() + 1000 * r.duration
+                            r.prev.shouldStartAt.getTime() + 1000 * r.prev.duration
                         );
                     }
                     return r;

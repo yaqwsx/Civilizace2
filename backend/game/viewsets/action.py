@@ -1,3 +1,4 @@
+from itertools import zip_longest
 import json
 import math
 import traceback
@@ -16,8 +17,8 @@ from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
 from game.entities import DieId, Entities, Entity, dieName
 from game.gameGlue import stateDeserialize, stateSerialize
-from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction,
-                         DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn,
+from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbMapDiff,
+                         DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn, DiffType,
                          InteractionType, StickerType)
 from django.db.models import Q, Count
 from game.state import StateModel
@@ -126,6 +127,46 @@ class ActionViewSet(viewsets.ViewSet):
         return res
 
     @staticmethod
+    def _markMapDiff(prev: StateModel, post: StateModel) -> None:
+        """
+        Given two states, builds a DbDiff instances that describe the change.
+        """
+        for k in prev.map.tiles.keys():
+            old = prev.map.tiles[k]
+            new = post.map.tiles[k]
+            if old.richnessTokens != new.richnessTokens:
+                DbMapDiff.objects.create(
+                    type=DiffType.richness,
+                    tile=old.entity.id,
+                    newRichness=new.richnessTokens)
+        for old, new in zip_longest(prev.map.armies, post.map.armies):
+            print(old, new)
+            if old is None:
+                DbMapDiff.objects.create(
+                    type=DiffType.armyCreate,
+                    tile=new.tile.id if new.tile is not None else None,
+                    newLevel=new.level,
+                    armyName=new.name,
+                    team=new.team
+                )
+                return
+            if old.level != new.level:
+                DbMapDiff.objects.create(
+                    type=DiffType.armyLevel,
+                    newLevel=new.level,
+                    armyName=new.name,
+                    team=new.team
+                )
+            if old.tile != new.tile:
+                DbMapDiff.objects.create(
+                    type=DiffType.armyMove,
+                    armyName=new.name,
+                    team=new.team,
+                    tile=new.tile.id if new.tile is not None else None,
+                )
+
+
+    @staticmethod
     def _awardStickers(stickerIds: Iterable[str]) -> List[DbSticker]:
         if len(stickerIds) > 0:
             entRevision = DbEntities.objects.latest().id
@@ -191,6 +232,7 @@ class ActionViewSet(viewsets.ViewSet):
 
         Self.addResultNotifications(result)
         stickers = Self._computeStickers(sourceState, state)
+        Self._markMapDiff(sourceState, state)
 
         effect.stickers = list(stickers)
         effect.performed = True
@@ -218,7 +260,9 @@ class ActionViewSet(viewsets.ViewSet):
         effect.withdrawn = True
         effect.save()
 
+
         Self._awardStickers(effect.stickers)
+        Self._markMapDiff(sourceState, state)
 
         Self.addResultNotifications(result)
         return result, gainedStickers
@@ -385,6 +429,7 @@ class ActionViewSet(viewsets.ViewSet):
                         InteractionType.commit,request.user, state, action)
                     self._handleExtraCommitSteps(action)
                     gainedStickers = self._computeStickers(sourceState, state)
+                    self._markMapDiff(sourceState, state)
                     delayedRequirements = action.requiresDelayedEffect()
                     if delayedRequirements:
                         delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)
@@ -454,6 +499,7 @@ class ActionViewSet(viewsets.ViewSet):
                     InteractionType.commit,request.user, state, action)
                 self._handleExtraCommitSteps(action)
                 gainedStickers = self._computeStickers(sourceState, state)
+                self._markMapDiff(sourceState, state)
                 delayedRequirements = action.requiresDelayedEffect()
                 if delayedRequirements:
                     delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)

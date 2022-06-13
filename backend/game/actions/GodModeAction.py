@@ -13,6 +13,7 @@ class GodModeArgs(ActionArgs):
     add: Dict[str, str]
     remove: Dict[str, str]
     original: GameState
+    new: GameState
 
 class GodModeAction(ActionBase):
     @property
@@ -32,6 +33,45 @@ class GodModeAction(ActionBase):
 
     def applyCommit(self, throws: int, dots: int) -> ActionResult:
         self._setupPrivateAttrs()
+        currentState = stateDeserialize(GameState, stateSerialize(self.state), self.entities)
+        originalState = self.args.original
+        newState = self.args.new
+
+        if newState.world != originalState.world:
+            if self._ensure(originalState.world == currentState.world, "Stavy světa se liší, nemůžu aplikovat změny"):
+                self.state.world = newState.world
+                self._info.add("Upravuji stav světa")
+        print("Z", len(newState.map.armies), len(originalState.map.armies), newState.map.armies != originalState.map.armies)
+        if newState.map.armies != originalState.map.armies:
+            if self._ensure(originalState.world == currentState.world, "Stavy armád se liší, nemůžu aplikovat změny"):
+                self.state.map.armies = newState.map.armies
+                self._info.add("Upravuji stav armád")
+        if newState.map.tiles != originalState.map.tiles:
+            if self._ensure(originalState.world == currentState.world, "Stavy políček se liší, nemůžu aplikovat změny"):
+                self.state.map.tiles = newState.map.tiles
+                self._info.add("Upravuji stav mapy")
+        for t in currentState.teamStates.keys():
+            if newState.teamStates[t] != originalState.teamStates[t]:
+                if self._ensure(originalState.teamStates[t] == currentState.teamStates[t], f"Stavy týmu {t} se liší. Nemůžu aplikovat změny."):
+                    self.state.teamStates[t] = newState.teamStates[t]
+                    self._info.add(f"Upravuji stav týmu {t}")
+
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
+        try:
+            x = stateSerialize(self.state)
+            stateDeserialize(GameState, x, self.entities)
+        except Exception as e:
+            tb = traceback.format_exc()
+            raise ActionFailed(f"Upravený stav není možné serializovat:\n\n```\n{tb}\n```")
+
+        self._info.add("Úspěsně provedeno")
+        return ActionResult(expected=True,  message=self._info.message)
+
+
+
+        return
+
         self._ensureNoChange()
 
         for path, v in self.args.change.items():
@@ -84,10 +124,13 @@ class GodModeAction(ActionBase):
             raise ActionFailed(self._errors)
 
     def _changeRec(self, path: List[str], object, value, originalPath):
-        key = self.entities.get(path[0], path[0])
+        if (path[0].isnumeric()):
+            key = int(path[0])
+        else:
+            key = self.entities.get(path[0], path[0])
         if len(path) == 1:
             value = self.entities.get(value, value)
-            if isinstance(object, dict):
+            if isinstance(object, dict) or isinstance(object, list):
                 object[key] = value
                 return
             if not hasattr(object, key):
@@ -95,14 +138,17 @@ class GodModeAction(ActionBase):
                 return
             setattr(object, key, value)
             return
-        if isinstance(object, dict):
+        if isinstance(object, dict) or isinstance(object, list):
             newObj = object[key]
         else:
             newObj = getattr(object, key)
         self._changeRec(path[1:], newObj, value, originalPath)
 
     def _addRec(self, path: List[str], object, value, originalPath):
-        key = self.entities.get(path[0], path[0])
+        if (path[0].isnumeric()):
+            key = int(path[0])
+        else:
+            key = self.entities.get(path[0], path[0])
         if len(path) == 1 and isinstance(object, dict):
             if key not in object or not isinstance(object[key], list):
                 object[key] = value
@@ -116,9 +162,10 @@ class GodModeAction(ActionBase):
             else:
                 raise RuntimeError("Unknown object")
             return
-        if isinstance(object, dict):
+        if isinstance(object, dict) or isinstance(object, list):
             newObj = object[key]
         else:
+            print(object, key, type(object))
             newObj = getattr(object, key)
         self._addRec(path[1:], newObj, value, originalPath)
 
@@ -134,8 +181,11 @@ class GodModeAction(ActionBase):
             else:
                 raise RuntimeError("Unknown object")
             return
-        key = self.entities.get(path[0], path[0])
-        if isinstance(object, dict):
+        if (path[0].isnumeric()):
+            key = int(path[0])
+        else:
+            key = self.entities.get(path[0], path[0])
+        if isinstance(object, dict) or isinstance(object, list):
             newObj = object[key]
         else:
             newObj = getattr(object, key)

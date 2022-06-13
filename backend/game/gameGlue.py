@@ -23,7 +23,9 @@ def _stateSerialize(what):
     if isinstance(what, list):
         return [_stateSerialize(x) for x in what]
     if isinstance(what, set):
-        return [_stateSerialize(x) for x in what]
+        items = [_stateSerialize(x) for x in what]
+        items.sort()
+        return items
     if isinstance(what, tuple):
         return tuple([_stateSerialize(x) for x in what])
     if isinstance(what, dict):
