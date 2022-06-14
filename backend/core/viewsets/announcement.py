@@ -1,4 +1,4 @@
-from core.models.announcement import Announcement
+from core.models.announcement import Announcement, AnnouncementType
 from core.serializers import AnnouncementSerializer
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +11,7 @@ from game.viewsets.permissions import IsOrg
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
-    queryset = Announcement.objects.all()
+    queryset = Announcement.objects.exclude(type=AnnouncementType.game)
     permission_classes = (IsAuthenticated,IsOrg)
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["appearDatetime"]
