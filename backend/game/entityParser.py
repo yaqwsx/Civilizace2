@@ -338,7 +338,6 @@ class EntityParser():
                 continue
             if len(entity.unlockedBy) == 0:
                 self.errors.append(f"{id} ({entity.name}) nemá odemykající hranu")
-        print(f"Checked {checked} entites for unlocking edges")
             
 
     def parse(self) -> Entities:
