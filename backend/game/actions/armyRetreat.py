@@ -1,5 +1,5 @@
 from typing import Dict
-from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
+from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed, HealthyAction
 from game.entities import Resource, Team, Tech
 from game.state import ArmyMode
 
@@ -7,7 +7,7 @@ class ActionArmyRetreatArgs(ActionArgs):
     team: Team
     armyIndex: int
 
-class ActionArmyRetreat(ActionBase):
+class ActionArmyRetreat(HealthyAction):
     @property
     def args(self) -> ActionArmyRetreatArgs:
         assert isinstance(self._generalArgs, ActionArmyRetreatArgs)

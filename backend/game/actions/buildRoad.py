@@ -1,7 +1,7 @@
 from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs
+from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.actionBase import ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
@@ -13,7 +13,7 @@ class ActionBuildRoadArgs(ActionArgs):
     tile: MapTileEntity
 
 
-class ActionBuildRoad(ActionBase):
+class ActionBuildRoad(HealthyAction):
 
     @property
     def args(self) -> ActionBuildRoadArgs:
@@ -40,7 +40,7 @@ class ActionBuildRoad(ActionBase):
     def _commitImpl(self) -> None:
         if self.args.tile in self.teamState.roadsTo:
             raise ActionFailed(f"Na pole {self.args.tile.name} je už cesta postavena")
-        
+
         if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
             raise ActionFailed(f"Nelze postavit cestu, protože pole {self.args.tile.name} není v držení týmu.")
 

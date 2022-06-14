@@ -1,5 +1,5 @@
 from typing import Dict
-from game.actions.actionBase import ActionArgs
+from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.common import ActionFailed
 from game.actions.actionBase import ActionBase
 from game.entities import Resource, Team, Tech
@@ -11,7 +11,7 @@ class ActionWithdrawArgs(ActionArgs):
     resources: Dict[Resource, int]
 
 
-class ActionWithdraw(ActionBase):
+class ActionWithdraw(HealthyAction):
 
     @property
     def args(self) -> ActionWithdrawArgs:

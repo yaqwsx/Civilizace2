@@ -328,3 +328,9 @@ class ActionBase(ActionInterface):
     def _applyDelayedReward(self) -> None:
         pass
 
+
+class HealthyAction(ActionBase):
+    def applyInitiate(self) -> ActionResult:
+        if self.teamState.plague is not None:
+            raise ActionFailed("Tým je právě nakažen morem. Nemůže zadávat akce. Držte se od něj dále!")
+        return super().applyInitiate()

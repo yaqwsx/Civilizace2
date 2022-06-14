@@ -4,7 +4,7 @@ import random
 from typing import Dict, Optional
 
 from pydantic import PrivateAttr
-from game.actions.actionBase import ActionArgs, ActionBase
+from game.actions.actionBase import ActionArgs, ActionBase, HealthyAction
 from game.actions.common import ActionFailed
 from game.entities import BASE_ARMY_STRENGTH, MapTileEntity, Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode, MapTile
@@ -18,8 +18,8 @@ class ActionArmyDeployArgs(ActionArgs):
     equipment: int
     friendlyTeam: Optional[Team] # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
 
-class ActionArmyDeploy(ActionBase):
-    
+class ActionArmyDeploy(HealthyAction):
+
     @property
     def args(self) -> ActionArmyDeployArgs:
         assert isinstance(self._generalArgs, ActionArmyDeployArgs)
@@ -36,7 +36,7 @@ class ActionArmyDeploy(ActionBase):
     @property
     def tile(self) -> MapTile:
         return self.state.map.getTileById(self.args.tile.id)
-        
+
     @property
     def description(self):
         return f"Vyslání armády {self.army.name} na pole {self.tile.name} ({self.args.team.name})"
@@ -75,7 +75,7 @@ class ActionArmyDeploy(ActionBase):
             raise ActionFailed( "Armáda {} už je vyslána na pole {}."\
                     .format(army.name, army.tile))
 
-        if self.args.equipment < 1: 
+        if self.args.equipment < 1:
             raise ActionFailed(f"Nelze poskytnout záporný počet zbraní ({self.args.equipment}). Minimální počet je 1")
         if self.args.equipment > army.capacity:
             raise ActionFailed(f"Armáda neunese {self.args.equipment} zbraní. Maximální možná výzbroj je {army.capacity}.")
@@ -141,7 +141,7 @@ class ActionArmyDeploy(ActionBase):
             self.addNotification(defender.team, f"Tým [[{army.team}]] posílil vaši armádu {defender.name} na poli {tile.name} o {transfered} zbraní.\n\
                 Nová síla armády {defender.name} je {defender.strength}.")
             return
-            
+
         if self.args.goal == ArmyGoal.Supply:
             equipment = self.map.retreatArmy(army)
             self._warnings += f"Pole {tile.name} je obsazeno nepřátelksou armádou. Vaše armáda {army.name} se vrátila domů."

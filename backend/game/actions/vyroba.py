@@ -1,7 +1,7 @@
 from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs
+from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.actionBase import ActionBase
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal, printResourceListForMarkdown
@@ -19,7 +19,7 @@ class ActionVyrobaArgs(ActionArgs):
     equipment: Optional[int]
 
 
-class ActionVyroba(ActionBase):
+class ActionVyroba(HealthyAction):
 
     @property
     def args(self) -> ActionVyrobaArgs:

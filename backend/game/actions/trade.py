@@ -1,7 +1,7 @@
 from decimal import Decimal
 from math import ceil
 from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs
+from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.common import ActionFailed
 from game.actions.actionBase import ActionBase
 from game.entities import DieId, Resource, Tech, Team
@@ -12,7 +12,7 @@ class ActionTradeArgs(ActionArgs):
     receiver: Team
     resources: Dict[Resource, Decimal]
 
-class ActionTrade(ActionBase):
+class ActionTrade(HealthyAction):
 
     @property
     def args(self) -> ActionTradeArgs:

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs
+from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.common import ActionFailed
 from game.actions.actionBase import ActionBase
 from game.entities import DieId, Resource, Tech, Team
@@ -10,7 +10,7 @@ class ActionResearchArgs(ActionArgs):
     tech: Tech
     task: Optional[str]=None
 
-class ActionResearchStart(ActionBase):
+class ActionResearchStart(HealthyAction):
 
     @property
     def args(self) -> ActionResearchArgs:
