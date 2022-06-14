@@ -119,7 +119,7 @@ class EntityWithCost(EntityBase):
 
 class Tech(EntityWithCost):
     unlocks: List[Tuple[Entity, DieId]]=[]
-    bonuses: str
+    bonuses: List[str]
     flavor: str
 
     @property

@@ -101,6 +101,7 @@ class ActionFeed(ActionBase):
         self._addObyvatel(newborns)
 
         self._info += f"Krmení úspěšně provedeno. Narodilo se {newborns} nových obyvatel."
+        self._info += f"Vydejte týmu puntík na kostku"
 
 
         self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)

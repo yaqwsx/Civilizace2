@@ -45,22 +45,12 @@ class EntityParser():
         chunks = [x.strip() for x in s.strip().split(":")]
         assert len(chunks) == 2, "Invalid cost property \"" + s + "\" (expecting \"resourceId:amount\")"
         assert chunks[0][3] == "-", "Invalid entity id: " + chunks[0]
-        if chunks[0].count("-") == 1:
-            return (self.entities[chunks[0]], Decimal(chunks[1]))
-
-        id = chunks[0]
-        typData = self.parseTypString("typ" + id[3:])
-        typ = typData[0]
-
-        name = typ.productionName if id.startswith("pro") else typ.name
-        name += " " + LEVEL_SYMBOLS_ROMAN[typData[1]]
-
-        res = Resource(id=chunks[0], name=name, typ=typData)
-        return (res, Decimal(chunks[1]))
+        assert self.entities.get(chunks[0], None), f"Neznámý zdroj: {chunks[0]}"
+        return (self.entities[chunks[0]], Decimal(chunks[1]))
 
 
     def parseCost(self, s):
-        if s.find(":") < 0:
+        if len(s) <=2:
             return {}
         return {x[0]: x[1] for x in map(self.parseCostSingle, s.split(","))}
 
@@ -160,12 +150,15 @@ class EntityParser():
         self.entities[id] = pro
 
 
-    def parseLineTechCreateEntity(self, line):
-        for bonus in [x.strip() for x in line[7].split(",")]:
-            if bonus == "": continue
+    def parseLineTechCreateEntity(self, line:str):
+        bonuses = [x.strip() for x in line[7].split(",") if x.strip() != ""]
+        for bonus in bonuses:
             if not bonus.split("-")[0] in TECH_BONUS_TOKENS:
                 raise AssertionError(f"Unknown tech bonus \"{bonus}\"")
-        tech = Tech(bonuses=line[7], flavor=line[8], **self.kwargsEntityWithCost(line, includeEdges=False))
+        tech = Tech(
+                bonuses=bonuses, 
+                flavor=line[8], 
+                **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
 
@@ -325,6 +318,8 @@ class EntityParser():
         culture.produces = obyvatel
 
     def checkUnlockedBy(self):
+        if len(self.errors) > 0:
+            return
         checked = 0
         for id, entity in self.entities.items():
             if not isinstance(entity, EntityWithCost):
@@ -355,6 +350,7 @@ class EntityParser():
         self.hardcodeValues()
 
         self.checkUnlockedBy()
+
 
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:
