@@ -139,3 +139,18 @@ def test_bonusCheapDie():
     action.applyCommit(1, 100)
 
     assert state.teamStates[team].throwCost == 8
+
+
+def test_bonusObyvatel():
+    entities = TEST_ENTITIES
+    state = createTestInitState()
+    state.teamStates[team].researching.add(entities["tec-slon"])
+
+    args = ActionResearchArgs(tech=entities["tec-slon"], team=team)
+    action = makeAction(ActionResearchFinish, state=state, entities=entities, args=args)
+
+    before = state.teamStates[team].granary.get(entities.basicFoodProduction, 0)
+    result = action.applyCommit(1, 100)
+
+    assert state.teamStates[team].resources[entities.obyvatel] == 120
+    assert state.teamStates[team].granary[entities.basicFoodProduction] == before + 1

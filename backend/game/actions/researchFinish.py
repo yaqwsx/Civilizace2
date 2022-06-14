@@ -1,3 +1,4 @@
+from math import ceil
 from typing import Dict
 from game.actions.actionBase import ActionBase, ActionFailed
 from game.actions.researchStart import ActionResearchArgs
@@ -40,4 +41,10 @@ class ActionResearchFinish(ActionBase):
                     discount = len([tech for tech in self.teamState.techs if "cheapDie" in tech.bonuses])
                     self.teamState.throwCost = 10 - discount
                     continue
+                if "obyvatel" in bonus:
+                    count = int(bonus[8:])
+                    foodCount = ceil(count / 20)
+                    self.receiveResources({self.entities.obyvatel: count})
+                    self.teamState.granary[self.entities.basicFoodProduction] = self.teamState.granary.get(self.entities.basicFoodProduction, 0) + foodCount
+                    self.addNotification(self.args.team, f"Dostali jste {count} nových obyvatel. V zásobě vám také přibylo [[{self.entities.basicFoodProduction}|{foodCount}]], kterými se budou živit.")
                 

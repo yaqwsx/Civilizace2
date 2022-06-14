@@ -228,6 +228,11 @@ class ActionBase(ActionInterface):
             team.storage[resource] = amount
         return {}
 
+    def addNotification(self, team: Team, message: str) -> None:
+        notifications = self._notifications.get(team, [])
+        notifications.append(message)
+        self._notifications[team] = notifications
+
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         return (set(), 0)

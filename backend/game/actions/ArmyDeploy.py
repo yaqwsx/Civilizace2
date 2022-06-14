@@ -64,11 +64,6 @@ class ActionArmyDeploy(ActionBase):
     def _returnWeaponsInfo(self, amount: int) -> None:
         self._info += f"Vydejte týmu [[{self.entities.zbrane}|{floor(amount)}]]"
 
-    def addNotification(self, team: Team, message: str) -> None:
-        notifications = self._notifications.get(team, [])
-        notifications.append(message)
-        self._notifications[team] = notifications
-
 
     def _commitImpl(self) -> None:
         if not self.army in self.map.armies: raise ActionFailed(f"Neznámá armáda {self.army.name}({self.army.index})")
