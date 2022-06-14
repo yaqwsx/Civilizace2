@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from decimal import Decimal
-from math import ceil
-import random
-from typing import Dict
-from pydantic import BaseModel
+import math
+from typing import Dict, Tuple
 from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase
 from game.entities import Resource
+from game.plague import simulatePlague
+from game.state import PlagueStats
 
 class ActionPlagueTickArgs(ActionArgs):
     pass
@@ -25,27 +27,11 @@ class ActionPlagueTick(ActionBase):
 
 
     def _commitImpl(self) -> None:
-        None
+        for tState in self.state.teamStates.values():
+            if tState.plague is None:
+                continue
+            newStats, dead = simulatePlague(tState.plague, tState.population)
+            currentPopulation = tState.resources[self.entities["res-obyvatel"]]
+            tState.resources[self.entities["res-obyvatel"]] = max(0, currentPopulation - dead)
+            tState.plague = newStats
 
-        # for team in self.state.teamStates.values():
-            # plague = team.plague
-
-            # # sireni
-            # for i in range(ceil(plague.sick / 10)):
-            #     # pick 10 random people
-            #     # infect them
-            #     None
-
-            # # vyhodnoceni
-            # for i in range(plague.sick):
-            #     result = random(100)
-
-            #     if result < plague.mortality:
-            #         #die
-            #         None
-            #     if result > 100-plague.recovery:
-            #         #heal
-            #         None
-
-
-        self._info += "Mor se rozšířil"

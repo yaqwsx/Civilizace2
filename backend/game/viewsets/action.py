@@ -106,11 +106,11 @@ class ActionViewSet(viewsets.ViewSet):
     def addResultNotifications(result: ActionResult) -> None:
         now = timezone.now()
         for t, messages in result.notifications.items():
-            team = Team.objects.get(pk=t)
+            team = Team.objects.get(pk=t.id)
             for message in messages:
-                a = Announcement.create(
+                a = Announcement.objects.create(
                     author=None,
-                    appearDateTime=now,
+                    appearDatetime=now,
                     type=AnnouncementType.game,
                     content=message)
                 a.teams.add(team)
@@ -140,7 +140,6 @@ class ActionViewSet(viewsets.ViewSet):
                     tile=old.entity.id,
                     newRichness=new.richnessTokens)
         for old, new in zip_longest(prev.map.armies, post.map.armies):
-            print(old, new)
             if old is None:
                 DbMapDiff.objects.create(
                     type=DiffType.armyCreate,

@@ -27,6 +27,7 @@ import {
     faMountainCity,
     faTicket,
     faSkullCrossbones,
+    faBookSkull,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -53,6 +54,7 @@ import { menuShownAtom } from "./pages/atoms";
 import { UnfinishedActionBar } from "./elements/action";
 import { FinishAction } from "./pages/action";
 import { MapDiff } from "./pages/mapdiff";
+import { Plague } from "./pages/plague";
 
 function IconHamburger() {
     return (
@@ -212,6 +214,7 @@ function OrgMenu() {
             <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
             <MenuItemT name="Mapa" icon={faMountainCity} path="map/" />
             <MenuItemT name="Úkoly" icon={faCubesStacked} path="tasks/" />
+            <MenuItemT name="Mor" icon={faBookSkull} path="plague/" />
             <MenuItemT
                 name="Vývěska"
                 icon={faStickyNote}
@@ -407,6 +410,7 @@ function OrgPages() {
             <Route path="/tasks/*" element={<Tasks />} />
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
+            <Route path="/plague" element={<Plague />} />
             <Route path="/actions/:actionId" element={<FinishAction/>}/>
             <Route
                 path="*"

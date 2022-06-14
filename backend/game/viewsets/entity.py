@@ -16,6 +16,7 @@ from game.gameGlue import serializeEntity, stateSerialize
 from rest_framework import serializers
 
 from game.models import DbDelayedEffect, DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
+from game.plague import getDeathToll
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import GameState, TeamState
 
@@ -276,7 +277,13 @@ class TeamViewSet(viewsets.ViewSet):
             ],
             "armies": [
                 self.serializeArmy(a, None) for a in state.map.getTeamArmies(entities[pk])
-            ]
+            ],
+            "plague": None if teamState.plague is None else {
+                "recovery": teamState.plague.recovery,
+                "mortality": teamState.plague.mortality,
+                "infectiousness": teamState.plague.infectiousness,
+                "futureDeathToll": getDeathToll(teamState.plague, teamState.population)
+            }
         })
 
     @action(detail=True)

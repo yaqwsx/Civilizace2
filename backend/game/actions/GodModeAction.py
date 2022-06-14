@@ -41,7 +41,6 @@ class GodModeAction(ActionBase):
             if self._ensure(originalState.world == currentState.world, "Stavy světa se liší, nemůžu aplikovat změny"):
                 self.state.world = newState.world
                 self._info.add("Upravuji stav světa")
-        print("Z", len(newState.map.armies), len(originalState.map.armies), newState.map.armies != originalState.map.armies)
         if newState.map.armies != originalState.map.armies:
             if self._ensure(originalState.world == currentState.world, "Stavy armád se liší, nemůžu aplikovat změny"):
                 self.state.map.armies = newState.map.armies
@@ -165,7 +164,6 @@ class GodModeAction(ActionBase):
         if isinstance(object, dict) or isinstance(object, list):
             newObj = object[key]
         else:
-            print(object, key, type(object))
             newObj = getattr(object, key)
         self._addRec(path[1:], newObj, value, originalPath)
 

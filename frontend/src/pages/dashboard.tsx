@@ -29,6 +29,7 @@ import {
     faWheatAwn,
     faQrcode,
     faShieldHalved,
+    faBookSkull,
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
@@ -232,6 +233,27 @@ function TeamOverview() {
                 </>
             ) : null}
 
+            {data?.plague && (
+                <div className="section w-full">
+                    <h2 className="text-xl" id="section-1">
+                        Morová epidemie
+                    </h2>
+                    <Card label="Mor" color={team.color} icon={faBookSkull}>
+                        <div className="font-bold">
+                            Asi ještě zemře {data.plague.futureDeathToll} obyvatel.
+                        </div>
+                        <div className="text-left">
+                            Parametry epidemie:
+                            <ul>
+                                <li><b>Pravděpodobnost rychlého uzdravení:</b> {data.plague.recovery * 100} % </li>
+                                <li><b>Smrtnost:</b> {data.plague.mortality * 100} % </li>
+                                <li><b>Nakažlivost:</b> {data.plague.infectiousness}</li>
+                            </ul>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             <div className="section w-full">
                 <h2 className="text-xl" id="section-1">
                     Souhrnné informace
@@ -346,11 +368,11 @@ function TeamOverview() {
                     {data.armies.map((a: any) => (
                         <Card
                             key={a.index}
-                            label={`Armáda ${a.name} ${'✱'.repeat(a.level)}`}
+                            label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}
                             color={team.color}
                             icon={faShieldHalved}
                         >
-                            <ArmyDescription army={a} orgView={false}/>
+                            <ArmyDescription army={a} orgView={false} />
                         </Card>
                     ))}
                 </div>

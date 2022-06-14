@@ -156,8 +156,8 @@ class EntityParser():
             if not bonus.split("-")[0] in TECH_BONUS_TOKENS:
                 raise AssertionError(f"Unknown tech bonus \"{bonus}\"")
         tech = Tech(
-                bonuses=bonuses, 
-                flavor=line[8], 
+                bonuses=bonuses,
+                flavor=line[8],
                 **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
@@ -245,7 +245,7 @@ class EntityParser():
             except Exception as e:
                 message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
                 self.errors.append(message)
-                
+
         for e in self.errors:
             self.reportError("  " + e)
 
@@ -338,7 +338,7 @@ class EntityParser():
                 continue
             if len(entity.unlockedBy) == 0:
                 self.errors.append(f"{id} ({entity.name}) nemá odemykající hranu")
-            
+
 
     def parse(self) -> Entities:
         self.entities = {}
@@ -376,13 +376,18 @@ class EntityParser():
         raise RuntimeError(f"Found {len(self.errors)} errors. Entities are not complete")
 
 def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
+    from game.plague import readPlagueFromEntities
+
     parser = EntityParser(data, reportError)
-    return parser.parse()
+    baseEntities = parser.parse()
+    return Entities(baseEntities.values(), readPlagueFromEntities(data))
 
 def loadEntities(fileName) -> Entities:
+    from game.plague import readPlagueFromEntities
+
     with open(fileName) as file:
         data = json.load(file)
 
     parser = EntityParser(data)
     entities = parser.parse()
-    return entities
+    return Entities(entities.values(), readPlagueFromEntities(data))
