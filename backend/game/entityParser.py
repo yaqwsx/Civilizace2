@@ -365,8 +365,6 @@ class EntityParser():
             if len(self.errors) == 0:
                 entities = Entities(self.entities.values())
                 self.checkMap(entities)
-                for e in entities.resources.values():
-                    print(f"{e.id} {e.icon}")
                 return entities
         for message in self.errors:
             print(message)
