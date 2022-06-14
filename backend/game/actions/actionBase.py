@@ -285,7 +285,7 @@ class ActionBase(ActionInterface):
         if not self._warnings.empty:
             return ActionResult(
                 expected=False,
-                message="**" + self._warnings.message + "**\n\n" + self._info.message,
+                message=self._warnings.message + "\n\n" + self._info.message,
                 notifications=self._notifications)
         return ActionResult(
             expected=True,
