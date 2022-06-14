@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 43 43" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-107,-212)">
+        <g id="obyvatel-a" transform="matrix(1,0,0,1,107.486,212.667)">
+            <rect x="0" y="0" width="41.667" height="41.667" style="fill:none;"/>
+            <g transform="matrix(1.14714,0,0,1.14714,-63.8582,-249.908)">
+                <path d="M65.69,251.425C65.051,250.24 70.554,238.314 69.993,235.991C69.432,233.668 61.684,238.906 62.323,237.488C62.962,236.069 69.993,227.479 73.828,227.479C77.663,227.479 84.694,236.069 85.334,237.488C85.973,238.906 78.224,233.668 77.663,235.991C77.102,238.314 82.605,250.24 81.966,251.425C81.327,252.61 76.541,243.1 73.828,243.1C71.115,243.1 66.329,252.61 65.69,251.425Z" style="fill:white;stroke:black;stroke-width:0.36px;"/>
+            </g>
+            <g transform="matrix(1.3169,0,0,1.3169,-74.5692,-289.016)">
+                <circle cx="72.308" cy="225.585" r="3.812" style="fill:white;stroke:black;stroke-width:0.32px;"/>
+            </g>
+        </g>
+    </g>
+</svg>
