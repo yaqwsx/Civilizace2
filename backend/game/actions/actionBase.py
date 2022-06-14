@@ -206,7 +206,7 @@ class ActionBase(ActionInterface):
                 tokens[resource] = amount
 
         if missing != {}:
-            raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí: [[{printResourceListForMarkdown(missing)}]]")
+            raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
 
         return tokens
 

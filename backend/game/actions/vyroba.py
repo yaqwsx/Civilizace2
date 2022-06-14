@@ -73,10 +73,10 @@ class ActionVyroba(HealthyAction):
 
         tokens = self.receiveResources(reward, instantWithdraw=True)
 
-        self._info += f"Tým obdržel {printResourceListForMarkdown(reward)}"
+        self._info += f"Tým obdržel:\n\n{printResourceListForMarkdown(reward)}"
         if multiplier > 1:
             self._info += f"Bonus za úrodnost výroby: +{ceil((multiplier-1)*100)}%"
         if plundered > 0:
             self._info += f"Odebráno {plundered} jednotek úrody"
         if tokens != {}:
-            self._info += f"Vydejte týmu {printResourceListForMarkdown(tokens, floor)}"
+            self._info += f"Vydejte týmu:\n\n{printResourceListForMarkdown(tokens, floor)}"
