@@ -3,6 +3,7 @@ from typing import Dict
 from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase
 from game.entities import Resource, Team, Tech
+from game.state import printResourceListForMarkdown
 
 class ActionGranaryArgs(ActionArgs):
     team: Team
@@ -40,4 +41,4 @@ class ActionGranary(ActionBase):
             self.teamState.resources[resource] -= amount
             self.teamState.granary[resource] = self.teamState.granary.get(resource, 0) + amount
 
-        self._info += "Krmení těmito produkcemi bylo automatizováno: [[" + str(self.args.productions) + "]]"
+        self._info += f"Krmení těmito produkcemi bylo automatizováno: \n{printResourceListForMarkdown(self.args.productions)}"

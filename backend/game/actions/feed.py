@@ -29,7 +29,7 @@ def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -
     automated.sort(key=lambda x: 0 if x[0].typ[0] == entities["typ-jidlo"] else 1) # primary order: type
 
     return FeedRequirements(
-        tokensRequired=tokensRequired-automatedCount,
+        tokensRequired=max(tokensRequired-automatedCount, 0),
         tokensPerCaste=foodPerCaste,
         casteCount=state.world.casteCount,
         automated=automated

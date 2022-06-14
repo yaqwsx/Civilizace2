@@ -40,4 +40,4 @@ class ActionWithdraw(ActionBase):
 
         self.payResources({self.entities.work: sum(self.args.resources.values())})
 
-        self._info += f"Vydejte týmu zdroje: {printResourceListForMarkdown(self.args.resources)}"
+        self._info += f"Vydejte týmu zdroje: \n{printResourceListForMarkdown(self.args.resources)}"

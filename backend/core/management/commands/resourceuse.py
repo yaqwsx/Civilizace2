@@ -31,26 +31,27 @@ class Command(BaseCommand):
         targetFile = settings.ENTITY_PATH / setFilename("GAME")
         entities = loadEntities(targetFile)
 
+        print()
         print("MATERIAL used in:")
         material = entities["mat-" + name]
         for vyroba in entities.vyrobas.values():
             if material in vyroba.cost:
-                print(f"  {vyroba.cost[material]}x in {vyroba.name}: {prettyprint(vyroba.cost)}")
+                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}")
         
-        print("MATERIAL created by:")
-        material = entities["mat-" + name]
-        for vyroba in entities.vyrobas.values():
-            if material == vyroba.reward[0]:
-                print(f"  {vyroba.reward[1]}x from {vyroba.name}: {prettyprint(vyroba.cost)}")
-
         print("PRODUCTION used in:")
         material = entities["pro-" + name]
         for vyroba in entities.vyrobas.values():
             if material in vyroba.cost:
-                print(f"  {vyroba.cost[material]}x in {vyroba.name}: {prettyprint(vyroba.cost)}")
-        
+                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}")
+        print()
+        print("MATERIAL created by:")
+        material = entities["mat-" + name]
+        for vyroba in entities.vyrobas.values():
+            if material == vyroba.reward[0]:
+                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}")
+
         print("PRODUCTION created by:")
         material = entities["pro-" + name]
         for vyroba in entities.vyrobas.values():
             if material == vyroba.reward[0]:
-                print(f"  {vyroba.reward[1]}x from {vyroba.name}: {prettyprint(vyroba.cost)}")
+                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}")

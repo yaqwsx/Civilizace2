@@ -325,7 +325,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                 ))}
                         </select>
                     </FormRow>
-                    <FormRow label="Chcete pole drancovat (+25%)?">
+                    <FormRow label="Chcete pole drancovat? (+50%)">
                         <input
                             className="checkboxinput"
                             type="checkbox"
