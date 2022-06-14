@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict
 from .entities import DIE_IDS, TECH_BONUS_TOKENS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
-DIE_ALIASES = {"die-les": "die-lesy", "les":"die-lesy",
+DIE_ALIASES = {"die-les": "die-lesy", "les":"die-lesy", "lesy":"die-lesy",
                "hory":"die-hory", "hora":"die-hory",
                "plan":"die-plane", "plane":"die-plane",
                "any":"die-any"}
@@ -173,7 +173,7 @@ class EntityParser():
                 print(unlock)
             assert isinstance(target, EntityWithCost), "Cannot unlock entity without a cost: " + target
             target.unlockedBy.append((tech, unlock[1]))
-        tech.unlocks = unlocks
+        tech.unlocks += unlocks
 
 
     def getFeaturesFromField(self, field, onlyNaturals = False):
@@ -195,7 +195,7 @@ class EntityParser():
         self.entities[line[0]] = build
 
 
-    def parseLineVyroba(self, line):
+    def parseLineVyroba(self, line: str):
         reward = self.parseCostSingle(line[6])
         assert not reward[0].isGeneric, "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
         requiredFeatures = self.getFeaturesFromField(line[7])
@@ -206,7 +206,15 @@ class EntityParser():
         obyvatelCost = Decimal(line[5]) if len(line[5]) > 0 else 0
         if obyvatelCost != 0:
             vyroba.cost[self.entities["res-obyvatel"]] = obyvatelCost
+
+        edges = self.getEdgesFromField(line[9] if len(line) > 9 else "")
+        for edge in edges:
+            tech = edge[0]
+            assert isinstance(tech, Tech), f"Neznámý tech k odemčení: {tech}"
+            vyroba.unlockedBy.append(edge)
+            tech.unlocks.append((vyroba, edge[1]))
         self.entities[line[0]] = vyroba
+
 
 
     def parseLineTile(self, line, lineId):
@@ -266,8 +274,9 @@ class EntityParser():
     def parseTiles(self):
         self.parseSheet("tile", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)
 
-    def parseTechs(self):
+    def parseTechsEmpty(self):
         self.parseSheet("tech", 1, lambda x: self.parseLineTechCreateEntity(x), ["tec"])
+    def parseTechsFill(self):
         self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), ["tec"], asserts=False)
 
 
@@ -339,10 +348,11 @@ class EntityParser():
         self.buildGenericResources()
         self.parseMaterials()
         self.parseNaturalResources()
+        self.parseTechsEmpty()
         self.parseBuildings()
         self.parseTiles()
         self.parseVyrobas()
-        self.parseTechs()
+        self.parseTechsFill()
 
         self.parseTeams()
         self.parseOrgs()
