@@ -169,27 +169,28 @@ class DbState(models.Model):
             world=self.worldState.toIr(entities))
 
     def updateFromIr(self, ir: GameState) -> None:
+        self._teamStates = []
         dirty = False
         sMap = stateSerialize(ir.map)
         if sMap != self.mapState.data:
             dirty = True
-            self.mapState.id = None
+            self.mapState.pk = None
             self.mapState.data = sMap
         sWorld = stateSerialize(ir.world)
         if sWorld != self.worldState.data:
             dirty = True
-            self.worldState.id = None
+            self.worldState.pk = None
             self.worldState.data = sWorld
         teamMapping = {t.id: t for t in ir.teamStates.keys()}
         for ts in self.teamStates.all():
             sTs = stateSerialize(ir.teamStates[teamMapping[ts.team.id]])
-            if sTs != ts.data:
-                self.dirty = True
-                ts.id = None
-                ts.data = sTs
             self._teamStates.append(ts)
+            if sTs != ts.data:
+                dirty = True
+                ts.pk = None
+                ts.data = sTs
         if dirty:
-            self.id = None
+            self.pk = None
 
     def save(self, *args, **kwargs):
         if self.mapState.id is None:
@@ -203,10 +204,13 @@ class DbState(models.Model):
         for t in self._teamStates:
             if t.id is None:
                 t.save()
+        wasDirty = self.pk is None
         super().save(*args, **kwargs)
-        for t in self._teamStates:
-            self.teamStates.add(t)
-        self._teamStates = []
+        if wasDirty:
+            self.teamStates.clear()
+            for t in self._teamStates:
+                self.teamStates.add(t)
+            self._teamStates = []
 
     @property
     def entities(self):
