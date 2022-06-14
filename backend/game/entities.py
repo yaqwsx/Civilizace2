@@ -75,6 +75,7 @@ class Resource(EntityBase):
     #   TODO: Is there a simple way to disable __init__ for this base class? ###
     typ: Optional[Tuple[ResourceType, int]]=None
     produces: Optional[Resource]=None
+    icon: Optional[str]
 
     @property
     def isResource(self) -> bool:

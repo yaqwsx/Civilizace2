@@ -143,17 +143,20 @@ class EntityParser():
     def parseLineMaterial(self, line):
         id = line[0]
         if id[:3] == "res":
-            self.entities[id] = Resource(id=id, name=line[1])
+            self.entities[id] = Resource(id=id, name=line[1], icon=line[4])
             return
 
+        icon = line[4]
+        assert len(icon) >= 8, f"Příliš krátký název ikony: \"{line[4]}\""
+
         typData = self.parseTypString(line[3])
-        mat = Resource(id=id, name=line[1], typ=typData)
+        mat = Resource(id=id, name=line[1], typ=typData, icon=icon)
         self.entities[id] = mat
 
         assert len(line[2]) > 0, "Name of production cannot be empty"
 
         id = "pro" + id[3:]
-        pro = Resource(id=id, name=line[2], typ=typData, produces=mat)
+        pro = Resource(id=id, name=line[2], typ=typData, produces=mat, icon=icon[:-5]+"b.svg")
         self.entities[id] = pro
 
 
@@ -299,13 +302,15 @@ class EntityParser():
                 newResources.append(Resource(
                     id=f"mge-{e.id[4:]}-{i}",
                     name=f"{e.name} {i}",
-                    typ=(e, i)
+                    typ=(e, i),
+                    icon=None
                 ))
                 newResources.append(Resource(
                     id=f"pge-{e.id[4:]}-{i}",
                     name=f"{e.productionName} {i}",
                     typ=(e, i),
-                    produces=newResources[-1]
+                    produces=newResources[-1],
+                    icon=None
                 ))
         for r in newResources:
             self.entities[r.id] = r
@@ -360,6 +365,8 @@ class EntityParser():
             if len(self.errors) == 0:
                 entities = Entities(self.entities.values())
                 self.checkMap(entities)
+                for e in entities.resources.values():
+                    print(f"{e.id} {e.icon}")
                 return entities
         for message in self.errors:
             print(message)
