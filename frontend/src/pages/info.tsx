@@ -254,7 +254,6 @@ function PlagueDialog() {
         setTeamId(undefined);
     };
 
-    console.log(teamId, words.length);
     if (!teamId && words.length == 0) return null;
 
     return (
