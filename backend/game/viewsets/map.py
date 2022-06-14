@@ -1,9 +1,4 @@
-import io
-from django.shortcuts import get_object_or_404
-from django.db import transaction
-from rest_framework import serializers, viewsets, mixins
-from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from game.gameGlue import stateSerialize
