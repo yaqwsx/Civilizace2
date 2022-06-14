@@ -16,6 +16,6 @@ class DbMapDiffSerializer(serializers.ModelSerializer):
 class MapDiffViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
-    queryset = DbMapDiff.objects.all()
+    queryset = DbMapDiff.objects.all().order_by("createdAt")
     serializer_class = DbMapDiffSerializer
 

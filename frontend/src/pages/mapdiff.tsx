@@ -1,7 +1,10 @@
+import { useState } from "react";
+import { toast } from "react-toastify";
 import useSWR from "swr";
 import { Button, LoadingOrError } from "../elements";
 import { EntityTag } from "../elements/entities";
-import { fetcher } from "../utils/axios";
+import axiosService, { fetcher } from "../utils/axios";
+import { ArmyName } from "./map";
 
 export function MapDiff() {
     return (
@@ -28,7 +31,9 @@ export function MapDiffContent() {
         data: pendingUpdates,
         error,
         mutate,
-    } = useSWR<any[]>("/game/mapupdates", fetcher);
+    } = useSWR<any[]>("/game/mapupdates/", fetcher, {
+        refreshInterval: 10 * 1000,
+    });
     if (!pendingUpdates)
         return (
             <LoadingOrError
@@ -48,43 +53,162 @@ export function MapDiffContent() {
                 ))
             )}
             <h1>Stav mapy</h1>
-            <MapState/>
+            <MapState />
         </>
     );
 }
 
 function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
-    return <div className="w-full mb-4 rounded-b border-t-4 px-4 py-3 shadow-md bg-orange-200 border-orange-500 orange-500 flex">
-        <div className="flex-1">
-        {
-            props.mapUpdate.type == 0 && <div>
-                Změň úrodnost pole <EntityTag id={props.mapUpdate.tile}/> na {props.mapUpdate.newRichness}.
+    const [deleting, setDeleting] = useState(false);
+    const [deleted, setDeleted] = useState(false);
+
+    let handleFinish = () => {
+        setDeleting(true);
+        axiosService
+            .delete<any, any>(`/game/mapupdates/${props.mapUpdate.id}/`)
+            .then(() => {
+                props.onUpdate();
+                setDeleted(true);
+            })
+            .catch((error) => {
+                toast.error(`Nastala neočekávaná chyba: ${error}`);
+            })
+            .finally(() => {
+                setDeleting(false);
+            });
+    };
+
+    if (deleted) return null;
+
+    return (
+        <div className="orange-500 mb-4 flex w-full rounded-b border-t-4 border-orange-500 bg-orange-200 px-4 py-3 shadow-md">
+            <div className="flex-1 text-lg">
+                {props.mapUpdate.type == 0 && (
+                    <div>
+                        Změň úrodnost pole{" "}
+                        <EntityTag id={props.mapUpdate.tile} /> na{" "}
+                        {props.mapUpdate.newRichness}.
+                    </div>
+                )}
+                {props.mapUpdate.type == 1 && (
+                    <div>
+                        Zvyš úroveň armády {props.mapUpdate.armyName} týmu{" "}
+                        <EntityTag id={props.mapUpdate.team} /> na{" "}
+                        {props.mapUpdate.newLevel}.
+                    </div>
+                )}
+                {props.mapUpdate.type == 2 && (
+                    <div>
+                        Přesuň armádu {props.mapUpdate.armyName} týmu{" "}
+                        <EntityTag id={props.mapUpdate.team} /> na{" "}
+                        {props.mapUpdate.tile ? (
+                            <EntityTag id={props.mapUpdate.tile} />
+                        ) : (
+                            "domovské pole"
+                        )}
+                        .
+                    </div>
+                )}
+                {props.mapUpdate.type == 3 && (
+                    <div>
+                        Vytvoř armádu {props.mapUpdate.armyName} týmu{" "}
+                        <EntityTag id={props.mapUpdate.team} /> na{" "}
+                        {props.mapUpdate.tile ? (
+                            <EntityTag id={props.mapUpdate.tile} />
+                        ) : (
+                            "domovském poli"
+                        )}{" "}
+                        s úrovní {props.mapUpdate.newLevel}.
+                    </div>
+                )}
             </div>
-        }
-        {
-            props.mapUpdate.type == 1 && <div>
-                Zvyš úroveň armády {props.mapUpdate.armyName} týmu <EntityTag id={props.mapUpdate.team}/> na {props.mapUpdate.newLevel}.
+            <div className="flex-none align-middle text-sm">
+                {new Date(props.mapUpdate.createdAt).toLocaleString("cs-CZ", {
+                    weekday: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                })}
             </div>
-        }
-        {
-            props.mapUpdate.type == 2 && <div>
-                Přesuň armádu {props.mapUpdate.armyName} týmu <EntityTag id={props.mapUpdate.team}/> na {
-                    props.mapUpdate.tile ? <EntityTag id={props.mapUpdate.tile}/> : "domovské pole"
-                }.
-            </div>
-        }
-        {
-            props.mapUpdate.type == 3 && <div>
-                Vytvoř armádu {props.mapUpdate.armyName} týmu <EntityTag id={props.mapUpdate.team}/> na {
-                    props.mapUpdate.tile ? <EntityTag id={props.mapUpdate.tile}/> : "domovském poli"
-                } s úrovní {props.mapUpdate.newLevel}.
-            </div>
-        }
+            <Button
+                label={deleting ? "Odesílám " : "Hotovo"}
+                className="flex-none align-middle"
+                onClick={handleFinish}
+                disabled={deleting}
+            />
         </div>
-        <Button label="Hotovo" className="flex-none"/>
-    </div>
+    );
 }
 
 function MapState() {
-    return <>Tady bude stav mapy</>;
+    const { data: tiles, error: tError } = useSWR<any[]>(
+        "/game/map/",
+        fetcher,
+        {
+            refreshInterval: 10 * 1000,
+        }
+    );
+    const { data: armies, error: aError } = useSWR<any[]>(
+        "/game/armies/",
+        fetcher,
+        {
+            refreshInterval: 10 * 1000,
+        }
+    );
+
+    if (!tiles || !armies) {
+        return (
+            <LoadingOrError
+                loading={(!tiles && !tError) || (!armies && !aError)}
+                error={tError || aError}
+                message="Něco se pokazilo"
+            />
+        );
+    }
+
+    return (
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                <th scope="col" className="px-6 py-3 text-right">Políčko</th>
+                <th scope="col" className="px-6 py-3 text-center">Úrodnost</th>
+                <th scope="col" className="px-6 py-3">Budovy</th>
+                <th scope="col" className="px-6 py-3">Armáda</th>
+                </tr>
+            </thead>
+            <tbody>
+                {tiles.map((t) => {
+                    let army = armies.find((x) => x.tile === t.entity);
+                    return (
+                        <tr key={t.entity} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <th scope="row" className="px-6 py-4 font-medium text-right text-gray-900 dark:text-white whitespace-nowrap">
+                                <EntityTag id={t.entity} />
+                            </th>
+                            <td className="px-6 py-4 text-center">
+                                <EntityTag id={t.richnessTokens} />
+                            </td>
+                            <td className="px-6 py-4">
+                                <ul className="list-disc">
+                                    {t.buildings.map((b: string) => (
+                                        <li>
+                                            <EntityTag id={b} />
+                                        </li>
+                                    ))}
+                                </ul>
+                            </td>
+                            <td className="px-6 py-4">
+                                {army && (
+                                    <>
+                                        Armáda <ArmyName army={army} /> týmu{" "}
+                                        <EntityTag id={army.team} />
+                                    </>
+                                )}
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
+        </div>
+    );
 }

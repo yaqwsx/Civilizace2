@@ -1,6 +1,7 @@
 from rest_framework.routers import SimpleRouter
 from game.views import AnnouncementView, AnnouncementsView, EntityView, RoundView, RoundsSentinelView, RoundsView, TeamEntityView, TasksView, TaskView
 from django.urls import path
+from game.viewsets.armies import ArmiesViewSet
 
 from game.viewsets.entity import EntityViewSet, TeamViewSet
 from game.viewsets.map import MapViewSet
@@ -25,6 +26,7 @@ routes.register(r'stickers', StickerViewSet, basename="stickers")
 routes.register(r'state', StateViewSet, basename="states")
 routes.register(r'mapupdates', MapDiffViewSet, basename="mapdiff")
 routes.register(r'map', MapViewSet, basename="map")
+routes.register(r'armies', ArmiesViewSet, basename="armies")
 
 
 urlpatterns = [
