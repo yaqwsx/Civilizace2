@@ -40,19 +40,32 @@ def checkAndSave(data, fileName):
 
     print("Data saved to file {}".format(fileName))
 
+def trySave(name, id):
+    try:
+        targetFile = settings.ENTITY_PATH / setFilename(name)
+        print(f"Pulling world {name} to file {targetFile}")
+        data = pullEntityTable(id)
+        checkAndSave(data, targetFile)
+    except RuntimeError as e:
+        sys.exit("ERROR: Failed to save entities. Cause: {}".format(e.args[0]))
+
 
 class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
+    def add_arguments(self, parser):
+            # Optional argument
+            parser.add_argument('-s', '--set', type=str, nargs='+')
+
     def handle(self, *args, **options):
         settings.ENTITY_PATH.mkdir(parents=True, exist_ok=True)
+
+        if e := options.get("set", None):
+            e = e[0]
+            trySave(e, ENTITY_SETS[e])
+            return
+
         for name, id in ENTITY_SETS.items():
-            try:
-                targetFile = settings.ENTITY_PATH / setFilename(name)
-                print(f"Pulling world {name} to file {targetFile}")
-                data = pullEntityTable(id)
-                checkAndSave(data, targetFile)
-            except RuntimeError as e:
-                sys.exit("ERROR: Failed to save entities. Cause: {}".format(e.args[0]))
+            trySave(name, id)

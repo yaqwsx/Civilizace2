@@ -6,7 +6,10 @@ from typing import Any, Callable, Dict
 from .entities import DIE_IDS, TECH_BONUS_TOKENS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
-DIE_ALIASES = {"die-les": "die-lesy"}
+DIE_ALIASES = {"die-les": "die-lesy", "les":"die-lesy",
+               "hory":"die-hory", "hora":"die-hory",
+               "plan":"die-plane", "plane":"die-plane",
+               "any":"die-any"}
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
 
@@ -75,9 +78,9 @@ class EntityParser():
             assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
             targetEntity = self.entities[targetId]
 
-            die = split[1]
+            die = split[1].strip()
             if die in DIE_ALIASES:
-                die = DIE_ALIASES[die]                
+                die = DIE_ALIASES[die]
             if die == "die-any":
                 for die in DICE_IDS:
                      result.append((targetEntity, die))
@@ -316,10 +319,24 @@ class EntityParser():
         obyvatel.produces = work
         culture.produces = obyvatel
 
+    def checkUnlockedBy(self):
+        checked = 0
+        for id, entity in self.entities.items():
+            if not isinstance(entity, EntityWithCost):
+                continue
+            checked += 1
+            if id == "tec-start":
+                continue
+            if len(entity.unlockedBy) == 0:
+                self.errors.append(f"{id} ({entity.name}) nemá odemykající hranu")
+        print(f"Checked {checked} entites for unlocking edges")
+            
+
     def parse(self) -> Entities:
         self.entities = {}
 
         self.parseTypes()
+        self.buildGenericResources()
         self.parseMaterials()
         self.parseNaturalResources()
         self.parseBuildings()
@@ -330,8 +347,9 @@ class EntityParser():
         self.parseTeams()
         self.parseOrgs()
 
-        self.buildGenericResources()
         self.hardcodeValues()
+
+        self.checkUnlockedBy()
 
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:
@@ -339,13 +357,13 @@ class EntityParser():
                     message = f"Missing required id \"{id}\""
                     self.errors.append(message)
                     print(message)
-            if len(self.errors) > 0:
-                raise RuntimeError("Invalid entities specified")
-
-            entities = Entities(self.entities.values())
-            self.checkMap(entities)
-            return entities
-        raise RuntimeError("Invalid entities specified")
+            if len(self.errors) == 0:
+                entities = Entities(self.entities.values())
+                self.checkMap(entities)
+                return entities
+        for message in self.errors:
+            print(message)
+        raise RuntimeError(f"Found {len(self.errors)} errors. Entities are not complete")
 
 def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
     parser = EntityParser(data, reportError)
