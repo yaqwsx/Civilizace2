@@ -42,12 +42,18 @@ class ActionPlagueSentence(ActionBase):
         sentence = plagueData.getMatchingSentence(self.args.words)
         if sentence is None:
             tState.plague.mortality += 0.01
-            self._warnings(f"Zadaný recept je neplatný. Uškodili jste svým lidem. Smrtnost se zvýšila na {tState.plague.mortality * 100:.2f}%")
+            self._warnings.add(f"Zadaný recept je neplatný. Uškodili jste svým lidem. Smrtnost se zvýšila na {tState.plague.mortality * 100:.2f}%")
             return
 
-        tState.plagueData.recovery += sentence.recoveryDiff
-        tState.plagueData.mortality += sentence.mortalityDiff
-        tState.plagueData.infectiousnes += sentence.infectiousnessDiff
+        wordSentence = " ".join([x.word for x in sentence.words])
+        if wordSentence in tState.plague.recipes:
+            self._warnings.add(f"Zadaný recept byl již použit. Nic se nestalo.")
+            return
+
+        tState.plague.recipes.append(wordSentence)
+        tState.plague.recovery += sentence.recoveryDiff
+        tState.plague.mortality += sentence.mortalityDiff
+        tState.plague.infectiousness += sentence.infectiousnessDiff
 
         self._info.add(f"Zkusili jste: {sentence.name}. Zafungovalo!")
         if sentence.recoveryDiff != 0:

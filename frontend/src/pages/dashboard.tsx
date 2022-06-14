@@ -245,9 +245,9 @@ function TeamOverview() {
                         <div className="text-left">
                             Parametry epidemie:
                             <ul>
-                                <li><b>Pravděpodobnost rychlého uzdravení:</b> {data.plague.recovery * 100} % </li>
-                                <li><b>Smrtnost:</b> {data.plague.mortality * 100} % </li>
-                                <li><b>Nakažlivost:</b> {data.plague.infectiousness}</li>
+                                <li><b>Pravděpodobnost rychlého uzdravení:</b> {(data.plague.recovery * 100).toFixed(1)} % </li>
+                                <li><b>Smrtnost:</b> {(data.plague.mortality * 100).toFixed(1)} % </li>
+                                <li><b>Nakažlivost:</b> {(data.plague.infectiousness).toFixed(1)}</li>
                             </ul>
                         </div>
                     </Card>

@@ -49,7 +49,7 @@ class PlagueData(BaseModel):
 
     def getMatchingSentence(self, words: List[str]) -> PlagueSentence:
         try:
-            words = [self.slugToWordMapping(w) for w in words]
+            words = [self.slugToWordMapping[w] for w in words]
         except KeyError:
             return None
         for s in self.sentences:

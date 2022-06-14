@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from game.gameGlue import stateSerialize
-from game.models import DbState
+from game.models import DbEntities, DbState
 from game.state import GameState
 from game.viewsets.permissions import IsOrg
 from rest_framework.permissions import IsAuthenticated
@@ -12,5 +12,6 @@ class PlagueViewSet(viewsets.ViewSet):
     # permission_classes = (IsAuthenticated, IsOrg)
 
     def list(self, request):
-        return Response([])
+        entityRevision, entities = DbEntities.objects.get_revision()
+        return Response({k: v.word for k, v in entities.plague.slugToWordMapping.items()})
 

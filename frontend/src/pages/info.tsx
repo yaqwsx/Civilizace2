@@ -9,6 +9,9 @@ import { useScanner } from "./scanner";
 import QRCode from "react-qr-code";
 import { ActionMessage, useActionPreview } from "../elements/action";
 import { toast } from "react-toastify";
+import produce from "immer";
+import { useTeam } from "../elements/team";
+import useSWRImmutable from "swr/immutable";
 
 export function InfoScreen() {
     return (
@@ -34,6 +37,7 @@ function InfoScreenContent() {
             <Countdown />
             <PublicAnnouncements />
             <AutoFeedDialog />
+            <PlagueDialog />
         </div>
     );
 }
@@ -193,7 +197,9 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
 
             <ActionMessage response={preview} />
             {submitting ? (
-                <div className="w-full text-center text-2xl py-14">Odesílám</div>
+                <div className="w-full py-14 text-center text-2xl">
+                    Odesílám
+                </div>
             ) : (
                 <>
                     <h2>Přejete si pokračovat?</h2>
@@ -217,5 +223,149 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
                 </>
             )}
         </div>
+    );
+}
+
+function PlagueDialog() {
+    const [teamId, setTeamId] = useState<string | undefined>(undefined);
+    const [words, setWords] = useState<string[]>([]);
+
+    useScanner((items: string[]) => {
+        let wordsToAdd = [];
+        for (const item of items) {
+            if (item.startsWith("tym-")) {
+                setTeamId(item);
+                continue;
+            }
+            if (item.startsWith("mor-")) {
+                wordsToAdd.push(item.replace("mor-", "").toUpperCase().trim());
+                continue;
+            }
+            if (item.startsWith("tec-")) {
+                wordsToAdd.push(item);
+                continue;
+            }
+        }
+        if (wordsToAdd.length > 0) setWords(words.concat(wordsToAdd));
+    });
+
+    let handleClose = () => {
+        setWords([]);
+        setTeamId(undefined);
+    };
+
+    console.log(teamId, words.length);
+    if (!teamId && words.length == 0) return null;
+
+    return (
+        <Dialog onClose={handleClose}>
+            <PlagueDialogImpl
+                teamId={teamId}
+                words={words}
+                onClose={handleClose}
+            />
+        </Dialog>
+    );
+}
+
+function PlagueDialogImpl(props: {
+    teamId?: string;
+    words: string[];
+    onClose: () => void;
+}) {
+    const { team } = useTeam(props.teamId);
+    const [submitting, setSubmitting] = useState(false);
+    const [response, setResponse] = useState<any>(undefined);
+    const { data: words, error } = useSWRImmutable<Record<string, string>>(
+        "game/plague/",
+        fetcher
+    );
+
+    useScanner((items: string[]) => {
+        for (const item of items) {
+            if (item === "ans-cancel") {
+                props.onClose();
+                return;
+            }
+            if (item === "ans-submit") {
+                if (!props.teamId) {
+                    toast.error("Nebyl zadán tým, nemůžu odeslat recept");
+                    return;
+                }
+                axiosService
+                    .post<any, any>("/game/actions/initiate/", {
+                        action: "ActionPlagueSentence",
+                        args: {
+                            team: props.teamId,
+                            words: props.words,
+                        },
+                    })
+                    .then((data) => {
+                        setSubmitting(false);
+                        setResponse(data.data);
+                    })
+                    .catch((error) => {
+                        setSubmitting(false);
+                        toast.error(`Nastala neočekávaná chyba: ${error}`);
+                    });
+            }
+        }
+    });
+
+    if (!words) {
+        return (
+            <LoadingOrError
+                loading={!words && !error}
+                error={error}
+                message={"Něco se pokazilo, dej o tom vědět Honzovi"}
+            />
+        );
+    }
+
+    let valid = true;
+    let mappedWords = props.words.map((w, i) => {
+        if (w in words) return <span key={i}>{words[w]} </span>;
+        valid = false;
+        return (
+            <span key={i} className="red-500 font-bold">
+                Neznámé slovo{" "}
+            </span>
+        );
+    });
+
+    return (
+        <>
+            <div className="text-left">
+                <h1>Zadávání receptu {team && <> pro tým {team.name}</>} </h1>
+                <div className="text-2xl">Aktuální recept je: {mappedWords}</div>
+            </div>
+
+            {submitting ? (
+                <div className="w-full py-14 text-center text-2xl">
+                    Odesílám
+                </div>
+            ) : (
+                !response &&
+                <>
+                    <div className="my-6 flex w-full">
+                        <div className="mx-0 w-1/2 p-3 text-center">
+                            <h1>Zadat větu</h1>
+                            <QRCode value="ans-submit" className="mx-auto" />
+                        </div>
+                        <div className="mx-0 w-1/2 p-3 text-center">
+                            <h1>Zrušit větu</h1>
+                            <QRCode value="ans-cancel" className="mx-auto" />
+                        </div>
+                    </div>
+                </>
+            )}
+            {response && (
+                <div className="my-5">
+                    <ActionMessage response={response} />
+                    <h1>Zavřít</h1>
+                    <QRCode value="ans-cancel" className="mx-auto" />
+                </div>
+            )}
+        </>
     );
 }

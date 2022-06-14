@@ -293,14 +293,15 @@ class ActionViewSet(viewsets.ViewSet):
             commitResult: Optional[ActionResult], stickers: Iterable[StickerId],
             delayedEffect: Optional[DbDelayedEffect]) -> str:
         b = MessageBuilder()
-        b.add("## Předpoklady")
-        b.add(initiateResult.message)
-        if dice[1]:
-            with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
-                for d in dice[0]:
-                    addDice(dieName(d))
-        else:
-            b.add("Akce nevyžaduje házení kostkou")
+        if (len(initiateResult.message) > 0 and dice[1]):
+            b.add("## Předpoklady")
+            b.add(initiateResult.message)
+            if dice[1]:
+                with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
+                    for d in dice[0]:
+                        addDice(dieName(d))
+            else:
+                b.add("Akce nevyžaduje házení kostkou")
 
         if commitResult is not None:
             b.add("## Efekty")

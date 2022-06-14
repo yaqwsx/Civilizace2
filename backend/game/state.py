@@ -251,7 +251,9 @@ class PlagueStats(StateModel):
 
     recovery: float = 0.3
     mortality: float = 0.3
-    infectiousness: float = 2.0
+    infectiousness: float = 2.
+
+    recipes: List[str] = []
 
 
 class TeamState(StateModel):
