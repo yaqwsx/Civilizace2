@@ -214,7 +214,7 @@ export function BuildingAgenda(props: { team: Team }) {
                             />
                         </FormRow>
 
-                        <h2>Armádní posila</h2>
+                        {/* <h2>Armádní posila</h2>
                         <FormRow label="Přejete si poslat armádu?">
                             <input
                                 className="checkboxinput"
@@ -248,7 +248,7 @@ export function BuildingAgenda(props: { team: Team }) {
                                     />
                                 </FormRow>
                             </>
-                        )}
+                        )} */}
                     </>
                 }
             />
