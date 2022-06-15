@@ -367,7 +367,7 @@ class WorldState(StateModel):
     combatRandomness: float = 0.5
     roadCost: Dict[Resource, int]=[]
     roadPoints: int=10
-    armyUpgradeCosts: List[Dict[Resource, int]]=[]
+    armyUpgradeCosts: Dict[int, Dict[Resource, int]]=[]
 
 
 class GameState(StateModel):
@@ -398,9 +398,9 @@ class GameState(StateModel):
                     roadCost={entities["mge-stavivo-2"]:10,
                               entities["mge-nastroj-2"]:10,
                               entities.work:50}),
-                    armyUpgradeCosts=[{}, 
-                              {entities["mat-kladivo"]:2},
-                              {entities["mat-kladivo"]:5, entities["mat-textil"]:3}]
+                    armyUpgradeCosts={
+                              2: {entities["mat-kladivo"]:2},
+                              3: {entities["mat-kladivo"]:5, entities["mat-textil"]:3}}
         )
 
 
