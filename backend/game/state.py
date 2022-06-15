@@ -82,6 +82,13 @@ class Army(StateModel):
         self.equipment -= destroyed
         return destroyed
 
+    @property
+    def currentTile(self):
+        if self.mode != ArmyMode.Occupying:
+            return None
+        return self.tile
+
+
 
 class MapTile(StateModel): # Game state element
     entity: MapTileEntity

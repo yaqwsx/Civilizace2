@@ -139,6 +139,7 @@ class ActionViewSet(viewsets.ViewSet):
                     type=DiffType.richness,
                     tile=old.entity.id,
                     newRichness=new.richnessTokens)
+
         for old, new in zip_longest(prev.map.armies, post.map.armies):
             if old is None:
                 DbMapDiff.objects.create(
@@ -156,12 +157,12 @@ class ActionViewSet(viewsets.ViewSet):
                     armyName=new.name,
                     team=new.team
                 )
-            if old.tile != new.tile:
+            if old.currentTile != new.currentTile:
                 DbMapDiff.objects.create(
                     type=DiffType.armyMove,
                     armyName=new.name,
                     team=new.team,
-                    tile=new.tile.id if new.tile is not None else None,
+                    tile=new.tile.id if new.currentTile is not None else None,
                 )
 
 
