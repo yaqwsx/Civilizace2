@@ -465,7 +465,19 @@ export function TradeAgenda(props: { team: Team }) {
                               if (["res-prace", "res-obyvatel"].includes(a.id))
                                   return null;
                               return (
-                                  <FormRow key={a.id} label={<><EntityTag id={a.id}/> (max {availableProductions[a.id].available})</>}>
+                                  <FormRow
+                                      key={a.id}
+                                      label={
+                                          <>
+                                              <EntityTag id={a.id} /> (max{" "}
+                                              {
+                                                  availableProductions[a.id]
+                                                      .available
+                                              }
+                                              )
+                                          </>
+                                      }
+                                  >
                                       <SpinboxInput
                                           value={_.get(resources, a.id, 0)}
                                           onChange={(v) =>
@@ -483,7 +495,11 @@ export function TradeAgenda(props: { team: Team }) {
 }
 
 export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
-    const { data: armies, error: armyError } = useSWR<Record<number, any>>(
+    const {
+        data: armies,
+        error: armyError,
+        mutate,
+    } = useSWR<Record<number, any>>(
         `game/teams/${props.team.id}/armies`,
         fetcher
     );
@@ -502,7 +518,12 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
             <h1>Manipulace s armádami týmu {props.team.name}</h1>
             <div className="w-full flex-wrap md:flex">
                 {Object.entries(armies).map(([k, a]) => (
-                    <ArmyBadge key={a.index} team={props.team} army={a} />
+                    <ArmyBadge
+                        key={a.index}
+                        team={props.team}
+                        army={a}
+                        mutate={mutate}
+                    />
                 ))}
             </div>
         </>
@@ -557,7 +578,7 @@ export function ArmyName(props: { army: any }) {
     );
 }
 
-function ArmyBadge(props: { team: Team; army: any }) {
+function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
     const [selectedAction, setSelectedAction] = useState("");
 
     let className = classNames(
@@ -601,7 +622,10 @@ function ArmyBadge(props: { team: Team; army: any }) {
                 <ActionForm
                     team={props.team}
                     army={props.army}
-                    onFinish={() => setSelectedAction("")}
+                    onFinish={() => {
+                        setSelectedAction("");
+                        props.mutate();
+                    }}
                 />
             ) : null}
         </div>
