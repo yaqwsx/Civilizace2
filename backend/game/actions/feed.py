@@ -67,7 +67,7 @@ class ActionFeed(ActionBase):
         worldTurn = self.state.world.turn
 
         if teamTurn >= worldTurn:
-            raise ActionFailed(f"Tým už v kole {worldTurn} krmil")
+            raise ActionFailed(f"V tomto kole už jste krmili.")
 
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
@@ -96,12 +96,13 @@ class ActionFeed(ActionBase):
         luxus.sort(key=lambda x: -x.typ[1])
 
         newborns += sum([x.typ[1] for x in food[:3]])
+
         newborns += sum([x.typ[1] for x in luxus[:3]])
 
         self._addObyvatel(newborns)
 
-        self._info += f"Krmení úspěšně provedeno. Narodilo se {newborns} nových obyvatel."
-        self._info += f"Vydejte týmu puntík na kostku"
+        self._info += f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."
+        self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
 
         self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)

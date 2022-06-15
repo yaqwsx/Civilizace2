@@ -73,7 +73,7 @@ class ActionArmyDeploy(HealthyAction):
         if army.mode != ArmyMode.Idle:
             assert army.tile != None, "Army {} is in inconsistent state".format(self.army)
             raise ActionFailed( "Armáda {} už je vyslána na pole {}."\
-                    .format(army.name, army.tile))
+                    .format(army.name, army.tile.name))
 
         if self.args.equipment < 1:
             raise ActionFailed(f"Nelze poskytnout záporný počet zbraní ({self.args.equipment}). Minimální počet je 1")

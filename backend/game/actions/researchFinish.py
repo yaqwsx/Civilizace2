@@ -32,7 +32,8 @@ class ActionResearchFinish(ActionBase):
         self.teamState.techs.add(self.args.tech)
         self._info += "Výzkum technologie [[" + self.args.tech.id + "]] byl dokončen."
         self._info += f"Vydejte týmu puntík na kostku"
-        self._info += f"Vydejte týmu jeden žeton objevu {[dieName(die) for die in self.teamState.getUnlockingDice(self.args.tech)]}"
+        dice = ", ".join([dieName(die) for die in self.teamState.getUnlockingDice(self.args.tech)])
+        self._info += f"Vydejte týmu jeden žeton objevu: {dice}"
 
         # check bonuses
         if self.args.tech.bonuses != "":

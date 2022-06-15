@@ -34,11 +34,7 @@ class ActionGranary(HealthyAction):
                          resource.typ[0] != self.entities.get("typ-luxus")):
                 self._errors += "[[" + str(resource) + "]] není produkce jídla ani luxusu"
                 continue
-            if self.teamState.resources[resource] < amount:
-                self._errors += "Nelze automatizovat [[" + str((resource, amount)) + "]], tým vlastní pouze [[" + str((resource, self.teamState.resources[resource]))+ "]]"
-                continue
 
-            self.teamState.resources[resource] -= amount
             self.teamState.granary[resource] = self.teamState.granary.get(resource, 0) + amount
 
         self._info += f"Krmení těmito produkcemi bylo automatizováno: \n{printResourceListForMarkdown(self.args.productions)}"
