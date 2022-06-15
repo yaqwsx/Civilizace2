@@ -45,7 +45,7 @@ class ActionBuild(HealthyAction):
         if self.args.build in self.state.map.tiles[self.args.tile.index].buildings:
             raise ActionFailed(f"Budova {self.args.build.name} je už na poli {self.args.tile.name} postavena")
         if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
-            raise ActionFailed(f"Nelze postavit cestu, protože pole {self.args.tile.name} není v držení týmu.")
+            raise ActionFailed(f"Nelze postavit budovu, protože pole {self.args.tile.name} není v držení týmu.")
         self._info += f"Stavba začala. Za {ceil(self.requiresDelayedEffect() / 60)} minut můžete budovu přijít dokončit"
 
 
