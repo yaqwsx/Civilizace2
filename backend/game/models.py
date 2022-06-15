@@ -169,6 +169,7 @@ class DbState(models.Model):
             world=self.worldState.toIr(entities))
 
     def updateFromIr(self, ir: GameState) -> None:
+        ir.normalize()
         self._teamStates = []
         dirty = False
         sMap = stateSerialize(ir.map)
