@@ -153,7 +153,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     const actionArgs = useMemo(() => {
         return { team: props.teamId, materials: {} };
     }, [props.teamId]);
-    const { preview, error } = useActionPreview("ActionFeed", actionArgs);
+    const { preview, error } = useActionPreview("ActionFeed", actionArgs, () => true);
     const [submitting, setSubmitting] = useState(false);
 
     useScanner((items: string[]) => {

@@ -31,6 +31,7 @@ import { dieName, useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers, PrintVoucher } from "./printing";
 import { Link, Navigate } from "react-router-dom";
+import { useDebounceDeep } from "../utils/react";
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
@@ -64,23 +65,18 @@ export function UnfinishedActionBar() {
     );
 }
 
-export function useActionPreview(actionId: string, actionArgs?: any) {
+export function useActionPreview(actionId: string, actionArgs: any, argsValid: (args: any) => boolean) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
-    const debouncedArgs = useDebounce(actionArgs, 500);
+    const debouncedArgs = useDebounceDeep(actionArgs, 500);
 
     useEffect(() => {
         setError(null);
         setPreview(null);
 
-        if (!actionArgs || !debouncedArgs)
+        if (!actionArgs || !debouncedArgs || !argsValid(debouncedArgs))
             return;
-
-        console.log("Request:", {
-            action: actionId,
-            args: debouncedArgs,
-        });
 
         axiosService
             .post<any, any>("/game/actions/dry/", {
@@ -102,6 +98,7 @@ export function useActionPreview(actionId: string, actionArgs?: any) {
     return {
         preview: preview,
         error: error,
+        debouncedArgs: debouncedArgs
     };
 }
 
@@ -116,7 +113,7 @@ export function PerformAction(props: {
     actionName: any;
     actionId: string;
     actionArgs: any;
-    argsValid?: boolean;
+    argsValid?: (args: any) => boolean;
     extraPreview?: any;
     onFinish: () => void;
     onBack: () => void;
@@ -126,7 +123,7 @@ export function PerformAction(props: {
         data: null,
     });
 
-    let argsValid = props.argsValid === undefined ? true : props.argsValid;
+    let argsValid = props.argsValid === undefined ? () => true : props.argsValid;
 
     let changePhase = (phase: ActionPhase, data: any) => {
         setPhase({
@@ -198,11 +195,12 @@ function ActionPreviewPhase(props: {
     actionArgs: any;
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
-    argsValid: boolean;
+    argsValid: (args: any) => boolean;
 }) {
-    const { preview, error } = useActionPreview(
+    const { preview, error, debouncedArgs } = useActionPreview(
         props.actionId,
-        props.actionArgs
+        props.actionArgs,
+        props.argsValid
     );
     const [lastArgs, setLastArgs] = useState<any>([null, null]);
     const [submitting, setSubmitting] = useState(false);
@@ -256,9 +254,10 @@ function ActionPreviewPhase(props: {
     return (
         <>
             <h1>Náhled efektu akce {props.actionName}</h1>
-            {preview ? (
+            {preview || !props.argsValid(debouncedArgs) ? (
                 <div ref={messageRef}>
-                    {props.argsValid ? (
+                    {props.argsValid(debouncedArgs) ? (
+                        // @ts-ignore
                         <ActionMessage response={initiateResult || preview} />
                     ) : (
                         <ErrorMessage>
@@ -290,7 +289,7 @@ function ActionPreviewPhase(props: {
                 <Button
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
                     disabled={
-                        submitting || !preview?.success || !props.argsValid
+                        submitting || !preview?.success || !props.argsValid(debouncedArgs)
                     }
                     onClick={handleSubmit}
                     className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"

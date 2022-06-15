@@ -170,7 +170,7 @@ export function DiscoverAgenda(props: { team: Team }) {
         <PerformAction
             actionId="ActionDiscoverTile"
             actionName={`Objevit dílek mapy týmem ${props.team.name}`}
-            argsValid={tile || false}
+            argsValid={(a: any) => a?.team && a?.tile}
             actionArgs={{
                 team: props.team.id,
                 tile: tile?.id,
@@ -225,7 +225,7 @@ export function BuildingAgenda(props: { team: Team }) {
                     goal: useArmy ? armyGoal : undefined,
                     equipment: useArmy ? equipment : undefined,
                 }}
-                argsValid={(building?.id && tile?.entity.id) || false}
+                argsValid={(a: any) => (a?.build?.id && a?.tile?.entity.id) || false}
                 onBack={() => {}}
                 onFinish={() => {
                     setAction(MapActiontype.none);
@@ -325,7 +325,7 @@ export function BuildingFinishAgenda(props: { team: Team }) {
                 tile: tile?.entity.id,
                 demolish: demolish?.id,
             }}
-            argsValid={(building?.id && tile?.entity.id) || false}
+            argsValid={(a: any) => (a?.build?.id && a?.tile?.entity.id) || false}
             onBack={() => {}}
             onFinish={() => {
                 setAction(MapActiontype.none);
@@ -377,7 +377,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
                 team: props.team.id,
                 tile: tile?.entity.id,
             }}
-            argsValid={tile?.entity.id || false}
+            argsValid={(a: any) => a?.tile?.entity.id || false}
             onBack={() => {}}
             onFinish={() => {
                 setAction(MapActiontype.none);
@@ -442,8 +442,8 @@ export function TradeAgenda(props: { team: Team }) {
                 receiver: recipient?.id,
                 resources: resources,
             }}
-            argsValid={
-                Object.keys(resources).length > 0 && recipient !== undefined
+            argsValid={(a: any) =>
+                Object.keys(a.resources).length > 0 && a.receiver !== undefined
             }
             onBack={() => {}}
             onFinish={() => {
@@ -620,8 +620,6 @@ function ArmyDeployForm(props: {
         undefined
     );
 
-    let argsValid = true;
-    if (!tile || equipment <= 0) argsValid = false;
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
@@ -638,7 +636,7 @@ function ArmyDeployForm(props: {
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
                 team={props.team}
-                argsValid={argsValid}
+                argsValid={(a: any) => a.tile && a.equipment >= 0}
                 extraPreview={
                     <>
                         <h1>Zadejte extra parametry</h1>
@@ -932,7 +930,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
                 team: props.team.id,
                 productions: productions,
             }}
-            argsValid={Object.keys(productions).length > 0}
+            argsValid={(a: any) => Object.keys(a.productions).length > 0}
             extraPreview={
                 <>
                     {Object.keys(food).length > 0
