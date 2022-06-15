@@ -648,6 +648,7 @@ function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
                 />
                 <Button
                     label="Upgradovat armádu"
+                    disabled={props.army.mode != "Idle" || props.army.level == 3}
                     className="my-2 w-full bg-blue-600 hover:bg-blue-700"
                     onClick={() => setSelectedAction("armyUpgrade")}
                 />
@@ -778,7 +779,7 @@ function ArmyUpgradeForm(props: {
                 actionId="ActionArmyUpgrade"
                 actionArgs={{
                     team: props.team.id,
-                    armyIdndex: props.army.index,
+                    armyIndex: props.army.index,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
