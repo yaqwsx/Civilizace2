@@ -69,6 +69,9 @@ class ActionArmyDeploy(HealthyAction):
         if not self.army in self.map.armies: raise ActionFailed(f"Neznámá armáda {self.army.name}({self.army.index})")
         if self.army.team != self.team: raise ActionFailed(f"Nelze vyslat armádu cizího týmu")
 
+        if self.args.tile == self.state.map.getHomeOfTeam(self.args.team).entity:
+            raise ActionFailed("Nelze útočit na vlastní domovské pole.")
+
         army = self.army
         if army.mode != ArmyMode.Idle:
             assert army.tile != None, "Army {} is in inconsistent state".format(self.army)
