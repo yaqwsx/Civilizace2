@@ -16,6 +16,7 @@ import { PerformAction } from "../elements/action";
 import { ArmyGoalSelect, ArmySelectBox } from "../elements/army";
 import { EntityTag, useEntities } from "../elements/entities";
 import { BuildingSelect, TeamTileSelect, TileSelect } from "../elements/map";
+import { ErrorMessage } from "../elements/messages";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -665,14 +666,20 @@ function ArmyRetreatForm(props: {
     );
 }
 
-function ArmyUpgradeForm(props: { team: Team; army: any; onFinish: () => void }) {
+function ArmyUpgradeForm(props: {
+    team: Team;
+    army: any;
+    onFinish: () => void;
+}) {
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
-                actionName={<>
-                Vylepšit armádu <ArmyName army={props.army} /> týmu{" "}
-                {props.team.name}
-            </>}
+                actionName={
+                    <>
+                        Vylepšit armádu <ArmyName army={props.army} /> týmu{" "}
+                        {props.team.name}
+                    </>
+                }
                 actionId="ActionArmyUpgrade"
                 actionArgs={{
                     team: props.team.id,
@@ -721,15 +728,24 @@ function FeedingForm(props: {
         )
         // @ts-ignore
         .sort((a, b) => a.typ.level - b.typ.level);
+
+    let missing = Object.values(props.feeding).reduce((a, b) => a + b, 0) - feedReq.tokensRequired;
+
+
     return (
         <>
             <h1>Krmení týmu {props.team.name}</h1>
-            <FormRow label="Kast">{feedReq.casteCount}</FormRow>
-            <FormRow label="Vyžadováno žetonů:">
-                {feedReq.tokensRequired}
+            <FormRow label="Parametry krmení">
+                <span className="mx-3">Kast: {feedReq.casteCount},</span>{" "}
+                <span className="mx-3">
+                    Vyžadováno žetonů: {feedReq.tokensRequired} {
+                        missing < 0 && <span className="font-bold text-red-500">(chybí {-missing})</span>
+                    },
+                </span>{" "}
+                <span className="mx-3">
+                    Žetonů na kastu: {feedReq.tokensPerCaste}
+                </span>
             </FormRow>
-            <FormRow label="Žetonů na kastu:">{feedReq.tokensPerCaste}</FormRow>
-
             {["typ-jidlo", "typ-luxus"].map((resType) => (
                 <div key={resType}>
                     <h2>{resType === "typ-jidlo" ? "Jídlo" : "Luxus"}</h2>
@@ -740,7 +756,8 @@ function FeedingForm(props: {
                                 key={r.id}
                                 label={
                                     <>
-                                        {r.name}
+                                        <EntityTag id={r.id} /> ({r?.typ?.level}
+                                        )
                                         <br />
                                         <span className="text-sm">
                                             (doporučeno {recommended}
@@ -760,7 +777,15 @@ function FeedingForm(props: {
                     {remaingRes
                         .filter((r) => r?.typ?.id === resType)
                         .map((r) => (
-                            <FormRow key={r.id} label={r.name}>
+                            <FormRow
+                                key={r.id}
+                                label={
+                                    <>
+                                        <EntityTag id={r.id} /> ({r?.typ?.level}
+                                        )
+                                    </>
+                                }
+                            >
                                 <SpinboxInput
                                     value={_.get(props.feeding, r.id, 0)}
                                     onChange={(v) =>
@@ -771,6 +796,12 @@ function FeedingForm(props: {
                         ))}
                 </div>
             ))}
+            {
+                missing < 0 && <ErrorMessage>
+                    Nemáš dost žetonů, aby nikdo neumřel (chybí {-missing}). Opravdu takovou akci chceš zadat?
+                    <div style={{fontSize: "8px"}}>(a Maara si myslí, že je tě třeba ještě varovat extra a oranžový rámeček dole nestačí)</div>
+                </ErrorMessage>
+            }
         </>
     );
 }
@@ -858,7 +889,16 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
                 <>
                     {Object.keys(food).length > 0
                         ? food.map((a: any) => (
-                              <FormRow key={a.id} label={<><EntityTag id={a.id}/> (max {availableProductions[a.id].available})</>}>
+                              <FormRow
+                                  key={a.id}
+                                  label={
+                                      <>
+                                          <EntityTag id={a.id} /> (max{" "}
+                                          {availableProductions[a.id].available}
+                                          )
+                                      </>
+                                  }
+                              >
                                   <SpinboxInput
                                       value={_.get(productions, a.id, 0)}
                                       onChange={(v) => updateResource(a.id, v)}

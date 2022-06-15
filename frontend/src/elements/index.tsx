@@ -202,7 +202,7 @@ export function LoadingOrError(props: {
                 ) : (
                     <>
                     <p>{props.error.toString()}</p>
-                    <p>{JSON.stringify(props.error?.response?.data)}</p>
+                    <p>{JSON.stringify(props.error?.response?.data).substring(0, 400)}</p>
                     </>
                 )}
             </ComponentError>
