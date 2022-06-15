@@ -111,6 +111,3 @@ class ActionFeed(ActionBase):
         self.receiveResources(reward)
 
         self.teamState.turn = worldTurn
-
-
-
