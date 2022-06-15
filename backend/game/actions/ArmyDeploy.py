@@ -85,7 +85,7 @@ class ActionArmyDeploy(HealthyAction):
         army.mode = ArmyMode.Marching
         army.goal = self.args.goal
 
-        self._info.add(f"Armáda [[{army.name}]] vyslána na pole [[{self.tile.name}]]. Dorazí za [[{self.requiresDelayedEffect()}]]")
+        self._info.add(f"Armáda [[{army.name}]] vyslána na pole [[{self.tile.name}]]")
 
 
     def _applyDelayedEffect(self) -> None:
@@ -179,8 +179,8 @@ class ActionArmyDeploy(HealthyAction):
             return
 
         defenderReward = self.map.retreatArmy(defender)
-        self.addNotification(defender.team, f"Armáda {defender.name} byla poražena na poli {tile.name} a vrátila se domů.\n\
-            Do skladu vvám bylo uloženo {defenderReward} zbraní, které jí po souboji zůstaly")
+        self.addNotification(defender.team, f"Armáda {defender.name} byla poražena na poli {tile.name} a vrátila se domů." +
+            f" Do skladu vám bylo uloženo {defenderReward} zbraní, které jí po souboji zůstaly" if defenderReward > 0 else "")
 
         if army.equipment == 0:
             self.map.retreatArmy()

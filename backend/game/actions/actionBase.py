@@ -114,6 +114,8 @@ class ActionBase(ActionInterface):
 
     # The following fields are persistent:
     paid: Dict[Resource, Decimal] = {}
+    delayedInfoMessage: Optional[str]
+    delayedWarnMessage: Optional[str]
 
     # Private API below
 
@@ -316,11 +318,15 @@ class ActionBase(ActionInterface):
     def applyDelayedEffect(self) -> ActionResult:
         self._setupPrivateAttrs()
         self._applyDelayedEffect()
+        self.delayedWarnMessage = self._warnings.message
+        self.delayedInfoMessage = self._info.message
         return self.generateActionResult()
 
 
     def applyDelayedReward(self) -> ActionResult:
         self._setupPrivateAttrs()
+        if self.delayedWarnMessage != None: self._warnings += self.delayedWarnMessage
+        if self.delayedInfoMessage != None: self._info += self.delayedInfoMessage
         self._applyDelayedReward()
         return self.generateActionResult()
 
