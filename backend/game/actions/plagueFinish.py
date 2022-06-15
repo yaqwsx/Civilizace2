@@ -7,7 +7,7 @@ from game.actions.actionBase import ActionArgs, ActionResult
 from game.actions.actionBase import ActionBase
 from game.actions.common import ActionFailed
 from game.entities import Resource, Team
-from game.plague import simulatePlague
+from game.plague import getDeathToll, simulatePlague
 from game.state import PlagueStats
 
 class ActionPlagueFinishArgs(ActionArgs):
@@ -36,7 +36,13 @@ class ActionPlagueFinish(ActionBase):
 
     def _commitImpl(self) -> None:
         tState = self.teamState
+        toll = getDeathToll(tState.plague, tState.population)
+        currentPopulation = tState.resources[self.entities["res-obyvatel"]]
+        tState.resources[self.entities["res-obyvatel"]] = max(0, currentPopulation - toll)
+
+
         tState.plague = None
         self._info.add("Mor byl ukončen.")
+        self._info.add(f"Zemřelo {toll} obvyatel.")
         self._notifications[self.team] = ["Gratulujeme! Úspěšně jste porazili morovou epidemii."]
 
