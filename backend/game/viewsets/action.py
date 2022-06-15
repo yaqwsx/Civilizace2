@@ -285,7 +285,7 @@ class ActionViewSet(viewsets.ViewSet):
         with b.startList("Budou vydány samolepky:") as addLine:
             for t, e in stickers:
                 addLine(f"samolepka {e.name} pro tým {t.name}")
-        if delayed > 0:
+        if delayed > 0 and commitResult.expected:
             b.add(f"**Akce má odložený efekt za {round(delayed / 60)} minut**")
         return b.message
 
@@ -431,7 +431,7 @@ class ActionViewSet(viewsets.ViewSet):
                     gainedStickers = self._computeStickers(sourceState, state)
                     self._markMapDiff(sourceState, state)
                     delayedRequirements = action.requiresDelayedEffect()
-                    if delayedRequirements:
+                    if delayedRequirements and commitResult.expected:
                         delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)
                 else:
                     # Let's perform the commit on dryState as some validation
@@ -501,7 +501,7 @@ class ActionViewSet(viewsets.ViewSet):
                 gainedStickers = self._computeStickers(sourceState, state)
                 self._markMapDiff(sourceState, state)
                 delayedRequirements = action.requiresDelayedEffect()
-                if delayedRequirements:
+                if delayedRequirements and commitResult.expected:
                     delayedEffect = self._markDelayedEffect(dbAction, delayedRequirements)
                 else:
                     delayedEffect = None
