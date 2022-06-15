@@ -255,7 +255,17 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     useEffect(() => {
         if (!tiles || tile) return;
-        setTile(tiles.find((t) => t?.homeTeam === props.team.id).entity);
+        let homeTile = tiles.find((t) => t?.homeTeam === props.team.id)
+        if (!homeTile)
+            return
+        if (vyroba.allowedTiles.includes(homeTile.entity))
+            setTile(homeTile.entity);
+        else {
+            for (let t of tiles) {
+                if (vyroba.allowedTiles.includes(t.entity))
+                    setTile(t.entity)
+            }
+        }
     }, [tiles, props.team]);
 
     if (!entities || !tiles) {
