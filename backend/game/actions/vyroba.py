@@ -3,6 +3,7 @@ from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.actionBase import ActionBase
+from game.actions.common import ActionFailed
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal, printResourceListForMarkdown
 
@@ -47,6 +48,8 @@ class ActionVyroba(HealthyAction):
     def _commitImpl(self) -> None:
         tile = self.tileState
         vyroba = self.args.vyroba
+        if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
+            raise ActionFailed(f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
         for f in vyroba.requiredFeatures:
             self._ensure(f in tile.features, f"Na poli {tile.name} chybí {f.name}")
         self._ensureValid

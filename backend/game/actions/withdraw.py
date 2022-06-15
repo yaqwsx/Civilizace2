@@ -24,16 +24,22 @@ class ActionWithdraw(HealthyAction):
 
 
     def cost(self):
-        # Check if this is correct
         return {}
 
     def _commitImpl(self) -> None:
         missing = {}
+        empty = []
         for resource, amount in self.args.resources.items():
             stored = self.teamState.storage.get(resource, 0)
             self.teamState.storage[resource] = stored - amount
             if stored < amount:
                 missing[resource] = stored -amount
+
+        for resource, amount in self.args.resources.items():
+            if amount == 0:
+                empty.append(resource)
+        for resource in empty:
+            del self.teamState.storage[resource]
 
         if missing != {}:
             raise ActionFailed(f"Chybí zdroje ve skladu: {printResourceListForMarkdown(missing)}")

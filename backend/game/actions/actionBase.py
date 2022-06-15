@@ -154,7 +154,7 @@ class ActionBase(ActionInterface):
                           "Akce nebude provedena.")
             return False
         if dotsRequired > dots:
-            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, hodil {dots}" + \
+            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots})" + \
                             "Akce nebude provedena.")
             return False
         return True
