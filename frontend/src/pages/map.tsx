@@ -375,9 +375,9 @@ export function BuildRoadAgenda(props: { team: Team }) {
             actionName={`Postavit cestu týmem ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                tile: tile?.entity.id,
+                tile: tile?.entity?.id,
             }}
-            argsValid={(a: any) => a?.tile?.entity.id || false}
+            argsValid={(a: any) => a?.tile || false}
             onBack={() => {}}
             onFinish={() => {
                 setAction(MapActiontype.none);
