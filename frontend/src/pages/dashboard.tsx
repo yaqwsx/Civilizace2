@@ -240,14 +240,24 @@ function TeamOverview() {
                     </h2>
                     <Card label="Mor" color={team.color} icon={faBookSkull}>
                         <div className="font-bold">
-                            Asi ještě zemře {data.plague.futureDeathToll} obyvatel.
+                            Asi ještě zemře {data.plague.futureDeathToll}{" "}
+                            obyvatel.
                         </div>
                         <div className="text-left">
                             Parametry epidemie:
                             <ul>
-                                <li><b>Pravděpodobnost rychlého uzdravení:</b> {(data.plague.recovery * 100).toFixed(1)} % </li>
-                                <li><b>Smrtnost:</b> {(data.plague.mortality * 100).toFixed(1)} % </li>
-                                <li><b>Nakažlivost:</b> {(data.plague.infectiousness).toFixed(1)}</li>
+                                <li>
+                                    <b>Pravděpodobnost rychlého uzdravení:</b>{" "}
+                                    {(data.plague.recovery * 100).toFixed(1)} %{" "}
+                                </li>
+                                <li>
+                                    <b>Smrtnost:</b>{" "}
+                                    {(data.plague.mortality * 100).toFixed(1)} %{" "}
+                                </li>
+                                <li>
+                                    <b>Nakažlivost:</b>{" "}
+                                    {data.plague.infectiousness.toFixed(1)}
+                                </li>
                             </ul>
                         </div>
                     </Card>
@@ -279,7 +289,9 @@ function TeamOverview() {
                 <Card label="Kolo" color={team.color} icon={faCalendar}>
                     {data.worldTurn == 0
                         ? "Hra ještě nezačala."
-                        : `Hra se nachází v ${data.worldTurn}. kole, vy se nachzíte ${data.teamTurn}. kole`}
+                        : data.worldTurn != data.teamTurn
+                        ? "V tomto kole jste ještě nekrmili"
+                        : "V tomto kole jste už krmili."}
                 </Card>
             </div>
 
