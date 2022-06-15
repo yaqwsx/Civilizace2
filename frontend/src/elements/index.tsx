@@ -15,6 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { Navigate } from "react-router-dom";
+import AceEditor from "react-ace";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -191,6 +192,7 @@ export function LoadingOrError(props: {
     error?: any;
     message: string;
 }) {
+    console.log(props.error)
     if (props.error) {
         return (
             <ComponentError>
@@ -198,7 +200,10 @@ export function LoadingOrError(props: {
                 {props.error.isAxiosError && false ? (
                     <PrettyAxiosError error={props.error} />
                 ) : (
+                    <>
                     <p>{props.error.toString()}</p>
+                    <p>{JSON.stringify(props.error?.response?.data)}</p>
+                    </>
                 )}
             </ComponentError>
         );

@@ -462,7 +462,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
             <h1>Manipulace s armádami týmu {props.team.name}</h1>
             <div className="w-full flex-wrap md:flex">
                 {Object.entries(armies).map(([k, a]) => (
-                    <ArmyBadge key={a.prestige} team={props.team} army={a} />
+                    <ArmyBadge key={a.index} team={props.team} army={a} />
                 ))}
             </div>
         </>
@@ -527,7 +527,7 @@ function ArmyBadge(props: { team: Team; army: any }) {
     let ActionForm: any = {
         armyDeploy: ArmyDeployForm,
         armyRetreat: ArmyRetreatForm,
-        armyBoost: ArmyBoostForm,
+        armyUpgrade: ArmyUpgradeForm,
     }[selectedAction];
 
     return (
@@ -541,19 +541,21 @@ function ArmyBadge(props: { team: Team; army: any }) {
             <div className="w-full px-3 md:w-1/3">
                 <Button
                     label="Vyslat armádu"
+                    disabled={props.army.mode != "Idle"}
                     className="my-2 w-full bg-orange-600 hover:bg-orange-700"
                     onClick={() => setSelectedAction("armyDeploy")}
                 />
                 <Button
                     label="Stáhnout armádu"
+                    disabled={props.army.mode != "Occupying"}
                     className="my-2 w-full bg-green-600 hover:bg-green-700"
                     onClick={() => setSelectedAction("armyRetreat")}
                 />
-                {/* <Button
-                    label="Podpořit armádu"
+                <Button
+                    label="Upgradovat armádu"
                     className="my-2 w-full bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setSelectedAction("armyBoost")}
-                /> */}
+                    onClick={() => setSelectedAction("armyUpgrade")}
+                />
             </div>
             {ActionForm ? (
                 <ActionForm
@@ -663,30 +665,22 @@ function ArmyRetreatForm(props: {
     );
 }
 
-function ArmyBoostForm(props: { team: Team; army: any; onFinish: () => void }) {
-    const [boost, setBoost] = useState<number>(0);
-
+function ArmyUpgradeForm(props: { team: Team; army: any; onFinish: () => void }) {
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
-                actionName={`Podpořit armádu ${props.army.prestige} týmů ${props.team.name}`}
-                actionId="ActionBoost"
+                actionName={<>
+                Vylepšit armádu <ArmyName army={props.army} /> týmu{" "}
+                {props.team.name}
+            </>}
+                actionId="ActionArmyUpgrade"
                 actionArgs={{
                     team: props.team.id,
-                    prestige: props.army.prestige,
-                    boost: boost,
+                    armyIdndex: props.army.index,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
                 team={props.team}
-                extraPreview={
-                    <>
-                        <h1>Zadejte extra parametry</h1>
-                        <FormRow label="Vyberte boost:">
-                            <SpinboxInput value={boost} onChange={setBoost} />
-                        </FormRow>
-                    </>
-                }
             />
         </Dialog>
     );
