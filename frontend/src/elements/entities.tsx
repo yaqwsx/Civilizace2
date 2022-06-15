@@ -99,7 +99,7 @@ export function EntityTag(props: { id: string; quantity?: number }) {
         "game/entities/",
         fetcher
     );
-    let isProduction = props.id.startsWith("pro-");
+    let isProduction = String(props.id).startsWith("pro-");
     let name = props.id;
     if (data && data[props.id]?.name) name = data[props.id].name;
     // @ts-ignore
@@ -118,19 +118,21 @@ export function EntityTag(props: { id: string; quantity?: number }) {
         <span className="align-middle">{name}</span>
     );
 
-    if (props.quantity == undefined)
-        return (
-            <>
-                {iconMarkup} {nameMarkup}
-            </>
-        );
-    else
-        return (
-            <>
-                <span className="align-middle">{props.quantity}×</span>{iconMarkup}
-                {nameMarkup}
-            </>
-        );
+    return (
+        <span className="align-middle">
+            {props.quantity == undefined ? (
+                <>
+                    {iconMarkup} {nameMarkup}
+                </>
+            ) : (
+                <>
+                    <span className="align-middle">{props.quantity}×</span>
+                    {iconMarkup}
+                    {nameMarkup}
+                </>
+            )}
+        </span>
+    );
 }
 
 export function EntityMdTag({ node }: any) {
