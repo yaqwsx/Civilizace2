@@ -5,6 +5,7 @@ from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
+from game.tests.actions.test_armyDeploy import sendArmyTo
 
 teamId = TEAM_ADVANCED
 
@@ -119,6 +120,7 @@ def test_richnessMaterial():
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
+    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
@@ -144,6 +146,7 @@ def test_richnessProduction():
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
+    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
@@ -169,6 +172,7 @@ def test_plunderMaterial():
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
+    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
@@ -194,7 +198,8 @@ def test_plunderProduction():
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
-    
+    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
+
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 4,
@@ -218,7 +223,7 @@ def test_featureMissing():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
-    tile = state.map.tiles[26]
+    tile = state.map.tiles[27]
     
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],

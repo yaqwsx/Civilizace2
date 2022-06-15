@@ -41,6 +41,7 @@ def test_successBulk():
     cost = action.cost()
     assert cost == productions
 
+    action.applyInitiate()
     action.applyCommit()
 
     assert team.granary == productions, "Granary does not contain expected productions"
@@ -60,6 +61,7 @@ def test_failInsufficient():
         state=state, entities=entities, args=ActionGranaryArgs(team=teamId, productions=productions))
 
     with pytest.raises(ActionFailed) as einfo:
+        action.applyInitiate()
         action.applyCommit()
 
 
