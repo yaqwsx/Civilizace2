@@ -32,26 +32,36 @@ class Command(BaseCommand):
         entities = loadEntities(targetFile)
 
         print()
+        print()
+        matPrefix = "mge-" if "-" in name else "mat-"
+        prodPrefix = "pge-" if "-" in name else "pro-"
+        print("TECH MATERIAL usage:")
+        material = entities[matPrefix + name]
+        for vyroba in entities.techs.values():
+            if material in vyroba.cost:
+                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}")
+
+        print()
         print("MATERIAL used in:")
-        material = entities["mat-" + name]
+        material = entities[matPrefix + name]
         for vyroba in entities.vyrobas.values():
             if material in vyroba.cost:
-                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}")
+                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}        Tech: {vyroba.unlockedBy[0][0].name}/{vyroba.unlockedBy[0][1]}")
         
         print("PRODUCTION used in:")
-        material = entities["pro-" + name]
+        material = entities[prodPrefix + name]
         for vyroba in entities.vyrobas.values():
             if material in vyroba.cost:
-                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}")
+                print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}        Tech: {vyroba.unlockedBy[0][0].name}/{vyroba.unlockedBy[0][1]}")
         print()
         print("MATERIAL created by:")
-        material = entities["mat-" + name]
+        material = entities[matPrefix + name]
         for vyroba in entities.vyrobas.values():
             if material == vyroba.reward[0]:
-                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}")
+                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}        Tech: {vyroba.unlockedBy[0][0].name}/{vyroba.unlockedBy[0][1]}")
 
         print("PRODUCTION created by:")
-        material = entities["pro-" + name]
+        material = entities[prodPrefix + name]
         for vyroba in entities.vyrobas.values():
             if material == vyroba.reward[0]:
-                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}")
+                print(f"  {vyroba.reward[1]}x from {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}        Tech: {vyroba.unlockedBy[0][0].name}/{vyroba.unlockedBy[0][1]}")

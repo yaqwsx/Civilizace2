@@ -334,7 +334,7 @@ class EntityParser():
             if not isinstance(entity, EntityWithCost):
                 continue
             checked += 1
-            if id == "tec-start":
+            if id == "tec-start" or id == "tec-epocha":
                 continue
             if len(entity.unlockedBy) == 0:
                 self.errors.append(f"{id} ({entity.name}) nemá odemykající hranu")
