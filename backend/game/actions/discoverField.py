@@ -19,7 +19,7 @@ class ActionDiscoverTile(HealthyAction):
 
     @property
     def description(self):
-        return f"Objevit dílek mapy {self.args.tile.name} týmem {self.args.tile.name}"
+        return f"Objevit dílek mapy {self.args.tile.name} týmem {self.args.team.name}"
 
     def cost(self) -> Dict[Resource, Decimal]:
         return {}

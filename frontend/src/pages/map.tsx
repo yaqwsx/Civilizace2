@@ -40,6 +40,7 @@ enum MapActiontype {
     army = 6,
     trade = 7,
     discoverTile = 8,
+    addCulture = 9
 }
 
 const urlMapActionAtom = atomWithHash<MapActiontype>(
@@ -127,6 +128,13 @@ export function MapAgenda() {
                                 setAction(MapActiontype.discoverTile)
                             }
                         />
+                        <Button
+                            label="Přidat kulturu"
+                            className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
+                            onClick={() =>
+                                setAction(MapActiontype.addCulture)
+                            }
+                        />
                     </FormRow>
                     <TeamRowIndicator team={team} />
 
@@ -154,6 +162,9 @@ export function MapAgenda() {
                     {action == MapActiontype.discoverTile ? (
                         <DiscoverAgenda team={team} />
                     ) : null}
+                    {action == MapActiontype.addCulture ? (
+                        <CultureAgenda team={team} />
+                    ) : null}
                 </>
             ) : null}
         </>
@@ -163,8 +174,6 @@ export function MapAgenda() {
 export function DiscoverAgenda(props: { team: Team }) {
     const [tile, setTile] = useState<any>(undefined);
     const [action, setAction] = useAtom(urlMapActionAtom);
-
-    console.log("X", tile);
 
     return (
         <PerformAction
@@ -181,6 +190,31 @@ export function DiscoverAgenda(props: { team: Team }) {
                 <>
                     <FormRow label="Vyberte dílek">
                         <TileSelect value={tile} onChange={setTile} />
+                    </FormRow>
+                </>
+            }
+        />
+    );
+}
+
+export function CultureAgenda(props: { team: Team }) {
+    const [culture, setCulture] = useState<number>(0);
+    const [action, setAction] = useAtom(urlMapActionAtom);
+
+    return (
+        <PerformAction
+            actionId="ActionAddCultureArgs"
+            actionName={`Udělit kulturu týmu ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                culture: culture
+            }}
+            onFinish={() => setAction(MapActiontype.none)}
+            onBack={() => {}}
+            extraPreview={
+                <>
+                    <FormRow label="Kolik přidat kultury?">
+                        <SpinboxInput value={culture} onChange={setCulture}/>
                     </FormRow>
                 </>
             }
