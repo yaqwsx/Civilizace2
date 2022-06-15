@@ -48,6 +48,9 @@ class EntityBase(BaseModel):
     def __repr__(self) -> str:
         return "{}({})".format(self.id, self.name)
 
+def adHocEntitiy(id) -> EntityBase:
+    return EntityBase(id=id, name="")
+
 
 class Team(EntityBase):
     color: str

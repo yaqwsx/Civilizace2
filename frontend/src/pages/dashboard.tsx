@@ -30,6 +30,7 @@ import {
     faQrcode,
     faShieldHalved,
     faBookSkull,
+    faMasksTheater,
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
@@ -292,6 +293,14 @@ function TeamOverview() {
                         : data.worldTurn != data.teamTurn
                         ? "V tomto kole jste ještě nekrmili"
                         : "V tomto kole jste už krmili."}
+                </Card>
+
+                <Card
+                    label="Dostupná kultura"
+                    color={team.color}
+                    icon={faMasksTheater}
+                >
+                    {data.culture}
                 </Card>
             </div>
 

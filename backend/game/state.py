@@ -333,15 +333,15 @@ class TeamState(StateModel):
 
     @property
     def work(self) -> Decimal:
-        # TBA: Think of a better way...
-        for r, a in self.resources.items():
-            if r.id == "res-prace":
-                return a
-        return 0
+        return self.resources.get(adHocEntitiy("res-prace"), 0)
 
     @property
     def population(self) -> int:
         return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel", "res-zamestnanec"]])
+
+    @property
+    def culture(self) -> Decimal:
+        return self.resources.get(adHocEntitiy("res-kultura"), 0)
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
