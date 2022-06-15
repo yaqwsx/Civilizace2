@@ -94,11 +94,16 @@ function Countdown() {
                 {paused
                     ? "Hra je aktuálně pozastavena"
                     : // @ts-ignore
-                      `Herní čas ${info.id}­–${String(minutesFow).padStart(
+                      `Herní čas: ${info.id}­–${String(minutesFow).padStart(
                           2,
                           "0"
                       )}:${String(secsFow).padStart(2, "0")}`}
             </h1>
+            <div style={{ fontSize: "30px" }} className="leading-none">
+                {!paused &&
+                    `Čas do konce kola:`
+                }
+            </div>
             <div style={{ fontSize: "300px" }} className="leading-none">
                 {!paused &&
                     `${String(minutesRem).padStart(2, "0")}:${String(
