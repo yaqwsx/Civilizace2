@@ -203,7 +203,8 @@ class ActionBase(ActionInterface):
                 if team.resources[resource] < 0:
                     missing[resource] = -team.resources[resource]
             else:
-                tokens[resource] = amount
+                if amount != 0:
+                    tokens[resource] = amount
 
         if missing != {}:
             raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
