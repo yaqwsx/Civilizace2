@@ -398,6 +398,13 @@ class GameState(StateModel):
         self._setParent()
 
 
+    def normalize(self) -> None:
+        for team in self.teamStates.values():
+            team.resources = {r: a for r, a in team.resources.items() if a > 0}
+            team.granary = {r: a for r, a in team.granary.items() if a > 0}
+            team.storage = {r: a for r, a in team.storage.items() if a > 0}
+
+
 def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction = lambda x: x) -> str:
     message = MessageBuilder()
     with message.startList("") as addLine:
