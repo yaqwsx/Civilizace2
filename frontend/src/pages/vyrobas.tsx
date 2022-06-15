@@ -281,6 +281,11 @@ function PerformVyroba(props: PerformVyrobaProps) {
         })
     );
 
+    let sortedTiles = tiles.sort((a, b) =>
+        a.entity.localeCompare(b.entity)
+    );
+
+
     return (
         <PerformAction
             team={props.team}
@@ -311,7 +316,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             value={tile}
                             onChange={(e) => setTile(e.target.value)}
                         >
-                            {tiles
+                            {sortedTiles
                                 .filter((t) =>
                                     vyroba.allowedTiles.includes(t.entity)
                                 )
