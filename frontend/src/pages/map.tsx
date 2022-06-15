@@ -225,7 +225,7 @@ export function BuildingAgenda(props: { team: Team }) {
                     goal: useArmy ? armyGoal : undefined,
                     equipment: useArmy ? equipment : undefined,
                 }}
-                argsValid={(a: any) => (a?.build?.id && a?.tile?.entity.id) || false}
+                argsValid={(a: any) => (a?.build && a?.tile) || false}
                 onBack={() => {}}
                 onFinish={() => {
                     setAction(MapActiontype.none);
@@ -325,7 +325,7 @@ export function BuildingFinishAgenda(props: { team: Team }) {
                 tile: tile?.entity.id,
                 demolish: demolish?.id,
             }}
-            argsValid={(a: any) => (a?.build?.id && a?.tile?.entity.id) || false}
+            argsValid={(a: any) => (a?.build && a?.tile) || false}
             onBack={() => {}}
             onFinish={() => {
                 setAction(MapActiontype.none);
