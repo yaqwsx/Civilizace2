@@ -118,7 +118,7 @@ class TeamViewSet(viewsets.ViewSet):
         def enrich(entity: Entity) -> Dict[str, Any]:
             return {"available": resources[entity]}
 
-        return Response({r.id: serializeEntity(r, enrich) for r in resources.keys()})
+        return Response({r.id: serializeEntity(r, enrich) for r in resources.keys() if resources[r] > 0})
 
     @action(detail=True)
     def vyrobas(self, request, pk):

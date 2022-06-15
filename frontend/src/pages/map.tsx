@@ -465,7 +465,7 @@ export function TradeAgenda(props: { team: Team }) {
                               if (["res-prace", "res-obyvatel"].includes(a.id))
                                   return null;
                               return (
-                                  <FormRow key={a.id} label={a.name}>
+                                  <FormRow key={a.id} label={<><EntityTag id={a.id}/> (max {availableProductions[a.id].available})</>}>
                                       <SpinboxInput
                                           value={_.get(resources, a.id, 0)}
                                           onChange={(v) =>
