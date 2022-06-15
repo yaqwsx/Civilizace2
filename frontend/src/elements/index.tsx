@@ -192,7 +192,6 @@ export function LoadingOrError(props: {
     error?: any;
     message: string;
 }) {
-    console.log(props.error)
     if (props.error) {
         return (
             <ComponentError>
@@ -202,7 +201,7 @@ export function LoadingOrError(props: {
                 ) : (
                     <>
                     <p>{props.error.toString()}</p>
-                    <p>{JSON.stringify(props.error?.response?.data).substring(0, 400)}</p>
+                    <p>{(JSON.stringify(props.error?.response?.data) || new String()).substring(0, 400)}</p>
                     </>
                 )}
             </ComponentError>

@@ -21,6 +21,8 @@ export function TileSelect(props: {
         );
     }
 
+    const sortedTiles = Object.values(tiles).sort((a, b) => a.name.localeCompare(b.name));
+
     let className = classNames("select", props.className);
     return (
         <select
@@ -29,7 +31,7 @@ export function TileSelect(props: {
             onChange={(e) => props.onChange(tiles[e.target.value])}
         >
             <option>Žádné políčko</option>
-            {Object.values(tiles).map((t: any) => (
+            {sortedTiles.map((t: any) => (
                 <option key={t.id} value={t.id}>
                     {t.name}
                 </option>
@@ -59,6 +61,8 @@ export function TeamTileSelect(props: {
         );
     }
 
+    const sortedTiles = Object.values(tiles).sort((a, b) => a.entity.name.localeCompare(b.entity.name));
+
     let className = classNames("select field", props.className);
     return (
         <select
@@ -67,7 +71,7 @@ export function TeamTileSelect(props: {
             onChange={(e) => props.onChange(tiles[e.target.value])}
         >
             <option>Žádné políčko</option>
-            {Object.values(tiles).map((t: any) => (
+            {sortedTiles.map((t: any) => (
                 <option key={t.entity.id} value={t.entity.id}>
                     {t.entity.name}
                 </option>
