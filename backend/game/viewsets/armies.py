@@ -16,4 +16,6 @@ class ArmiesViewSet(viewsets.ViewSet):
         state = dbState.toIr()
 
         armiesResp = [stateSerialize(a) for a in state.map.armies]
+        for a, original in zip(armiesResp, state.map.armies):
+            a["tile"] = original.currentTile.id if original.currentTile else None
         return Response(armiesResp)

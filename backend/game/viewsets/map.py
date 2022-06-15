@@ -21,5 +21,4 @@ class MapViewSet(viewsets.ViewSet):
             tilesRep[i]["name"] = tiles[i].entity.name
         for team in entities.teams.values():
             tilesRep[state.map.getHomeOfTeam(team).index]["homeTeam"] = team.id
-
         return Response(tilesRep)

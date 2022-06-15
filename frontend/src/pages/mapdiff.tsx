@@ -155,6 +155,8 @@ function MapState() {
         }
     );
 
+    console.log(armies);
+
     if (!tiles || !armies) {
         return (
             <LoadingOrError
@@ -164,6 +166,8 @@ function MapState() {
             />
         );
     }
+
+    let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -177,7 +181,7 @@ function MapState() {
                 </tr>
             </thead>
             <tbody>
-                {tiles.map((t) => {
+                {sortedTiles.map((t) => {
                     let army = armies.find((x) => x.tile === t.entity);
                     return (
                         <tr key={t.entity} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
