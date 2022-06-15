@@ -113,22 +113,20 @@ export function EntityTag(props: { id: string; quantity?: number }) {
     ) : null;
 
     let nameMarkup = isProduction ? (
-        <span className="align-middle underline">{name}</span>
+        <span className="underline">{name}</span>
     ) : (
-        <span className="align-middle">{name}</span>
+        <span>{name}</span>
     );
 
     return (
-        <span className="align-middle">
+        <span>
             {props.quantity == undefined ? (
                 <>
                     {iconMarkup} {nameMarkup}
                 </>
             ) : (
                 <>
-                    <span className="align-middle">{props.quantity}×</span>
-                    {iconMarkup}
-                    {nameMarkup}
+                    {props.quantity}× {iconMarkup} {nameMarkup}
                 </>
             )}
         </span>

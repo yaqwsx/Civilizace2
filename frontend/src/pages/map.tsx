@@ -864,7 +864,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
                 <>
                     {Object.keys(food).length > 0
                         ? food.map((a: any) => (
-                              <FormRow key={a.id} label={a.name}>
+                              <FormRow key={a.id} label={<><EntityTag id={a.id}/> (max {availableProductions[a.id].available})</>}>
                                   <SpinboxInput
                                       value={_.get(productions, a.id, 0)}
                                       onChange={(v) => updateResource(a.id, v)}
