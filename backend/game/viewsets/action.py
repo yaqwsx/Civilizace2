@@ -294,7 +294,6 @@ class ActionViewSet(viewsets.ViewSet):
             delayedEffect: Optional[DbDelayedEffect]) -> str:
         b = MessageBuilder()
         if (len(initiateResult.message) > 0 and dice[1]):
-            b.add("## Předpoklady")
             b.add(initiateResult.message)
             if dice[1]:
                 with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:

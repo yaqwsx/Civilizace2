@@ -257,7 +257,10 @@ class ActionBase(ActionInterface):
         message = ""
         if len(cost) > 0:
             require = self.payResources(cost)
-            message = f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
+            if len(require) == 0:
+                message = "Není potřeba vybírat od týmu žádný materiál"
+            else:
+                message = f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
 
         return ActionResult(
             expected=True,
