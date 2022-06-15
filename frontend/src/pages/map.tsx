@@ -39,6 +39,7 @@ enum MapActiontype {
     automateFeeding = 5,
     army = 6,
     trade = 7,
+    discoverTile = 8,
 }
 
 const urlMapActionAtom = atomWithHash<MapActiontype>(
@@ -119,6 +120,13 @@ export function MapAgenda() {
                             className="m-2 flex-1 bg-yellow-500 hover:bg-yellow-600"
                             onClick={() => setAction(MapActiontype.trade)}
                         />
+                        <Button
+                            label="Objevit dílek"
+                            className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
+                            onClick={() =>
+                                setAction(MapActiontype.discoverTile)
+                            }
+                        />
                     </FormRow>
                     <TeamRowIndicator team={team} />
 
@@ -143,9 +151,40 @@ export function MapAgenda() {
                     {action == MapActiontype.trade ? (
                         <TradeAgenda team={team} />
                     ) : null}
+                    {action == MapActiontype.discoverTile ? (
+                        <DiscoverAgenda team={team} />
+                    ) : null}
                 </>
             ) : null}
         </>
+    );
+}
+
+export function DiscoverAgenda(props: { team: Team }) {
+    const [tile, setTile] = useState<any>(undefined);
+    const [action, setAction] = useAtom(urlMapActionAtom);
+
+    console.log("X", tile);
+
+    return (
+        <PerformAction
+            actionId="ActionDiscoverTile"
+            actionName={`Objevit dílek mapy týmem ${props.team.name}`}
+            argsValid={tile || false}
+            actionArgs={{
+                team: props.team.id,
+                tile: tile?.id,
+            }}
+            onFinish={() => setAction(MapActiontype.none)}
+            onBack={() => {}}
+            extraPreview={
+                <>
+                    <FormRow label="Vyberte dílek">
+                        <TileSelect value={tile} onChange={setTile} />
+                    </FormRow>
+                </>
+            }
+        />
     );
 }
 
@@ -729,8 +768,9 @@ function FeedingForm(props: {
         // @ts-ignore
         .sort((a, b) => a.typ.level - b.typ.level);
 
-    let missing = Object.values(props.feeding).reduce((a, b) => a + b, 0) - feedReq.tokensRequired;
-
+    let missing =
+        Object.values(props.feeding).reduce((a, b) => a + b, 0) -
+        feedReq.tokensRequired;
 
     return (
         <>
@@ -738,9 +778,13 @@ function FeedingForm(props: {
             <FormRow label="Parametry krmení">
                 <span className="mx-3">Kast: {feedReq.casteCount},</span>{" "}
                 <span className="mx-3">
-                    Vyžadováno žetonů: {feedReq.tokensRequired} {
-                        missing < 0 && <span className="font-bold text-red-500">(chybí {-missing})</span>
-                    },
+                    Vyžadováno žetonů: {feedReq.tokensRequired}{" "}
+                    {missing < 0 && (
+                        <span className="font-bold text-red-500">
+                            (chybí {-missing})
+                        </span>
+                    )}
+                    ,
                 </span>{" "}
                 <span className="mx-3">
                     Žetonů na kastu: {feedReq.tokensPerCaste}
@@ -796,12 +840,16 @@ function FeedingForm(props: {
                         ))}
                 </div>
             ))}
-            {
-                missing < 0 && <ErrorMessage>
-                    Nemáš dost žetonů, aby nikdo neumřel (chybí {-missing}). Opravdu takovou akci chceš zadat?
-                    <div style={{fontSize: "8px"}}>(a Maara si myslí, že je tě třeba ještě varovat extra a oranžový rámeček dole nestačí)</div>
+            {missing < 0 && (
+                <ErrorMessage>
+                    Nemáš dost žetonů, aby nikdo neumřel (chybí {-missing}).
+                    Opravdu takovou akci chceš zadat?
+                    <div style={{ fontSize: "8px" }}>
+                        (a Maara si myslí, že je tě třeba ještě varovat extra a
+                        oranžový rámeček dole nestačí)
+                    </div>
                 </ErrorMessage>
-            }
+            )}
         </>
     );
 }

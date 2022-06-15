@@ -274,6 +274,8 @@ class TeamState(StateModel):
     storageCapacity = 10
     plague: Optional[PlagueStats]
 
+    discoveredTiles: Set[MapTileEntity] = []
+
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
 
@@ -402,4 +404,3 @@ def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFuncti
         for resource, amount in resources.items():
             addLine(f"[[{resource.id}|{roundFunction(amount)}]]")
     return message.message
-    # return "\n".join([f"1. [[{resource.id}|{roundFunction(amount)}]]" for resource, amount in resources.items()]) + "\n"
