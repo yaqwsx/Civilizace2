@@ -198,7 +198,7 @@ class TeamViewSet(viewsets.ViewSet):
             taskSet = DbTask.objects.all()
             serializer = DbTaskSerializer
         else:
-            taskSet = DbTask.objects.filter(assignments__team=team.pk, abandoned=False)
+            taskSet = DbTask.objects.filter(assignments__team=team.pk)
             serializer = PlayerDbTaskSerializer
 
         return Response({t.id: serializer(t).data for t in taskSet})
