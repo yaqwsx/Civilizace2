@@ -247,6 +247,8 @@ class TeamViewSet(viewsets.ViewSet):
         entities = dbState.entities
         teamState = state.teamStates[entities[pk]]
 
+        feedRequirements = computeFeedRequirements(state, entities, entities[pk])
+
         return Response({
             "population": {
                 "nospec": teamState.resources[entities["res-obyvatel"]],
@@ -265,8 +267,14 @@ class TeamViewSet(viewsets.ViewSet):
                 (r.id, a) for r, a in teamState.storage.items()
             ],
             "granary": [
-                (r.id, a) for r, a in teamState.granary.items()
+                (r.id, a) for r, a in teamState.granary.items() if r.typ[0].id == "typ-jidlo"
+            ] + [
+                (r.id, a) for r, a in teamState.granary.items() if r.typ[0].id == "typ-luxus"
             ],
+            "feeding": {
+                "casteCount": feedRequirements.casteCount,
+                "tokensPerCaste": feedRequirements.tokensPerCaste
+            },
             "announcements": [
                 {
                     "id": a.id,

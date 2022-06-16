@@ -53,7 +53,7 @@ class GodModeAction(ActionBase):
             if newState.teamStates[t] != originalState.teamStates[t]:
                 if self._ensure(originalState.teamStates[t] == currentState.teamStates[t], f"Stavy týmu {t} se liší. Nemůžu aplikovat změny."):
                     self.state.teamStates[t] = newState.teamStates[t]
-                    self._info.add(f"Upravuji stav týmu {t}")
+                    self._info.add(f"Upravuji stav týmu {t.name}")
 
         if not self._errors.empty:
             raise ActionFailed(self._errors)

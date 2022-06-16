@@ -367,13 +367,34 @@ function TeamOverview() {
                         icon={faWheatAwn}
                     >
                         {data.granary.length ? (
-                            <ul className="list-disc text-left">
-                                {data.granary.map((p: any) => (
-                                    <li key={p[0]}>
-                                        <EntityTag id={p[0]} quantity={p[1]} />
-                                    </li>
-                                ))}
-                            </ul>
+                            <>
+                                Maximálně bonusů: {data.feeding.casteCount}
+                                <ul className="list-disc text-left">
+                                    {data.granary.map((p: any) => {
+                                        let missing =
+                                            p[1] - data.feeding.casteCount;
+                                        return (
+                                            <li key={p[0]}>
+                                                <EntityTag
+                                                    id={p[0]}
+                                                    quantity={p[1]}
+                                                />{" "}
+                                                (
+                                                {missing < 0 ? (
+                                                    <span className="text-red-500">
+                                                        {missing}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-green-500">
+                                                        +{missing}
+                                                    </span>
+                                                )}
+                                                )
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </>
                         ) : (
                             <span>Zatím nezásobujete centrum</span>
                         )}
