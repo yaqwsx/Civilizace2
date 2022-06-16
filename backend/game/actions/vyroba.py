@@ -83,3 +83,5 @@ class ActionVyroba(HealthyAction):
             self._info += f"Odebráno {plundered} jednotek úrody"
         if tokens != {}:
             self._info += f"Vydejte týmu:\n\n{printResourceListForMarkdown(tokens, floor)}"
+        if self.args.vyroba.id == "vyr-koloRezerva":
+            self._info += "Oznamte týmu, že VŮZ JE OPRAVEN a popřejte jim ŠŤASTNOU CESTU!"
