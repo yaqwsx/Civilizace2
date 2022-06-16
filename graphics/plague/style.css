@@ -1,0 +1,46 @@
+body {
+    height: 100%;
+    margin: 0 auto;
+    padding: 0;
+    font-size: 12pt;
+    background: rgb(255, 255, 255);
+
+    font-family: 'Roboto';
+}
+* {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+.main-page {
+    height: 210mm;
+    width: 297mm;
+    margin: 10mm auto;
+    background: white;
+    box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+}
+.sub-page {
+    padding-top: 1cm;
+    padding-bottom: 1cm;
+    height: 210mm;
+}
+@page {
+    size: A4 landscape;
+    margin: 0;
+}
+@media print {
+    html,
+    body {
+        height: 210mm;
+        width: 297mm;
+    }
+    .main-page {
+        margin: 0;
+        border: initial;
+        border-radius: initial;
+        width: initial;
+        min-height: initial;
+        box-shadow: initial;
+        background: initial;
+        page-break-after: always;
+    }
+}

@@ -1,0 +1,99 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="main-page">
+        <div class="sub-page px-4">
+            <div class="row flex">
+                <div class="w-1/5 border-t-2 border-dotted border-black p-2"><img
+                        class="w-full" src="maps/MAP_LEFT"></div>
+                <div class="text-center font-bold p-2 w-3/5">
+                    <h1 class="text-6xl p-2">SHEET_NAME</h1>
+                    <div class="row flex text-xl">
+                        <div class="w-1/2">
+                            LEFT_TEAM
+                        </div>
+                        <div class="w-1/2">
+                            RIGHT_TEAM
+                        </div>
+                    </div>
+                </div>
+                <div class="w-1/5 border-t-2 border-dotted border-black p-2"><img
+                        class="w-full" src="maps/MAP_RIGHT"></div>
+            </div>
+            <div class="row flex">
+                <div class="w-2/5 border-t-2 border-dotted border-black p-2 flex">
+                    <div id="qrcodeleft1" class="w-32 flex-none p-2"></div>
+                    <div class="p-2 align-midle text-2xl">LEFT_WORD1</div>
+                </div>
+                <div class="text-center font-bold p-2 w-1/5">
+                    <h1 class="text-6xl"></h1>
+                </div>
+                <div class="w-2/5 border-t-2 border-dotted border-black p-2 flex">
+                    <div class="p-2 align-midle text-2xl flex-1 text-right">RIGHT_WORD1</div>
+                    <div id="qrcoderight1" class="w-32 flex-none p-2"></div>
+                </div>
+            </div>
+            <div class="row flex">
+                <div class="w-2/5 border-t-2 border-dotted border-black p-2 flex">
+                    <div id="qrcodeleft2" class="w-32 flex-none p-2"></div>
+                    <div class="p-2 align-midle text-2xl">LEFT_WORD2</div>
+                </div>
+                <div class="text-center font-bold p-2 w-1/5">
+                    <h1 class="text-6xl"></h1>
+                </div>
+                <div class="w-2/5 border-t-2 border-dotted border-black p-2 flex">
+                    <div class="p-2 align-midle text-2xl flex-1 text-right">RIGHT_WORD2</div>
+                    <div id="qrcoderight2" class="w-32 flex-none p-2"></div>
+                </div>
+            </div>
+            <div class="row flex">
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-left">
+                   LEFT_SENTENCE1
+                </div>
+                <div class="text-center font-bold p-2 w-1/5">
+                    <h1 class="text-6xl"></h1>
+                </div>
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-right">
+                    RIGHT_SENTENCE1
+                </div>
+            </div>
+            <div class="row flex">
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-left">
+                   LEFT_SENTENCE2
+                </div>
+                <div class="text-center font-bold p-2 w-1/5">
+                    <h1 class="text-6xl"></h1>
+                </div>
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-right">
+                    RIGHT_SENTENCE2
+                </div>
+            </div>
+            <div class="row flex">
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-left">
+                   LEFT_SENTENCE3
+                </div>
+                <div class="text-center font-bold p-2 w-1/5">
+                    <h1 class="text-6xl"></h1>
+                </div>
+                <div class="w-2/5 border-t-2 border-dotted border-black p-4 text-right">
+                    RIGHT_SENTENCE3
+                </div>
+            </div>
+        </div>
+
+        <div id="qrcode"></div>
+        <script type="text/javascript">
+            new QRCode(document.getElementById("qrcodeleft1"), "LEFT_QR1");
+            new QRCode(document.getElementById("qrcoderight1"), "RIGHT_QR1");
+            new QRCode(document.getElementById("qrcodeleft2"), "LEFT_QR2");
+            new QRCode(document.getElementById("qrcoderight2"), "RIGHT_QR2");
+        </script>
+</body>
+
+</html>
