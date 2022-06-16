@@ -214,10 +214,12 @@ class ActionBase(ActionInterface):
         return tokens
 
 
-    def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False) -> Dict[Resource, Decimal]:
+    def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
         team = self.teamState
         storage = {}
         for resource, amount in resources.items():
+            if excludeWork and resource == self.entities.work:
+                continue
             if resource.isTracked:
                 team.resources[resource] = team.resources.get(resource, 0) + amount
             else:
@@ -282,7 +284,7 @@ class ActionBase(ActionInterface):
 
     def cancelAction(self):
         cost = self.costSubstituted()
-        reward = self.receiveResources(cost, instantWithdraw=True)
+        reward = self.receiveResources(cost, instantWithdraw=True, excludeWork=True)
 
 
     def generateActionResult(self):
