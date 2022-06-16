@@ -351,10 +351,8 @@ class TeamState(StateModel):
             resources={
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),
-                entities["pro-drevo"]: Decimal(20)
             },
             storage={
-                entities["mat-drevo"]: Decimal(10)
             }
         )
 

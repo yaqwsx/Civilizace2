@@ -57,6 +57,7 @@ def test_simple():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
+    team.resources[entities["pro-drevo"]] = 20
     originalResources = team.resources.copy()
 
     args = ActionVyrobaArgs(
@@ -80,6 +81,7 @@ def test_production():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
+    team.resources[entities["pro-drevo"]] = 20
 
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Pro"],
@@ -102,6 +104,7 @@ def test_distance():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
+    team.resources[entities["pro-drevo"]] = 20
 
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
@@ -119,6 +122,7 @@ def test_richnessMaterial():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
+    team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
@@ -145,6 +149,7 @@ def test_richnessProduction():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
+    team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
@@ -171,6 +176,7 @@ def test_plunderMaterial():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
+    team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
     
@@ -197,6 +203,7 @@ def test_plunderProduction():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
+    team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
@@ -224,6 +231,7 @@ def test_featureMissing():
     state = createTestInitState()
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
+    team.resources[entities["pro-drevo"]] = 20
     
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
