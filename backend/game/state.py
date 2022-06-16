@@ -267,6 +267,7 @@ class TeamState(StateModel):
     team: Team
     redCounter: Decimal
     blueCounter: Decimal
+    employees: Decimal = 0
 
     turn: int = 0
     throwCost: int = 10
@@ -311,10 +312,7 @@ class TeamState(StateModel):
 
 
     def addEmployees(self, amount: int) -> None:
-        for resource in self.resources.keys():
-            if resource.id == "res-zamestnanec":
-                self.resources[resource] += amount
-                return
+        self.employees += amount
 
 
     @property
@@ -337,7 +335,7 @@ class TeamState(StateModel):
 
     @property
     def population(self) -> int:
-        return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel", "res-zamestnanec"]])
+        return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel"]]) + self.employees
 
     @property
     def culture(self) -> Decimal:

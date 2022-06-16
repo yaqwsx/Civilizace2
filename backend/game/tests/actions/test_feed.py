@@ -106,7 +106,7 @@ def test_highlevelFood():
     state = createTestInitState()
     state.world.turn = 1
 
-    state.teamStates[team].resources[entities["res-zamestnanec"]] = 20
+    state.teamStates[team].employees = 20
     state.teamStates[team].resources[entities.obyvatel] = 80
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].population == 100
@@ -133,10 +133,10 @@ def test_highlevelLuxury():
     state.teamStates[team].resources = {}
     state.teamStates[team].storage = {}
     state.teamStates[team].granary = {}
-    state.teamStates[team].resources[entities["res-zamestnanec"]] = 600
     state.teamStates[team].resources[entities.work] = 200
     state.teamStates[team].resources[entities.obyvatel] = 400
     state.teamStates[team].resources[entities["res-kultura"]] = 50
+    state.teamStates[team].employees = 600
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(team=team, materials={
         entities["mat-bobule"]: 100,
@@ -145,7 +145,7 @@ def test_highlevelLuxury():
         entities["mat-dobytek"]: 100,
         entities["mat-kuze"]: 100,
         entities["mat-keramika"]: 100,
-        entities["mat-sperk"]: 100,
+        entities["mat-sklo"]: 100,
         entities["mat-bylina"]: 100
     }))
 
@@ -183,7 +183,6 @@ def test_productions():
     state.world.turn = 1
 
     state.teamStates[team].resources = {
-        entities["res-zamestnanec"]: 100,
         entities["res-kultura"]: 20,
         entities["res-prace"]: 200,
         entities["res-obyvatel"]: 400,
@@ -207,7 +206,6 @@ def test_productions():
     action.applyCommit()
 
     assert state.teamStates[team].resources == {
-        entities["res-zamestnanec"]: 100,
         entities["res-kultura"]: 20,
         entities["res-prace"]: 100 + 417,
         entities["res-obyvatel"]: 410 + 20 + 7,

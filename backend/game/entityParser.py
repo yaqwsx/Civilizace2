@@ -238,7 +238,7 @@ class EntityParser():
                 if asserts:
                     assert not line[0] in self.entities, "Id already exists: " + line[0]
                     assert line[0][3] == '-', f"Id {line[0]} prefix must be 3 chars long, got \"" + line[0] + "\""
-                    assert line[0][:3] in prefixes, "Invalid id prefix: \"" + line[0][:3] + "\" (allowed prefixes: " + prefixes + ")"
+                    assert line[0][:3] in prefixes, "Invalid id prefix: \"" + line[0][:3] + "\" (allowed prefixes: " + str(prefixes) + ")"
                     assert len(line[1]) >= 3, "Entity name cannot be empty"
                 parser(line, lineId) if includeIndex else parser(line)
 

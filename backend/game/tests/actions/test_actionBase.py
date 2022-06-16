@@ -17,7 +17,6 @@ def test_payResources():
     teamState.resources = {
         entities["res-prace"]: 100,
         entities["res-obyvatel"]: 100,
-        entities["res-zamestnanec"]: 100,
         entities["pro-bobule"]: 10,
         entities["pro-drevo"]: 10,
         entities["pro-kuze"]: 1,
@@ -28,44 +27,45 @@ def test_payResources():
     assert teamState.resources == {
         entities["res-prace"]: 90,
         entities["res-obyvatel"]: 100,
-        entities["res-zamestnanec"]: 100,
         entities["pro-bobule"]: 10,
         entities["pro-drevo"]: 10,
         entities["pro-kuze"]: 1,
     }
+    assert teamState.population == 100
 
     result = action.payResources({entities["res-obyvatel"]: 10})
     assert result == {}
     assert teamState.resources == {
         entities["res-prace"]: 90,
         entities["res-obyvatel"]: 90,
-        entities["res-zamestnanec"]: 110,
         entities["pro-bobule"]: 10,
         entities["pro-drevo"]: 10,
         entities["pro-kuze"]: 1,
     }
+    assert teamState.population == 100
 
     result = action.payResources({entities["pro-bobule"]: 2, entities["pro-drevo"]: 2})
     assert result == {}
     assert teamState.resources == {
         entities["res-prace"]: 90,
         entities["res-obyvatel"]: 90,
-        entities["res-zamestnanec"]: 110,
         entities["pro-bobule"]: 8,
         entities["pro-drevo"]: 8,
         entities["pro-kuze"]: 1,
     }
+    assert teamState.population == 100
+    assert teamState.employees == 10
 
     result = action.payResources({entities["mat-bobule"]: 2, entities["mat-drevo"]: 2, })
     assert result == {entities["mat-bobule"]: 2, entities["mat-drevo"]: 2}
     assert teamState.resources == {
         entities["res-prace"]: 90,
         entities["res-obyvatel"]: 90,
-        entities["res-zamestnanec"]: 110,
         entities["pro-bobule"]: 8,
         entities["pro-drevo"]: 8,
         entities["pro-kuze"]: 1,
     }
+    assert teamState.population == 100
 
     result = action.payResources({entities["mat-bobule"]: 2, entities["pro-drevo"]: 2,
                                      entities["res-obyvatel"]:5, entities["res-prace"]:20,})
@@ -73,11 +73,13 @@ def test_payResources():
     assert teamState.resources == {
         entities["res-prace"]: 70,
         entities["res-obyvatel"]: 85,
-        entities["res-zamestnanec"]: 115,
         entities["pro-bobule"]: 8,
         entities["pro-drevo"]: 6,
         entities["pro-kuze"]: 1,
     }
+    assert teamState.population == 100
+    assert teamState.employees == 15
+
 
     with pytest.raises(ActionFailed) as einfo:
         action.payResources({entities["pro-bobule"]: 10})
