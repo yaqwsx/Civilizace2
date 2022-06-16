@@ -37,7 +37,7 @@ class ActionPlagueFinish(ActionBase):
     def _commitImpl(self) -> None:
         tState = self.teamState
         toll = getDeathToll(tState.plague, tState.population)
-        currentPopulation = tState.resources[self.entities["res-obyvatel"]]
+        currentPopulation = tState.resources.get(self.entities["res-obyvatel"], 0)
         tState.resources[self.entities["res-obyvatel"]] = max(0, currentPopulation - toll)
 
 

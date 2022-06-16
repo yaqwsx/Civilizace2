@@ -150,7 +150,7 @@ class ActionBase(ActionInterface):
         workConsumed = throws * self.teamState.throwCost
         workAvailable = tState.work
 
-        tState.resources[self.entities.work] = max(0, tState.resources[self.entities.work] - workConsumed)
+        tState.resources[self.entities.work] = max(0, tState.resources.get(self.entities.work) - workConsumed)
         if workConsumed > workAvailable:
             self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " + \
                           "Akce nebude provedena.")

@@ -50,7 +50,7 @@ class ActionTrade(HealthyAction):
                     continue
 
                 them = self.state.teamStates[self.args.receiver]
-                team.resources[resource] -= amount
+                team.resources[resource] = available - amount
                 them.resources[resource] = them.resources.get(resource, 0) + amount
 
         self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}: {printResourceListForMarkdown(self.args.resources)}"

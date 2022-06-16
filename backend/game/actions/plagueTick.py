@@ -31,7 +31,7 @@ class ActionPlagueTick(ActionBase):
             if tState.plague is None:
                 continue
             newStats, dead = simulatePlague(tState.plague, tState.population)
-            currentPopulation = tState.resources[self.entities["res-obyvatel"]]
+            currentPopulation = tState.resources.get(self.entities["res-obyvatel"], 0)
             tState.resources[self.entities["res-obyvatel"]] = max(0, currentPopulation - dead)
             tState.plague = newStats
 

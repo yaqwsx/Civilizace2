@@ -53,7 +53,7 @@ class ActionFeed(ActionBase):
 
 
     def _addObyvatel(self, amount): # supports negative amounts
-        self.teamState.resources[self.entities["res-obyvatel"]] += amount
+        self.teamState.resources[self.entities["res-obyvatel"]] = self.teamState.resources.get(self.entities["res-obyvatel"], 0) + amount
         if self.teamState.resources[self.entities["res-obyvatel"]] < 0:
             self.teamState.resources[self.entities["res-obyvatel"]] = 0
 
@@ -105,7 +105,7 @@ class ActionFeed(ActionBase):
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
 
-        self.teamState.resources[self.entities.work] = floor(self.teamState.resources[self.entities.work] / 2)
+        self.teamState.resources[self.entities.work] = floor(self.teamState.resources.get(self.entities.work, 0) / 2)
 
         reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces != None}
         self.receiveResources(reward)
