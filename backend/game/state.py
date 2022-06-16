@@ -279,10 +279,10 @@ class TeamState(StateModel):
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
     granary: Dict[Resource, Decimal] = {}
-    storageCapacity = 10
+    storageCapacity: Decimal = 10
     plague: Optional[PlagueStats]
 
-    discoveredTiles: Set[MapTileEntity] = []
+    discoveredTiles: Set[MapTileEntity] = set()
 
     def _setParent(self, parent: Optional[BaseModel]=None):
         self._parent = parent
