@@ -191,7 +191,7 @@ class EntityParser():
 
 
     def parseLineBuilding(self, line):
-        build = Building(requiredFeatures=self.getFeaturesFromField(line[5], onlyNaturals=True), **self.kwargsEntityWithCost(line))
+        build = Building(requiredFeatures=self.getFeaturesFromField(line[5], onlyNaturals=True), **self.kwargsEntityWithCost(line), icon=line[6])
         self.entities[line[0]] = build
 
 

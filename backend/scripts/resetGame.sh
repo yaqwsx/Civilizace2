@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 rm -rf _stickers
 rm -rf _codes
 

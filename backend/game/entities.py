@@ -29,11 +29,20 @@ def dieName(id: DieId) -> str:
         "die-hory": "Horská kostka"
     }[id]
 
+def briefDieName(id: DieId) -> str:
+    # Why isn't this in entities?
+    return {
+        "die-lesy": "Lesní",
+        "die-plane": "Planinná",
+        "die-hory": "Horská"
+    }[id]
+
 # Type Aliases
 
 class EntityBase(BaseModel):
     id: EntityId
     name: str
+    icon: Optional[str]=None
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, EntityBase) and self.id == other.id
@@ -78,7 +87,6 @@ class Resource(EntityBase):
     #   TODO: Is there a simple way to disable __init__ for this base class? ###
     typ: Optional[Tuple[ResourceType, int]]=None
     produces: Optional[Resource]=None
-    icon: Optional[str]
 
     @property
     def isTracked(self) -> bool:
@@ -119,6 +127,10 @@ class EntityWithCost(EntityBase):
     #            self.points == other.points and \
     #            [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
 
+    @property
+    def unlockingDice(self) -> Set[dieId]:
+        return set(d for e, d in self.unlockedBy)
+
 
 class Tech(EntityWithCost):
     unlocks: List[Tuple[Entity, DieId]]=[]
@@ -140,6 +152,10 @@ class Tech(EntityWithCost):
     @property
     def hasStar(self) -> bool:
         return "star" in self.bonuses
+
+    def allowedDie(self, target: Entity) -> Set[DieId]:
+        return set(d for e, d in self.unlocks if e == target)
+
 
 
 class TileFeature(EntityBase):
