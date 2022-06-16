@@ -331,6 +331,12 @@ class DbDelayedEffect(models.Model):
     def description(self):
         return self.action.description
 
+    @property
+    def gameTime(self) -> Tuple[int, int, int]:
+        mins = int(self.target // 60)
+        secs = int(self.target % 60)
+        return self.round, mins, secs
+
 
 class StickerType(models.IntegerChoices):
     regular = 0

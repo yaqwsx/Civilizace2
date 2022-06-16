@@ -304,9 +304,8 @@ class ActionViewSet(viewsets.ViewSet):
                 for t, e in stickers:
                     addLine(f"samolepka {e.name} pro tým {t.name}")
         if delayedEffect is not None:
-            b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
-                    {round(delayedEffect.target / 60)} minut.
-                    Vyzvedává se kódem: {delayedEffect.slug}**""")
+            time = delayedEffect.gameTime
+            b.add(f"""**Akce má odložený efekt v {time[0]}–{time[1]:02}:{time[2]:02}. Vyzvedává se kódem: {delayedEffect.slug}**""")
         return b.message
 
     @staticmethod
@@ -318,9 +317,8 @@ class ActionViewSet(viewsets.ViewSet):
         b.add(commitResult.message)
 
         if delayedEffect is not None:
-            b.add(f"""**Akce má odložený efekt v kole {delayedEffect.round} a
-                    {round(delayedEffect.target / 60)} minut.
-                    Vyzvedává se kódem: {delayedEffect.slug}**""")
+            time = delayedEffect.gameTime
+            b.add(f"""**Akce má odložený efekt v {time[0]}–{time[1]:02}:{time[2]:02}. Vyzvedává se kódem: {delayedEffect.slug}**""")
         return b.message
 
     @staticmethod
