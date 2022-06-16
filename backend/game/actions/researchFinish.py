@@ -48,4 +48,8 @@ class ActionResearchFinish(ActionBase):
                     self.receiveResources({self.entities.obyvatel: count})
                     self.teamState.granary[self.entities.basicFoodProduction] = self.teamState.granary.get(self.entities.basicFoodProduction, 0) + foodCount
                     self.addNotification(self.args.team, f"Dostali jste {count} nových obyvatel. V zásobě vám také přibylo [[{self.entities.basicFoodProduction}|{foodCount}]], kterými se budou živit.")
+                if "kultura" in bonus:
+                    count = int(bonus[7:])
+                    self.receiveResources({self.entities["res-kultura"]: count})
+                    self.addNotification(self.args.team, f"Vaše kultura vzrostla o {count}. Těšte se na nové obyvatele!")
                 
