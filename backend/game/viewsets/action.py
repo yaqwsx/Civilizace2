@@ -276,7 +276,7 @@ class ActionViewSet(viewsets.ViewSet):
         if dice[1]:
             with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
                 for d in dice[0]:
-                    dieName(d)
+                    addDice(dieName(d))
         else:
             b.add("Akce nevyžaduje házení kostkou")
 
@@ -294,14 +294,8 @@ class ActionViewSet(viewsets.ViewSet):
             commitResult: Optional[ActionResult], stickers: Iterable[StickerId],
             delayedEffect: Optional[DbDelayedEffect]) -> str:
         b = MessageBuilder()
-        if (len(initiateResult.message) > 0 and dice[1]):
+        if (len(initiateResult.message) > 0):
             b.add(initiateResult.message)
-            if dice[1]:
-                with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
-                    for d in dice[0]:
-                        addDice(dieName(d))
-            else:
-                b.add("Akce nevyžaduje házení kostkou")
 
         if commitResult is not None:
             b.add("## Efekty")
