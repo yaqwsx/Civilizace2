@@ -147,7 +147,7 @@ class ActionViewSet(viewsets.ViewSet):
                     tile=new.tile.id if new.tile is not None else None,
                     newLevel=new.level,
                     armyName=new.name,
-                    team=new.team
+                    team=new.team.id
                 )
                 return
             if old.level != new.level:
@@ -155,13 +155,13 @@ class ActionViewSet(viewsets.ViewSet):
                     type=DiffType.armyLevel,
                     newLevel=new.level,
                     armyName=new.name,
-                    team=new.team
+                    team=new.team.id
                 )
             if old.currentTile != new.currentTile:
                 DbMapDiff.objects.create(
                     type=DiffType.armyMove,
                     armyName=new.name,
-                    team=new.team,
+                    team=new.team.id,
                     tile=new.tile.id if new.currentTile is not None else None,
                 )
 
