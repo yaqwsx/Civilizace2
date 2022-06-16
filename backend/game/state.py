@@ -205,7 +205,7 @@ class MapState(StateModel):
 
     def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:
         for army in self.armies:
-            if army.tile == tile:
+            if army.tile == tile and army.mode == ArmyMode.Occupying:
                 return army.team
 
         for team in self.parent.teamStates.keys():
