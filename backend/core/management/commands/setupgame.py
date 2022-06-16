@@ -12,6 +12,8 @@ from core.models import User, Team
 from game.state import GameState
 from django.db import transaction
 
+from game.viewsets.action import ActionViewSet
+
 from .pullentities import setFilename
 
 class Command(BaseCommand):
@@ -95,6 +97,13 @@ class Command(BaseCommand):
         else:
             irState = GameState.createInitial(entities)
         state = DbState.objects.createFromIr(irState)
+        stickers = {t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()}
+        res = set()
+        for t, sSet in stickers.items():
+            for e in sSet:
+                res.add((t, e))
+        ActionViewSet._awardStickers(res)
+
 
     def createRounds(self):
         for i in range(200):

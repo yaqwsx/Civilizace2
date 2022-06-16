@@ -93,7 +93,7 @@ export function PrintStickers(props: {
             props.stickers.map((sticker) => {
                 return axiosService
                     .post<any, any>(`/game/stickers/${sticker.id}/print/`, {
-                        printerId: sticker.entityId.startsWith("tec-")
+                        printerId: sticker.entityId.startsWith("tec-") || sticker.entityId.startsWith("bui-") || sticker.entityId.startsWith("vyr")
                             ? stickerPrinterObj?.id
                             : paperPrinterObj?.id,
                     })

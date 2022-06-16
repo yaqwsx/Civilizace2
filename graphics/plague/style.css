@@ -5,7 +5,8 @@ body {
     font-size: 12pt;
     background: rgb(255, 255, 255);
 
-    font-family: 'Roboto';
+    /* font-family: 'Roboto'; */
+    font-family: 'Pirata One', cursive;
 }
 * {
     box-sizing: border-box;

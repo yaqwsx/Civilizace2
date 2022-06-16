@@ -167,7 +167,7 @@ class ActionViewSet(viewsets.ViewSet):
 
 
     @staticmethod
-    def _awardStickers(stickerIds: Iterable[str]) -> List[DbSticker]:
+    def _awardStickers(stickerIds: Iterable[StickerId]) -> List[DbSticker]:
         if len(stickerIds) > 0:
             entRevision = DbEntities.objects.latest().id
 
