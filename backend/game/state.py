@@ -413,11 +413,10 @@ class GameState(StateModel):
         self._setParent()
 
     def normalize(self) -> None:
-        pass
-        # for team in self.teamStates.values():
-        #     team.resources = {r: a for r, a in team.resources.items() if a > 0}
-        #     team.granary = {r: a for r, a in team.granary.items() if a > 0}
-        #     team.storage = {r: a for r, a in team.storage.items() if a > 0}
+        for team in self.teamStates.values():
+            team.resources = {r: a for r, a in team.resources.items() if a > 0}
+            team.granary = {r: a for r, a in team.granary.items() if a > 0}
+            team.storage = {r: a for r, a in team.storage.items() if a > 0}
 
 
 def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction=lambda x: x) -> str:
