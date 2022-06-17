@@ -585,10 +585,6 @@ export function ArmyDescription(props: { army: any; orgView: boolean }) {
         // @ts-ignore
         attributes["Vybavení"] = props.army.equipment;
     }
-    if (props.orgView) {
-        // @ts-ignore
-        attributes["boost"] = props.army.boost;
-    }
 
     return (
         <table className="w-full table-fixed">
