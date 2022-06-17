@@ -258,14 +258,17 @@ function PerformVyroba(props: PerformVyrobaProps) {
         let homeTile = tiles.find((t) => t?.homeTeam === props.team.id)
         if (!homeTile)
             return
-        if (vyroba.allowedTiles.includes(homeTile.entity))
+        if (vyroba.allowedTiles.includes(homeTile.entity)) {
             setTile(homeTile.entity);
-        else {
-            for (let t of tiles) {
-                if (vyroba.allowedTiles.includes(t.entity))
-                    setTile(t.entity)
+            return
+        }
+        for (let t of tiles) {
+            if (vyroba.allowedTiles.includes(t.entity)) {
+                setTile(t.entity);
+                return;
             }
         }
+        setTile(homeTile.entity);
     }, [tiles, props.team]);
 
     if (!entities || !tiles) {
