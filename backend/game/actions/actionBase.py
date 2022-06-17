@@ -9,13 +9,16 @@ from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import DieId, Entities, Resource, Team
 from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
+
 class ActionArgs(BaseModel):
     pass
 
+
 class ActionResult(BaseModel):
-    expected: bool # Was the result expected or unexpected
+    expected: bool  # Was the result expected or unexpected
     message: str
-    notifications: Dict[Team, List[str]]={}
+    notifications: Dict[Team, List[str]] = {}
+
 
 class ActionInterface(BaseModel):
     _state: GameState = PrivateAttr()        # We don't store state
@@ -38,7 +41,6 @@ class ActionInterface(BaseModel):
             return self._generalArgs.team
         return None
 
-
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         """
         Řekne, kolik teček je třeba hodit na jedné z kostek. Pokud vrátí prázdný
@@ -58,7 +60,6 @@ class ActionInterface(BaseModel):
         aby byl tým schopen házet kostkou a mohlo se přejít na commit.
         """
         raise NotImplementedError("You have to implement this")
-
 
     def applyCommit(self, throws: int, dots: int) -> ActionResult:
         """
@@ -93,12 +94,14 @@ class ActionInterface(BaseModel):
         """
         raise NotImplementedError("You have to implement this")
 
+
 def makeAction(cls, state, entities, args):
-     action = cls()
-     action._state = state
-     action._entities = entities
-     action._generalArgs = args
-     return action
+    action = cls()
+    action._state = state
+    action._entities = entities
+    action._generalArgs = args
+    return action
+
 
 class ActionBase(ActionInterface):
     # Anything that is specified as PrivateAttr is not persistent. I know that
@@ -150,14 +153,15 @@ class ActionBase(ActionInterface):
         workConsumed = throws * self.teamState.throwCost
         workAvailable = tState.work
 
-        tState.resources[self.entities.work] = max(0, tState.resources.get(self.entities.work, 0) - workConsumed)
+        tState.resources[self.entities.work] = max(
+            0, tState.resources.get(self.entities.work, 0) - workConsumed)
         if workConsumed > workAvailable:
-            self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " + \
-                          "Akce nebude provedena.")
+            self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " +
+                               "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
         if dotsRequired > dots:
-            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots})" + \
-                            "Akce nebude provedena.")
+            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots})" +
+                               "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
         return True
 
@@ -185,13 +189,12 @@ class ActionBase(ActionInterface):
 
     @contextlib.contextmanager
     def _startBothLists(self, header: str) -> Generator[Callable[[str], None], None, None]:
-        with    self._info.startList(header) as addILine, \
+        with self._info.startList(header) as addILine, \
                 self.error.startList(header) as addELine:
             def addLine(*args, **kwargs):
                 addILine(*args, **kwargs)
                 addELine(*args, **kwargs)
             yield addLine
-
 
     def payResources(self, resources: Dict[Resource, Decimal]) -> Dict[Resource, Decimal]:
         team = self.teamState
@@ -199,7 +202,8 @@ class ActionBase(ActionInterface):
         missing = {}
         for resource, amount in resources.items():
             if resource.isTracked:
-                team.resources[resource] = team.resources.get(resource, 0) - amount
+                team.resources[resource] = team.resources.get(
+                    resource, 0) - amount
                 if resource.id == "res-obyvatel":
                     team.addEmployees(amount)
                 if team.resources[resource] < 0:
@@ -209,10 +213,10 @@ class ActionBase(ActionInterface):
                     tokens[resource] = amount
 
         if missing != {}:
-            raise ActionFailed(f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
+            raise ActionFailed(
+                f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
 
         return tokens
-
 
     def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
         team = self.teamState
@@ -223,7 +227,8 @@ class ActionBase(ActionInterface):
             if excludeWork and resource.id == "res-obyvatel":
                 team.addEmployees(-amount)
             if resource.isTracked:
-                team.resources[resource] = team.resources.get(resource, 0) + amount
+                team.resources[resource] = team.resources.get(
+                    resource, 0) + amount
             else:
                 storage[resource] = amount
         if instantWithdraw:
@@ -240,13 +245,11 @@ class ActionBase(ActionInterface):
         notifications.append(message)
         self._notifications[team] = notifications
 
-
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         return (set(), 0)
 
     def throwCost(self) -> int:
         return self.teamState.throwCost
-
 
     def requiresDelayedEffect(self) -> int:
         return 0
@@ -255,9 +258,9 @@ class ActionBase(ActionInterface):
         cost = self.cost()
         if hasattr(self._generalArgs, "genericsMapping"):
             mapping = self._generalArgs.genericsMapping
-            cost = {(mapping[generic] if generic in mapping else generic): amount for generic, amount in cost.items()}
+            cost = {(mapping[generic] if generic in mapping else generic)
+                     : amount for generic, amount in cost.items()}
         return cost
-
 
     def applyInitiate(self) -> ActionResult:
         cost = self.costSubstituted()
@@ -273,7 +276,6 @@ class ActionBase(ActionInterface):
             expected=True,
             message=message)
 
-
     def revertInitiate(self) -> ActionResult:
         cost = self.cost()
         reward = self.receiveResources(cost, instantWithdraw=True)
@@ -283,11 +285,10 @@ class ActionBase(ActionInterface):
             expected=True,
             message=message)
 
-
     def cancelAction(self):
         cost = self.costSubstituted()
-        reward = self.receiveResources(cost, instantWithdraw=True, excludeWork=True)
-
+        reward = self.receiveResources(
+            cost, instantWithdraw=True, excludeWork=True)
 
     def generateActionResult(self):
         if not self._errors.empty:
@@ -302,8 +303,7 @@ class ActionBase(ActionInterface):
             message=self._info.message,
             notifications=self._notifications)
 
-
-    def applyCommit(self, throws: int=0, dots: int=0) -> ActionResult:
+    def applyCommit(self, throws: int = 0, dots: int = 0) -> ActionResult:
         self._setupPrivateAttrs()
         throwingSucc = self._performThrow(throws, dots)
         if not throwingSucc:
@@ -318,7 +318,6 @@ class ActionBase(ActionInterface):
 
         return self.generateActionResult()
 
-
     def applyDelayedEffect(self) -> ActionResult:
         self._setupPrivateAttrs()
         self._applyDelayedEffect()
@@ -326,18 +325,17 @@ class ActionBase(ActionInterface):
         self.delayedInfoMessage = self._info.message
         return self.generateActionResult()
 
-
     def applyDelayedReward(self) -> ActionResult:
         self._setupPrivateAttrs()
-        if self.delayedWarnMessage != None: self._warnings += self.delayedWarnMessage
-        if self.delayedInfoMessage != None: self._info += self.delayedInfoMessage
+        if self.delayedWarnMessage != None:
+            self._warnings += self.delayedWarnMessage
+        if self.delayedInfoMessage != None:
+            self._info += self.delayedInfoMessage
         self._applyDelayedReward()
         return self.generateActionResult()
 
-
     def _applyDelayedEffect(self) -> None:
         pass
-
 
     def _applyDelayedReward(self) -> None:
         pass
@@ -346,5 +344,6 @@ class ActionBase(ActionInterface):
 class HealthyAction(ActionBase):
     def applyInitiate(self) -> ActionResult:
         if self.teamState.plague is not None:
-            raise ActionFailed("Tým je právě nakažen morem. Nemůže zadávat akce. Držte se od něj dále!")
+            raise ActionFailed(
+                "Tým je právě nakažen morem. Nemůže zadávat akce. Držte se od něj dále!")
         return super().applyInitiate()
