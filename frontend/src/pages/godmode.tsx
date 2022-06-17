@@ -114,6 +114,8 @@ export function GodMode() {
                         onFinish={() => {
                             setIsSubmitting(false);
                             mutate();
+                            // Meh, nasty hack
+                            window.location.reload();
                         }}
                         onBack={() => {
                             setIsSubmitting(false);
