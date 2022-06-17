@@ -58,7 +58,7 @@ export function useUnfinishedActions(refreshInterval?: number) {
 }
 
 export function UnfinishedActionBar() {
-    const { actions } = useUnfinishedActions(1000);
+    const { actions } = useUnfinishedActions(10000);
 
     if (!actions || actions.length == 0) return null;
     return (
@@ -424,7 +424,7 @@ export function ActionDicePhase(props: {
     return (
         <>
             {header}
-            <NeutralMessage>
+            <NeutralMessage className="my-0">
                 <CiviMarkdown>{props.message}</CiviMarkdown>
                 Je třeba naházet {action.requiredDots}. Cena hodu je{" "}
                 {action.throwCost} práce. Je možné házet pomocí:{" "}
@@ -472,9 +472,6 @@ function DiceThrowForm(props: {
     const [otherInput, setOtherInput] = useState<number | string>("");
     const [otherInputRef, setOtherInputFocus] = useFocus();
     const { teamWork } = useTeamWork(props.teamId);
-    useEffect(() => {
-        setOtherInputFocus();
-    }, []);
 
     const handleThrow = (amount: number) => {
         props.update(props.dots + amount, props.throws + 1);
@@ -501,7 +498,7 @@ function DiceThrowForm(props: {
 
     return (
         <div className="w-full">
-            <div className="container mt-4 w-full">
+            <div className="container mt-0 md:mt-4 w-full">
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
                     <div className="my-1 inline-block w-full px-3 text-left align-middle md:w-1/4 md:text-right">
                         Teček:
@@ -532,19 +529,19 @@ function DiceThrowForm(props: {
                         />
                     </div>
                 </div>
-                <div className="mx-0 my-1 w-full px-3 py-2 text-center font-bold md:inline-block md:w-1/5">
+                <div className="mx-0 my-0 w-full px-3 py-1 text-center font-bold md:inline-block md:w-1/5">
                     Zbývá {throwsLeft} hodů (pouze odhad)
                 </div>
             </div>
 
-            <div className="my-5 flex w-full flex-wrap">
+            <div className="my-1 flex w-full flex-wrap">
                 <Button
                     label="0"
                     className="mx-1 my-3 w-full  bg-red-500 hover:bg-red-600 md:mx-4"
                     onClick={() => handleThrow(0)}
                     disabled={!props.enabled}
                 />
-                <div className="mx-0 grid w-full grid-cols-5 gap-4 px-0 md:mx-3">
+                <div className="mx-0 grid w-full grid-cols-5 gap-2 px-0 md:mx-3">
                     {Array.from(Array(20).keys()).map((i) => {
                         return (
                             <Button
@@ -558,7 +555,7 @@ function DiceThrowForm(props: {
                     })}
                 </div>
             </div>
-            <div className="field my-5 flex w-full flex-wrap">
+            <div className="field my-1 flex w-full flex-wrap">
                 <input
                     type="number"
                     ref={otherInputRef}
