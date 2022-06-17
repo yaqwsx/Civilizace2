@@ -370,8 +370,6 @@ function SelectTaskForTechForm(props: {
         props.onChange(tasks[event.target.value]);
     };
 
-    console.log("X", props.selectedTask);
-
     return (
         <>
             <FormRow label="Doporučené úkoly">

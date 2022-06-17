@@ -115,9 +115,8 @@ export function GodMode() {
     const [error, setError] = useState<any>(undefined);
 
     let fetchNew = () => {
-        console.log("Fetching new")
-        setError(null);
         setError(undefined);
+        setState(null);
         fetcher("/game/state/latest").then((data) => {
             setState(data);
         }).catch((error) => {
