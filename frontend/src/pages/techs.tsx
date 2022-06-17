@@ -370,6 +370,8 @@ function SelectTaskForTechForm(props: {
         props.onChange(tasks[event.target.value]);
     };
 
+    console.log("X", props.selectedTask);
+
     return (
         <>
             <FormRow label="Doporučené úkoly">
@@ -395,6 +397,20 @@ function SelectTaskForTechForm(props: {
                         <TaskSelectRow key={t.id} team={props.team} task={t} />
                     ))}
                 </select>
+            </FormRow>
+            <FormRow label="Popis pro orga">
+                {props.selectedTask && (
+                    <CiviMarkdown>
+                        {props.selectedTask.orgDescription}
+                    </CiviMarkdown>
+                )}
+            </FormRow>
+            <FormRow label="Popis pro účastníky">
+                {props.selectedTask && (
+                    <CiviMarkdown>
+                        {props.selectedTask.teamDescription}
+                    </CiviMarkdown>
+                )}
             </FormRow>
         </>
     );
