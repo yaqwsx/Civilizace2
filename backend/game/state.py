@@ -13,7 +13,7 @@ from game.entities import *
 
 
 class StateModel(BaseModel):
-    _parent: Optional[StateModel]=PrivateAttr()
+    _parent: Optional[StateModel] = PrivateAttr()
 
     def __eq__(self, other: Any) -> bool:
         if self.__class__ != other.__class__:
@@ -28,16 +28,18 @@ class StateModel(BaseModel):
     @classmethod
     def validate(cls: types['pydantic.Model'], value: Any) -> 'pydantic.Model':
         if isinstance(value, cls):
-            return value # This is the changed behavior
+            return value  # This is the changed behavior
         return super().validate(cls, value)
 
-    def _setParent(self, parent: Optional[BaseModel]=None):
+    def _setParent(self, parent: Optional[BaseModel] = None):
         self._parent = parent
+
 
 class ArmyMode(enum.Enum):
     Idle = 0
     Marching = 1
     Occupying = 2
+
 
 class ArmyGoal(enum.Enum):
     Occupy = 0
@@ -45,16 +47,17 @@ class ArmyGoal(enum.Enum):
     Supply = 2
     Replace = 3
 
+
 class Army(StateModel):
-    team: Team # duplicates: items in Team.armies
+    team: Team  # duplicates: items in Team.armies
     index: int
     name: str
     level: int
-    equipment: int=0 # number of weapons the army currently carries
-    boost: int=-1 # boost added by die throw
-    tile: Optional[MapTileEntity]=None
-    mode: ArmyMode=ArmyMode.Idle
-    goal: Optional[ArmyGoal]=None
+    equipment: int = 0  # number of weapons the army currently carries
+    boost: int = -1  # boost added by die throw
+    tile: Optional[MapTileEntity] = None
+    mode: ArmyMode = ArmyMode.Idle
+    goal: Optional[ArmyGoal] = None
 
     @property
     def parent(self) -> MapState:
@@ -89,11 +92,10 @@ class Army(StateModel):
         return self.tile
 
 
-
-class MapTile(StateModel): # Game state element
+class MapTile(StateModel):  # Game state element
     entity: MapTileEntity
-    unfinished: Dict[Team, Set[Building]]={}
-    buildings: Set[Building]=set()
+    unfinished: Dict[Team, Set[Building]] = {}
+    buildings: Set[Building] = set()
     richnessTokens: int
 
     @property
@@ -139,11 +141,11 @@ class MapTile(StateModel): # Game state element
 
 
 class MapState(StateModel):
-    size: int=MAP_SIZE
+    size: int = MAP_SIZE
     tiles: Dict[int, MapTile]
     armies: List[Army]
 
-    def _setParent(self, parent: Optional[BaseModel]=None):
+    def _setParent(self, parent: Optional[BaseModel] = None):
         self._parent = parent
         for t in self.tiles.values():
             t._setParent(self)
@@ -171,16 +173,19 @@ class MapState(StateModel):
 
     def getRawDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
-        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
+        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(
+            tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
     def getActualDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
-        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(tile, team.id)
-        distance = TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
+        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(
+            tile, team.id)
+        distance = TILE_DISTANCES_RELATIVE[relativeIndex] * \
+            TIME_PER_TILE_DISTANCE
         home = self.getHomeOfTeam(team)
         if relativeIndex != tile.index - home.index:
-            distance *= Decimal(0.8) # Tiles are around the map
+            distance *= Decimal(0.8)  # Tiles are around the map
         multiplier = 1
         teamState = self.parent.teamStates[team]
         if tile in teamState.roadsTo:
@@ -237,18 +242,21 @@ class MapState(StateModel):
         army.tile = tile.entity
         army.goal = None
 
-
     @classmethod
     def createInitial(cls, entities: Entities) -> MapState:
         armies = []
         teams = entities.teams.values()
-        armies.extend([Army(team=team, index=i, name="I.", level=3) for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+8, name="II.", level=2) for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+16, name="III.", level=1) for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i, name="A", level=3)
+                      for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i+8, name="B", level=2)
+                      for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i+16, name="C", level=1)
+                      for i, team in enumerate(teams)])
 
         return MapState(
-            tiles = {tile.index: MapTile(entity=tile, richnessTokens=tile.richness) for tile in entities.tiles.values()},
-            armies = armies
+            tiles={tile.index: MapTile(
+                entity=tile, richnessTokens=tile.richness) for tile in entities.tiles.values()},
+            armies=armies
         )
 
 
@@ -284,7 +292,7 @@ class TeamState(StateModel):
 
     discoveredTiles: Set[MapTileEntity] = set()
 
-    def _setParent(self, parent: Optional[BaseModel]=None):
+    def _setParent(self, parent: Optional[BaseModel] = None):
         self._parent = parent
 
     @property
@@ -295,7 +303,6 @@ class TeamState(StateModel):
     @property
     def homeTile(self) -> MapTile:
         return self.parent.map.getTileById(self.team.homeTileId)
-
 
     def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
         dice = set()
@@ -310,10 +317,8 @@ class TeamState(StateModel):
         stickers.update(self.vyrobas)
         return stickers
 
-
     def addEmployees(self, amount: int) -> None:
         self.employees += amount
-
 
     @property
     def vyrobas(self) -> set[Vyroba]:
@@ -356,14 +361,15 @@ class TeamState(StateModel):
             }
         )
 
+
 class WorldState(StateModel):
-    turn: int=0
-    casteCount: int=3
+    turn: int = 0
+    casteCount: int = 3
     buildDemolitionCost: Dict[Resource, int]
     combatRandomness: float = 0.5
-    roadCost: Dict[Resource, int]={}
-    roadPoints: int=10
-    armyUpgradeCosts: Dict[int, Dict[Resource, int]]={}
+    roadCost: Dict[Resource, int] = {}
+    roadPoints: int = 10
+    armyUpgradeCosts: Dict[int, Dict[Resource, int]] = {}
 
 
 class GameState(StateModel):
@@ -387,24 +393,23 @@ class GameState(StateModel):
 
         return GameState(
             turn=0,
-            teamStates={team: TeamState.createInitial(team, entities) for team in entities.teams.values()},
+            teamStates={team: TeamState.createInitial(
+                team, entities) for team in entities.teams.values()},
             map=MapState.createInitial(entities),
             world=WorldState(
-                    buildDemolitionCost={entities["mge-obchod-3"]:10},
-                    roadCost={entities["mge-stavivo-2"]:10,
-                              entities["mge-nastroj-2"]:10,
-                              entities.work:50},
-                    armyUpgradeCosts={
-                              2: {entities["mat-kladivo"]:2},
-                              3: {entities["mat-kladivo"]:5, entities["mat-textil"]:3}}
+                buildDemolitionCost={entities["mge-obchod-3"]: 10},
+                roadCost={entities["mge-stavivo-2"]: 10,
+                          entities["mge-nastroj-2"]: 10,
+                          entities.work: 50},
+                armyUpgradeCosts={
+                    2: {entities["mat-kladivo"]: 2},
+                    3: {entities["mat-kladivo"]: 5, entities["mat-textil"]: 3}}
             )
         )
-
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._setParent()
-
 
     def normalize(self) -> None:
         pass
@@ -414,7 +419,7 @@ class GameState(StateModel):
         #     team.storage = {r: a for r, a in team.storage.items() if a > 0}
 
 
-def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction = lambda x: x) -> str:
+def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction=lambda x: x) -> str:
     message = MessageBuilder()
     with message.startList("") as addLine:
         for resource, amount in resources.items():
