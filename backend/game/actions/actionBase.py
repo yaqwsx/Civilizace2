@@ -220,6 +220,8 @@ class ActionBase(ActionInterface):
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
                 continue
+            if excludeWork and resource.id == "res-obyvatel":
+                team.addEmployees(-amount)
             if resource.isTracked:
                 team.resources[resource] = team.resources.get(resource, 0) + amount
             else:
