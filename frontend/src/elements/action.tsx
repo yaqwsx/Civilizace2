@@ -32,6 +32,13 @@ import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers, PrintVoucher } from "./printing";
 import { Link, Navigate } from "react-router-dom";
 import { useDebounceDeep } from "../utils/react";
+import { atomWithHash } from "jotai/utils";
+import { useAtom } from "jotai";
+
+export const activeActionIdAtom = atomWithHash<number | null>(
+    "activeAction",
+    null
+);
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
@@ -41,21 +48,28 @@ export function useUnfinishedActions(refreshInterval?: number) {
             refreshInterval: refreshInterval,
         }
     );
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
     return {
-        actions,
+        actions: actions
+            ? actions.filter((a: UnfinishedAction) => a.id != activeAction)
+            : undefined,
         ...other,
     };
 }
 
 export function UnfinishedActionBar() {
-    const { actions } = useUnfinishedActions(15000);
+    const { actions } = useUnfinishedActions(1000);
 
     if (!actions || actions.length == 0) return null;
     return (
         <div className="red-500 mb-4 w-full border-t-4 border-red-500 bg-red-200 p-3 shadow-md">
             {actions.map((a) => {
                 return (
-                    <Link key={a.id} to={`/actions/${a.id}`} className="block w-full">
+                    <Link
+                        key={a.id}
+                        to={`/actions/${a.id}`}
+                        className="block w-full"
+                    >
                         Máte nedokončenou akci {a.id}: {a.description}.
                         Dokončete ji prosím kliknutím.
                     </Link>
@@ -65,7 +79,11 @@ export function UnfinishedActionBar() {
     );
 }
 
-export function useActionPreview(actionId: string, actionArgs: any, argsValid: (args: any) => boolean) {
+export function useActionPreview(
+    actionId: string,
+    actionArgs: any,
+    argsValid: (args: any) => boolean
+) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
@@ -75,8 +93,7 @@ export function useActionPreview(actionId: string, actionArgs: any, argsValid: (
         setError(null);
         setPreview(null);
 
-        if (!actionArgs || !debouncedArgs || !argsValid(debouncedArgs))
-            return;
+        if (!actionArgs || !debouncedArgs || !argsValid(debouncedArgs)) return;
 
         axiosService
             .post<any, any>("/game/actions/dry/", {
@@ -98,7 +115,7 @@ export function useActionPreview(actionId: string, actionArgs: any, argsValid: (
     return {
         preview: preview,
         error: error,
-        debouncedArgs: debouncedArgs
+        debouncedArgs: debouncedArgs,
     };
 }
 
@@ -122,8 +139,14 @@ export function PerformAction(props: {
         phase: ActionPhase.initiatePhase,
         data: null,
     });
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
 
-    let argsValid = props.argsValid === undefined ? () => true : props.argsValid;
+    useEffect(() => {
+        return () => {setActiveAction(null)};
+    }, []);
+
+    let argsValid =
+        props.argsValid === undefined ? () => true : props.argsValid;
 
     let changePhase = (phase: ActionPhase, data: any) => {
         setPhase({
@@ -144,20 +167,20 @@ export function PerformAction(props: {
                     changePhase={changePhase}
                     argsValid={argsValid}
                 />
-                <div className="w-full my-8 h-1"/>
+                <div className="my-8 h-1 w-full" />
             </>
         );
     }
     if (phase.phase == ActionPhase.diceThrowPhase) {
         return (
             <>
-            <ActionDicePhase
-                actionId={phase.data.action}
-                message={phase.data.message}
-                actionName={props.actionName}
-                changePhase={changePhase}
-            />
-            <div className="w-full my-8 h-1"/>
+                <ActionDicePhase
+                    actionId={phase.data.action}
+                    message={phase.data.message}
+                    actionName={props.actionName}
+                    changePhase={changePhase}
+                />
+                <div className="my-8 h-1 w-full" />
             </>
         );
     }
@@ -165,12 +188,12 @@ export function PerformAction(props: {
     if (phase.phase == ActionPhase.finish) {
         return (
             <>
-            <ActionFinishPhase
-                response={phase.data}
-                actionName={props.actionName}
-                onFinish={props.onFinish}
-            />
-            <div className="w-full my-8 h-1"/>
+                <ActionFinishPhase
+                    response={phase.data}
+                    actionName={props.actionName}
+                    onFinish={props.onFinish}
+                />
+                <div className="my-8 h-1 w-full" />
             </>
         );
     }
@@ -216,11 +239,12 @@ function ActionPreviewPhase(props: {
     );
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
 
-    const {actions} = useUnfinishedActions();
+    const { actions } = useUnfinishedActions();
 
-    if (actions && actions.length !=0 ) {
-        return <Navigate to={`/actions/${actions[0].id}`}/>
+    if (actions && actions.length != 0) {
+        return <Navigate to={`/actions/${actions[0].id}`} />;
     }
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
@@ -240,6 +264,7 @@ function ActionPreviewPhase(props: {
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
+                setActiveAction(result?.action);
                 if (result.success) {
                     if (result.committed) {
                         props.changePhase(ActionPhase.finish, result);
@@ -296,7 +321,9 @@ function ActionPreviewPhase(props: {
                 <Button
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
                     disabled={
-                        submitting || !preview?.success || !props.argsValid(debouncedArgs)
+                        submitting ||
+                        !preview?.success ||
+                        !props.argsValid(debouncedArgs)
                     }
                     onClick={handleSubmit}
                     className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"
@@ -318,7 +345,12 @@ export function ActionDicePhase(props: {
     );
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
-    const { mutate } = useSWRConfig()
+    const { mutate } = useSWRConfig();
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+
+    useEffect(() => {
+        return () => {setActiveAction(null)};
+    }, [props.actionId]);
 
     let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
 
@@ -394,7 +426,8 @@ export function ActionDicePhase(props: {
             {header}
             <NeutralMessage>
                 <CiviMarkdown>{props.message}</CiviMarkdown>
-                Je třeba naházet {action.requiredDots}. Cena hodu je {action.throwCost} práce. Je možné házet pomocí:{" "}
+                Je třeba naházet {action.requiredDots}. Cena hodu je{" "}
+                {action.throwCost} práce. Je možné házet pomocí:{" "}
                 <ul>
                     {action.allowedDice.map((x) => (
                         <li key={x}>{dieName(x)}</li>
