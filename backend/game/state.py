@@ -242,9 +242,9 @@ class MapState(StateModel):
     def createInitial(cls, entities: Entities) -> MapState:
         armies = []
         teams = entities.teams.values()
-        armies.extend([Army(team=team, index=i, name="A", level=3) for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+8, name="B", level=2) for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+16, name="C", level=1) for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i, name="I.", level=3) for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i+8, name="II.", level=2) for i, team in enumerate(teams)])
+        armies.extend([Army(team=team, index=i+16, name="III.", level=1) for i, team in enumerate(teams)])
 
         return MapState(
             tiles = {tile.index: MapTile(entity=tile, richnessTokens=tile.richness) for tile in entities.tiles.values()},
