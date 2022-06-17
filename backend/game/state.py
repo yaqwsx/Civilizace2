@@ -315,6 +315,7 @@ class TeamState(StateModel):
         stickers = set()
         stickers.update(self.techs)
         stickers.update(self.vyrobas)
+        stickers.update(self.buildings)
         return stickers
 
     def addEmployees(self, amount: int) -> None:
