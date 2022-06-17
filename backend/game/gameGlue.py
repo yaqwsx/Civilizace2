@@ -39,9 +39,9 @@ def stateSerialize(object: BaseModel) -> Dict[Any, Any]:
     value = {}
     for field in object.__fields__.values():
         value[field.name] = _stateSerialize(getattr(object, field.name))
-    # There is polymorphism on MapTile, reflect it: //Not anymore, can be refactored out
-    if isinstance(object, MapTile):
-        value["tt"] = "M"
+    # # There is polymorphism on MapTile, reflect it: //Not anymore, can be refactored out
+    # if isinstance(object, MapTile):
+    #     value["tt"] = "M"
     return value
 
 def stateDeserialize(cls, data, entities):
@@ -49,17 +49,20 @@ def stateDeserialize(cls, data, entities):
     Turn dictionary representation into a model
     """
     source = {}
-    if issubclass(cls, MapTile):
-        cls = {
-            "M": MapTile
-        }[data["tt"]]
+    # if issubclass(cls, MapTile):
+    #     cls = {
+    #         "M": MapTile
+    #     }[data["tt"]]
     for field in cls.__fields__.values():
         if not field.required:
             d = data.get(field.name, None)
         else:
             d = data[field.name]
         source[field.name] = _stateDeserialize(d, field, entities)
-    return cls.parse_obj(source)
+    # Parse OBJ is exceptionally slow. This construct object instead
+    # x = cls.parse_obj(source)
+    x = cls.construct(**source)
+    return x
 
 def _stateDeserialize(data, field, entities):
     if field.shape == SHAPE_SINGLETON:
@@ -102,7 +105,7 @@ def _stateDeserializeSingleton(data, expectedType, required, entities):
         return Decimal(data)
     if issubclass(expectedType, enum.Enum):
         return expectedType(data)
-    return data
+    return expectedType(data)
 
 def _serializeEntity(r: Entity,
               serializeField: Callable[[Entity, str, Any], Any],

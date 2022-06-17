@@ -21,6 +21,7 @@ def test_serialize():
     x = createTestInitState()
     s = stateSerialize(x)
     y = stateDeserialize(GameState, s, TEST_ENTITIES)
+    y._setParent()
     assert x == y
     assert x.map._parent == x.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
     assert y.map._parent == y.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
@@ -28,6 +29,7 @@ def test_serialize():
     sRepr = json.dumps(s)
     jRepr = json.loads(sRepr)
     z = stateDeserialize(GameState, jRepr, TEST_ENTITIES)
+    z._setParent()
     assert x == z
     assert z.map._parent == z.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
 
