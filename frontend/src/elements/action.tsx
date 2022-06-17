@@ -144,27 +144,34 @@ export function PerformAction(props: {
                     changePhase={changePhase}
                     argsValid={argsValid}
                 />
+                <div className="w-full my-8 h-1"/>
             </>
         );
     }
     if (phase.phase == ActionPhase.diceThrowPhase) {
         return (
+            <>
             <ActionDicePhase
                 actionId={phase.data.action}
                 message={phase.data.message}
                 actionName={props.actionName}
                 changePhase={changePhase}
             />
+            <div className="w-full my-8 h-1"/>
+            </>
         );
     }
 
     if (phase.phase == ActionPhase.finish) {
         return (
+            <>
             <ActionFinishPhase
                 response={phase.data}
                 actionName={props.actionName}
                 onFinish={props.onFinish}
             />
+            <div className="w-full my-8 h-1"/>
+            </>
         );
     }
 
