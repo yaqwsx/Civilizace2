@@ -20,50 +20,33 @@ export function GodModeMenu() {
     return null;
 }
 
-export function GodMode() {
-    useHideMenu();
-
-    const {
-        data: state,
-        error,
-        mutate,
-    } = useSWR<any>("/game/state/latest", fetcher);
+export function GodModeImpl(props: {state: any; onFinish: () => void}) {
     const [newStateStr, setNewStateStr] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editor, setEditor] = useState<any>(undefined);
 
     useEffect(() => {
-        if ((!newStateStr || newStateStr.length == 0) && state)
-            setNewStateStr(JSON.stringify(state, undefined, 4));
-        if (editor) editor.execCommand("foldall");
-    }, [state, editor]);
+        setNewStateStr(JSON.stringify(props.state, undefined, 2));
+    }, []);
 
-    if (!state) {
-        return (
-            <LoadingOrError
-                loading={!state && !error}
-                error={error}
-                message={"Něco se pokazilo"}
-            />
-        );
-    }
+    useEffect(() => {
+        if (editor) editor.execCommand("foldall");
+    }, [editor]);
 
     let diff = {
         add: {},
         change: {},
         remove: {},
     };
-    if (newStateStr && state) {
+    if (newStateStr && props.state) {
         try {
-            diff = jsonDiff(JSON.parse(newStateStr), state);
+            diff = jsonDiff(JSON.parse(newStateStr), props.state);
         } catch (e) {}
     }
 
     return (
         <>
             <h1>God mode</h1>
-            {/* <Editor value={state} onChange={setNewState} /> */}
-
             <AceEditor
                 mode="javascript"
                 theme="github"
@@ -99,7 +82,7 @@ export function GodMode() {
                         actionName="GodMode"
                         actionId="GodModeAction"
                         actionArgs={{
-                            original: state,
+                            original: props.state,
                             new: JSON.parse(newStateStr),
                             change: objectMap(diff.change, (v: any) =>
                                 JSON.stringify(v)
@@ -113,9 +96,7 @@ export function GodMode() {
                         }}
                         onFinish={() => {
                             setIsSubmitting(false);
-                            mutate();
-                            // Meh, nasty hack
-                            window.location.reload();
+                            props.onFinish();
                         }}
                         onBack={() => {
                             setIsSubmitting(false);
@@ -125,6 +106,40 @@ export function GodMode() {
             )}
         </>
     );
+
+}
+
+export function GodMode() {
+    useHideMenu();
+    const [state, setState] = useState<any>(undefined);
+    const [error, setError] = useState<any>(undefined);
+
+    let fetchNew = () => {
+        console.log("Fetching new")
+        setError(null);
+        setError(undefined);
+        fetcher("/game/state/latest").then((data) => {
+            setState(data);
+        }).catch((error) => {
+            setError(error);
+        })
+    }
+
+    useEffect(() => {
+        fetchNew();
+    }, [])
+
+    if (!state) {
+        return (
+            <LoadingOrError
+                loading={!state && !error}
+                error={error}
+                message={"Něco se pokazilo"}
+            />
+        );
+    }
+
+    return <GodModeImpl state={state} onFinish={fetchNew}/>
 }
 
 function Changelog(props: {
@@ -231,7 +246,6 @@ function mergeArrays(...arrays) {
 function jsonDiff(newJson: any, originalJson: any) {
     var newJ = flatten(newJson);
     var origJ = flatten(originalJson);
-    console.log("X", origJ);
     var add: Record<string, any> = {};
     var remove: Record<string, any> = {};
     var change: Record<string, any> = {};

@@ -7,12 +7,7 @@ import { Button, Dialog, FormRow, LoadingOrError } from "../elements";
 import { PerformAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import { objectMap } from "../utils/functional";
-import AceEditor from "react-ace";
 
-import "ace-builds/webpack-resolver";
-import "ace-builds/src-noconflict/theme-github";
-import "ace-builds/src-noconflict/ext-language_tools";
-import "ace-builds/src-noconflict/mode-javascript";
 import { useHideMenu } from "./atoms";
 import _ from "lodash";
 import { Team } from "../types";
