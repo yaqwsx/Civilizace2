@@ -272,7 +272,12 @@ function TechItem(props: {
                 </Dialog>
             ) : null}
             {finishTaskShown ? (
-                <Dialog onClose={toggleFinishTask}>
+                <Dialog
+                    onClose={() => {
+                        toggleFinishTask();
+                        props.onTaskMutation();
+                    }}
+                >
                     <PerformAction
                         actionName={`Dokončit zkoumání ${tech.name} pro ${props.team.name}`}
                         actionId="ActionResearchFinish"
@@ -284,7 +289,10 @@ function TechItem(props: {
                             toggleFinishTask();
                             props.onTaskMutation();
                         }}
-                        onBack={toggleFinishTask}
+                        onBack={() => {
+                            toggleFinishTask();
+                            props.onTaskMutation();
+                        }}
                         team={props.team}
                     />
                 </Dialog>
@@ -314,7 +322,7 @@ function TechItem(props: {
                             toggleStartTask();
                             props.onTaskMutation();
                         }}
-                        onBack={toggleStartTask}
+                        onBack={() => {toggleStartTask(); props.onTaskMutation();}}
                         team={props.team}
                     />
                 </Dialog>
