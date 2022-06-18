@@ -392,7 +392,11 @@ function TeamOverview() {
                             <>
                                 Maximálně bonusů: {data.feeding.casteCount}
                                 <br />
-                                Potřeba žetonů: {data.feeding.tokensRequired}/{data.feeding.tokensPerCaste}
+                                Potřeba žetonů, aby nikdo neumřel:{" "}
+                                {data.feeding.tokensRequired}
+                                <br />
+                                Potřeba žetonů pro spokojenost kasty:{" "}
+                                {data.feeding.tokensPerCaste}
                                 <ul className="list-disc text-left">
                                     {data.granary.map((p: any) => {
                                         let missing =
