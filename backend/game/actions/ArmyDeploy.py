@@ -183,6 +183,9 @@ class ActionArmyDeploy(HealthyAction):
                 self.map.retreatArmy(defender)
                 self.addNotification(
                     defender.team, f"Armáda {defender.name} ubránila pole {tile.name}, ale utrpěla vysoké ztráty a vrátila se domů.")
+            else:
+                self.addNotification(
+                    defender.team, f"Armáda {defender.name} ubránila pole {tile.name}. Zbylo jí {defender.equipment} zbraní.")
             return
 
         defenderReward = self.map.retreatArmy(defender)
