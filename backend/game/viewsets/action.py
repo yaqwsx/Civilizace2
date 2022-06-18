@@ -454,34 +454,36 @@ class ActionViewSet(viewsets.ViewSet):
 
     @action(methods=["POST", "GET"], detail=True)
     def commit(self, request, pk=True):
-        dbAction = get_object_or_404(DbAction, pk=pk)
-        self._ensureGameIsRunning(dbAction.actionType)
-
-        _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
-
-        dbState = DbState.objects.latest()
-        state = dbState.toIr()
-        sourceState = dbState.toIr()
-
-        dbInteraction = dbAction.lastInteraction
-        action = dbInteraction.getActionIr(entities, state)
-
-        diceReq = action.diceRequirements()
-
-        if request.method == "GET":
-            return Response({
-                "requiredDots": diceReq[1],
-                "allowedDice": list(diceReq[0]),
-                "throwCost": action.throwCost(),
-                "description": dbAction.description,
-                "team": action.team.id
-            })
-
-        if dbAction.interactions.count() != 1:
-            raise MulticommitError()
-
         try:
             with transaction.atomic():
+                dbAction = get_object_or_404(DbAction, pk=pk)
+
+                _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
+                dbState = DbState.objects.latest()
+                state = dbState.toIr()
+                sourceState = dbState.toIr()
+
+                dbInteraction = dbAction.lastInteraction
+                action = dbInteraction.getActionIr(entities, state)
+
+                diceReq = action.diceRequirements()
+
+                if request.method == "GET":
+                    return Response({
+                        "requiredDots": diceReq[1],
+                        "allowedDice": list(diceReq[0]),
+                        "throwCost": action.throwCost(),
+                        "description": dbAction.description,
+                        "team": action.team.id
+                    })
+
+                # We want to allow finish action even when the game is not running
+                # self._ensureGameIsRunning(dbAction.actionType)
+
+                if dbAction.interactions.count() != 1:
+                    raise MulticommitError()
+
                 deserializer = CommitSerializer(data=request.data)
                 deserializer.is_valid(raise_exception=True)
                 params = deserializer.validated_data
