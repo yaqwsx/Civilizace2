@@ -16,7 +16,9 @@ class ActionArmyDeployArgs(ActionArgs):
     tile: MapTileEntity
     goal: ArmyGoal
     equipment: int
-    friendlyTeam: Optional[Team] # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
+    # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
+    friendlyTeam: Optional[Team]
+
 
 class ActionArmyDeploy(HealthyAction):
 
@@ -41,13 +43,12 @@ class ActionArmyDeploy(HealthyAction):
     def description(self):
         return f"Vyslání armády {self.army.name} na pole {self.tile.name} ({self.args.team.name})"
 
-
     def transferEquipment(self, provider: Army, receiver: Army) -> int:
-        amount = min(receiver.capacity - receiver.equipment, provider.equipment)
+        amount = min(receiver.capacity -
+                     receiver.equipment, provider.equipment)
         provider.equipment -= amount
         receiver.equipment += amount
         return amount
-
 
     def cost(self) -> Dict[Resource, Decimal]:
         if self.army.capacity < self.args.equipment:
@@ -56,40 +57,43 @@ class ActionArmyDeploy(HealthyAction):
             raise ActionFailed(f"Nelze vyslat nevybavenou armádu")
         return {self.entities.zbrane: self.args.equipment}
 
-
     def requiresDelayedEffect(self) -> int:
         return self.state.map.getActualDistance(self.army.team, self.args.tile)
-
 
     def _returnWeaponsInfo(self, amount: int) -> None:
         self._info += f"Vydejte týmu [[{self.entities.zbrane}|{floor(amount)}]]"
 
-
     def _commitImpl(self) -> None:
-        if not self.army in self.map.armies: raise ActionFailed(f"Neznámá armáda {self.army.name}({self.army.index})")
-        if self.army.team != self.team: raise ActionFailed(f"Nelze vyslat armádu cizího týmu")
+        if not self.army in self.map.armies:
+            raise ActionFailed(
+                f"Neznámá armáda {self.army.name}({self.army.index})")
+        if self.army.team != self.team:
+            raise ActionFailed(f"Nelze vyslat armádu cizího týmu")
 
         if self.args.tile == self.state.map.getHomeOfTeam(self.args.team).entity:
             raise ActionFailed("Nelze útočit na vlastní domovské pole.")
 
         army = self.army
         if army.mode != ArmyMode.Idle:
-            assert army.tile != None, "Army {} is in inconsistent state".format(self.army)
-            raise ActionFailed( "Armáda {} už je vyslána na pole {}."\
-                    .format(army.name, army.tile.name))
+            assert army.tile != None, "Army {} is in inconsistent state".format(
+                self.army)
+            raise ActionFailed("Armáda {} už je vyslána na pole {}."
+                               .format(army.name, army.tile.name))
 
         if self.args.equipment < 1:
-            raise ActionFailed(f"Nelze poskytnout záporný počet zbraní ({self.args.equipment}). Minimální počet je 1")
+            raise ActionFailed(
+                f"Nelze poskytnout záporný počet zbraní ({self.args.equipment}). Minimální počet je 1")
         if self.args.equipment > army.capacity:
-            raise ActionFailed(f"Armáda neunese {self.args.equipment} zbraní. Maximální možná výzbroj je {army.capacity}.")
+            raise ActionFailed(
+                f"Armáda neunese {self.args.equipment} zbraní. Maximální možná výzbroj je {army.capacity}.")
 
         army.tile = self.args.tile
         army.equipment = self.args.equipment
         army.mode = ArmyMode.Marching
         army.goal = self.args.goal
 
-        self._info.add(f"Armáda [[{army.name}]] vyslána na pole [[{self.tile.name}]]")
-
+        self._info.add(
+            f"Armáda [[{army.name}]] vyslána na pole [[{self.tile.name}]]")
 
     def _applyDelayedEffect(self) -> None:
         army = self.army
@@ -129,7 +133,8 @@ class ActionArmyDeploy(HealthyAction):
                 self._info += f"Armáda {army.name} nahradila předchozí armádu.\
                     Její nová síla je {army.strength}.\
                     Armáda {defender.name} se vrátila domů."
-            else: self._info += f"Armáda {provider.name} posílila armádu {receiver.name} a vrátila se zpět.\
+            else:
+                self._info += f"Armáda {provider.name} posílila armádu {receiver.name} a vrátila se zpět.\
                 Nová síla bránící armády je {receiver.strength}."
             self._returnWeaponsInfo(equipment)
             return
@@ -154,22 +159,13 @@ class ActionArmyDeploy(HealthyAction):
         attacker = army
 
         # battle
-        defenderCasualties = ceil((BASE_ARMY_STRENGTH + attacker.equipment) / 2) + max(0, attacker.boost)
-        attackerCasualties = ceil((BASE_ARMY_STRENGTH + defender.equipment) / 2) + max(0, defender.boost)
+        defenderCasualties = floor(
+            (BASE_ARMY_STRENGTH + attacker.equipment) / 2)
+        attackerCasualties = floor(
+            (BASE_ARMY_STRENGTH + defender.equipment) / 2)
 
-        # randomize
-        r = self.state.world.combatRandomness
-        defenderRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
-        attackerRandom = 1 + random.uniform(0, r) - random.uniform(0, r)
-        defenderCasualties *= defenderRandom
-        attackerCasualties *= attackerRandom
-
-        # prevent damage
-        defenderShield = max(attackerCasualties - attacker.strength, 0)
-        attackerShield = max(defenderCasualties - defender.strength, 0)
-
-        defenderLoss = defender.destroyEquipment(ceil(max(defenderCasualties - defenderShield, 0)))
-        attackertLoss = attacker.destroyEquipment(ceil(max(attackerCasualties - attackerShield, 0)))
+        defenderLoss = defender.destroyEquipment(defenderCasualties)
+        attackertLoss = attacker.destroyEquipment(attackerCasualties)
 
         # resolve
         if defender.strength >= attacker.strength:
@@ -178,12 +174,13 @@ class ActionArmyDeploy(HealthyAction):
 
             if defender.equipment == 0:
                 self.map.retreatArmy(defender)
-                self.addNotification(defender.team, f"Armáda {defender.name} ubránila pole {tile.name}, ale utrpěla vysoké ztráty a vrátila se domů.")
+                self.addNotification(
+                    defender.team, f"Armáda {defender.name} ubránila pole {tile.name}, ale utrpěla vysoké ztráty a vrátila se domů.")
             return
 
         defenderReward = self.map.retreatArmy(defender)
         self.addNotification(defender.team, f"Armáda {defender.name} byla poražena na poli {tile.name} a vrátila se domů." +
-            f" Do skladu vám bylo uloženo {defenderReward} zbraní, které jí po souboji zůstaly" if defenderReward > 0 else "")
+                             f" Do skladu vám bylo uloženo {defenderReward} zbraní, které jí po souboji zůstaly" if defenderReward > 0 else "")
 
         if army.equipment == 0:
             self.map.retreatArmy()

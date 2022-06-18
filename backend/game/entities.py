@@ -12,7 +12,7 @@ TeamId = str  # intentionally left weak
 DieId = str
 
 STARTER_ARMY_PRESTIGES = [15, 20, 25]
-BASE_ARMY_STRENGTH = 5
+BASE_ARMY_STRENGTH = 0
 MAP_SIZE = 32
 TILE_DISTANCES_RELATIVE = {0: Decimal(0),
                            -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
