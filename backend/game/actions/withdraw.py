@@ -31,9 +31,10 @@ class ActionWithdraw(HealthyAction):
         empty = []
         for resource, amount in self.args.resources.items():
             stored = self.teamState.storage.get(resource, 0)
+            if amount > stored:
+                missing[resource] = amount - stored
+                continue
             self.teamState.storage[resource] = stored - amount
-            if stored < amount:
-                missing[resource] = stored -amount
 
         for resource, amount in self.args.resources.items():
             if amount == 0:
