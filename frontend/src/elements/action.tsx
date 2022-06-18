@@ -142,7 +142,9 @@ export function PerformAction(props: {
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
-        return () => {setActiveAction(null)};
+        return () => {
+            setActiveAction(null);
+        };
     }, []);
 
     let argsValid =
@@ -349,7 +351,9 @@ export function ActionDicePhase(props: {
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
-        return () => {setActiveAction(null)};
+        return () => {
+            setActiveAction(null);
+        };
     }, [props.actionId]);
 
     let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
@@ -415,11 +419,14 @@ export function ActionDicePhase(props: {
         }
     };
 
-    let handleUpdate = (dots: number, throws: number) =>
+    let handleUpdate = (dots: number, throws: number) => {
+        if (dots < 0) dots = 0;
+        if (throws < 0) throws = 0;
         setThrowInfo({
             throws: throws,
             dots: dots,
         });
+    };
 
     return (
         <>
@@ -498,7 +505,7 @@ function DiceThrowForm(props: {
 
     return (
         <div className="w-full">
-            <div className="container mt-0 md:mt-4 w-full">
+            <div className="container mt-0 w-full md:mt-4">
                 <div className="mx-0 my-1 w-full px-0 md:inline-block md:w-2/5">
                     <div className="my-1 inline-block w-full px-3 text-left align-middle md:w-1/4 md:text-right">
                         Teček:

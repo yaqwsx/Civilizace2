@@ -8,7 +8,7 @@ import {
     ActionPhase,
     useUnfinishedActions,
 } from "../elements/action";
-import { ErrorMessage } from "../elements/messages";
+import { ErrorMessage, SuccessMessage } from "../elements/messages";
 
 export function FinishAction() {
     const navigate = useNavigate();
@@ -32,9 +32,9 @@ export function FinishAction() {
     let action = actions?.find((x) => x.id === parseInt(actionId));
     if (!action)
         return (
-            <ErrorMessage>
+            <SuccessMessage>
                 Akce už byla dokončena. Můžete pokračovat.
-            </ErrorMessage>
+            </SuccessMessage>
         );
 
     let actionName = `Dokončení akce ${action.id}: ${action?.description}`;

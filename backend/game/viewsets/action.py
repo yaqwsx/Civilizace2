@@ -486,6 +486,11 @@ class ActionViewSet(viewsets.ViewSet):
                 deserializer.is_valid(raise_exception=True)
                 params = deserializer.validated_data
 
+                if params["throws"] < 0:
+                    raise ActionFailed("Nemůžete zadat záporné hody")
+                if params["dots"] < 0:
+                    raise ActionFailed("Nemůžete zadat záporné tečky")
+
                 commitResult = action.applyCommit(params["throws"], params["dots"])
                 self.dbStoreInteraction(dbAction, dbState,
                     InteractionType.commit,request.user, state, action)
