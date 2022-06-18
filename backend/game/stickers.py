@@ -311,7 +311,7 @@ def makeVoucherSticker(effect: DbDelayedEffect) -> Image:
     b.skip(5)
     qr = makeQrCode(f"vou-{effect.slug.upper()}", pixelSize=3, borderQrPx=4)
 
-    b.img.paste(qr, (b.offset + b.margin - 12, b.yPosition))
+    b.img.paste(qr, (b.offset + b.xMargin - 12, b.yPosition))
     qrBottom = b.yPosition + qr.height
     b.skip(12)
     with b.withOffset(qr.width):
