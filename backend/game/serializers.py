@@ -32,9 +32,6 @@ class DbTaskSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
-        print(instance)
-        print(validated_data)
-        print(self._withoutTechs(validated_data))
         retval =  super().update(instance, self._withoutTechs(validated_data))
         DbTaskPreference.objects \
             .filter(task=retval) \
