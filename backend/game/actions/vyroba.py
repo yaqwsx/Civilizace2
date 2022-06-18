@@ -7,13 +7,14 @@ from game.actions.common import ActionFailed
 from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal, printResourceListForMarkdown
 
+
 class ActionVyrobaArgs(ActionArgs):
     team: Team
     vyroba: Vyroba
     count: Decimal
     tile: MapTileEntity
     plunder: bool
-    genericsMapping: Dict[Resource, Resource]={}
+    genericsMapping: Dict[Resource, Resource] = {}
 
     armyIndex: Optional[int]
     goal: Optional[ArmyGoal]
@@ -31,31 +32,28 @@ class ActionVyroba(HealthyAction):
     def description(self):
         return f"Výroba [[{self.args.vyroba.reward[0]}|{self.args.vyroba.reward[1]*self.args.count}]] ({self.args.team.name})"
 
-
     def cost(self) -> Dict[Resource, Decimal]:
         return {resource: cost*self.args.count for resource, cost in self.args.vyroba.cost.items()}
-
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
         points = (self.args.vyroba.points * (1 + self.args.count))
         return (self.teamState.getUnlockingDice(self.args.vyroba), ceil(points / 2))
 
-
     def requiresDelayedEffect(self) -> int:
         return self.state.map.getActualDistance(self.args.team, self.args.tile)
-
 
     def _commitImpl(self) -> None:
         tile = self.tileState
         vyroba = self.args.vyroba
         if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
-            raise ActionFailed(f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
+            raise ActionFailed(
+                f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
         for f in vyroba.requiredFeatures:
-            self._ensure(f in tile.features, f"Na poli {tile.name} chybí {f.name}")
+            self._ensure(f in tile.features,
+                         f"Na poli {tile.name} chybí {f.name}")
         self._ensureValid
 
         self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
-
 
     def _applyDelayedReward(self) -> None:
         self._setupPrivateAttrs()
@@ -76,7 +74,9 @@ class ActionVyroba(HealthyAction):
 
         tokens = self.receiveResources(reward, instantWithdraw=True)
 
-        self._info += f"Tým obdržel:\n\n{printResourceListForMarkdown(reward)}"
+        prods = {r: a for r, a in reward.items() if r.isTracked}
+        if prods != {}:
+            self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(prods)}"
         if multiplier > 1:
             self._info += f"Bonus za úrodnost výroby: +{ceil((multiplier-1)*100)}%"
         if plundered > 0:

@@ -8,18 +8,21 @@ from enum import Enum
 import os
 
 EntityId = str
-TeamId = str # intentionally left weak
+TeamId = str  # intentionally left weak
 DieId = str
 
-STARTER_ARMY_PRESTIGES = [15,20,25]
+STARTER_ARMY_PRESTIGES = [15, 20, 25]
 BASE_ARMY_STRENGTH = 5
 MAP_SIZE = 32
 TILE_DISTANCES_RELATIVE = {0: Decimal(0),
-    -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
-    -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
-TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get("CIV_SPEED_RUN", None) != "1" else Decimal(30)
+                           -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
+                           -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
+TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
+    "CIV_SPEED_RUN", None) != "1" else Decimal(30)
 DIE_IDS = [DieId("die-lesy"), DieId("die-plane"), DieId("die-hory")]
-TECH_BONUS_TOKENS = ["cheapDie", "star", "obyvatel20", "obyvatel40", "kultura5", "kultura10!"]
+TECH_BONUS_TOKENS = ["cheapDie", "star", "obyvatel20",
+                     "obyvatel40", "kultura5", "kultura10!"]
+
 
 def dieName(id: DieId) -> str:
     # Why isn't this in entities?
@@ -28,6 +31,7 @@ def dieName(id: DieId) -> str:
         "die-plane": "Planinná kostka",
         "die-hory": "Horská kostka"
     }[id]
+
 
 def briefDieName(id: DieId) -> str:
     # Why isn't this in entities?
@@ -39,10 +43,11 @@ def briefDieName(id: DieId) -> str:
 
 # Type Aliases
 
+
 class EntityBase(BaseModel):
     id: EntityId
     name: str
-    icon: Optional[str]=None
+    icon: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, EntityBase) and self.id == other.id
@@ -53,9 +58,9 @@ class EntityBase(BaseModel):
     def __str__(self) -> str:
         return "{}({})".format(self.id, self.name)
 
-
     def __repr__(self) -> str:
         return "{}({})".format(self.id, self.name)
+
 
 def adHocEntitiy(id) -> EntityBase:
     return EntityBase(id=id, name="")
@@ -63,17 +68,20 @@ def adHocEntitiy(id) -> EntityBase:
 
 class Team(EntityBase):
     color: str
-    password: Optional[str] # We use it to populate database
+    password: Optional[str]  # We use it to populate database
     visible: bool
     homeTileId: EntityId
+
 
 class OrgRole(Enum):
     ORG = 0
     SUPER = 1
 
+
 class Org(EntityBase):
     role: OrgRole
     password: Optional[str]
+
 
 class ResourceType(EntityBase):
     productionName: str
@@ -82,15 +90,11 @@ class ResourceType(EntityBase):
 
 
 class Resource(EntityBase):
-    ### Any resource, base class for Resource, GenericResource;
+    # Any resource, base class for Resource, GenericResource;
     #   Do not instantiate
     #   TODO: Is there a simple way to disable __init__ for this base class? ###
-    typ: Optional[Tuple[ResourceType, int]]=None
-    produces: Optional[Resource]=None
-
-    @property
-    def isTracked(self) -> bool:
-        return self.id.startswith("mat-") or self.id.startswith("mge-")
+    typ: Optional[Tuple[ResourceType, int]] = None
+    produces: Optional[Resource] = None
 
     @property
     def isProduction(self) -> bool:
@@ -108,7 +112,8 @@ class Resource(EntityBase):
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal]
     points: int
-    unlockedBy: List[Tuple[EntityWithCost, DieId]]=[] # duplicates: items in Tech.unlocks
+    # duplicates: items in Tech.unlocks
+    unlockedBy: List[Tuple[EntityWithCost, DieId]] = []
 
     # The default deduced equality is a strong-value based one. However, since
     # there are loops in fields (via unlockedBy), the equality check never ends.
@@ -133,7 +138,7 @@ class EntityWithCost(EntityBase):
 
 
 class Tech(EntityWithCost):
-    unlocks: List[Tuple[Entity, DieId]]=[]
+    unlocks: List[Tuple[Entity, DieId]] = []
     bonuses: List[str]
     flavor: str
 
@@ -157,9 +162,9 @@ class Tech(EntityWithCost):
         return set(d for e, d in self.unlocks if e == target)
 
 
-
 class TileFeature(EntityBase):
     pass
+
 
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
@@ -186,6 +191,7 @@ class MapTileEntity(EntityBase):
 Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity,
                ResourceType, Team, Org]
 
+
 class Entities(frozendict):
     """
     The entities are represented as immutable dictionary (frozendict) so
@@ -193,8 +199,8 @@ class Entities(frozendict):
     select relevant sub-entities
     """
 
-    def __new__(cls, entities: Iterable[Entity], plague: Optional["PlagueData"]=None) -> Entities:
-        x = super().__new__(cls, { x.id: x for x in entities })
+    def __new__(cls, entities: Iterable[Entity], plague: Optional["PlagueData"] = None) -> Entities:
+        x = super().__new__(cls, {x.id: x for x in entities})
         x.plague = plague
         return x
 
@@ -221,52 +227,52 @@ class Entities(frozendict):
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Resource)})
+                           if isinstance(v, Resource)})
 
     @cached_property
     def materials(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Resource) and v.isTracked})
+                           if isinstance(v, Resource) and v.isTracked})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Resource) and v.isProduction})
+                           if isinstance(v, Resource) and v.isProduction})
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Tech)})
+                           if isinstance(v, Tech)})
 
     @cached_property
     def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Team)})
+                           if isinstance(v, Team)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, MapTileEntity)})
+                           if isinstance(v, MapTileEntity)})
 
     @cached_property
     def buildings(self) -> frozendict[EntityId, Building]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Building)})
+                           if isinstance(v, Building)})
 
     @cached_property
     def orgs(self) -> frozendict[EntityId, Org]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Org)})
+                           if isinstance(v, Org)})
 
     @cached_property
     def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Team)})
+                           if isinstance(v, Team)})
 
     @cached_property
     def vyrobas(self) -> frozendict[EntityId, Vyroba]:
         return frozendict({k: v for k, v in self.items()
-            if isinstance(v, Vyroba)})
+                           if isinstance(v, Vyroba)})
 
     @staticmethod
     def _gameOnlyView(entity):
@@ -283,4 +289,3 @@ class Entities(frozendict):
     @property
     def gameOnlyEntities(self) -> Entities:
         return Entities([self._gameOnlyView(v) for v in self.values()], self.plague)
-
