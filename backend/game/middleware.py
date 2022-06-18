@@ -1,4 +1,5 @@
 
+import json
 import os
 from game.actions.common import ActionCost
 from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
@@ -75,7 +76,15 @@ def updateDelayedEffects():
     pending = DbDelayedEffect.objects \
         .filter(performed=False, round__lte=turn.id, target__lte=secondsIn)
     for effect in pending:
-        ActionViewSet.performDelayedEffect(effect)
+        try:
+            ActionViewSet.performDelayedEffect(effect)
+        except Exception as e:
+            print("*** ACTION FAILED***")
+            print(f"Delayed ID: {effect.id}")
+            print(f"Action ID: {effect.action.id}")
+            print(f"Action Type: {effect.action.actionType}")
+            print(json.dumps(effect.action.args, indent=4))
+            raise e from None
 
 @transaction.atomic
 def updatePlague():
