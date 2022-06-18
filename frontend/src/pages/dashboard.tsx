@@ -209,6 +209,7 @@ function TeamOverview() {
         () => (teamId ? `game/teams/${teamId}/dashboard` : null),
         fetcher
     );
+    const account = useSelector((state: RootState) => state.auth.account);
 
     if (!team || !data) {
         return (
@@ -233,6 +234,27 @@ function TeamOverview() {
                     />
                 </>
             ) : null}
+
+            {account?.user?.isOrg && (
+                <div className="section w-full">
+                    <h2 className="text-xl" id="section-1">
+                        Org menu
+                    </h2>
+                    <Card
+                        label="Technologie vlastněné týmem"
+                        color={team.color}
+                        icon={faCalendar}
+                    >
+                        <ul>
+                            {data.techs.map((tid: string) => (
+                                <li key={tid}>
+                                    <EntityTag id={tid} />
+                                </li>
+                            ))}
+                        </ul>
+                    </Card>
+                </div>
+            )}
 
             {data?.plague && (
                 <div className="section w-full">
@@ -294,7 +316,7 @@ function TeamOverview() {
                         ? "V tomto kole jste ještě nekrmili"
                         : "V tomto kole jste už krmili."}
                 </Card>
-{/*
+                {/*
                 <Card
                     label="Dostupná kultura"
                     color={team.color}
@@ -368,7 +390,8 @@ function TeamOverview() {
                     >
                         {data.granary.length ? (
                             <>
-                                Maximálně bonusů: {data.feeding.casteCount}<br/>
+                                Maximálně bonusů: {data.feeding.casteCount}
+                                <br />
                                 Potřeba žetonů: {data.feeding.tokensRequired}
                                 <ul className="list-disc text-left">
                                     {data.granary.map((p: any) => {

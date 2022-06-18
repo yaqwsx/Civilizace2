@@ -293,7 +293,8 @@ class TeamViewSet(viewsets.ViewSet):
                 "mortality": teamState.plague.mortality,
                 "infectiousness": teamState.plague.infectiousness,
                 "futureDeathToll": getDeathToll(teamState.plague, teamState.population)
-            }
+            },
+            "techs": list(x.id for x in teamState.techs)
         })
 
     @action(detail=True)
