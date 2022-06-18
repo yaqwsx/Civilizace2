@@ -22,7 +22,8 @@ class DbTaskSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _withoutTechs(data):
-        return {k: v for k, v in data.items() if k not in ["techs", "assignments"]}
+        # occupiedCount shouldn't be here, but, meh, whatever
+        return {k: v for k, v in data.items() if k not in ["techs", "assignments", "occupiedCount"]}
 
     def create(self, validated_data):
         task = DbTask.objects.create(**self._withoutTechs(validated_data))
@@ -31,6 +32,9 @@ class DbTaskSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
+        print(instance)
+        print(validated_data)
+        print(self._withoutTechs(validated_data))
         retval =  super().update(instance, self._withoutTechs(validated_data))
         DbTaskPreference.objects \
             .filter(task=retval) \
