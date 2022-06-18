@@ -316,14 +316,13 @@ function TeamOverview() {
                         ? "V tomto kole jste ještě nekrmili"
                         : "V tomto kole jste už krmili."}
                 </Card>
-                {/*
                 <Card
                     label="Dostupná kultura"
                     color={team.color}
                     icon={faMasksTheater}
                 >
                     {data.culture}
-                </Card> */}
+                </Card>
             </div>
 
             <div className="section w-full">
