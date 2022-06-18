@@ -174,7 +174,7 @@ class ActionViewSet(viewsets.ViewSet):
         awardedStickers = []
         for t, s in stickerIds:
             team = Team.objects.get(pk=t.id)
-            if s.id.startswith("tec-") and not DbSticker.objects.filter(entityId=s).exists():
+            if s.id.startswith("tec-") and not DbSticker.objects.filter(entityId=s.id).exists():
                 # The team is first, let's give him a special sticker
                 firstTech = DbSticker.objects.create(team=team, entityId=s.id,
                     entityRevision=entRevision, type=StickerType.techFirst)
