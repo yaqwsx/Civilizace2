@@ -95,6 +95,13 @@ class ActionArmyDeploy(HealthyAction):
         self._info.add(
             f"Armáda [[{army.name}]] vyslána na pole [[{self.tile.name}]]")
 
+        defender = self.state.map.getOccupyingTeam(self.args.tile)
+        if defender == None or defender == self.args.team:
+            return
+
+        self.addNotification(
+            defender, f"Na pole {self.tile.name} se blíží cizí armáda. Dorazí za {floor(self.requiresDelayedEffect()/60)} minut")
+
     def _applyDelayedEffect(self) -> None:
         army = self.army
         tile = self.tile
