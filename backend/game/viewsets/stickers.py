@@ -2,7 +2,7 @@ import io
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import requests
-from game.models import DbSticker, Printer
+from game.models import DbEntities, DbSticker, Printer
 from ipware import get_client_ip
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
@@ -78,6 +78,16 @@ class StickerViewSet(viewsets.ViewSet):
         sticker = self._getSticker(request.user, pk)
 
         return self.printGeneral(request, open(getStickerFile(sticker), "rb"))
+
+    # @action(detail=True, methods=["POST"])
+    # def printRelated(self, request, pk):
+    #     rootSticker = self._getSticker(request.user, pk)
+    #     if not rootSticker.entityId.startswith("tec-"):
+    #         return self.print(request, pk)
+    #     revision, entities = DbEntities.objects.get_revision()
+
+    #     relatedStickers =
+    #     return self.printGeneral(request, open(getStickerFile(sticker), "rb"))
 
     @action(detail=True, methods=["GET"])
     def image(self, request, pk):

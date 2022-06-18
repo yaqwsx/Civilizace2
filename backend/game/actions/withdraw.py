@@ -30,6 +30,8 @@ class ActionWithdraw(HealthyAction):
         missing = {}
         empty = []
         for resource, amount in self.args.resources.items():
+            if amount == 0:
+                continue
             stored = self.teamState.storage.get(resource, 0)
             if amount > stored:
                 missing[resource] = amount - stored
@@ -43,7 +45,7 @@ class ActionWithdraw(HealthyAction):
             del self.teamState.storage[resource]
 
         if missing != {}:
-            raise ActionFailed(f"Chybí zdroje ve skladu: {printResourceListForMarkdown(missing)}")
+            raise ActionFailed(f"Chybí zdroje ve skladu:\n\n{printResourceListForMarkdown(missing)}")
 
         self.payResources({self.entities.work: sum(self.args.resources.values())})
 
