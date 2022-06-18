@@ -24,7 +24,7 @@ class Command(BaseCommand):
                     team=Team.objects.get(pk=t.id),
                     entityId=sticker.id,
                     type=StickerType.regular,
-                    defaults={"entitityRevision": revision})
+                    defaults={"entityRevision": revision})
 
 
 
