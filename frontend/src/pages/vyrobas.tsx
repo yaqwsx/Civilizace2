@@ -253,12 +253,15 @@ function PerformVyroba(props: PerformVyrobaProps) {
     const [equipment, setEquipment] = useState(1);
     const [goal, setGoal] = useState<any>(0);
 
+    const vyroba = props.vyroba;
+
     useEffect(() => {
-        if (!tiles || tile) return;
+        if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
+        console.log(vyroba)
         let homeTile = tiles.find((t) => t?.homeTeam === props.team.id)
         if (!homeTile)
             return
-        if (vyroba.allowedTiles.includes(homeTile.entity)) {
+        if (props.vyroba.allowedTiles.includes(homeTile.entity)) {
             setTile(homeTile.entity);
             return
         }
@@ -269,7 +272,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
             }
         }
         setTile(homeTile.entity);
-    }, [tiles, props.team]);
+    }, [tiles, props.team, vyroba]);
 
     if (!entities || !tiles) {
         return (
@@ -280,8 +283,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
             />
         );
     }
-
-    const vyroba = props.vyroba;
 
     const handleAmountChange = (x: number) => {
         if (x < 0) setAmount(0);
