@@ -79,6 +79,8 @@ def updateDelayedEffects():
 def updatePlague():
     delta = 5 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 1
     now = timezone.now()
+
+
     tick, _ = DbTick.objects.get_or_create(name="plague", defaults={"lastTick": now})
     if tick.lastTick + timezone.timedelta(minutes=delta) > now:
         return
@@ -97,11 +99,12 @@ def updatePlague():
     ActionViewSet.dbStoreInteraction(dbAction, dbState,
                     InteractionType.initiate, None, state, action)
 
-    action.applyCommit(0, action.diceRequirements()[1])
+    commitResult = action.applyCommit(0, action.diceRequirements()[1])
+    ActionViewSet.addResultNotifications(commitResult)
     ActionViewSet.dbStoreInteraction(dbAction, dbState,
                     InteractionType.commit, None, state, action)
 
-    tick.lastTick = now
+    # tick.lastTick = now
     tick.save()
 
 def turnUpdateMiddleware(get_response):

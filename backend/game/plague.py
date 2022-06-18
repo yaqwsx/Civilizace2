@@ -87,9 +87,9 @@ def readPlagueSentences(sheet, words) -> List[PlagueSentence]:
             sWords = [words[x.strip()] for x in wordString.split(" ") if len(x.strip()) != 0]
         except KeyError as e:
             raise RuntimeError(f"Nemůžu nalézt slovo moru {e} z věty {name}") from None
-        recoveryDiff = float(row[5])
-        mortalityDiff = float(row[6])
-        infectiousnessDiff = float(row[7])
+        recoveryDiff = float(row[7])
+        mortalityDiff = float(row[5])
+        infectiousnessDiff = float(row[6])
         sentences.append(PlagueSentence(name=name, words=sWords,
             recoveryDiff=recoveryDiff, mortalityDiff=mortalityDiff, infectiousnessDiff=infectiousnessDiff))
     return sentences

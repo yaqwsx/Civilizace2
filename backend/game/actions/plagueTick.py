@@ -34,4 +34,5 @@ class ActionPlagueTick(ActionBase):
             currentPopulation = tState.resources.get(self.entities["res-obyvatel"], 0)
             tState.resources[self.entities["res-obyvatel"]] = max(0, currentPopulation - dead)
             tState.plague = newStats
+            # self._notifications[tState.team] = [f"Proběhl další den morové epidemie. Zemřelo {dead} obyvatel."]
 

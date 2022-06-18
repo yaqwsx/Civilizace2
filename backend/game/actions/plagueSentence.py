@@ -7,7 +7,7 @@ from game.actions.actionBase import ActionArgs, ActionResult
 from game.actions.actionBase import ActionBase
 from game.actions.common import ActionFailed
 from game.entities import Resource, Team
-from game.plague import simulatePlague
+from game.plague import getDeathToll, simulatePlague
 from game.state import PlagueStats
 
 class ActionPlagueSentenceArgs(ActionArgs):
@@ -62,4 +62,8 @@ class ActionPlagueSentence(ActionBase):
             self._info.add(f"Smrtnost se změnila o {sentence.mortalityDiff * 100:.2f}%.")
         if sentence.infectiousnessDiff != 0:
             self._info.add(f"Nakažlivost se změnila o {sentence.infectiousnessDiff:.2f}%.")
+
+        toll = getDeathToll(tState.plague, tState.population)
+        newStats, dead = simulatePlague(tState.plague, tState.population)
+        self._info.add(f"Pokud už nic dalšího neuděláte, zítra zemře {dead} obyvatel. Prognóza je, že celkem zemře ještě {toll}.")
 
