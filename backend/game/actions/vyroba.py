@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, HealthyAction
 from game.actions.actionBase import ActionBase
 from game.actions.common import ActionFailed
-from game.entities import DieId, MapTileEntity, NaturalResource, Resource, Team, Vyroba
+from game.entities import DieId, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal, printResourceListForMarkdown
 
 
@@ -49,8 +49,6 @@ class ActionVyroba(HealthyAction):
             raise ActionFailed(
                 f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
         for f in vyroba.requiredFeatures:
-            if not isinstance(f, NaturalResource):
-                continue
             self._ensure(f in tile.features,
                          f"Na poli {tile.name} chybí {f.name}")
         self._ensureValid
