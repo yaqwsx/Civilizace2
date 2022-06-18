@@ -47,6 +47,7 @@ def makeNextTurnAction():
     entityRevision, entities = DbEntities.objects.get_revision()
     dbState = DbState.objects.latest()
     state = dbState.toIr()
+    prevState = dbState.toIr()
 
     action = ActionViewSet.constructAction("ActionNextTurn", {}, entities, state)
     dbAction = DbAction(
@@ -62,6 +63,7 @@ def makeNextTurnAction():
     action.applyCommit(0, action.diceRequirements()[1])
     ActionViewSet.dbStoreInteraction(dbAction, dbState,
                     InteractionType.commit, None, state, action)
+    ActionViewSet._markMapDiff(prevState, state)
 
 def updateDelayedEffects():
     try:
