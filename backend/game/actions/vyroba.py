@@ -30,7 +30,7 @@ class ActionVyroba(HealthyAction):
 
     @property
     def description(self):
-        return f"Výroba [[{self.args.vyroba.reward[0]}|{self.args.vyroba.reward[1]*self.args.count}]] ({self.args.team.name})"
+        return f"Výroba {self.args.vyroba.reward[1]*self.args.count}× {self.args.vyroba.reward[0].name} ({self.args.team.name})"
 
     def cost(self) -> Dict[Resource, Decimal]:
         return {resource: cost*self.args.count for resource, cost in self.args.vyroba.cost.items()}

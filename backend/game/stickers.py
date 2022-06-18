@@ -15,7 +15,7 @@ from backend.settings import ICON_PATH
 from core.models.team import Team
 
 from game.entities import Building, Entity, Tech, Vyroba, briefDieName, dieName
-from game.models import DbDelayedEffect, DbEntities, DbSticker, StickerType
+from game.models import DbDelayedEffect, DbEntities, DbSticker, InteractionType, StickerType
 from game.util import FileCache
 
 FONT_NORMAL = ImageFont.truetype(os.path.join(
@@ -319,6 +319,10 @@ def makeVoucherSticker(effect: DbDelayedEffect) -> Image:
         b.addText(f"Kód: {effect.slug.upper()}", FONT_BOLD)
     b.yPosition = max(b.yPosition, qrBottom) + 10
     b.addText(f"Nabývá efektu v {effect.round}–{math.floor(effect.target // 60)}:{effect.target % 60}", FONT_BOLD)
+    try:
+        b.addText(effect.description, FONT_NORMAL)
+    except:
+        pass
     b.hline(1, 0)
     b.skip(5)
     b.skip(40)
