@@ -273,7 +273,8 @@ class TeamViewSet(viewsets.ViewSet):
             ],
             "feeding": {
                 "casteCount": feedRequirements.casteCount,
-                "tokensPerCaste": feedRequirements.tokensPerCaste
+                "tokensPerCaste": feedRequirements.tokensPerCaste,
+                "tokensRequired": feedRequirements.tokensRequired,
             },
             "announcements": [
                 {

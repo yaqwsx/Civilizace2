@@ -368,7 +368,8 @@ function TeamOverview() {
                     >
                         {data.granary.length ? (
                             <>
-                                Maximálně bonusů: {data.feeding.casteCount}
+                                Maximálně bonusů: {data.feeding.casteCount}<br/>
+                                Potřeba žetonů: {data.feeding.tokensRequired}
                                 <ul className="list-disc text-left">
                                     {data.granary.map((p: any) => {
                                         let missing =
