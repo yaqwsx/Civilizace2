@@ -495,6 +495,7 @@ function WithdrawStorage(props: { team: Team }) {
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/storage`, fetcher);
     const [toWithdraw, setToWithdraw] = useState<any>({});
+    const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (!storage)
         return (
@@ -564,6 +565,8 @@ function WithdrawStorage(props: { team: Team }) {
                         onFinish={() => {
                             mutate();
                             setSubmitting(false);
+                            setToWithdraw({});
+                            setVyrobaAction(undefined);
                         }}
                         onBack={() => setSubmitting(false)}
                     />
