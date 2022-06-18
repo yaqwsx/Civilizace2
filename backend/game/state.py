@@ -66,7 +66,7 @@ class Army(StateModel):
 
     @property
     def capacity(self) -> int:
-        return (self.level+2)*5 - BASE_ARMY_STRENGTH
+        return 5 + 5 * self.level
 
     @property
     def strength(self) -> int:

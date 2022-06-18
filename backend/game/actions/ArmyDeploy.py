@@ -6,7 +6,7 @@ from typing import Dict, Optional
 from pydantic import PrivateAttr
 from game.actions.actionBase import ActionArgs, ActionBase, HealthyAction
 from game.actions.common import ActionFailed
-from game.entities import BASE_ARMY_STRENGTH, MapTileEntity, Resource, Team
+from game.entities import MapTileEntity, Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode, MapTile
 
 
@@ -166,10 +166,8 @@ class ActionArmyDeploy(HealthyAction):
         attacker = army
 
         # battle
-        defenderCasualties = floor(
-            (BASE_ARMY_STRENGTH + attacker.equipment) / 2)
-        attackerCasualties = floor(
-            (BASE_ARMY_STRENGTH + defender.equipment) / 2)
+        defenderCasualties = floor(attacker.strength / 2)
+        attackerCasualties = floor(defender.strength / 2)
 
         defenderLoss = defender.destroyEquipment(defenderCasualties)
         attackertLoss = attacker.destroyEquipment(attackerCasualties)
