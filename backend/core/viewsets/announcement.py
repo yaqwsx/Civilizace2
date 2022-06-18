@@ -12,7 +12,7 @@ from game.viewsets.permissions import IsOrg
 class AnnouncementViewSet(viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
     queryset = Announcement.objects.exclude(type=AnnouncementType.game)
-    permission_classes = (IsAuthenticated,IsOrg)
+    permission_classes = (IsAuthenticated)
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ["appearDatetime"]
     ordering = ["-appearDatetime"]
