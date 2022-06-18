@@ -17,7 +17,7 @@ MAP_SIZE = 32
 TILE_DISTANCES_RELATIVE = {0: Decimal(0),
                            -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
                            -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
-TIME_PER_TILE_DISTANCE = Decimal(30) if os.environ.get(
+TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
     "CIV_SPEED_RUN", None) != "1" else Decimal(30)
 DIE_IDS = [DieId("die-lesy"), DieId("die-plane"), DieId("die-hory")]
 TECH_BONUS_TOKENS = ["cheapDie", "star", "obyvatel20",
