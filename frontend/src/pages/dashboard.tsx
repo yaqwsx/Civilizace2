@@ -392,11 +392,11 @@ function TeamOverview() {
                             <>
                                 Maximálně bonusů: {data.feeding.casteCount}
                                 <br />
-                                Potřeba žetonů: {data.feeding.tokensRequired}
+                                Potřeba žetonů: {data.feeding.tokensRequired}/{data.feeding.tokensPerCaste}
                                 <ul className="list-disc text-left">
                                     {data.granary.map((p: any) => {
                                         let missing =
-                                            p[1] - data.feeding.casteCount;
+                                            p[1] - data.feeding.tokensPerCaste;
                                         return (
                                             <li key={p[0]}>
                                                 <EntityTag
