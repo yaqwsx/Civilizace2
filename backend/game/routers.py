@@ -14,6 +14,7 @@ from game.viewsets.action import ActionViewSet
 from game.viewsets.turns import TurnsViewSet
 from game.viewsets.voucher import VoucherViewSet
 from game.viewsets.state import StateViewSet
+from game.viewsets.tick import TickViewSet
 
 routes = SimpleRouter()
 routes.register(r'entities', EntityViewSet, basename="entities")
@@ -29,6 +30,7 @@ routes.register(r'mapupdates', MapDiffViewSet, basename="mapdiff")
 routes.register(r'map', MapViewSet, basename="map")
 routes.register(r'armies', ArmiesViewSet, basename="armies")
 routes.register(r'plague', PlagueViewSet, basename="plague")
+routes.register(r'tick', TickViewSet, basename="tick")
 
 
 urlpatterns = [
