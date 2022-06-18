@@ -265,7 +265,10 @@ def makeBuildingSticker(e: Tech, t: Team, stype: StickerType) -> Image:
     if icon is not None:
         icon = os.path.splitext(icon)[0] + "-lg.png"
         b.skip(10)
-        b.addIcon(icon)
+        try:
+            b.addIcon(icon)
+        except Exception as e:
+            pass
 
     makeStickerFooter(e, b)
 
@@ -297,7 +300,10 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
     icon = rRes.icon
     if icon is not None:
         icon = os.path.splitext(icon)[0] + "-md.png"
-        b.addIcon(icon)
+        try:
+            b.addIcon(icon)
+        except Exception as e:
+            pass
 
     makeStickerFooter(e, b)
     return b.getImage()
