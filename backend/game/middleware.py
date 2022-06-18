@@ -1,6 +1,7 @@
 
 import json
 import os
+import sys
 from game.actions.common import ActionCost
 from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
 from game.gameGlue import stateDeserialize, stateSerialize
@@ -79,12 +80,14 @@ def updateDelayedEffects():
         try:
             ActionViewSet.performDelayedEffect(effect)
         except Exception as e:
-            print("*** ACTION FAILED***")
-            print(f"Delayed ID: {effect.id}")
-            print(f"Action ID: {effect.action.id}")
-            print(f"Action Type: {effect.action.actionType}")
-            print(json.dumps(effect.action.args, indent=4))
-            raise e from None
+            sys.stderr.write("*** ACTION FAILED***\n")
+            sys.stderr.write(f"Delayed ID: {effect.id}\n")
+            sys.stderr.write(f"Action ID: {effect.action.id}\n")
+            sys.stderr.write(f"Action Type: {effect.action.actionType}\n")
+            sys.stderr.write(json.dumps(effect.action.args, indent=4))
+            import traceback
+            tb = traceback.format_exc()
+            sys.stderr.write(tb)
 
 @transaction.atomic
 def updatePlague():
