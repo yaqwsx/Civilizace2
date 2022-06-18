@@ -322,7 +322,10 @@ function TechItem(props: {
                             toggleStartTask();
                             props.onTaskMutation();
                         }}
-                        onBack={() => {toggleStartTask(); props.onTaskMutation();}}
+                        onBack={() => {
+                            toggleStartTask();
+                            props.onTaskMutation();
+                        }}
                         team={props.team}
                     />
                 </Dialog>

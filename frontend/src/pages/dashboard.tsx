@@ -402,7 +402,7 @@ function TeamOverview() {
                     </Card>
                 </div>
             </div>
-            {/* <div className="section w-full">
+            <div className="section w-full">
                 <h2 className="text-xl" id="section-1">
                     Armády
                 </h2>
@@ -419,7 +419,7 @@ function TeamOverview() {
                         </Card>
                     ))}
                 </div>
-            </div> */}
+            </div>
             <div className="section w-full">
                 <h2 className="text-xl" id="section-1">
                     Různé
