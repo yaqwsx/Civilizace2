@@ -267,7 +267,7 @@ def makeBuildingSticker(e: Tech, t: Team, stype: StickerType) -> Image:
         b.skip(10)
         try:
             b.addIcon(icon)
-        except Exception as e:
+        except Exception:
             pass
 
     makeStickerFooter(e, b)
@@ -302,7 +302,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
         icon = os.path.splitext(icon)[0] + "-md.png"
         try:
             b.addIcon(icon)
-        except Exception as e:
+        except Exception:
             pass
 
     makeStickerFooter(e, b)
