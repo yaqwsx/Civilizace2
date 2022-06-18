@@ -175,12 +175,12 @@ class DbState(models.Model):
         self._teamStates = []
         dirty = False
         sMap = stateSerialize(ir.map)
-        if sMap != self.mapState.data:
+        if True or sMap != self.mapState.data:
             dirty = True
             self.mapState.pk = None
             self.mapState.data = sMap
         sWorld = stateSerialize(ir.world)
-        if sWorld != self.worldState.data:
+        if True or sWorld != self.worldState.data:
             dirty = True
             self.worldState.pk = None
             self.worldState.data = sWorld
@@ -188,7 +188,7 @@ class DbState(models.Model):
         for ts in self.teamStates.all():
             sTs = stateSerialize(ir.teamStates[teamMapping[ts.team.id]])
             self._teamStates.append(ts)
-            if sTs != ts.data:
+            if True or sTs != ts.data:
                 dirty = True
                 ts.pk = None
                 ts.data = sTs

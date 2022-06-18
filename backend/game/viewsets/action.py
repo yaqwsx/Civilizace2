@@ -95,7 +95,7 @@ class ActionViewSet(viewsets.ViewSet):
         )
         interaction.save()
         dbState.updateFromIr(state)
-        dbState.action = interaction
+        dbState.interaction = interaction
         dbState.save()
 
         if action.description and len(action.description) > 0:
