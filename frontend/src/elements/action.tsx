@@ -39,6 +39,10 @@ export const activeActionIdAtom = atomWithHash<number | null>(
     "activeAction",
     null
 );
+export const finishedActionIdAtom = atomWithHash<number | null>(
+    "finishedAction",
+    null
+);
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
@@ -49,9 +53,10 @@ export function useUnfinishedActions(refreshInterval?: number) {
         }
     );
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
     return {
         actions: actions
-            ? actions.filter((a: UnfinishedAction) => a.id != activeAction)
+            ? actions.filter((a: UnfinishedAction) => a.id != activeAction && a.id != finishedAction)
             : undefined,
         ...other,
     };
@@ -242,6 +247,8 @@ function ActionPreviewPhase(props: {
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+
 
     const { actions } = useUnfinishedActions();
 
@@ -270,6 +277,7 @@ function ActionPreviewPhase(props: {
                 if (result.success) {
                     if (result.committed) {
                         props.changePhase(ActionPhase.finish, result);
+                        setFinishedAction(result?.action);
                     } else {
                         props.changePhase(ActionPhase.diceThrowPhase, result);
                     }
@@ -349,6 +357,8 @@ export function ActionDicePhase(props: {
     const [submitting, setSubmitting] = useState(false);
     const { mutate } = useSWRConfig();
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+
 
     useEffect(() => {
         return () => {
@@ -391,6 +401,8 @@ export function ActionDicePhase(props: {
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
+                setFinishedAction(props.actionId);
+                mutate("/game/actions/unfinished");
                 props.changePhase(ActionPhase.finish, result);
             })
             .catch((error) => {
@@ -408,6 +420,7 @@ export function ActionDicePhase(props: {
                 .post<any, any>(`/game/actions/${props.actionId}/cancel/`)
                 .then((data) => {
                     setSubmitting(false);
+                    setFinishedAction(props.actionId);
                     mutate("/game/actions/unfinished");
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);
