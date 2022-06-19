@@ -331,9 +331,9 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             onChange={(e) => setTile(e.target.value)}
                         >
                             {sortedTiles
-                                .filter((t) =>
-                                    vyroba.allowedTiles.includes(t.entity)
-                                )
+                                // .filter((t) =>
+                                //     vyroba.allowedTiles.includes(t.entity)
+                                // )
                                 .map((t) => (
                                     <option key={t.entity} value={t.entity}>
                                         {t.name}{" "}
