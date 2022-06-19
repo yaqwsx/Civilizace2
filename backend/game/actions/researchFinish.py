@@ -62,3 +62,5 @@ class ActionResearchFinish(ActionBase):
                         {self.entities["res-kultura"]: count})
                     self.addNotification(
                         self.args.team, f"Vaše kultura vzrostla o {count}. Těšte se na nové obyvatele!")
+                if bonus == "star":
+                    self._info += f"Vydejte týmu HVĚZDU do kroniky"

@@ -6,12 +6,14 @@ from typing import Any, Callable, Dict
 from .entities import DIE_IDS, TECH_BONUS_TOKENS, Building, Entities, EntityWithCost, MapTileEntity, NaturalResource, Org, OrgRole, Resource, ResourceType, Team, Tech, TileFeature, Vyroba
 
 DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
-DIE_ALIASES = {"die-les": "die-lesy", "les":"die-lesy", "lesy":"die-lesy",
-               "hory":"die-hory", "hora":"die-hory",
-               "plan":"die-plane", "plane":"die-plane",
-               "any":"die-any"}
+DIE_ALIASES = {"die-les": "die-lesy", "les": "die-lesy", "lesy": "die-lesy",
+               "hory": "die-hory", "hora": "die-hory",
+               "plan": "die-plane", "plane": "die-plane",
+               "any": "die-any"}
 LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
-GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni", "res-prace", "res-obyvatel", "mat-zbrane"]
+GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni",
+                  "res-prace", "res-obyvatel", "mat-zbrane"]
+
 
 def readRole(s: str) -> OrgRole:
     s = s.lower()
@@ -20,6 +22,7 @@ def readRole(s: str) -> OrgRole:
     if s == "super":
         return OrgRole.SUPER
     raise RuntimeError(f"{s} is not a valid role")
+
 
 class EntityParser():
     def __init__(self, data, reportError=None):
@@ -40,22 +43,21 @@ class EntityParser():
         typLevel = int(s[s.rfind("-")+1:])
         return (self.entities[typId], typLevel)
 
-
     def parseCostSingle(self, s):
         chunks = [x.strip() for x in s.strip().split(":")]
-        assert len(chunks) == 2, "Invalid cost property \"" + s + "\" (expecting \"resourceId:amount\")"
+        assert len(chunks) == 2, "Invalid cost property \"" + \
+            s + "\" (expecting \"resourceId:amount\")"
         assert chunks[0][3] == "-", "Invalid entity id: " + chunks[0]
-        assert self.entities.get(chunks[0], None), f"Neznámý zdroj: {chunks[0]}"
+        assert self.entities.get(
+            chunks[0], None), f"Neznámý zdroj: {chunks[0]}"
         return (self.entities[chunks[0]], Decimal(chunks[1]))
 
-
     def parseCost(self, s):
-        if len(s) <=2:
+        if len(s) <= 2:
             return {}
         return {x[0]: x[1] for x in map(self.parseCostSingle, s.split(","))}
 
-
-    def getEdgesFromField(self, field, checkTypes = None):
+    def getEdgesFromField(self, field, checkTypes=None):
         if len(field) < 4:
             return []
 
@@ -65,7 +67,9 @@ class EntityParser():
             split = chunk.split(":")
             assert len(split) == 2, "Invalid edge: " + chunk
             targetId = split[0]
-            assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + ("\"" if targetId[3] == "-" else "\": Id is not exactly 3 symbols long")
+            assert targetId in self.entities, "Unknown unlocking tech id \"" + targetId + \
+                ("\"" if targetId[3] ==
+                 "-" else "\": Id is not exactly 3 symbols long")
             targetEntity = self.entities[targetId]
 
             die = split[1].strip()
@@ -73,26 +77,24 @@ class EntityParser():
                 die = DIE_ALIASES[die]
             if die == "die-any":
                 for die in DICE_IDS:
-                     result.append((targetEntity, die))
+                    result.append((targetEntity, die))
                 continue
-            assert die in DICE_IDS, "Unknown unlocking die id \"" + die + "\". Allowed dice are " + str(DICE_IDS)
+            assert die in DICE_IDS, "Unknown unlocking die id \"" + \
+                die + "\". Allowed dice are " + str(DICE_IDS)
             result.append((targetEntity, die))
         return result
 
-
-    def kwargsEntityWithCost(self, line, includeEdges = True):
+    def kwargsEntityWithCost(self, line, includeEdges=True):
         cost = self.parseCost(line[3])
         cost[self.entities["res-prace"]] = Decimal(line[2])
         return {'id': line[0],
-                'name':line[1],
-                'cost':cost,
+                'name': line[1],
+                'cost': cost,
                 'points': Decimal(line[4])}
-
 
     def parseDieCost(self, s):
         assert s.split(":")[0] in DIE_IDS, "Unknown die id: " + s.split(":")[0]
         return (s.split(":")[0], int(s.split(":")[1]))
-
 
     def parseLineGeneric(self, c, line):
         e = c(id=line[0], name=line[1])
@@ -101,7 +103,8 @@ class EntityParser():
     def parseLineTeam(self, line):
         if len(line) != 6:
             raise RuntimeError(f"Team line {line} doesn't look like team line")
-        tiles = [tile for tile in self.entities.values() if isinstance(tile, MapTileEntity) and tile.name == line[5]]
+        tiles = [tile for tile in self.entities.values() if isinstance(
+            tile, MapTileEntity) and tile.name == line[5]]
         assert len(tiles) == 1, f"Invalid set of team starting tiles: {tiles}"
         team = Team(
             id=line[0],
@@ -123,12 +126,10 @@ class EntityParser():
             password=line[3])
         self.entities[org.id] = org
 
-
     def parseLineTyp(self, line):
         typ = ResourceType(id=line[0], name=line[1], productionName=line[2],
-            colorName=line[3], colorVal=int(line[4], 0))
+                           colorName=line[3], colorVal=int(line[4], 0))
         self.entities[line[0]] = typ
-
 
     def parseLineMaterial(self, line):
         id = line[0]
@@ -146,61 +147,64 @@ class EntityParser():
         assert len(line[2]) > 0, "Name of production cannot be empty"
 
         id = "pro" + id[3:]
-        pro = Resource(id=id, name=line[2], typ=typData, produces=mat, icon=icon[:-5]+"b.svg")
+        pro = Resource(
+            id=id, name=line[2], typ=typData, produces=mat, icon=icon[:-5]+"b.svg")
         self.entities[id] = pro
 
-
-    def parseLineTechCreateEntity(self, line:str):
+    def parseLineTechCreateEntity(self, line: str):
         bonuses = [x.strip() for x in line[7].split(",") if x.strip() != ""]
         for bonus in bonuses:
             if not bonus.split("-")[0] in TECH_BONUS_TOKENS:
                 raise AssertionError(f"Unknown tech bonus \"{bonus}\"")
         tech = Tech(
-                bonuses=bonuses,
-                flavor=line[8],
-                **self.kwargsEntityWithCost(line, includeEdges=False))
+            bonuses=bonuses,
+            flavor=line[8],
+            **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
-
 
     def parseLineTechAddUnlocks(self, line):
         tech = self.entities[line[0]]
         assert isinstance(tech, Tech)
-        unlocks = self.getEdgesFromField(line[5]) + self.getEdgesFromField(line[6])
+        unlocks = self.getEdgesFromField(
+            line[5]) + self.getEdgesFromField(line[6])
         for unlock in unlocks:
             target = unlock[0]
             if not isinstance(target, EntityWithCost):
                 print(target)
                 print(unlock)
-            assert isinstance(target, EntityWithCost), "Cannot unlock entity without a cost: " + target
+            assert isinstance(
+                target, EntityWithCost), "Cannot unlock entity without a cost: " + target
             target.unlockedBy.append((tech, unlock[1]))
         tech.unlocks += unlocks
 
-
-    def getFeaturesFromField(self, field, onlyNaturals = False):
+    def getFeaturesFromField(self, field, onlyNaturals=False):
         if len(field) < 2:
             return []
         result = []
         for x in [x.strip() for x in field.split(",")]:
             assert x in self.entities, "Unknown entity: " + x
             feature = self.entities[x]
-            assert isinstance(feature, TileFeature), "Entity is not a tile feature: " + x + " (" + type(feature).__name__ + ")"
+            assert isinstance(feature, TileFeature), "Entity is not a tile feature: " + \
+                x + " (" + type(feature).__name__ + ")"
             if onlyNaturals:
-                assert isinstance(feature, NaturalResource), "Feature \"" + x + "\" is not a natural resource, but a " + type(x).name
+                assert isinstance(feature, NaturalResource), "Feature \"" + \
+                    x + "\" is not a natural resource, but a " + type(x).name
             result.append(feature)
         return result
 
-
     def parseLineBuilding(self, line):
-        build = Building(requiredFeatures=self.getFeaturesFromField(line[5], onlyNaturals=True), **self.kwargsEntityWithCost(line), icon=line[6])
+        build = Building(requiredFeatures=self.getFeaturesFromField(
+            line[5], onlyNaturals=True), **self.kwargsEntityWithCost(line), icon=line[6])
         self.entities[line[0]] = build
-
 
     def parseLineVyroba(self, line: str):
         reward = self.parseCostSingle(line[6])
-        assert not reward[0].isGeneric, "Vyroba cannot reward generic resource \"" + str(reward[0]) + "\""
+        assert not reward[0].isGeneric, "Vyroba cannot reward generic resource \"" + \
+            str(reward[0]) + "\""
         requiredFeatures = self.getFeaturesFromField(line[7])
         flavor = line[8]
-        vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures, flavor=flavor, **self.kwargsEntityWithCost(line))
+        vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures,
+                        flavor=flavor, **self.kwargsEntityWithCost(line))
         assert "res-obyvatel" not in vyroba.cost, "Cannot declare Obyvatel cost explicitly, use column cena-obyvatel instead"
 
         obyvatelCost = Decimal(line[5]) if len(line[5]) > 0 else 0
@@ -215,40 +219,38 @@ class EntityParser():
             tech.unlocks.append((vyroba, edge[1]))
         self.entities[line[0]] = vyroba
 
-
-
     def parseLineTile(self, line, lineId):
-        id = "map-tile" + line[1].rjust(2,"0")
+        id = "map-tile" + line[1].rjust(2, "0")
         team = None
         name = line[0].upper()
         assert not id in self.entities, "Id already exists: " + id
         index = int(line[1])
         resources = [self.entities[x.strip()] for x in line[2].split(",")]
         tile = MapTileEntity(id=id, name=name, index=index, naturalResources=resources,
-                            parcelCount=int(line[3]), richness=int(line[4]))
+                             parcelCount=int(line[3]), richness=int(line[4]))
         self.entities[id] = tile
-
 
     def parseSheet(self, sheetId, dataOffset, parser, prefixes, asserts=True, includeIndex=False):
         if (len(self.errors) > 0):
             return
 
-        for lineId, line in enumerate(self.data[sheetId][dataOffset:], start = 1 + dataOffset):
-            # try:
-            if asserts:
-                assert not line[0] in self.entities, "Id already exists: " + line[0]
-                assert line[0][3] == '-', f"Id {line[0]} prefix must be 3 chars long, got \"" + line[0] + "\""
-                assert line[0][:3] in prefixes, "Invalid id prefix: \"" + line[0][:3] + "\" (allowed prefixes: " + str(prefixes) + ")"
-                assert len(line[1]) >= 3, "Entity name cannot be empty"
-            parser(line, lineId) if includeIndex else parser(line)
+        for lineId, line in enumerate(self.data[sheetId][dataOffset:], start=1 + dataOffset):
+            try:
+                if asserts:
+                    assert not line[0] in self.entities, "Id already exists: " + line[0]
+                    assert line[0][3] == '-', f"Id {line[0]} prefix must be 3 chars long, got \"" + line[0] + "\""
+                    assert line[0][:3] in prefixes, "Invalid id prefix: \"" + \
+                        line[0][:3] + "\" (allowed prefixes: " + \
+                        str(prefixes) + ")"
+                    assert len(line[1]) >= 3, "Entity name cannot be empty"
+                parser(line, lineId) if includeIndex else parser(line)
 
-        #     except Exception as e:
-        #         message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
-        #         self.errors.append(message)
+            except Exception as e:
+                message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
+                self.errors.append(message)
 
-        # for e in self.errors:
-        #     self.reportError("  " + e)
-
+        for e in self.errors:
+            self.reportError("  " + e)
 
     def parseTeams(self):
         self.parseSheet("teams", 1, self.parseLineTeam, ["tym"])
@@ -260,38 +262,46 @@ class EntityParser():
         self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
 
     def parseMaterials(self):
-        self.parseSheet("material", 1, lambda x: self.parseLineMaterial(x), ["res", "mat"])
+        self.parseSheet(
+            "material", 1, lambda x: self.parseLineMaterial(x), ["res", "mat"])
 
     def parseNaturalResources(self):
-        self.parseSheet("naturalResource", 1, lambda x: self.parseLineGeneric(NaturalResource, x), ["nat"])
+        self.parseSheet("naturalResource", 1, lambda x: self.parseLineGeneric(
+            NaturalResource, x), ["nat"])
 
     def parseBuildings(self):
-        self.parseSheet("building", 1, lambda x: self.parseLineBuilding(x), ["bui"])
+        self.parseSheet(
+            "building", 1, lambda x: self.parseLineBuilding(x), ["bui"])
 
     def parseVyrobas(self):
-        self.parseSheet("vyroba", 1, lambda x: self.parseLineVyroba(x), ["vyr"])
+        self.parseSheet(
+            "vyroba", 1, lambda x: self.parseLineVyroba(x), ["vyr"])
 
     def parseTiles(self):
-        self.parseSheet("tile", 1, lambda x, y: self.parseLineTile(x, y), ["map"], asserts=False, includeIndex=True)
+        self.parseSheet("tile", 1, lambda x, y: self.parseLineTile(
+            x, y), ["map"], asserts=False, includeIndex=True)
 
     def parseTechsEmpty(self):
-        self.parseSheet("tech", 1, lambda x: self.parseLineTechCreateEntity(x), ["tec"])
-    def parseTechsFill(self):
-        self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), ["tec"], asserts=False)
+        self.parseSheet(
+            "tech", 1, lambda x: self.parseLineTechCreateEntity(x), ["tec"])
 
+    def parseTechsFill(self):
+        self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), [
+                        "tec"], asserts=False)
 
     def checkMap(self, entities):
         if len(entities.teams) * 4 != len(entities.tiles):
             self.errors.append("World size is wrong: There are {} tiles and {} teams (expecting 4 tiles per team)".format(
-                    len(entities.tiles),
-                    len(entities.teams)))
+                len(entities.tiles),
+                len(entities.teams)))
             return
 
         tiles = entities.tiles
         for i in range(len(tiles)):
             count = sum(1 for x in tiles.values() if x.index == i)
             if count > 1:
-                self.errors.append("Tile index {} occured {} times".format(i, count))
+                self.errors.append(
+                    "Tile index {} occured {} times".format(i, count))
             if count < 1:
                 self.errors.append("Tile index {} missing".format(i))
 
@@ -317,7 +327,6 @@ class EntityParser():
         for r in newResources:
             self.entities[r.id] = r
 
-
     def hardcodeValues(self):
         work = self.entities["res-prace"]
         obyvatel = self.entities["res-obyvatel"]
@@ -337,8 +346,8 @@ class EntityParser():
             if id == "tec-start" or id == "tec-epoch":
                 continue
             if len(entity.unlockedBy) == 0:
-                self.errors.append(f"{id} ({entity.name}) nemá odemykající hranu")
-
+                self.errors.append(
+                    f"{id} ({entity.name}) nemá odemykající hranu")
 
     def parse(self) -> Entities:
         self.entities = {}
@@ -360,7 +369,6 @@ class EntityParser():
 
         self.checkUnlockedBy()
 
-
         if len(self.errors) == 0:
             for id in GUARANTEED_IDS:
                 if not id in self.entities:
@@ -373,7 +381,9 @@ class EntityParser():
                 return entities
         for message in self.errors:
             print(message)
-        raise RuntimeError(f"Found {len(self.errors)} errors. Entities are not complete")
+        raise RuntimeError(
+            f"Found {len(self.errors)} errors. Entities are not complete")
+
 
 def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
     from game.plague import readPlagueFromEntities
@@ -381,6 +391,7 @@ def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> E
     parser = EntityParser(data, reportError)
     baseEntities = parser.parse()
     return Entities(baseEntities.values(), readPlagueFromEntities(data))
+
 
 def loadEntities(fileName) -> Entities:
     from game.plague import readPlagueFromEntities
