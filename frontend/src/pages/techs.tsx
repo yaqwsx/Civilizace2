@@ -390,7 +390,7 @@ function SelectTaskForTechForm(props: {
                     className="select"
                 >
                     <option>Nevybráno</option>
-                    {recommendedTechs.map((t) => (
+                    {recommendedTechs.sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
                         <TaskSelectRow key={t.id} team={props.team} task={t} />
                     ))}
                 </select>
@@ -402,7 +402,7 @@ function SelectTaskForTechForm(props: {
                     className="select"
                 >
                     <option>Nevybráno</option>
-                    {Object.values(tasks).map((t) => (
+                    {Object.values(tasks).sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
                         <TaskSelectRow key={t.id} team={props.team} task={t} />
                     ))}
                 </select>
