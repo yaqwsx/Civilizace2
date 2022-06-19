@@ -256,7 +256,7 @@ class ActionViewSet(viewsets.ViewSet):
         Self.dbStoreInteraction(dbAction, dbState, InteractionType.delayedReward,
                                 None, action.state, action)
         gainedStickers = Self._computeStickers(sourceState, state)
-        effect.stickers = effect.stickers + list(gainedStickers)
+        effect.stickers = effect.stickers + list(gainedStickers) if effect.stickers is not None else list(gainedStickers)
         effect.withdrawn = True
         effect.save()
 
