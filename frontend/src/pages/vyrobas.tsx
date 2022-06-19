@@ -259,19 +259,21 @@ function PerformVyroba(props: PerformVyrobaProps) {
         if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
         console.log(vyroba)
         let homeTile = tiles.find((t) => t?.homeTeam === props.team.id)
-        if (!homeTile)
-            return
-        if (props.vyroba.allowedTiles.includes(homeTile.entity)) {
-            setTile(homeTile.entity);
-            return
-        }
-        for (let t of tiles) {
-            if (vyroba.allowedTiles.includes(t.entity)) {
-                setTile(t.entity);
-                return;
-            }
-        }
         setTile(homeTile.entity);
+        return;
+        // if (!homeTile)
+        //     return
+        // if (props.vyroba.allowedTiles.includes(homeTile.entity)) {
+        //     setTile(homeTile.entity);
+        //     return
+        // }
+        // for (let t of tiles) {
+        //     if (vyroba.allowedTiles.includes(t.entity)) {
+        //         setTile(t.entity);
+        //         return;
+        //     }
+        // }
+        // setTile(homeTile.entity);
     }, [tiles, props.team, vyroba]);
 
     if (!entities || !tiles) {
@@ -296,7 +298,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
     );
 
     let sortedTiles = tiles.sort((a, b) =>
-        a.entity.localeCompare(b.entity)
+        a.name.localeCompare(b.name)
     );
 
 
@@ -314,6 +316,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                 genericsMapping: concretization,
                 // TBA army
             }}
+            argsValid={(a) => a.tile}
             onFinish={() => props.onReset()}
             onBack={() => props.onReset()}
             extraPreview={
@@ -330,6 +333,9 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             value={tile}
                             onChange={(e) => setTile(e.target.value)}
                         >
+                            <option value="">
+                                        Pole nevybráno
+                                    </option>
                             {sortedTiles
                                 // .filter((t) =>
                                 //     vyroba.allowedTiles.includes(t.entity)
