@@ -340,6 +340,10 @@ class TeamState(StateModel):
         return self.resources.get(adHocEntitiy("res-prace"), 0)
 
     @property
+    def obyvatels(self) -> Decimal:
+        return self.resources.get(adHocEntitiy("res-obyvatel"), 0)
+
+    @property
     def population(self) -> int:
         return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel"]]) + self.employees
 

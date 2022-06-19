@@ -72,6 +72,18 @@ class Team(EntityBase):
     visible: bool
     homeTileId: EntityId
 
+    @property
+    def hexColor(self):
+        {
+            "tym-zluti": "#eab308",
+            "tym-zeleni": "#16a34a",
+            "tym-ruzovi": "#db2777",
+            "tym-oranzovi": "#f97316",
+            "tym-modri": "#2563eb",
+            "tym-fialovi": "#a855f7",
+            "tym-cerveni": "#dc2626"
+        }.get(self.id, "#000000")
+
 
 class OrgRole(Enum):
     ORG = 0
