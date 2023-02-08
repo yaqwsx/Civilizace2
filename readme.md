@@ -29,7 +29,8 @@ $ conda env update --file conda-env.yml --prune
   `game/data/entities`
 - zresetuj hru pomocí `scripts/resetGame.sh TEST` - to vytvoří databázi a aplikuje
   migrace. TEST je název sady entit
-- funguj úplně normálně jako s Djangem.
+- funguj úplně normálně jako s Djangem - tj. zejména chceš `python manage.py
+  runserver`
 
 ### Jak spustit frontend
 
