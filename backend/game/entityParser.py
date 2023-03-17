@@ -386,19 +386,15 @@ class EntityParser():
 
 
 def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
-    from game.plague import readPlagueFromEntities
-
     parser = EntityParser(data, reportError)
     baseEntities = parser.parse()
-    return Entities(baseEntities.values(), readPlagueFromEntities(data))
+    return Entities(baseEntities.values(), None)
 
 
 def loadEntities(fileName) -> Entities:
-    from game.plague import readPlagueFromEntities
-
     with open(fileName) as file:
         data = json.load(file)
 
     parser = EntityParser(data)
     entities = parser.parse()
-    return Entities(entities.values(), readPlagueFromEntities(data))
+    return Entities(entities.values(), None)

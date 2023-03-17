@@ -8,8 +8,6 @@ from core.gsheets import getSheets
 from game.entityParser import EntityParser
 from django.conf import settings
 
-from game.plague import readPlagueFromEntities
-
 ENTITY_SETS = {
     "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",
     "TEST": "1d-d_cCsee7IZd7ZRhnRGMpKaWbjCA6pl-fU-3yYpvKw"
@@ -47,7 +45,6 @@ def trySave(name, id):
         targetFile = settings.ENTITY_PATH / setFilename(name)
         print(f"Pulling world {name} to file {targetFile}")
         data = pullEntityTable(id)
-        readPlagueFromEntities(data)
         checkAndSave(data, targetFile)
     except RuntimeError as e:
         sys.exit("ERROR: Failed to save entities. Cause: {}".format(e.args[0]))
