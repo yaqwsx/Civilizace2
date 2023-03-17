@@ -32,6 +32,6 @@ class Command(BaseCommand):
                 "teamDescription": tLine[4]})
             DbTaskPreference.objects.filter(task=tLine[0]).delete()
             for tech in tLine[5].split(","):
-                tech = re.sub("\(.*\)", "", tech)
+                tech = re.sub(r"\(.*\)", "", tech)
                 tech = tech.strip()
                 DbTaskPreference.objects.get_or_create(task=task, techId=tech)
