@@ -145,7 +145,7 @@ class EntityWithCost(EntityBase):
     #            [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
 
     @property
-    def unlockingDice(self) -> Set[dieId]:
+    def unlockingDice(self) -> Set[DieId]:
         return set(d for e, d in self.unlockedBy)
 
 
@@ -159,7 +159,7 @@ class Tech(EntityWithCost):
         return set(x for x, _ in self.unlocks if isinstance(x, Vyroba))
 
     @property
-    def unlocksTechs(self) -> Set[Vyroba]:
+    def unlocksTechs(self) -> Set[Tech]:
         return set(x for x, _ in self.unlocks if isinstance(x, Tech))
 
     @property
@@ -255,11 +255,6 @@ class Entities(frozendict):
     def techs(self) -> frozendict[EntityId, Tech]:
         return frozendict({k: v for k, v in self.items()
                            if isinstance(v, Tech)})
-
-    @cached_property
-    def teams(self) -> frozendict[EntityId, Team]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Team)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
