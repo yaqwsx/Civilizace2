@@ -17,7 +17,7 @@ from game.models import DbEntities
 
 def prettyprint(resources: Dict[Resource, Decimal]):
     return ", ".join([f"{amount}x {resource.name}" for resource, amount in resources.items()])
-        
+
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
@@ -27,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument("name")
 
     def handle(self, name, *args, **kwargs):
-        
+
         targetFile = settings.ENTITY_PATH / setFilename("GAME")
         entities = loadEntities(targetFile)
 
@@ -47,7 +47,7 @@ class Command(BaseCommand):
         for vyroba in entities.vyrobas.values():
             if material in vyroba.cost:
                 print(f"  {vyroba.cost[material]}x in {vyroba.name} ({vyroba.points}P): {prettyprint(vyroba.cost)}  =>  {vyroba.reward}        Tech: {vyroba.unlockedBy[0][0].name}/{vyroba.unlockedBy[0][1]}")
-        
+
         print("PRODUCTION used in:")
         material = entities[prodPrefix + name]
         for vyroba in entities.vyrobas.values():

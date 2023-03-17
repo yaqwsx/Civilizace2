@@ -164,6 +164,6 @@ handler500 = 'rest_framework.exceptions.server_error'
 # Import file settingLocal.py and override any keys
 # Useful when Windows need some tweaking
 try:
-   from .settingsLocal import *
+    from .settingsLocal import *
 except ImportError:
-   pass
+    pass

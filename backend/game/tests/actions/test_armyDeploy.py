@@ -10,7 +10,7 @@
 #     from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 #     from game.actions.armyDeploy import ActionArmyDeployArgs, ArmyGoal
 
- 
+
 import pytest
 from game.actions.ArmyDeploy import ActionArmyDeploy, ActionArmyDeployArgs
 from game.actions.actionBase import makeAction
@@ -20,7 +20,7 @@ from game.entities import Entities, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyMode, GameState, MapTile, StateModel
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
-    
+
 
 def test_cost():
     state = createTestInitState()
@@ -41,7 +41,7 @@ def test_cost():
 
     cost = action.cost()
     assert cost == {entities.zbrane: 10}, f"Requires {cost} (exp. 10x zbrane)"
-    
+
     expected = 600
     assert action.requiresDelayedEffect() == expected, \
         f"Deploying {army.name} to tile {tile.name} \
@@ -53,7 +53,7 @@ def test_cost():
     assert action.requiresDelayedEffect() == expected, \
         f"Deploying {army.name} to tile {tile.name} \
         should take {expected}s, act={action.requiresDelayedEffect()})"
-        
+
 
 
 def test_commit():
@@ -100,7 +100,7 @@ def test_underequip():
         action.cost()
         action.applyCommit()
 
-    
+
 
 def sendArmyTo(entities: Entities, state: GameState, army: Army, tile: MapTileEntity, goal: ArmyGoal=ArmyGoal.Occupy, equipment=0, boost=0, friendlyTeam=None):
     args = ActionArmyDeployArgs(armyIndex=army.index, tile=tile, team=army.team, goal=goal, equipment=equipment, friendlyTeam=friendlyTeam)
@@ -490,7 +490,7 @@ def test_retreatArmy():
     result = action.applyCommit()
 
     assert map.getOccupyingArmy(tile) == None
-    
+
     exp = Army(index=2, team=team.team, name="A", equipment=0, level=3, tile=None, mode=ArmyMode.Idle)
     assert army == exp
     assert "|15]]" in result.message

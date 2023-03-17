@@ -34,7 +34,7 @@ def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -
         casteCount=state.world.casteCount,
         automated=automated
     )
-    
+
 
 class ActionFeedArgs(ActionArgs):
     team: Team

@@ -125,7 +125,7 @@ def test_richnessMaterial():
     team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
-    
+
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
         count = 2,
@@ -152,7 +152,7 @@ def test_richnessProduction():
     team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
-    
+
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 2,
@@ -179,7 +179,7 @@ def test_plunderMaterial():
     team.resources[entities["pro-drevo"]] = 20
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
-    
+
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
         count = 2,
@@ -232,7 +232,7 @@ def test_featureMissing():
     team = state.teamStates[entities["tym-zluti"]]
     tile = state.map.tiles[27]
     team.resources[entities["pro-drevo"]] = 20
-    
+
     args = ActionVyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 2,
