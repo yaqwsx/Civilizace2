@@ -42,6 +42,6 @@ $ conda env update --file conda-env.yml --prune
 
 Django spravuje migrace, ale při vývoji se pohybujeme velmi rychle a hlavně s
 sebou netáhneme produkční databázi. V rámci jednoduchosti a rychlosti existuje
-skprit `scripts/resetGameHard.sh`, který zruší aktuální migrace, vygeneruje nové
+skript `scripts/resetGameHard.sh`, který zruší aktuální migrace, vygeneruje nové
 a zinicializuje hru.
 
