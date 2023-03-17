@@ -1,10 +1,11 @@
 import os
-from typing import Dict
 import json
-from typing import List
+from argparse import ArgumentParser
+from typing import Optional
 from django.core.management import BaseCommand
+from frozendict import frozendict
 from core.models.announcement import Announcement
-from game.entities import Entity, EntityId, Org, OrgRole, Team as TeamEntity
+from game.entities import Entities, Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import loadEntities
 from django.conf import settings
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
@@ -23,9 +24,9 @@ class Command(BaseCommand):
     help = "usage: create [entities|users|state]+"
 
     @staticmethod
-    def create_or_update_user(username, password, superuser=False, team=None):
+    def create_or_update_user(username: str, password: Optional[str], superuser: bool=False, team: Optional[Team]=None) -> User:
         try:
-            u = User.objects.get(username=username)
+            u: User = User.objects.get(username=username)
             u.set_password(password)
             u.team = team
             u.is_superuser = superuser
@@ -40,10 +41,10 @@ class Command(BaseCommand):
                                                 password=password,
                                                 team=team)
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("entities", type=str)
 
-    def handle(self, entities, *args, **options):
+    def handle(self, entities: str, *args, **options) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(entities)
         ent = loadEntities(targetFile)
 
@@ -56,7 +57,7 @@ class Command(BaseCommand):
             self.createInitialState(ent, entities)
             self.createRounds()
 
-    def clearGame(self):
+    def clearGame(self) -> None:
         DbTick.objects.all().delete()
         DbSticker.objects.all().delete()
         DbDelayedEffect.objects.all().delete()
@@ -72,12 +73,12 @@ class Command(BaseCommand):
         User.objects.all().delete()
         Team.objects.all().delete()
 
-    def createOrgs(self, orgs: Dict[EntityId, Org]) -> None:
+    def createOrgs(self, orgs: frozendict[EntityId, Org]) -> None:
         for o in orgs.values():
             self.create_or_update_user(username = o.id[4:], password=o.password,
                                           superuser=o.role == OrgRole.SUPER)
 
-    def createTeams(self, teams: Dict[EntityId, TeamEntity]) -> None:
+    def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
         for t in teams.values():
             teamModel = Team.objects.create(id=t.id, name=t.name, color=t.color,
                                             visible=t.visible)
@@ -85,12 +86,12 @@ class Command(BaseCommand):
                 self.create_or_update_user(username=f"{t.id[4:]}{i+1}",
                     password=t.password, superuser=False, team=teamModel)
 
-    def createEntities(self, entityFile) -> None:
+    def createEntities(self, entityFile: str | os.PathLike[str]) -> None:
         with open(entityFile) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)
 
-    def createInitialState(self, entities, setname) -> None:
+    def createInitialState(self, entities: Entities, setname: str) -> None:
         if setname == "TEST":
             from game.tests.actions.common import createTestInitState
             irState = createTestInitState()
@@ -105,7 +106,7 @@ class Command(BaseCommand):
         ActionViewSet._awardStickers(res)
 
 
-    def createRounds(self):
+    def createRounds(self) -> None:
         for i in range(200):
             DbTurn.objects.create(duration=15 * 60 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 60)
 

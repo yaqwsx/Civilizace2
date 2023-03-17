@@ -53,7 +53,7 @@ class ImmutableModel(TrackedModel):
         abstract = True
 
     @staticmethod
-    def saveAndIfDirty(model):
+    def saveAndIfDirty(model) -> bool:
         pk = model.pk
         model.save()
         return pk != model.pk

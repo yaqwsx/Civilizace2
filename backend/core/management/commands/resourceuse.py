@@ -1,21 +1,14 @@
-from collections import Counter
+from argparse import ArgumentParser
 from decimal import Decimal
-from pathlib import Path
-import json
-import sys
-from typing import Dict
 from django.core.management import BaseCommand
 
-from core.gsheets import getSheets
 from core.management.commands.pullentities import setFilename
 from game.entities import Resource
-from game.entityParser import EntityParser, loadEntities
+from game.entityParser import loadEntities
 from django.conf import settings
 
-from game.models import DbEntities
 
-
-def prettyprint(resources: Dict[Resource, Decimal]):
+def prettyprint(resources: dict[Resource, Decimal]):
     return ", ".join([f"{amount}x {resource.name}" for resource, amount in resources.items()])
 
 
@@ -23,10 +16,10 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser):
         parser.add_argument("name")
 
-    def handle(self, name, *args, **kwargs):
+    def handle(self, name: str, *args, **kwargs):
 
         targetFile = settings.ENTITY_PATH / setFilename("GAME")
         entities = loadEntities(targetFile)

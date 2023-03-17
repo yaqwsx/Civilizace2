@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from ctypes import ArgumentError
 from game.state import Army, GameState
 from collections import Counter
@@ -37,11 +38,11 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser):
         parser.add_argument("targetcount")
 
     def handle(self, targetcount, *args, **kwargs):
-        raise Exception("Not finished yet")
+        raise NotImplementedError("Not finished yet")
         state = None
         assert len(state.map.armies) == 8*(targetcount+1)
         addArmies(state)

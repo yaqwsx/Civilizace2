@@ -92,7 +92,7 @@ class DbList(list):
                 return item
         raise self.model_type.DoesNotExist()
 
-    def has(self, **kwargs):
+    def has(self, **kwargs) -> bool:
         def eq(field, value):
             if isinstance(field, Model):
                 field = field.pk
@@ -102,7 +102,7 @@ class DbList(list):
         for item in self:
             if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
                 return True
-        False
+        return False
 
 class ListField(Field):
     def __init__(self, model_type, model_manager=None, **kwargs):

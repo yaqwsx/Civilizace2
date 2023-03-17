@@ -32,6 +32,7 @@ class DbEntitiesManager(models.Manager):
     def get_revision(self, revision: Optional[int] = None) -> Tuple[int, Entities]:
         if revision is None:
             revision = self.latest("id").id
+            assert revision is not None
         if revision in self.cache:
             return revision, self.cache[revision]
         dbEntities = self.get(id=revision)

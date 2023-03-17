@@ -1,7 +1,8 @@
+from typing import Optional
 from django.db import models
 from core.models.user import User
 from core.models.team import Team
-from django.db.models import Q, Count
+from django.db.models import Count
 from django.utils import timezone
 
 class AnnouncementType(models.IntegerChoices):
@@ -10,18 +11,18 @@ class AnnouncementType(models.IntegerChoices):
     game = 3
 
 class AnnouncementManager(models.Manager):
-    def getUnread(self, user):
+    def getUnread(self, user: User):
         return self.getTeam(user.team) \
             .filter(~models.Exists(
                 ReadEvent.objects.filter(user=user, announcement=models.OuterRef("pk"))))
 
-    def getTeamUnread(self, team):
+    def getTeamUnread(self, team: Team):
         return self.getTeam(team) \
             .filter(~models.Exists(
                 ReadEvent.objects.filter(announcement=models.OuterRef("pk"), user__team=team)
             ))
 
-    def getTeam(self, team):
+    def getTeam(self, team: Optional[Team]):
         return self.getVisible().filter(teams=team).prefetch_related("readevent_set")
 
     def getVisible(self):
@@ -57,11 +58,12 @@ class Announcement(models.Model):
     def isPublic(self):
         return self.allowedTeams().count() == Team.objects.count()
 
-    def seenByTeamAt(self, team):
+    def seenByTeamAt(self, team: Team):
         try:
-            return ReadEvent.objects \
+            event = ReadEvent.objects \
                 .filter(announcement=self, user__team=team, readAt__isnull=False) \
-                .order_by("readAt").first().readAt
+                .order_by("readAt").first()
+            return event.readAt if event is not None else None
         except ReadEvent.DoesNotExist:
             return None
 

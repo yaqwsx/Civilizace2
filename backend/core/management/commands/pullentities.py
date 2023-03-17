@@ -1,5 +1,6 @@
+from argparse import ArgumentParser
 from collections import Counter
-from pathlib import Path
+from os import PathLike
 import json
 import sys
 from django.core.management import BaseCommand
@@ -13,15 +14,15 @@ ENTITY_SETS = {
     "TEST": "1d-d_cCsee7IZd7ZRhnRGMpKaWbjCA6pl-fU-3yYpvKw"
 }
 
-def setFilename(name):
+def setFilename(name: str) -> str:
     return f"{name}.json"
 
-def pullEntityTable(id):
+def pullEntityTable(id: str) -> dict[str, list]:
     sheets = getSheets(id)
     data = {sheet.title: sheet.get_all_values() for sheet in sheets.worksheets()}
     return data
 
-def checkAndSave(data, fileName):
+def checkAndSave(data, fileName: str | PathLike[str]):
     parser = EntityParser(data)
     entities = parser.parse()
 
@@ -40,7 +41,7 @@ def checkAndSave(data, fileName):
 
     print("Data saved to file {}".format(fileName))
 
-def trySave(name, id):
+def trySave(name, id: str):
     try:
         targetFile = settings.ENTITY_PATH / setFilename(name)
         print(f"Pulling world {name} to file {targetFile}")
@@ -55,7 +56,7 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser):
             # Optional argument
             parser.add_argument('-s', '--set', type=str, nargs='+')
 

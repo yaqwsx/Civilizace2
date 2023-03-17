@@ -1,12 +1,9 @@
-from collections import Counter
-from pathlib import Path
+from argparse import ArgumentParser
 import json
 import re
 from django.core.management import BaseCommand
 
-from core.gsheets import getSheets
 from core.management.commands.pullentities import setFilename
-from game.entityParser import EntityParser, loadEntities
 from django.conf import settings
 
 from game.models import DbTask, DbTaskPreference
@@ -15,10 +12,10 @@ class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("setname")
 
-    def handle(self, setname, *args, **kwargs):
+    def handle(self, setname: str, *args, **kwargs) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(setname)
         with open(targetFile, "r") as f:
             tasks = json.load(f)["úkoly"]
