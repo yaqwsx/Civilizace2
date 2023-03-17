@@ -408,3 +408,9 @@ class DbMapDiff(models.Model):
     newLevel = models.IntegerField(null=True)
     team = models.CharField(max_length=32, null=True)
     armyName = models.CharField(max_length=32, null=True)
+
+
+class Trace(models.Model):
+    action = models.ForeignKey(
+        DbAction, related_name="traces", on_delete=models.CASCADE)
+    msg = models.TextField()

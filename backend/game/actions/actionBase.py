@@ -94,6 +94,12 @@ class ActionInterface(BaseModel):
         """
         raise NotImplementedError("You have to implement this")
 
+    def addTrace(self, msg: str) -> None:
+        """
+        Přidá trace
+        """
+        raise NotImplementedError("You have to implement this")
+
 
 def makeAction(cls, state, entities, args):
     action = cls()
@@ -119,6 +125,7 @@ class ActionBase(ActionInterface):
     paid: Dict[Resource, Decimal] = {}
     delayedInfoMessage: Optional[str]
     delayedWarnMessage: Optional[str]
+    traces: List[str] = []
 
     # Private API below
 
@@ -339,6 +346,13 @@ class ActionBase(ActionInterface):
 
     def _applyDelayedReward(self) -> None:
         pass
+
+    def addTrace(self,
+                 msg: str = "",
+                 mb: Optional[MessageBuilder] = None) -> None:
+        if mb is not None:
+            self.traces.append(mb.message)
+        self.traces.append(msg)
 
 
 class HealthyAction(ActionBase):

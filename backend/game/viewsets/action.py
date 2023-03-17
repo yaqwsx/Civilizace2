@@ -11,7 +11,7 @@ from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import ActionInterface, ActionResult
+from game.actions.actionBase import ActionBase, ActionInterface, ActionResult
 from game.actions.common import (ActionFailed, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
@@ -86,7 +86,7 @@ class ActionViewSet(viewsets.ViewSet):
         return action
 
     @staticmethod
-    def dbStoreInteraction(dbAction, dbState, interactionType, user, state, action):
+    def dbStoreInteraction(dbAction, dbState, interactionType, user, state, action: ActionBase):
         interaction = DbInteraction(
             phase=interactionType,
             action=dbAction,
@@ -100,6 +100,10 @@ class ActionViewSet(viewsets.ViewSet):
 
         if action.description and len(action.description) > 0:
             dbAction.description = action.description
+            dbAction.save()
+        if action.traces and len(action.traces) > 0:
+            for msg in action.traces:
+                dbAction.traces.create(msg=msg)
             dbAction.save()
 
     @staticmethod
