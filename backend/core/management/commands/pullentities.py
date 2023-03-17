@@ -11,8 +11,8 @@ from django.conf import settings
 from game.plague import readPlagueFromEntities
 
 ENTITY_SETS = {
-    "GAME": "1BNdnhzJoF9oSLHvpX_UsEPEROZ6U_nHNLsqNerNWIoA",
-    "TEST": "1_6Niwfwu896v6qi2B6l4436HzQ2lVwwlwmS1Xo0izQs"
+    "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",
+    "TEST": "1d-d_cCsee7IZd7ZRhnRGMpKaWbjCA6pl-fU-3yYpvKw"
 }
 
 def setFilename(name):

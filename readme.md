@@ -26,7 +26,7 @@ $ conda env update --file conda-env.yml --prune
     - pokud chceš, můžeš soubor umístit kamkoliv a nastavit proměnnou prostředí
       `CIVILIZACE_GAUTH_FILE` na cestu k němu.
 - stáhni si entity `python manage.py pullentities`. Entity jsou uloženy v
-  `game/data/entities`
+  `data/entities`
 - zresetuj hru pomocí `scripts/resetGame.sh TEST` - to vytvoří databázi a aplikuje
   migrace. TEST je název sady entit
 - funguj úplně normálně jako s Djangem - tj. zejména chceš `python manage.py
