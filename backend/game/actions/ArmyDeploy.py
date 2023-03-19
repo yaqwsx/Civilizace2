@@ -7,7 +7,7 @@ from pydantic import PrivateAttr
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
 from game.entities import MapTileEntity, Resource, Team
-from game.state import Army, ArmyGoal, ArmyMode, MapTile
+from game.state import Army, ArmyGoal, ArmyMode, MapTile, MapState
 
 
 class ActionArmyDeployArgs(ActionArgs):
@@ -32,7 +32,7 @@ class ActionArmyDeploy(ActionBase):
         return self.state.map.armies[self.args.armyIndex]
 
     @property
-    def map(self):
+    def map(self) -> MapState:
         return self.state.map
 
     @property

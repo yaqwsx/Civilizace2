@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Dict
 from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
 from game.entities import Resource, Team, Tech
@@ -17,7 +18,7 @@ class ActionArmyRetreat(ActionBase):
     def description(self):
         return f"Stažení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
 
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> Dict[Resource, Decimal]:
         return {}
 
     def _commitImpl(self) -> None:

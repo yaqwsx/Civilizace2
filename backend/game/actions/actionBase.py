@@ -1,4 +1,5 @@
 import contextlib
+from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
 from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple
@@ -36,7 +37,7 @@ class ActionInterface(BaseModel):
         return self._entities
 
     @property
-    def team(self) -> Team:
+    def team(self) -> Optional[Team]:
         if hasattr(self._generalArgs, "team"):
             return self._generalArgs.team
         return None
@@ -78,8 +79,8 @@ class ActionInterface(BaseModel):
         """
         Voláno přesně, když má proběhnout odložený efekt. Zpráva se zde nikam
         nepromítne a měla by být prázdná.
-        raise NotImplementedError("You have to implement this")
         """
+        raise NotImplementedError("You have to implement this")
 
     def applyDelayedReward(self) -> ActionResult:
         """
@@ -109,7 +110,7 @@ def makeAction(cls, state, entities, args):
     return action
 
 
-class ActionBase(ActionInterface):
+class ActionBase(ActionInterface, metaclass=ABCMeta):
     # Anything that is specified as PrivateAttr is not persistent. I know that
     # you like to have a lot of objects passed implicitly between the function,
     # instead of explicitly, so this is how you can do it.
@@ -126,6 +127,27 @@ class ActionBase(ActionInterface):
     delayedInfoMessage: Optional[str]
     delayedWarnMessage: Optional[str]
     traces: List[str] = []
+
+    # Methods to be implemented by derives
+
+    @property
+    @abstractmethod
+    def args(self) -> ActionArgs:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def description(self) -> str:
+        raise NotImplementedError()
+
+    # @abstractmethod
+    def cost(self) -> Dict[Resource, Decimal]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _commitImpl(self) -> None:
+        raise NotImplementedError()
+
 
     # Private API below
 
@@ -157,11 +179,11 @@ class ActionBase(ActionInterface):
             assert dots == 0
             return True
         _, dotsRequired = self.diceRequirements()
-        workConsumed = throws * self.teamState.throwCost
+        workConsumed = throws * tState.throwCost
         workAvailable = tState.work
 
         tState.resources[self.entities.work] = max(
-            0, tState.resources.get(self.entities.work, 0) - workConsumed)
+            Decimal(0), tState.resources.get(self.entities.work, Decimal(0)) - workConsumed)
         if workConsumed > workAvailable:
             self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " +
                                "Akce neuspěla. Tým přišel o zaplacené zdroje.")
@@ -194,17 +216,9 @@ class ActionBase(ActionInterface):
         if not self._errors.empty:
             raise ActionFailed(self._errors)
 
-    @contextlib.contextmanager
-    def _startBothLists(self, header: str) -> Generator[Callable[[str], None], None, None]:
-        with self._info.startList(header) as addILine, \
-                self.error.startList(header) as addELine:
-            def addLine(*args, **kwargs):
-                addILine(*args, **kwargs)
-                addELine(*args, **kwargs)
-            yield addLine
-
     def payResources(self, resources: Dict[Resource, Decimal]) -> Dict[Resource, Decimal]:
         team = self.teamState
+        assert team is not None
         tokens = {}
         missing = {}
         for resource, amount in resources.items():
@@ -227,6 +241,7 @@ class ActionBase(ActionInterface):
 
     def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
         team = self.teamState
+        assert team is not None
         storage = {}
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
@@ -256,6 +271,7 @@ class ActionBase(ActionInterface):
         return (set(), 0)
 
     def throwCost(self) -> int:
+        assert self.teamState is not None
         return self.teamState.throwCost
 
     def requiresDelayedEffect(self) -> int:

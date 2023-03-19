@@ -28,6 +28,7 @@ class ActionAddCultureArgs(ActionBase):
         if self.args.culture < 0:
             raise ActionFailed("Nemůžu udělit zápornou kulturu")
         tState = self.teamState
+        assert tState is not None
         c = self.entities["res-kultura"]
         tState.resources[c] = tState.resources.get(c, 0) + self.args.culture
         self._info.add(f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[c]}.")

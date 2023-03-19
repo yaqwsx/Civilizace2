@@ -33,10 +33,11 @@ class ActionBuild(ActionBase):
 
 
     def diceRequirements(self) -> Tuple[Set[DieId], int]:
+        assert self.teamState
         return (self.teamState.getUnlockingDice(self.args.build), self.args.build.points)
 
 
-    def requiresDelayedEffect(self) -> int:
+    def requiresDelayedEffect(self) -> Decimal:
         return self.state.map.getActualDistance(self.args.team, self.args.tile)
 
 

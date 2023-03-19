@@ -6,10 +6,12 @@ from statistics import mode
 import types
 import pydantic
 from pydantic import BaseModel, PrivateAttr
-from typing import List, Dict, Optional, Iterable, Union, Set
+from typing import TYPE_CHECKING, Any, Callable, List, Dict, Optional, Iterable, Type, TypeVar, Union, Set
 from decimal import Decimal
 from game.actions.common import ActionException, ActionFailed, MessageBuilder
 from game.entities import *
+
+TModel = TypeVar('TModel', bound='BaseModel')
 
 
 class StateModel(BaseModel):
@@ -26,12 +28,12 @@ class StateModel(BaseModel):
     # By default, pydantic makes a copy of models on validation. We want to
     # avoid this as state is shared. Therefore, we override the behavior
     @classmethod
-    def validate(cls: types['pydantic.Model'], value: Any) -> 'pydantic.Model':
+    def validate(cls: Type[TModel], value: Any) -> TModel:
         if isinstance(value, cls):
             return value  # This is the changed behavior
-        return super().validate(cls, value)
+        return super().validate(value)
 
-    def _setParent(self, parent: Optional[BaseModel] = None):
+    def _setParent(self, parent: Optional[StateModel] = None):
         self._parent = parent
 
 
@@ -121,7 +123,8 @@ class MapTile(StateModel):  # Game state element
 
     @property
     def features(self) -> List[TileFeature]:
-        return self.entity.naturalResources + list(self.buildings)
+        buildings: List[TileFeature] = list(self.buildings)
+        return self.entity.naturalResources + buildings
 
     @property
     def id(self) -> EntityId:
@@ -145,7 +148,7 @@ class MapState(StateModel):
     tiles: Dict[int, MapTile]
     armies: List[Army]
 
-    def _setParent(self, parent: Optional[BaseModel] = None):
+    def _setParent(self, parent: Optional[StateModel] = None):
         self._parent = parent
         for t in self.tiles.values():
             t._setParent(self)
@@ -194,7 +197,7 @@ class MapState(StateModel):
             multiplier -= 0.5
         return Decimal(float(distance) * multiplier)
 
-    def getReachableTiles(self, team: Team) -> List[MapTileEntity]:
+    def getReachableTiles(self, team: Team) -> List[MapTile]:
         index = self.getHomeOfTeam(team).index
         indexes = [(index+i) % self.size for i in TILE_DISTANCES_RELATIVE]
         return [self.tiles[i] for i in indexes]
@@ -411,7 +414,7 @@ class GameState(StateModel):
             team.storage = {r: a for r, a in team.storage.items() if a > 0}
 
 
-def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction=lambda x: x) -> str:
+def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:
     message = MessageBuilder()
     with message.startList("") as addLine:
         for resource, amount in resources.items():
