@@ -212,9 +212,12 @@ class Entities(frozendict):
     """
 
     def __new__(cls, entities: Iterable[Entity], plague: Optional["PlagueData"] = None) -> Entities:
-        x = super().__new__(cls, {x.id: x for x in entities})
+        x = super().__new__(cls, {x.id: x for x in entities})  # type: ignore
         x.plague = plague
         return x
+
+    def __init__(self, entities: Iterable[Entity]):
+        ...
 
     @property
     def all(self) -> frozendict[EntityId, Entity]:
