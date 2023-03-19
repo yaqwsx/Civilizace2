@@ -105,11 +105,6 @@ class Resource(EntityBase):
     typ: Optional[Tuple[ResourceType, int]] = None
     produces: Optional[Resource] = None
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Resource:
-            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-        return object.__new__(cls, *args, **kwargs)
-
     @property
     def isProduction(self) -> bool:
         return self.produces != None
