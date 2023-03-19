@@ -10,8 +10,6 @@ class ActionNextTurnArgs(ActionArgs):
     pass
 
 class ActionNextTurn(ActionBase):
-    args: ActionNextTurnArgs
-
     @property
     def description(self):
         return "Další kolo"

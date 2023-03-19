@@ -27,7 +27,7 @@ import {
     faMountainCity,
     faTicket,
     faSkullCrossbones,
-    faBookSkull,
+    faTimeline,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -54,6 +54,7 @@ import { menuShownAtom } from "./pages/atoms";
 import { UnfinishedActionBar } from "./elements/action";
 import { FinishAction } from "./pages/action";
 import { MapDiff } from "./pages/mapdiff";
+import { ActionLog } from "./pages/actionlog";
 
 function IconHamburger() {
     return (
@@ -219,12 +220,18 @@ function OrgMenu() {
                 path="announcements/"
             />
             {account.user.is_superuser ? (
-                <MenuItemT
-                    name="God mode"
-                    icon={faSkullCrossbones}
-                    path="godmode/"
-                />
-            ) : null}
+                <>
+                    <MenuItemT
+                        name="God mode"
+                        icon={faSkullCrossbones}
+                        path="godmode/"
+                    />
+                    <MenuItemT
+                        name="Log akcí"
+                        icon={faTimeline}
+                        path="actionlog/"
+                    />
+                </>) : null}
         </MenuRow>
     );
 }
@@ -425,6 +432,7 @@ function SuperOrgPages() {
     return (
         <Routes>
             <Route path="/godmode" element={<GodMode />} />
+            <Route path="/actionlog" element={<ActionLog />} />
             <Route path="*" element={<Error404 />} />
         </Routes>
     );

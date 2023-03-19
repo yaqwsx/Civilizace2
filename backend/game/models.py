@@ -96,6 +96,7 @@ class DbInteraction(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
+    trace = models.TextField(default="")
 
     def getActionIr(self, entities, state) -> ActionInterface:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
@@ -412,8 +413,3 @@ class DbMapDiff(models.Model):
     team = models.CharField(max_length=32, null=True)
     armyName = models.CharField(max_length=32, null=True)
 
-
-class Trace(models.Model):
-    action = models.ForeignKey(
-        DbAction, related_name="traces", on_delete=models.CASCADE)
-    msg = models.TextField()

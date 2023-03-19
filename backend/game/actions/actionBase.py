@@ -2,7 +2,7 @@ import contextlib
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from pydantic import BaseModel, PrivateAttr
 from game.actions.common import ActionFailed, MessageBuilder
@@ -25,6 +25,8 @@ class ActionInterface(BaseModel):
     _state: GameState = PrivateAttr()        # We don't store state
     _entities: Entities = PrivateAttr()      # Nor entities
     _generalArgs: Any = PrivateAttr()        # Nor args
+    _trace: MessageBuilder = PrivateAttr(default=MessageBuilder())
+                                             # Nor traces. They always empty
 
     # Private (and thus non-store args) have to start with underscore. Let's
     # give them normal names
@@ -41,6 +43,10 @@ class ActionInterface(BaseModel):
         if hasattr(self._generalArgs, "team"):
             return self._generalArgs.team
         return None
+
+    @property
+    def trace(self) -> MessageBuilder:
+        return self._trace
 
     def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
         """
@@ -95,13 +101,6 @@ class ActionInterface(BaseModel):
         """
         raise NotImplementedError("You have to implement this")
 
-    def addTrace(self, msg: str) -> None:
-        """
-        Přidá trace
-        """
-        raise NotImplementedError("You have to implement this")
-
-
 def makeAction(cls, state, entities, args):
     action = cls()
     action._state = state
@@ -126,7 +125,6 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
     paid: Dict[Resource, Decimal] = {}
     delayedInfoMessage: Optional[str]
     delayedWarnMessage: Optional[str]
-    traces: List[str] = []
 
     # Methods to be implemented by derives
 
@@ -362,10 +360,3 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
 
     def _applyDelayedReward(self) -> None:
         pass
-
-    def addTrace(self,
-                 msg: str = "",
-                 mb: Optional[MessageBuilder] = None) -> None:
-        if mb is not None:
-            self.traces.append(mb.message)
-        self.traces.append(msg)

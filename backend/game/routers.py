@@ -7,7 +7,7 @@ from game.viewsets.mapdiff import MapDiffViewSet
 from game.viewsets.printers import PrinterViewSet
 from game.viewsets.stickers import StickerViewSet
 from game.viewsets.tasks import TaskViewSet
-from game.viewsets.action import ActionViewSet
+from game.viewsets.action import ActionViewSet, ActionLogViewSet
 from game.viewsets.turns import TurnsViewSet
 from game.viewsets.voucher import VoucherViewSet
 from game.viewsets.state import StateViewSet
@@ -17,6 +17,7 @@ routes = SimpleRouter()
 routes.register(r'entities', EntityViewSet, basename="entities")
 routes.register(r'teams', TeamViewSet, basename="gameteams")
 routes.register(r'tasks', TaskViewSet, basename="tasks")
+routes.register(r'actions/logs', ActionLogViewSet, basename="actionlog")
 routes.register(r'actions', ActionViewSet, basename="actions")
 routes.register(r'turns', TurnsViewSet, basename="turns")
 routes.register(r'vouchers', VoucherViewSet, basename="vouchers")

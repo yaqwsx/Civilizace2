@@ -32,6 +32,7 @@ class ActionIncreaseCounter(ActionBase):
         return ["die-lesy"], 20
 
     def _initiateImpl(self) -> None:
+        self.trace.add("Zahájeno initiate")
         self._ensure(self.args.red < 10,
             "Hráč nemůže zvýšit červené počitado o více než 10")
         self._ensure(self.args.red > -10,
@@ -45,8 +46,10 @@ class ActionIncreaseCounter(ActionBase):
         self._info.add("Splňujte podmínky pro akci.")
 
     def _commitImpl(self) -> bool:
+        self.trace.add("Zahájen commit")
         self.teamState.redCounter += self.args.red
         self._info.add(f"Týmu bylo zvýšeno počítadlo na {self.teamState.redCounter}")
+        self.trace.add(f"Týmu bylo zvýšeno počítadlo na {self.teamState.redCounter}")
 
         if self.args.resource is not None:
             self.teamState.blueCounter += 1

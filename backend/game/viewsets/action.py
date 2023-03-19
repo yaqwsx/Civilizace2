@@ -3,6 +3,8 @@ import json
 import math
 import traceback
 from typing import Dict, Iterable, List, Optional, Set, Tuple
+from game.serializers import DbActionSerializer
+from core.models.user import User
 from core.models.announcement import Announcement, AnnouncementType
 
 from core.models.team import Team
@@ -11,7 +13,7 @@ from django.db.models.functions import Now
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import ActionBase, ActionInterface, ActionResult
+from game.actions.actionBase import ActionInterface, ActionResult
 from game.actions.common import (ActionFailed, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
@@ -28,6 +30,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from game.viewsets.stickers import DbStickerSerializer
 
@@ -86,12 +89,15 @@ class ActionViewSet(viewsets.ViewSet):
         return action
 
     @staticmethod
-    def dbStoreInteraction(dbAction, dbState, interactionType, user, state, action: ActionBase):
+    def dbStoreInteraction(dbAction: DbAction, dbState: DbState,
+                           interactionType: InteractionType, user: User,
+                           state: StateModel, action: ActionInterface):
         interaction = DbInteraction(
             phase=interactionType,
             action=dbAction,
             author=user,
-            actionObject=stateSerialize(action)
+            actionObject=stateSerialize(action),
+            trace=action.trace.message
         )
         interaction.save()
         dbState.updateFromIr(state)
@@ -100,10 +106,6 @@ class ActionViewSet(viewsets.ViewSet):
 
         if action.description and len(action.description) > 0:
             dbAction.description = action.description
-            dbAction.save()
-        if action.traces and len(action.traces) > 0:
-            for msg in action.traces:
-                dbAction.traces.create(msg=msg)
             dbAction.save()
 
     @staticmethod
@@ -570,3 +572,13 @@ class ActionViewSet(viewsets.ViewSet):
                 "description": x.description
             } for x in unfinishedActions])
 
+class ActionResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+class ActionLogViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated, IsOrg)
+    pagination_class = ActionResultsSetPagination
+    queryset = DbAction.objects.all().order_by("-id").prefetch_related("interactions")
+    serializer_class = DbActionSerializer

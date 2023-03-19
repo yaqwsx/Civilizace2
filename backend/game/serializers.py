@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import DbTask, DbTaskPreference, DbTaskAssignment
+from .models import DbTask, DbTaskPreference, DbTaskAssignment, DbAction, DbInteraction
 
 from core.serializers.fields import IdRelatedField
 
@@ -44,3 +44,20 @@ class DbTaskSerializer(serializers.ModelSerializer):
 class PlayerDbTaskSerializer(DbTaskSerializer):
     class Meta(DbTaskSerializer.Meta):
         fields = ["id", "name", "teamDescription", "assignments"]
+
+
+class DbInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DbInteraction
+        fields = "__all__"
+
+    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
+
+
+class DbActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DbAction
+        fields = "__all__"
+
+    interactions = DbInteractionSerializer(many=True, read_only=True)
+
