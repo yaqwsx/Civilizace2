@@ -1,6 +1,6 @@
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
@@ -25,18 +25,19 @@ class ActionBuildRoad(ActionBase):
         return f"Stavba cesty na pole {self.args.tile.name} ({self.args.team.name})"
 
     def cost(self) -> Dict[Resource, Decimal]:
-        return self.state.world.roadCost
+        return {res: Decimal(cost) for res, cost in self.state.world.roadCost.items()}
 
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
         return (DICE_IDS, self.state.world.roadPoints)
 
 
-    def requiresDelayedEffect(self) -> int:
-        return self.state.map.getActualDistance(self.args.team, self.args.tile)*2
+    def requiresDelayedEffect(self) -> Decimal:
+        return 2 * self.state.map.getActualDistance(self.args.team, self.args.tile)
 
 
     def _commitImpl(self) -> None:
+        assert self.teamState is not None
         if self.args.tile in self.teamState.roadsTo:
             raise ActionFailed(f"Na pole {self.args.tile.name} je už cesta postavena")
 
@@ -47,6 +48,7 @@ class ActionBuildRoad(ActionBase):
 
 
     def _applyDelayedReward(self) -> None:
+        assert self.teamState is not None
         self._setupPrivateAttrs()
         tile = self.state.map.tiles[self.args.tile.index]
 

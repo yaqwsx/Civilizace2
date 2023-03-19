@@ -223,6 +223,7 @@ class MapState(StateModel):
 
     def retreatArmy(self, army: Army) -> int:
         result = army.equipment
+        assert army.tile is not None
         tile = self.getTileById(army.tile.id)
         if tile == None:
             return 0
@@ -283,7 +284,7 @@ class TeamState(StateModel):
 
     discoveredTiles: Set[MapTileEntity] = set()
 
-    def _setParent(self, parent: Optional[BaseModel] = None):
+    def _setParent(self, parent: Optional[StateModel] = None):
         self._parent = parent
 
     @property
@@ -295,12 +296,8 @@ class TeamState(StateModel):
     def homeTile(self) -> MapTile:
         return self.parent.map.getTileById(self.team.homeTileId)
 
-    def getUnlockingDice(self, entity: EntityWithCost) -> Set[str]:
-        dice = set()
-        for unlock in entity.unlockedBy:
-            if unlock[0] in self.techs:
-                dice.add(unlock[1])
-        return dice
+    def getUnlockingDice(self, entity: EntityWithCost) -> Iterable[DieId]:
+        return iter(die for entity, die in entity.unlockedBy if entity in self.techs)
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()

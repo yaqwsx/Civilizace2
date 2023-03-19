@@ -2,7 +2,7 @@ import contextlib
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, PrivateAttr
 from game.actions.common import ActionFailed, MessageBuilder
@@ -42,7 +42,7 @@ class ActionInterface(BaseModel):
             return self._generalArgs.team
         return None
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
         """
         Řekne, kolik teček je třeba hodit na jedné z kostek. Pokud vrátí prázdný
         seznam, není třeba házet.
@@ -267,8 +267,8 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
         notifications.append(message)
         self._notifications[team] = notifications
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
-        return (set(), 0)
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+        return ((), 0)
 
     def throwCost(self) -> int:
         assert self.teamState is not None

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
 from game.entities import DieId, MapTileEntity, NaturalResource, Resource, Team, Vyroba
@@ -34,15 +34,17 @@ class ActionVyroba(ActionBase):
     def cost(self) -> Dict[Resource, Decimal]:
         return {resource: cost*self.args.count for resource, cost in self.args.vyroba.cost.items()}
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+        assert self.teamState is not None
         points = (self.args.vyroba.points * (1 + self.args.count))
         return (self.teamState.getUnlockingDice(self.args.vyroba), ceil(points / 2))
 
-    def requiresDelayedEffect(self) -> int:
+    def requiresDelayedEffect(self) -> Decimal:
         return self.state.map.getActualDistance(self.args.team, self.args.tile)
 
     def _commitImpl(self) -> None:
         tile = self.tileState
+        assert tile is not None
         vyroba = self.args.vyroba
         if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
             raise ActionFailed(
@@ -66,6 +68,7 @@ class ActionVyroba(ActionBase):
         plundered = 0
 
         tile = self.tileState
+        assert tile is not None
         multiplier = 1 + (tile.richnessTokens/Decimal(10))
         if self.args.plunder:
             plundered = min(tile.richnessTokens, self.args.count)

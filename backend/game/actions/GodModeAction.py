@@ -1,6 +1,6 @@
 import json
 import traceback
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, Iterable, List, Set, Tuple
 from game.actions.common import ActionFailed, MessageBuilder
 
 from game.entities import DieId
@@ -25,8 +25,8 @@ class GodModeAction(ActionBase):
         assert isinstance(self._generalArgs, GodModeArgs)
         return self._generalArgs
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
-        return (set(), 0)
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+        return ((), 0)
 
     def applyInitiate(self) -> ActionResult:
         return ActionResult(expected=True, message="")

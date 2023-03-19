@@ -272,14 +272,14 @@ class ActionViewSet(viewsets.ViewSet):
         return result, gainedStickers
 
     @staticmethod
-    def _previewMessage(initiateResult: ActionResult, dice: Tuple[Set[DieId], int],
+    def _previewMessage(initiateResult: ActionResult, dice: Tuple[Iterable[DieId], int],
             commitResult: ActionResult, stickers: Iterable[StickerId], delayed: int) -> str:
         b = MessageBuilder()
         b.add("## Předpoklady")
         b.add(initiateResult.message)
         if dice[1]:
             with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
-                for d in dice[0]:
+                for d in sorted(dice[0], key=dieName):
                     addDice(dieName(d))
         else:
             b.add("Akce nevyžaduje házení kostkou")
@@ -294,7 +294,7 @@ class ActionViewSet(viewsets.ViewSet):
         return b.message
 
     @staticmethod
-    def _initiateMessage(initiateResult: ActionResult, dice: Tuple[Set[DieId], int],
+    def _initiateMessage(initiateResult: ActionResult, dice: Tuple[Iterable[DieId], int],
             commitResult: Optional[ActionResult], stickers: Iterable[StickerId],
             delayedEffect: Optional[DbDelayedEffect]) -> str:
         b = MessageBuilder()
@@ -472,13 +472,14 @@ class ActionViewSet(viewsets.ViewSet):
 
                 dbInteraction = dbAction.lastInteraction
                 action = dbInteraction.getActionIr(entities, state)
+                assert action.team is not None
 
                 diceReq = action.diceRequirements()
 
                 if request.method == "GET":
                     return Response({
                         "requiredDots": diceReq[1],
-                        "allowedDice": list(diceReq[0]),
+                        "allowedDice": sorted(diceReq[0], key=dieName),
                         "throwCost": action.throwCost(),
                         "description": dbAction.description,
                         "team": action.team.id

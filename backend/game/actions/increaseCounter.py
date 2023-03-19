@@ -3,7 +3,7 @@ from decimal import Decimal
 from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase, ActionResult
 from game.entities import DieId, Resource, Team
-from typing import List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple
 
 # This action is a demonstration of action implementation. Basically you can say
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
@@ -28,8 +28,8 @@ class ActionIncreaseCounter(ActionBase):
         assert isinstance(self._generalArgs, ActionIncreaseCounterArgs)
         return self._generalArgs
 
-    def diceRequirements(self) -> Tuple[Set[DieId], int]:
-        return set(["die-lesy"]), 20
+    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+        return ["die-lesy"], 20
 
     def _initiateImpl(self) -> None:
         self._ensure(self.args.red < 10,

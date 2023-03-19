@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from decimal import Decimal
 from frozendict import frozendict
 from functools import cached_property
@@ -66,6 +67,7 @@ def adHocEntitiy(id) -> EntityBase:
     return EntityBase(id=id, name="")
 
 
+@dataclass(eq=False)
 class Team(EntityBase):
     color: str
     password: Optional[str]  # We use it to populate database
@@ -90,17 +92,20 @@ class OrgRole(Enum):
     SUPER = 1
 
 
+@dataclass(eq=False)
 class Org(EntityBase):
     role: OrgRole
     password: Optional[str]
 
 
+@dataclass(eq=False)
 class ResourceType(EntityBase):
     productionName: str
     colorName: str
     colorVal: int
 
 
+@dataclass(eq=False)
 class Resource(EntityBase):
     typ: Optional[Tuple[ResourceType, int]] = None
     produces: Optional[Resource] = None
@@ -118,6 +123,7 @@ class Resource(EntityBase):
         return not self.id.startswith("mat-") and not self.id.startswith("mge-")
 
 
+@dataclass(eq=False)
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal]
     points: int
@@ -171,6 +177,7 @@ class Tech(EntityWithCost):
         return set(d for e, d in self.unlocks if e == target)
 
 
+@dataclass(eq=False)
 class TileFeature(EntityBase):
     pass
 
@@ -189,6 +196,7 @@ class Building(EntityWithCost, TileFeature):
     requiredFeatures: List[TileFeature]
 
 
+@dataclass(eq=False)
 class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
