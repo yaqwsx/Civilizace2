@@ -102,11 +102,13 @@ class ResourceType(EntityBase):
 
 
 class Resource(EntityBase):
-    # Any resource, base class for Resource, GenericResource;
-    #   Do not instantiate
-    #   TODO: Is there a simple way to disable __init__ for this base class? ###
     typ: Optional[Tuple[ResourceType, int]] = None
     produces: Optional[Resource] = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Resource:
+            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+        return object.__new__(cls, *args, **kwargs)
 
     @property
     def isProduction(self) -> bool:
