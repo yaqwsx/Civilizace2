@@ -385,6 +385,7 @@ class ActionViewSet(viewsets.ViewSet):
             return self._unexpectedErrorResponse(e, tb)
 
     @action(methods=["POST"], detail=False)
+    @transaction.atomic()
     def initiate(self, request):
         deserializer = InitiateSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
@@ -457,6 +458,7 @@ class ActionViewSet(viewsets.ViewSet):
             return self._unexpectedErrorResponse(e, tb)
 
     @action(methods=["POST", "GET"], detail=True)
+    @transaction.atomic()
     def commit(self, request, pk=True):
         try:
             with transaction.atomic():
