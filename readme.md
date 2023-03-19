@@ -27,10 +27,11 @@ $ conda env update --file conda-env.yml --prune
       `CIVILIZACE_GAUTH_FILE` na cestu k němu.
 - stáhni si entity `python manage.py pullentities`. Entity jsou uloženy v
   `data/entities`
-- zresetuj hru pomocí `scripts/resetGame.sh TEST` - to vytvoří databázi a aplikuje
-  migrace. TEST je název sady entit
-- funguj úplně normálně jako s Djangem - tj. zejména chceš `python manage.py
-  runserver`
+- zresetuj hru pomocí `scripts/resetGame.sh TEST` (na Windows `scripts/resetGame.bat TEST`)
+    - to vytvoří databázi a aplikuje migrace. TEST je název sady entit
+
+- funguj úplně normálně jako s Djangem
+    - tj. zejména chceš `python manage.py runserver`
 
 ### Jak spustit frontend
 
@@ -42,6 +43,6 @@ $ conda env update --file conda-env.yml --prune
 
 Django spravuje migrace, ale při vývoji se pohybujeme velmi rychle a hlavně s
 sebou netáhneme produkční databázi. V rámci jednoduchosti a rychlosti existuje
-skript `scripts/resetGameHard.sh`, který zruší aktuální migrace, vygeneruje nové
-a zinicializuje hru.
+skript `scripts/resetGameHard.sh` (na Windows `scripts/resetGameHard.bat`),
+který zruší aktuální migrace, vygeneruje nové a zinicializuje hru.
 
