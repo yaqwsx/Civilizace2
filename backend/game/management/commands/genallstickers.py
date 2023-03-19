@@ -5,7 +5,6 @@ from pathlib import Path
 
 
 
-from game.state import PlagueStats
 from game.stickers import makeSticker, underline
 
 class Command(BaseCommand):

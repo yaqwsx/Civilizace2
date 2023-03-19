@@ -4,8 +4,7 @@ from game.models import DbEntities, StickerType
 
 
 
-from game.state import PlagueStats
-from game.stickers import makeSticker, underline
+from game.stickers import makeSticker
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):

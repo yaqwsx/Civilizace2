@@ -260,22 +260,11 @@ class MapState(StateModel):
         )
 
 
-class PlagueStats(StateModel):
-    sick: int = 1
-    immune: int = 0
-
-    recovery: float = 0.3
-    mortality: float = 0.3
-    infectiousness: float = 2.
-
-    recipes: List[str] = []
-
-
 class TeamState(StateModel):
     team: Team
     redCounter: Decimal
     blueCounter: Decimal
-    employees: Decimal = 0
+    employees: Decimal = Decimal(0)
 
     turn: int = 0
     throwCost: int = 10
@@ -287,8 +276,7 @@ class TeamState(StateModel):
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
     granary: Dict[Resource, Decimal] = {}
-    storageCapacity: Decimal = 10
-    plague: Optional[PlagueStats]
+    storageCapacity: Decimal = Decimal(10)
 
     discoveredTiles: Set[MapTileEntity] = set()
 

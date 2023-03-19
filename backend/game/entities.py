@@ -211,10 +211,8 @@ class Entities(frozendict):
     select relevant sub-entities
     """
 
-    def __new__(cls, entities: Iterable[Entity], plague: Optional["PlagueData"] = None) -> Entities:
-        x = super().__new__(cls, {x.id: x for x in entities})  # type: ignore
-        x.plague = plague
-        return x
+    def __new__(cls, entities: Iterable[Entity]) -> Entities:
+        return super().__new__(cls, {x.id: x for x in entities})  # type: ignore
 
     def __init__(self, entities: Iterable[Entity]):
         ...
@@ -298,4 +296,4 @@ class Entities(frozendict):
 
     @property
     def gameOnlyEntities(self) -> Entities:
-        return Entities([self._gameOnlyView(v) for v in self.values()], self.plague)
+        return Entities([self._gameOnlyView(v) for v in self.values()])

@@ -4,7 +4,6 @@ from game.viewsets.armies import ArmiesViewSet
 from game.viewsets.entity import EntityViewSet, TeamViewSet
 from game.viewsets.map import MapViewSet
 from game.viewsets.mapdiff import MapDiffViewSet
-from game.viewsets.plague import PlagueViewSet
 from game.viewsets.printers import PrinterViewSet
 from game.viewsets.stickers import StickerViewSet
 from game.viewsets.tasks import TaskViewSet
@@ -27,7 +26,6 @@ routes.register(r'state', StateViewSet, basename="states")
 routes.register(r'mapupdates', MapDiffViewSet, basename="mapdiff")
 routes.register(r'map', MapViewSet, basename="map")
 routes.register(r'armies', ArmiesViewSet, basename="armies")
-routes.register(r'plague', PlagueViewSet, basename="plague")
 routes.register(r'tick', TickViewSet, basename="tick")
 
 

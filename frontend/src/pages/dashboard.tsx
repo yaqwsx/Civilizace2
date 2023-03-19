@@ -256,37 +256,6 @@ function TeamOverview() {
                 </div>
             )}
 
-            {data?.plague && (
-                <div className="section w-full">
-                    <h2 className="text-xl" id="section-1">
-                        Morová epidemie
-                    </h2>
-                    <Card label="Mor" color={team.color} icon={faBookSkull}>
-                        <div className="font-bold">
-                            Asi ještě zemře {data.plague.futureDeathToll}{" "}
-                            obyvatel.
-                        </div>
-                        <div className="text-left">
-                            Parametry epidemie:
-                            <ul>
-                                <li>
-                                    <b>Pravděpodobnost rychlého uzdravení:</b>{" "}
-                                    {(data.plague.recovery * 100).toFixed(1)} %{" "}
-                                </li>
-                                <li>
-                                    <b>Smrtnost:</b>{" "}
-                                    {(data.plague.mortality * 100).toFixed(1)} %{" "}
-                                </li>
-                                <li>
-                                    <b>Nakažlivost:</b>{" "}
-                                    {data.plague.infectiousness.toFixed(1)}
-                                </li>
-                            </ul>
-                        </div>
-                    </Card>
-                </div>
-            )}
-
             <div className="section w-full">
                 <h2 className="text-xl" id="section-1">
                     Souhrnné informace
