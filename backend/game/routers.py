@@ -1,6 +1,4 @@
 from rest_framework.routers import SimpleRouter
-from game.views import AnnouncementView, AnnouncementsView, EntityView, RoundView, RoundsSentinelView, RoundsView, TeamEntityView, TasksView, TaskView
-from django.urls import path
 from game.viewsets.armies import ArmiesViewSet
 
 from game.viewsets.entity import EntityViewSet, TeamViewSet
