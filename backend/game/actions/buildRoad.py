@@ -1,8 +1,7 @@
 from decimal import Decimal
 from math import ceil, floor
 from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs, HealthyAction
-from game.actions.actionBase import ActionBase, ActionResult
+from game.actions.actionBase import ActionArgs, ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
 from game.entityParser import DICE_IDS
@@ -13,7 +12,7 @@ class ActionBuildRoadArgs(ActionArgs):
     tile: MapTileEntity
 
 
-class ActionBuildRoad(HealthyAction):
+class ActionBuildRoad(ActionBase):
 
     @property
     def args(self) -> ActionBuildRoadArgs:

@@ -4,7 +4,7 @@ import random
 from typing import Dict, Optional
 
 from pydantic import PrivateAttr
-from game.actions.actionBase import ActionArgs, ActionBase, HealthyAction
+from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
 from game.entities import MapTileEntity, Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode, MapTile
@@ -20,7 +20,7 @@ class ActionArmyDeployArgs(ActionArgs):
     friendlyTeam: Optional[Team]
 
 
-class ActionArmyDeploy(HealthyAction):
+class ActionArmyDeploy(ActionBase):
 
     @property
     def args(self) -> ActionArmyDeployArgs:

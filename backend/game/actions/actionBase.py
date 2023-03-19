@@ -353,8 +353,3 @@ class ActionBase(ActionInterface):
         if mb is not None:
             self.traces.append(mb.message)
         self.traces.append(msg)
-
-
-# TODO: remove
-class HealthyAction(ActionBase):
-    pass

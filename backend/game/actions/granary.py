@@ -1,7 +1,6 @@
 from decimal import Decimal
 from typing import Dict
-from game.actions.actionBase import ActionArgs, HealthyAction
-from game.actions.actionBase import ActionBase
+from game.actions.actionBase import ActionArgs, ActionBase
 from game.entities import Resource, Team, Tech
 from game.state import printResourceListForMarkdown
 
@@ -9,7 +8,7 @@ class ActionGranaryArgs(ActionArgs):
     team: Team
     productions: Dict[Resource, int] # int is here on purpose - it does not make sense to use fractions of food
 
-class ActionGranary(HealthyAction):
+class ActionGranary(ActionBase):
 
     @property
     def args(self) -> ActionGranaryArgs:

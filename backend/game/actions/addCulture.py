@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Dict
-from game.actions.actionBase import ActionArgs, HealthyAction
+from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.actionBase import ActionResult
 from game.actions.common import ActionFailed
 from game.entities import MapTileEntity, Resource, Team
@@ -9,7 +9,7 @@ class AddCultureArgs(ActionArgs):
     team: Team
     culture: Decimal
 
-class ActionAddCultureArgs(HealthyAction):
+class ActionAddCultureArgs(ActionBase):
 
     @property
     def args(self) -> AddCultureArgs:

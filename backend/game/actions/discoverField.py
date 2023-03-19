@@ -1,6 +1,6 @@
 from decimal import Decimal
 from typing import Dict
-from game.actions.actionBase import ActionArgs, HealthyAction
+from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.actionBase import ActionResult
 from game.actions.common import ActionFailed
 from game.entities import MapTileEntity, Resource, Team
@@ -9,7 +9,7 @@ class DiscoverTileArgs(ActionArgs):
     team: Team
     tile: MapTileEntity
 
-class ActionDiscoverTile(HealthyAction):
+class ActionDiscoverTile(ActionBase):
 
     @property
     def args(self) -> DiscoverTileArgs:
