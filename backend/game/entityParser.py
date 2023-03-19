@@ -388,7 +388,7 @@ class EntityParser():
 def parseEntities(data: Dict[str, Any], reportError: Callable[[str], None]) -> Entities:
     parser = EntityParser(data, reportError)
     baseEntities = parser.parse()
-    return Entities(baseEntities.values(), None)
+    return Entities(baseEntities.values())
 
 
 def loadEntities(fileName) -> Entities:
@@ -397,4 +397,4 @@ def loadEntities(fileName) -> Entities:
 
     parser = EntityParser(data)
     entities = parser.parse()
-    return Entities(entities.values(), None)
+    return Entities(entities.values())
