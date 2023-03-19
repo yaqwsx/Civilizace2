@@ -16,5 +16,4 @@ def test_homeTiles():
 
 def test_fields():
     entities = TEST_ENTITIES
-    assert "star" in entities["tec-c"].bonuses
     assert "Well seasoned" == entities["tec-maso"].flavor

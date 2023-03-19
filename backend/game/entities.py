@@ -20,9 +20,7 @@ TILE_DISTANCES_RELATIVE = {0: Decimal(0),
                            -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
 TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
     "CIV_SPEED_RUN", None) != "1" else Decimal(30)
-DIE_IDS = [DieId("die-lesy"), DieId("die-plane"), DieId("die-hory")]
-TECH_BONUS_TOKENS = ["cheapDie", "star", "obyvatel20",
-                     "obyvatel40", "kultura5", "kultura10!"]
+DIE_IDS: List[DieId] = ["die-lesy", "die-plane", "die-hory"]
 
 
 def dieName(id: DieId) -> str:
@@ -154,7 +152,6 @@ class EntityWithCost(EntityBase):
 
 class Tech(EntityWithCost):
     unlocks: List[Tuple[Entity, DieId]] = []
-    bonuses: List[str]
     flavor: str
 
     @property
@@ -168,10 +165,6 @@ class Tech(EntityWithCost):
     @property
     def unlocksBuilding(self) -> Set[Building]:
         return set(x for x, _ in self.unlocks if isinstance(x, Building))
-
-    @property
-    def hasStar(self) -> bool:
-        return "star" in self.bonuses
 
     def allowedDie(self, target: Entity) -> Set[DieId]:
         return set(d for e, d in self.unlocks if e == target)
@@ -244,10 +237,6 @@ class Entities(frozendict[EntityId, Entity]):
     @property
     def zbrane(self) -> Resource:
         return self["mat-zbrane"]
-
-    @property
-    def basicFoodProduction(self) -> Resource:
-        return self["pro-bobule"]
 
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:

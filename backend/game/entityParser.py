@@ -9,7 +9,6 @@ from typing import (Callable,
                     TypedDict)
 
 from .entities import (DIE_IDS,
-                       TECH_BONUS_TOKENS,
                        Building,
                        DieId,
                        Entities,
@@ -198,13 +197,8 @@ class EntityParser():
         self.entities[id] = pro
 
     def parseLineTechCreateEntity(self, line: List[str]) -> None:
-        bonuses = [x.strip() for x in line[7].split(",") if x.strip() != ""]
-        for bonus in bonuses:
-            if not bonus.split("-")[0] in TECH_BONUS_TOKENS:
-                raise AssertionError(f"Unknown tech bonus \"{bonus}\"")
         tech = Tech(
-            bonuses=bonuses,
-            flavor=line[8],
+            flavor=line[7],
             **self.kwargsEntityWithCost(line, includeEdges=False))
         self.entities[line[0]] = tech
 
