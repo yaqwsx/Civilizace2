@@ -197,14 +197,21 @@ class MapTileEntity(EntityBase):
 
 
 # Common type of all available entities
-Entity = Union[Resource, Tech, Vyroba, NaturalResource, Building, MapTileEntity,
-               ResourceType, Team, Org]
+Entity = Union[Resource,
+               Tech,
+               Vyroba,
+               NaturalResource,
+               Building,
+               MapTileEntity,
+               ResourceType,
+               Team,
+               Org]
 
 
-class Entities(frozendict):
+class Entities(frozendict[EntityId, Entity]):
     """
     The entities are represented as immutable dictionary (frozendict) so
-    you can alter them. They also give you some properties to quickly
+    you cannot alter them. They also give you some properties to quickly
     select relevant sub-entities
     """
 

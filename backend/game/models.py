@@ -29,7 +29,9 @@ class DbEntitiesManager(models.Manager):
     def get_queryset(self) -> QuerySet[DbEntities]:
         return super().get_queryset().defer("data")
 
-    def get_revision(self, revision: Optional[int] = None) -> Tuple[int, Entities]:
+    def get_revision(self,
+                     revision: Optional[int] = None
+                     ) -> Tuple[int, Entities]:
         if revision is None:
             revision = self.latest("id").id
             assert revision is not None
