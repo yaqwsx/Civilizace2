@@ -46,7 +46,7 @@ def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
         data = pullEntityTable(id)
         checkAndSave(data, targetFile, err_handler=err_handler)
     except Exception as e:
-        sys.exit(f"ERROR: Failed to save entities {name}. Cause: {e}")
+        sys.exit(f"ERROR: Failed to save entities {name}. Cause: {e.__repr__()}")
 
 
 class Command(BaseCommand):
