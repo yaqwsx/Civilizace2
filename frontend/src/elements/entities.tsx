@@ -137,11 +137,3 @@ export function EntityMdTag({ node }: any) {
     if (node.value.length == 1) return <EntityTag id={node.value[0]} />;
     return <EntityTag id={node.value[0]} quantity={node.value[1]} />;
 }
-
-export function dieName(id: string) {
-    return {
-        "die-lesy": "Lesní kostka",
-        "die-plane": "Planina kostka",
-        "die-hory": "Horská kostka",
-    }[id];
-}

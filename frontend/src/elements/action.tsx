@@ -27,7 +27,7 @@ import { toast } from "react-toastify";
 
 import _ from "lodash";
 import useSWR, { useSWRConfig } from "swr";
-import { dieName, useTeamWork } from "./entities";
+import { useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers, PrintVoucher } from "./printing";
 import { Link, Navigate } from "react-router-dom";
@@ -450,7 +450,7 @@ export function ActionDicePhase(props: {
                 {action.throwCost} práce. Je možné házet pomocí:{" "}
                 <ul>
                     {action?.allowedDice && action.allowedDice.map((x) => (
-                        <li key={x}>{dieName(x)}</li>
+                        <li key={x.id}>{x.name}</li>
                     ))}
                 </ul>
             </NeutralMessage>

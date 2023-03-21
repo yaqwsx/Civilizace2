@@ -52,6 +52,10 @@ class EntityViewSet(viewsets.ViewSet):
     def buildings(self, request):
         return self._list("buildings")
 
+    @action(detail=False)
+    def dice(self, request):
+        return self._list("dice")
+
     def list(self, request):
         return self._list("all")
 

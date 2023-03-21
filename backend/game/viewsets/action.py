@@ -18,7 +18,7 @@ from game.actions.common import (ActionFailed, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
 from game.entities import Die, Entities, Entity
-from game.gameGlue import stateDeserialize, stateSerialize
+from game.gameGlue import serializeEntity, stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbMapDiff,
                          DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn, DiffType,
                          InteractionType, StickerType)
@@ -481,7 +481,7 @@ class ActionViewSet(viewsets.ViewSet):
                 if request.method == "GET":
                     return Response({
                         "requiredDots": diceReq[1],
-                        "allowedDice": sorted(diceReq[0], key=lambda d: d.name),
+                        "allowedDice": list(map(serializeEntity, sorted(diceReq[0], key=lambda d: d.name))),
                         "throwCost": action.throwCost(),
                         "description": dbAction.description,
                         "team": action.team.id
