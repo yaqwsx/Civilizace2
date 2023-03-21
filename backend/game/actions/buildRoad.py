@@ -4,7 +4,6 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase, ActionResult
 from game.actions.common import ActionFailed
 from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
-from game.entityParser import DICE_IDS
 from game.state import ArmyGoal
 
 class ActionBuildRoadArgs(ActionArgs):

@@ -4,7 +4,7 @@ from django.core.management import BaseCommand
 
 from core.management.commands.pullentities import setFilename
 from game.entities import Resource
-from game.entityParser import loadEntities
+from game.entityParser import EntityParser
 from django.conf import settings
 
 
@@ -22,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, name: str, *args, **kwargs):
 
         targetFile = settings.ENTITY_PATH / setFilename("GAME")
-        entities = loadEntities(targetFile)
+        entities = EntityParser.load(targetFile)
 
         print()
         print()

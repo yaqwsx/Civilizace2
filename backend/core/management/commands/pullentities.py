@@ -4,10 +4,10 @@ from os import PathLike
 import json
 import sys
 from django.core.management import BaseCommand
-
 from core.gsheets import getSheets
-from game.entityParser import EntityParser
 from django.conf import settings
+
+from game.entityParser import ErrorHandler, EntityParser, ParserError
 
 ENTITY_SETS = {
     "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",
@@ -17,23 +17,21 @@ ENTITY_SETS = {
 def setFilename(name: str) -> str:
     return f"{name}.json"
 
-def pullEntityTable(id: str) -> dict[str, list]:
+def pullEntityTable(id: str) -> dict[str, list[list[str]]]:
     sheets = getSheets(id)
     data = {sheet.title: sheet.get_all_values() for sheet in sheets.worksheets()}
     return data
 
-def checkAndSave(data, fileName: str | PathLike[str]):
-    parser = EntityParser(data)
-    entities = parser.parse()
+def checkAndSave(data: dict[str, list[list[str]]],
+                 fileName: str | PathLike[str],
+                 err_handler: ErrorHandler = ErrorHandler(),
+                 ):
+    entities = EntityParser.parse(data, err_handler=err_handler)
+    assert err_handler.success()
 
-    if (len(parser.errors)) > 0:
-        for message in parser.errors:
-            print("  " + message)
-        raise RuntimeError("Failed to validate entities. Errors listed above")
-
-    c = Counter([x[:3] for x in entities.keys()])
-    for x in ["tymy", "orgove", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "techs", "vyrobas"]:
-        print("    " + x + ": " + str(c[x[:3]]))
+    counter = Counter([x[:3] for x in entities.keys()])
+    for x in ["tymy", "orgove", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "mge-generic materials", "pge-generic productions", "techs", "vyrobas"]:
+        print(f"    {x}: {counter[x[:3]]}")
     print(f"SUCCESS: Created {len(entities)} entities from {fileName}")
 
     with open(fileName, "w") as file:
@@ -41,14 +39,14 @@ def checkAndSave(data, fileName: str | PathLike[str]):
 
     print("Data saved to file {}".format(fileName))
 
-def trySave(name, id: str):
+def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
     try:
         targetFile = settings.ENTITY_PATH / setFilename(name)
         print(f"Pulling world {name} to file {targetFile}")
         data = pullEntityTable(id)
-        checkAndSave(data, targetFile)
-    except RuntimeError as e:
-        sys.exit("ERROR: Failed to save entities. Cause: {}".format(e.args[0]))
+        checkAndSave(data, targetFile, err_handler=err_handler)
+    except Exception as e:
+        sys.exit(f"ERROR: Failed to save entities {name}. Cause: {e}")
 
 
 class Command(BaseCommand):
@@ -57,16 +55,17 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser: ArgumentParser):
-            # Optional argument
-            parser.add_argument('-s', '--set', type=str, nargs='+')
+        # Optional argument
+        parser.add_argument('-s', '--set', type=str, choices=list(ENTITY_SETS), nargs='+', default=list(ENTITY_SETS))
+        parser.add_argument('--no-warn', action='store_true')
+        parser.add_argument('--max-errs', type=int, default=5)
 
     def handle(self, *args, **options):
         settings.ENTITY_PATH.mkdir(parents=True, exist_ok=True)
 
-        if e := options.get("set", None):
-            e = e[0]
-            trySave(e, ENTITY_SETS[e])
-            return
-
-        for name, id in ENTITY_SETS.items():
-            trySave(name, id)
+        for entity_set in options["set"]:
+            assert entity_set in ENTITY_SETS
+            trySave(entity_set,
+                    ENTITY_SETS[entity_set],
+                    ErrorHandler(max_errs=options["max_errs"], no_warn=options["no_warn"]),
+                    )

@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 
 from core.gsheets import getSheets
 from core.management.commands.pullentities import setFilename
-from game.entityParser import loadEntities
+from game.entityParser import EntityParser
 from django.conf import settings
 
 from game.models import DbEntities
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, setname: str, *args, **kwargs) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(setname)
-        ent = loadEntities(targetFile)
+        ent = EntityParser.load(targetFile)
         with open(targetFile) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)

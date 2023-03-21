@@ -1,478 +1,651 @@
+from __future__ import annotations
+from collections import Counter
+import decimal
 from decimal import Decimal
+from enum import Enum
+from frozendict import frozendict
+from itertools import zip_longest
 import json
-from typing import (Callable,
-                    Dict,
-                    List,
-                    Optional,
-                    Protocol,
-                    Tuple,
-                    TypedDict)
+from os import PathLike
+import pydantic
+from pydantic import BaseModel, ValidationError
+import typing
+from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Optional, Protocol, Tuple, Type, TypeVar, TypedDict, Union
 
-from .entities import (DIE_IDS,
-                       Building,
-                       DieId,
-                       Entities,
-                       Entity,
-                       EntityWithCost,
-                       MapTileEntity,
-                       NaturalResource,
-                       Org,
-                       OrgRole,
-                       Resource,
-                       ResourceType,
-                       Team,
-                       Tech,
-                       TileFeature,
-                       Vyroba)
+from . import entities
+from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
+from .entities import DieId, EntityId, Entities, Entity, EntityBase, EntityWithCost
+from .entities import Building, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
 
-DICE_IDS = ["die-lesy", "die-plane", "die-hory"]
-DIE_ALIASES = {"die-les": "die-lesy", "les": "die-lesy", "lesy": "die-lesy",
-               "hory": "die-hory", "hora": "die-hory",
-               "plan": "die-plane", "plane": "die-plane",
-               "any": "die-any"}
-LEVEL_SYMBOLS_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
-GUARANTEED_IDS = ["tec-start", "nat-voda", "tym-zeleni",
-                  "res-prace", "res-obyvatel", "mat-zbrane"]
+TModel = TypeVar("TModel", bound=BaseModel)
+TEntity = TypeVar("TEntity", bound=EntityBase)
+ReadOnlyEntityDict = Dict[EntityId, Entity] | frozendict[EntityId, Entity]
 
+DIE_ANY_ALIAS = "die-any"
 
-def readRole(s: str) -> OrgRole:
-    s = s.lower()
-    if s == "org":
-        return OrgRole.ORG
-    if s == "super":
-        return OrgRole.SUPER
-    raise RuntimeError(f"{s} is not a valid role")
+def str_to_bool(value: str) -> bool:
+    """Convert a string representation of truth to true (1) or false (0).
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    value = value.lower()
+    if value in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif value in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"Invalid boolean value '{value}'")
+
+def unique(iter: Iterable[Any]) -> bool:
+    return all(count <= 1 for count in Counter(iter).values())
 
 
-class EntityParser():
-    class _EntityWithCost(TypedDict):
-        id: str
-        name: str
-        cost: Dict[Resource, Decimal]
-        points: int
+class ParserError(Exception):
+    def __init__(self, reason: str):
+        self.reason = reason
+    def __str__(self) -> str:
+        return f"ParserError: {self.reason}"
+    def __repr__(self) -> str:
+        return str(self)
 
+class ErrorHandler:
+    def __init__(self, *, reporter: Callable[[str], None] = print, max_errs: int = 10, no_warn: bool = False):
+        self.reporter = reporter
+        self.max_errs = max_errs
+        self.no_warn = no_warn
+        self.error_msgs: List[str] = []
+        self.warn_msgs: List[str] = []
+
+    def success(self) -> bool:
+        return len(self.error_msgs) == 0
+
+    def errors_full(self) -> bool:
+        return self.max_errs >= 0 and len(self.error_msgs) >= self.max_errs
+
+    def error(self, error_str: str, *, ignore_max_errs: bool = False) -> None:
+        self.error_msgs.append(error_str)
+        if ignore_max_errs or not self.errors_full():
+            self.reporter(f"  ERROR: {error_str}")
+
+    # Ignores `self.max_errs`
+    def validation_error(self, error: ValidationError) -> ParserError:
+        model_name = error.model.__name__
+        errors = error.errors()
+        summary_str = f"Total {len(errors)} validation errors for {model_name}"
+        self.error(summary_str, ignore_max_errs=True)
+        for err in errors:
+            arg_name = ' -> '.join(str(e) for e in err['loc'])
+            err_msg = err['msg']
+            err_type = err['type']
+            err_ctx = ''.join(f'; {k}={v}' for k, v in err.get('ctx', {}).items())
+            self.error(f"  Validation error for {model_name}, arg '{arg_name}': {err_msg} ({err_type}{err_ctx})", ignore_max_errs=True)
+        return ParserError(summary_str)
+
+    def warn(self, warn_str: str) -> None:
+        self.warn_msgs.append(warn_str)
+        if not self.no_warn:
+            self.reporter(f"  WARN: {warn_str}")
+
+
+class Delims:
     def __init__(self,
-                 data: Dict[str, List[List[str]]],
-                 reportError: Optional[Callable[[str], None]] = None) -> None:
-        self.errors: List[str] = []
-        self.data = data
+                 *,
+                 list_delim: Optional[str] = ',',
+                 tuple_delim: Optional[str] = ':',
+                 ):
+        assert list_delim != ""
+        assert tuple_delim != ""
+        self.list_delim = list_delim
+        self.tuple_delim = tuple_delim
 
-        if reportError:
-            self.reportError = reportError
-        else:
-            self.reportError = self._reportError
+    def without_list_delim(self) -> Delims:
+        return Delims(list_delim=None, tuple_delim=self.tuple_delim)
+    def without_tuple_delim(self) -> Delims:
+        return Delims(list_delim=self.list_delim, tuple_delim=None)
 
-    def _reportError(self, error: str) -> None:
-        print(error)
 
-    def parseTypString(self, s: str) -> Tuple[ResourceType, int]:
-        assert len(s.split("-")) == 3, "Invalid resourceType id: " + s
-        typId = s[:s.rfind("-")]
-        typLevel = int(s[s.rfind("-")+1:])
-        return (self.entities[typId], typLevel)
+def value_preprocess(value: str) -> Optional[str]:
+    value = value.strip()
+    if value in ("", "-"):
+        return None
+    return value
 
-    def parseCostSingle(self, s: str) -> Tuple[Resource, Decimal]:
-        chunks = [x.strip() for x in s.strip().split(":")]
-        assert len(chunks) == 2, "Invalid cost property \"" + \
-            s + "\" (expecting \"resourceId:amount\")"
-        assert chunks[0][3] == "-", "Invalid entity id: " + chunks[0]
-        assert self.entities.get(
-            chunks[0], None), f"Neznámý zdroj: {chunks[0]}"
-        return (self.entities[chunks[0]], Decimal(chunks[1]))
+def transform_lines_to_dicts(lines: List[List[str]],
+                             preprocess: Callable[[str], Optional[str]] = value_preprocess,
+                             *,
+                             err_handler: ErrorHandler) -> List[Dict[str, str]]:
+    assert len(lines) >= 1
+    header, entity_lines = lines[0], lines[1:]
 
-    def parseCost(self, s: str) -> Dict[Resource, Decimal]:
-        if len(s) <= 2:
-            return {}
-        return {x[0]: x[1] for x in map(self.parseCostSingle, s.split(","))}
+    if not unique(name for name in header if name != ""):
+        err_handler.error(f"Duplicate header values in {tuple(header)}")
 
-    def getEdgesFromField(self,
-                          field: str
-                          ) -> List[Tuple[Entity, str]]:
-        if len(field) < 4:
-            return []
+    return [{head: cell
+                for head, cell in zip_longest(header, map(preprocess, line), fillvalue=None)
+                    if head is not None and head != ""
+                    if cell is not None
+                }
+            for line in entity_lines
+           ]
 
-        chunks = [x.strip() for x in field.split(",")]
-        result = []
-        for chunk in chunks:
-            split = chunk.split(":")
-            assert len(split) == 2, "Invalid edge: " + chunk
-            targetId = split[0]
-            assert targetId in self.entities, "Unknown unlocking tech id \""\
-                + targetId \
-                + ("\"" if targetId[3] ==
-                   "-" else "\": Id is not exactly 3 symbols long")
-            targetEntity = self.entities[targetId]
 
-            die = split[1].strip()
-            if die in DIE_ALIASES:
-                die = DIE_ALIASES[die]
-            if die == "die-any":
-                for die in DICE_IDS:
-                    result.append((targetEntity, die))
-                continue
-            assert die in DICE_IDS, "Unknown unlocking die id \"" + \
-                die + "\". Allowed dice are " + str(DICE_IDS)
-            result.append((targetEntity, die))
-        return result
+def splitIterableField(arg: str,
+                       *,
+                       delim: str,
+                       allowed: Callable[[str], bool] = lambda s: s != "",
+                       err_handler: ErrorHandler,
+                       ) -> List[str]:
+    assert delim != ""
+    result = list(map(str.strip, arg.split(delim)))
+    if not allowed(result[-1]):
+        result.pop()
+    if not all(map(allowed, result)):
+        err_handler.error(f"Value '{arg}' not allowed in iterable with delim '{delim}'")
+    return result
 
-    def kwargsEntityWithCost(self,
-                             line: List[str],
-                             includeEdges: bool = True
-                             ) -> _EntityWithCost:
-        cost = self.parseCost(line[3])
-        cost[self.entities["res-prace"]] = Decimal(line[2])
-        return {'id': line[0],
-                'name': line[1],
-                'cost': cost,
-                'points': int(line[4])}
+def parseConstantFromDict(values: Dict[str, Any], arg: str) -> Any:
+    assert all(name == name.casefold() for name in values)
+    arg_casefold = arg.casefold()
+    if arg_casefold in values:
+        return values[arg_casefold]
+    raise ValueError(f"'{arg_casefold}' (from '{arg}') has to be one of {tuple(values)}")
 
-    def parseDieCost(self, s: str) -> Tuple[DieId, int]:
-        assert s.split(":")[0] in DIE_IDS, "Unknown die id: " + s.split(":")[0]
-        return (s.split(":")[0], int(s.split(":")[1]))
+def parseLiteralField(values: Tuple[Any, ...], arg: str) -> Any:
+    tArgStrs = [(str(value).casefold(), value) for value in values]
+    assert unique(name for name, _ in tArgStrs)
+    return parseConstantFromDict(dict(tArgStrs), arg)
 
-    class _LineParser(Protocol):
-        def __call__(self, id: str, name: str) -> Entity:
-            ...
+def parseEnum(cls: Type[Enum], arg: str) -> Enum:
+    assert unique(map(str.casefold, cls._member_names_))
+    member_map = {name.casefold(): value for name, value in cls._member_map_.items()}
+    assert len(member_map) == len(cls._member_names_)
+    return parseConstantFromDict(member_map, arg)
 
-    def parseLineGeneric(self, c: _LineParser, line: List[str]) -> None:
-        e = c(id=line[0], name=line[1])
-        self.entities[line[0]] = e
+def parseTupleField(tArgs: Tuple[Type, ...],
+                    arg: str,
+                    *,
+                    delims: Delims,
+                    entities: Optional[ReadOnlyEntityDict],
+                    err_handler: ErrorHandler,
+                    ) -> Tuple[Any, ...]:
+    assert len(tArgs) > 0
+    assert delims.tuple_delim is not None, "No available delim to parse tuple of {tArgs} from '{arg}'"
+    splitArg = splitIterableField(arg, delim=delims.tuple_delim, err_handler=err_handler)
+    if len(splitArg) != len(tArgs):
+        err_handler.error(f"Not enough parts in '{arg}' for '{tArgs}' (with delim '{delims.tuple_delim}')")
+    return tuple(parseField(tArg, sArg, delims=delims.without_tuple_delim(), entities=entities, err_handler=err_handler)
+                    for tArg, sArg in zip(tArgs, splitArg, strict=True))
 
-    def parseLineTeam(self, line: List[str]) -> None:
-        if len(line) != 6:
-            raise RuntimeError(f"Team line {line} doesn't look like team line")
-        tiles = [tile for tile in self.entities.values() if isinstance(
-            tile, MapTileEntity) and tile.name == line[5]]
-        assert len(tiles) == 1, f"Invalid set of team starting tiles: {tiles}"
-        assert line[4] in ["TRUE", "FALSE"], \
-            f"Invalid team visibility: {line[4]}"
+def parseListField(tArg: Type,
+                   arg: str,
+                   *,
+                   delims: Delims,
+                   entities: Optional[ReadOnlyEntityDict],
+                   err_handler: ErrorHandler,
+                   ) -> List[Any]:
+    assert delims.list_delim, "No available delim to parse list of {tArg} from '{arg}'"
+    return [parseField(tArg, sArg, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
+                for sArg in splitIterableField(arg, delim=delims.list_delim, err_handler=err_handler)]
 
-        team = Team(
-            id=line[0],
-            name=line[1],
-            color=line[2],
-            password=line[3],
-            visible=bool(line[4]),
-            homeTileId=tiles[0].id
-        )
-        self.entities[team.id] = team
+def parseDictField(tArgs: Tuple[Type, Type],
+                   arg: str,
+                   *,
+                   delims: Delims,
+                   entities: Optional[ReadOnlyEntityDict],
+                   err_handler: ErrorHandler,
+                   ) -> Dict[Any, Any]:
+    assert delims.list_delim and delims.tuple_delim, "Not enough available delims to parse dict of {tArgs} from '{arg}'"
+    pairValues = [parseTupleField(tArgs, pairValue, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
+                  for pairValue in splitIterableField(arg, delim=delims.list_delim, err_handler=err_handler)]
+    if not unique(name for name, _ in pairValues):
+        err_handler.error("Multiple keys in '{arg}' not allowed for dict of {tArgs} with delims '{delims.list_delim}' and '{delims.tuple_delim}'")
+    return dict(pairValues)
 
-    def parseLineOrg(self, line: List[str]) -> None:
-        if len(line) != 4:
-            raise RuntimeError(f"Invalid org line: {line}")
-        org = Org(
-            id=line[0],
-            name=line[1],
-            role=readRole(line[2]),
-            password=line[3])
-        self.entities[org.id] = org
+def parseUnionAndOptionalField(tArgs: Tuple[Type, ...],
+                               arg: str,
+                               *,
+                               delims: Delims,
+                               entities: Optional[ReadOnlyEntityDict],
+                               err_handler: ErrorHandler,
+                               ) -> Any:
+    if len(tArgs) == 2 and type(None) in tArgs: # Optional
+        tArg, = iter(tArg for tArg in tArgs if tArg is not type(None))
+        return parseField(tArg, arg, delims=delims, entities=entities, err_handler=err_handler)
+    if str in tArgs:
+        return arg
+    raise NotImplementedError(f"Parsing Union of {tArgs} is not implemented")
 
-    def parseLineTyp(self, line: List[str]) -> None:
-        typ = ResourceType(id=line[0], name=line[1], productionName=line[2],
-                           colorName=line[3], colorVal=int(line[4], 0))
-        self.entities[line[0]] = typ
+def parseGenericField(cls: Type,
+                      arg: str,
+                      *,
+                      delims: Delims,
+                      entities: Optional[ReadOnlyEntityDict],
+                      err_handler: ErrorHandler,
+                      ) -> Any:
+    origin = typing.get_origin(cls)
+    tArgs = typing.get_args(cls)
+    assert origin is not None
 
-    def parseLineMaterial(self, line: List[str]) -> None:
-        id = line[0]
-        if id[:3] == "res":
-            self.entities[id] = Resource(id=id, name=line[1], icon=line[4])
-            return
+    if origin == Literal:
+        return parseLiteralField(tArgs, arg)
+    if origin == Union:  # Unions and Optionals
+        return parseUnionAndOptionalField(tArgs, arg, delims=delims, entities=entities, err_handler=err_handler)
 
-        icon = line[4]
-        assert len(icon) >= 8, f"Příliš krátký název ikony: \"{line[4]}\""
+    if origin == tuple:
+        return parseTupleField(tArgs, arg, delims=delims, entities=entities, err_handler=err_handler)
+    if origin == list:
+        tArg, = tArgs
+        return parseListField(tArg, arg, delims=delims, entities=entities, err_handler=err_handler)
+    if origin == dict:
+        assert len(tArgs) == 2
+        return parseDictField(tArgs, arg, delims=delims, entities=entities, err_handler=err_handler)
 
-        typData = self.parseTypString(line[3])
-        mat = Resource(id=id, name=line[1], typ=typData, icon=icon)
-        self.entities[id] = mat
+    raise NotImplementedError(f"Parsing {cls} (of type {type(cls)}) is not implemented")
 
-        assert len(line[2]) > 0, "Name of production cannot be empty"
+def parseField(cls: Type,
+               arg: str,
+               *,
+               delims: Delims = Delims(),
+               entities: Optional[ReadOnlyEntityDict],
+               err_handler: ErrorHandler,
+               ) -> Any:
+    assert isinstance(arg, str)
+    if cls == str:
+        return arg
+    if cls == int:
+        return int(arg)
+    if cls == Decimal:
+        try:
+            return Decimal(arg)
+        except decimal.InvalidOperation:
+            raise ValueError(f"invalid literal for Decimal: '{arg}'")
+    if cls == bool:
+        return str_to_bool(arg)
+    if typing.get_origin(cls) is not None:
+        return parseGenericField(cls, arg, delims=delims, entities=entities, err_handler=err_handler)
 
-        id = "pro" + id[3:]
-        pro = Resource(
-            id=id,
-            name=line[2],
-            typ=typData,
-            produces=mat,
-            icon=icon[:-5]+"b.svg")
-        self.entities[id] = pro
+    if not isinstance(cls, type):
+        raise NotImplementedError(f"Parsing '{cls}' of type '{type(cls)}' is not implemented")
+    if issubclass(cls, Enum):
+        return parseEnum(cls, arg)
+    if issubclass(cls, EntityBase):
+        assert entities is not None
+        entity = entities.get(arg)
+        if entity is None:
+            raise ParserError(f"Entity '{arg}' is not parsed yet")
+        if not isinstance(entity, cls):
+            raise ParserError(f"Entity '{arg}' is not '{cls}', instead is '{type(entity)}'")
+        return entity
+    raise NotImplementedError(f"Parsing {cls} is not implemented")
 
-    def parseLineTechCreateEntity(self, line: List[str]) -> None:
-        tech = Tech(
-            flavor=line[7],
-            **self.kwargsEntityWithCost(line, includeEdges=False))
-        self.entities[line[0]] = tech
 
-    def parseLineTechAddUnlocks(self, line: List[str]) -> None:
-        tech = self.entities[line[0]]
-        assert isinstance(tech, Tech)
-        unlocks = self.getEdgesFromField(
-            line[5]) + self.getEdgesFromField(line[6])
-        for unlock in unlocks:
-            target = unlock[0]
-            if not isinstance(target, EntityWithCost):
-                print(target)
-                print(unlock)
-            assert isinstance(target, EntityWithCost), \
-                f"Cannot unlock entity without a cost: {target}"
-            target.unlockedBy.append((tech, unlock[1]))
-        tech.unlocks += unlocks
+def parseFieldArgs(argTypes: Dict[str, Tuple[Type, bool]],
+                   args: Dict[str, str],
+                   *,
+                   delims: Delims,
+                   entities: Optional[ReadOnlyEntityDict],
+                   err_handler: ErrorHandler,
+                   ) -> Dict[str, Any]:
+    unknown_fields = tuple(name for name in args if name not in argTypes)
+    if len(unknown_fields) > 0:
+        err_handler.warn(f"There are unknown fields: {unknown_fields} (expected one of {list(argTypes)})")
 
-    def getFeaturesFromField(self,
-                             field: str,
-                             onlyNaturals: bool = False) -> List[TileFeature]:
-        if len(field) < 2:
-            return []
-        result = []
-        for x in [x.strip() for x in field.split(",")]:
-            assert x in self.entities, "Unknown entity: " + x
-            feature = self.entities[x]
-            assert isinstance(feature, TileFeature), \
-                f"Entity is not a tile feature: {x}({type(feature).__name__ })"
-            if onlyNaturals:
-                assert isinstance(feature, NaturalResource), \
-                    f'Feature "{x}" is not a natural resource, \
-                        but a {type(x).__name__}'
-            result.append(feature)
-        return result
+    parsed_args: Dict[str, Any] = {}
+    for name, (fieldType, required) in argTypes.items():
+        arg = args[name] if name in args else None
 
-    def parseLineBuilding(self, line: List[str]) -> None:
-        build = Building(
-            requiredFeatures=self.getFeaturesFromField(
-                line[5],
-                onlyNaturals=True),
-
-            **self.kwargsEntityWithCost(line),
-            icon=line[6])
-
-        self.entities[line[0]] = build
-
-    def parseLineVyroba(self, line: List[str]) -> None:
-        reward = self.parseCostSingle(line[6])
-        assert not reward[0].isGeneric, \
-            f'Vyroba cannot reward generic resource "{reward[0]}"'
-        requiredFeatures = self.getFeaturesFromField(line[7])
-        flavor = line[8]
-        vyroba = Vyroba(reward=reward, requiredFeatures=requiredFeatures,
-                        flavor=flavor, **self.kwargsEntityWithCost(line))
-        assert "res-obyvatel" not in vyroba.cost, \
-            "Cannot declare Obyvatel cost explicitly, \
-            use column cena-obyvatel instead"
-
-        obyvatelCost = Decimal(line[5] if len(line[5]) > 0 else 0)
-        if obyvatelCost != 0:
-            vyroba.cost[self.entities["res-obyvatel"]] = obyvatelCost
-
-        edges = self.getEdgesFromField(line[9] if len(line) > 9 else "")
-        for edge in edges:
-            tech = edge[0]
-            assert isinstance(tech, Tech), f"Neznámý tech k odemčení: {tech}"
-            assert isinstance(edge[1], Decimal), \
-                f"Neznámá cena odemčení: {edge[1]}"
-            vyroba.unlockedBy.append(edge)
-            tech.unlocks.append((vyroba, edge[1]))
-        self.entities[line[0]] = vyroba
-
-    def parseLineTile(self, line: List[str]) -> None:
-        id = "map-tile" + line[1].rjust(2, "0")
-        name = line[0].upper()
-        assert id not in self.entities, f"Id already exists: {id}"
-        index = int(line[1])
-        resources = [self.entities[x.strip()] for x in line[2].split(",")]
-        tile = MapTileEntity(
-            id=id,
-            name=name,
-            index=index,
-            naturalResources=resources,
-            parcelCount=int(line[3]), richness=int(line[4]))
-        self.entities[id] = tile
-
-    def parseSheet(self,
-                   sheetId: str,
-                   dataOffset: int,
-                   parser: Callable[[List[str]], None],
-                   prefixes: List[str],
-                   asserts: bool = True) -> None:
-        if (len(self.errors) > 0):
-            return
-
-        for lineId, line in enumerate(
-                self.data[sheetId][dataOffset:],
-                start=1 + dataOffset):
+        if arg is None and required:
+            needed_args = tuple(arg for arg in argTypes if argTypes[arg][1])
+            err_handler.error(f"Field '{name}' is required, need {needed_args}, got {tuple(args)}")
+        if arg is not None:
             try:
-                if asserts:
-                    assert not line[0] in self.entities, \
-                        f"Id already exists: {line[0]}"
-                    assert line[0][3] == '-', \
-                        f'Id {line[0]} prefix must be 3 chars long, \
-                            got "{line[0]}"'
-                    assert line[0][:3] in prefixes, \
-                        f'Invalid id prefix: {line[0][:3]} \
-                            (allowed prefixes: {prefixes})'
-                    assert len(line[1]) >= 3, "Entity name cannot be empty"
+                parsed_args[name] = parseField(fieldType, arg, delims=delims, entities=entities, err_handler=err_handler)
+            except (ValueError, ParserError) as e:
+                err_handler.error(str(e))
+    return parsed_args
 
-                parser(line)
+def get_field_type(field: pydantic.fields.ModelField) -> Type:
+    def is_type(value: Any) -> bool:
+        return isinstance(value, type) or typing.get_origin(value) is not None
 
-            except Exception as e:
-                message = sheetId + "." + str(lineId) + ": " + str(e.args[0])
-                self.errors.append(message)
+    outer_type = field.outer_type_
+    if is_type(outer_type):
+        return outer_type
+    if isinstance(outer_type, ForwardRef):
+        try:
+            outer_type = eval(outer_type.__forward_code__, entities.__dict__)
+            assert is_type(outer_type), f"Could not resolve field type of '{outer_type}' (from {field})"
+            return outer_type
+        except KeyError:
+            assert False, f"Could not resolve forward ref of type '{outer_type}' (from {field})"
+    assert False, f"Could not resolve field type of '{outer_type}' (from {field})"
 
-        for err in self.errors:
-            self.reportError("  " + err)
+def parseModel(cls: Type[TModel],
+               args: Dict[str, str],
+               *,
+               entities: Optional[ReadOnlyEntityDict],
+               delims: Delims=Delims(),
+               err_handler: ErrorHandler,
+               ) -> TModel:
+    unknown_fields = tuple(name for name in args if name not in cls.__fields__)
+    if len(unknown_fields) > 0:
+        err_handler.warn(f"There are unknown fields for {cls}: {unknown_fields} (expected one of {list(cls.__fields__)})")
 
-    def parseTeams(self) -> None:
-        self.parseSheet("teams", 1, self.parseLineTeam, ["tym"])
+    arg_types = {name: (get_field_type(field), field.required == True) for name, field in cls.__fields__.items()}
+    try:
+        return cls.validate(parseFieldArgs(arg_types, args, delims=delims, entities=entities, err_handler=err_handler))
+    except ValidationError as e:
+        new_e: ParserError = err_handler.validation_error(e)
+        raise new_e from e
+    except (ParserError, ValueError) as e:
+        reason = e.reason if isinstance(e, ParserError) else str(e)
+        raise ParserError(f"{reason} (parsing model {cls} with id: {args.get('id')})") from e
 
-    def parseOrgs(self) -> None:
-        self.parseSheet("orgs", 1, self.parseLineOrg, ["org"])
+def parseEntity(cls: Type[TEntity],
+                args: Dict[str, str],
+                *,
+                allowed_prefixes: List[str],
+                entities: Optional[ReadOnlyEntityDict],
+                delims: Delims=Delims(),
+                err_handler: ErrorHandler,
+                ) -> TEntity:
+    assert len(allowed_prefixes) > 0
 
-    def parseTypes(self) -> None:
-        self.parseSheet("type", 1, lambda x: self.parseLineTyp(x), ["typ"])
+    updateEntityArgs(cls, args, err_handler=err_handler)
+    entity = parseModel(cls, args, entities=entities, delims=delims, err_handler=err_handler)
+    if all(not entity.id.startswith(prefix) for prefix in allowed_prefixes):
+        err_handler.error(f"Id '{entity.id}' does not start with any of {allowed_prefixes}")
+    return entity
 
-    def parseMaterials(self) -> None:
-        self.parseSheet(
-            "material", 1, lambda x: self.parseLineMaterial(x), ["res", "mat"])
+def updateEntityArgs(cls: Type[TEntity], args: Dict[str, str], *, err_handler: ErrorHandler) -> None:
+    for name in list(args):
+        if name.startswith('!'):
+            args.pop(name)
 
-    def parseNaturalResources(self) -> None:
-        self.parseSheet("naturalResource",
-                        1,
-                        lambda x: self.parseLineGeneric(
-                            lambda id, name: NaturalResource(id=id, name=name),
-                            x),
-                        ["nat"])
+    if issubclass(cls, EntityWithCost):
+        if "cost" in args:
+            err_handler.error(f"Don't use 'cost', use 'cost-work' and 'cost-other' instead")
+        if "cost-work" not in args:
+            err_handler.error(f"Expected 'cost-work' in {tuple(args)}")
+        cost_work = args.pop("cost-work")
+        cost_other = args.pop("cost-other", "")
+        if RESOURCE_WORK in cost_other:
+            err_handler.error(f"Don't use '{RESOURCE_WORK}' explicitly, use 'cost-work' instead")
+        args["cost"] = f"{RESOURCE_WORK}:{cost_work},{cost_other}"
 
-    def parseBuildings(self) -> None:
-        self.parseSheet(
-            "building", 1, lambda x: self.parseLineBuilding(x), ["bui"])
+        if "points" in args and 'cost-points' in args:
+                err_handler.error(f"Don't use both 'points' and 'cost-points', choose one")
+        if "points" not in args:
+            if "cost-points" in args:
+                args["points"] = args.pop("cost-points")
+            else:
+                err_handler.error(f"Expected 'cost-points' or 'points' in {tuple(args)}")
 
-    def parseVyrobas(self) -> None:
-        self.parseSheet(
-            "vyroba", 1, lambda x: self.parseLineVyroba(x), ["vyr"])
+    if issubclass(cls, Vyroba):
+        assert issubclass(cls, EntityWithCost)
+        cost_villager = args.pop("cost-villager", None)
+        if RESOURCE_VILLAGER in args['cost']:
+            err_handler.error(f"Don't use '{RESOURCE_VILLAGER}' explicitly, use 'cost-villager' instead")
+        if cost_villager is not None:
+            args["cost"] = f"{RESOURCE_VILLAGER}:{cost_villager},{args['cost']}"
 
-    def parseTiles(self) -> None:
-        self.parseSheet("tile",
-                        1,
-                        lambda x: self.parseLineTile(
-                            x),
-                        ["map"],
-                        asserts=False)
+    if issubclass(cls, MapTileEntity):
+        if "id" in args:
+            err_handler.error(f"Don't use 'id', id is computed automatically from 'index'")
+        if "index" not in args:
+            err_handler.error(f"Expected required value for 'index' {tuple(args)}")
+        args['id'] = "map-tile" + args['index'].rjust(2, "0")
 
-    def parseTechsEmpty(self) -> None:
-        self.parseSheet(
-            "tech", 1, lambda x: self.parseLineTechCreateEntity(x), ["tec"])
 
-    def parseTechsFill(self) -> None:
-        self.parseSheet("tech", 1, lambda x: self.parseLineTechAddUnlocks(x), [
-                        "tec"], asserts=False)
+def parseSheet(entity_type: Type[TEntity],
+               data: List[Dict[str, str]],
+               *,
+               allowed_prefixes: List[str],
+               entities: Optional[ReadOnlyEntityDict],
+               err_handler: ErrorHandler,
+               ) -> Iterable[TEntity]:
+    return iter(parseEntity(entity_type, args, allowed_prefixes=allowed_prefixes, entities=entities, err_handler=err_handler)
+                    for args in data)
 
-    def checkMap(self, entities: Entities) -> None:
-        if len(entities.teams) * 4 != len(entities.tiles):
-            self.errors.append("World size is wrong: \
-                There are {} tiles and {} teams \
-                    (expecting 4 tiles per team)".format(
-                len(entities.tiles),
-                len(entities.teams)))
-            return
 
-        tiles = entities.tiles
-        for i in range(len(tiles)):
-            count = sum(1 for x in tiles.values() if x.index == i)
-            if count > 1:
-                self.errors.append(
-                    "Tile index {} occured {} times".format(i, count))
-            if count < 1:
-                self.errors.append("Tile index {} missing".format(i))
 
-    def buildGenericResources(self) -> None:
-        newResources = []
-        for e in self.entities.values():
-            if not isinstance(e, ResourceType):
-                continue
-            for i in range(1, 7):
-                newResources.append(Resource(
-                    id=f"mge-{e.id[4:]}-{i}",
-                    name=f"{e.name} {i}",
-                    typ=(e, i),
-                    icon=None
-                ))
-                newResources.append(Resource(
-                    id=f"pge-{e.id[4:]}-{i}",
-                    name=f"{e.productionName} {i}",
-                    typ=(e, i),
-                    produces=newResources[-1],
-                    icon=None
-                ))
-        for r in newResources:
-            self.entities[r.id] = r
+def add_tech_unlocks(tech: Tech,
+                     unlock_args: Dict[str, str],
+                     *,
+                     entities: ReadOnlyEntityDict,
+                     err_handler: ErrorHandler,
+                     ) -> None:
+    assert all(name.startswith("unlocks") for name in unlock_args)
+    if "unlocks" in unlock_args:
+        raise RuntimeError(f"Don't use 'unlocks', use 'unlocks-tech' and 'unlocks-other' instead")
+    unknown_headers = tuple(name for name in unlock_args if name not in ("unlocks-tech", "unlocks-other"))
+    if len(unknown_headers) > 0:
+        raise RuntimeError(f"Unknown header values '{unknown_headers}', use 'unlocks-tech' and 'unlocks-other'")
 
-    def hardcodeValues(self) -> None:
-        work = self.entities["res-prace"]
-        obyvatel = self.entities["res-obyvatel"]
-        culture = self.entities["res-kultura"]
+    assert len(tech.unlocks) == 0
 
-        obyvatel.produces = work
-        culture.produces = obyvatel
+    unlocks_tech = unlock_args.get("unlocks-tech")
+    if unlocks_tech is not None:
+        tech.unlocks += parseField(List[Tuple[Tech, DieId]], unlocks_tech, entities=entities, err_handler=err_handler)
 
-    def checkUnlockedBy(self) -> None:
-        if len(self.errors) > 0:
-            return
-        checked = 0
-        for id, entity in self.entities.items():
+    unlocks_other = unlock_args.get("unlocks-other")
+    if unlocks_other is not None:
+        tech.unlocks += parseField(List[Tuple[EntityWithCost, DieId]], unlocks_other, entities=entities, err_handler=err_handler)
+
+
+# TODO: remove
+# def readRole(s: str) -> OrgRole:
+#     s = s.lower()
+#     if s == "org":
+#         return OrgRole.ORG
+#     if s == "super":
+#         return OrgRole.SUPER
+#     raise RuntimeError(f"{s} is not a valid role")
+
+def createProduction(resource: Resource, prod_name: Optional[str], err_handler: ErrorHandler) -> Optional[Resource]:
+    if resource.id.startswith("mat"):
+        prod_prefix = "pro"
+    elif resource.id.startswith("mge"):
+        prod_prefix = "pge"
+    else:
+        if not resource.id.startswith("res"):
+            err_handler.error(f"Resource has invalid id '{resource.id}'")
+        prod_prefix = None
+
+    if prod_prefix is None:
+        return None
+
+    id = prod_prefix + resource.id[len(prod_prefix):]
+
+    if prod_name is None:
+        err_handler.error(f"Resource material has to have a productionName ('{resource.id}')")
+        prod_name = "MISSING PROD NAME"
+
+    icon = None
+    if resource.icon is not None:
+        mat_icon_suff = 'a.svg'
+        pro_icon_suff = 'b.svg'
+        if not resource.icon.endswith(mat_icon_suff):
+            err_handler.error(f"Resource material icon has to end with '{mat_icon_suff}'")
+            resource.icon = "UNKNOWN_ICON_a.svg"
+        icon = resource.icon[:-len(mat_icon_suff)] + pro_icon_suff
+
+    return Resource(id=id, name=prod_name, typ=resource.typ, produces=resource, icon=icon)
+
+
+
+def checkGuaranteedIds(entities: ReadOnlyEntityDict, *, err_handler: ErrorHandler) -> None:
+    for id in GUARANTEED_IDS:
+        if id not in entities:
+            err_handler.error(f"Missing guaranteed entity id '{id}'")
+
+
+def checkUnlockConsistency(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    for entity in entities.values():
+        if not isinstance(entity, EntityWithCost):
+            continue
+        for tech, die in entity.unlockedBy:
+            assert tech is entities[tech.id]
+            assert die in tech.allowedDie(entity)
+            assert tech.unlocks.count((entity, die)) == 1
+        if isinstance(entity, Tech):
+            for unlocks_ent, die in entity.unlocks:
+                assert isinstance(unlocks_ent, EntityWithCost)
+                assert (entity, die) in unlocks_ent.unlockedBy
+                assert unlocks_ent.unlockedBy.count((entity, die)) == 1
+
+def checkUnlockedBy(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    for entity in entities.values():
+        if not isinstance(entity, EntityWithCost):
+            continue
+        if entity.id == TECHNOLOGY_START:
+            if len(entity.unlockedBy) > 0:
+                err_handler.warn(f"{entity.id} ({entity.name}) has unlocking edge, but is START")
+            continue
+        if len(entity.unlockedBy) == 0:
+            err_handler.warn(f"{entity.id} ({entity.name}) doesn't have unlocking edge")
+
+def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
+    visited_entities: Dict[EntityId, EntityWithCost] = {}
+    changed = True
+    while changed:
+        changed = False
+        for entity in entities.values():
             if not isinstance(entity, EntityWithCost):
                 continue
-            checked += 1
-            if id == "tec-start" or id == "tec-epoch":
+            if entity.id in visited_entities:
                 continue
-            if len(entity.unlockedBy) == 0:
-                self.errors.append(
-                    f"{id} ({entity.name}) nemá odemykající hranu")
-
-    def parse(self) -> Entities:
-        self.entities: Entities
-
-        self.parseTypes()
-        self.buildGenericResources()
-        self.parseMaterials()
-        self.parseNaturalResources()
-        self.parseTechsEmpty()
-        self.parseBuildings()
-        self.parseTiles()
-        self.parseVyrobas()
-        self.parseTechsFill()
-
-        self.parseTeams()
-        self.parseOrgs()
-
-        self.hardcodeValues()
-
-        self.checkUnlockedBy()
-
-        if len(self.errors) == 0:
-            for id in GUARANTEED_IDS:
-                if id not in self.entities:
-                    message = f"Missing required id \"{id}\""
-                    self.errors.append(message)
-                    print(message)
-            if len(self.errors) == 0:
-                entities = Entities(self.entities.values())
-                self.checkMap(entities)
-                return entities
-        for message in self.errors:
-            print(message)
-        raise RuntimeError(
-            f"Found {len(self.errors)} errors. Entities are not complete")
+            if all(tech.id in visited_entities for tech, _ in entity.unlockedBy):
+                visited_entities[entity.id] = entity
+                changed = True
+    unreachable = [entity for entity in entities.values() if isinstance(entity, EntityWithCost) if entity not in visited_entities]
+    if len(unreachable) > 0:
+        err_handler.warn(f"There are unreachable entities with cost {unreachable}")
 
 
-def parseEntities(data: Dict[str, List[List[str]]],
-                  reportError: Callable[[str], None]) -> Entities:
-    parser = EntityParser(data, reportError)
-    baseEntities = parser.parse()
-    return Entities(baseEntities.values())
+# def getEdgesFromField(entities: ReadOnlyEntityDict, field: str) -> List[Tuple[Entity, str]]:
+#     chunks = [x.strip() for x in field.split(",")]
+#     result = []
+#     for chunk in chunks:
+#         split = chunk.split(":")
+#         assert len(split) == 2, "Invalid edge: " + chunk
+#         targetId = split[0]
+#         assert targetId in entities, "Unknown unlocking tech id \""\
+#             + targetId \
+#             + ("\"" if targetId[3] ==
+#                 "-" else "\": Id is not exactly 3 symbols long")
+#         targetEntity = entities[targetId]
+
+#         die = split[1].strip()
+#         if die == "die-any":
+#             for die in DIE_IDS:
+#                 result.append((targetEntity, die))
+#             continue
+#         assert die in DIE_IDS, "Unknown unlocking die id \"" + \
+#             die + "\". Allowed dice are " + str(DIE_IDS)
+#         result.append((targetEntity, die))
+#     return result
 
 
-def loadEntities(fileName: str) -> Entities:
-    with open(fileName) as file:
-        data = json.load(file)
+# def checkMap(entities: Entities, err_handler: ErrorHandler) -> None:
+#     if len(entities.teams) * 4 != len(entities.tiles):
+#         err_handler.error("World size is wrong: \
+#             There are {} tiles and {} teams \
+#                 (expecting 4 tiles per team)".format(
+#             len(entities.tiles),
+#             len(entities.teams)))
+#         return
 
-    parser = EntityParser(data)
-    entities = parser.parse()
-    return Entities(entities.values())
+#     tiles = entities.tiles
+#     for i in range(len(tiles)):
+#         count = sum(1 for x in tiles.values() if x.index == i)
+#         if count > 1:
+#             err_handler.error(
+#                 "Tile index {} occured {} times".format(i, count))
+#         if count < 1:
+#             err_handler.error("Tile index {} missing".format(i))
+
+class EntityParser():
+    @staticmethod
+    def parse(gs_data: Dict[str, List[List[str]]], *, err_handler: ErrorHandler = ErrorHandler()) -> Entities:
+        assert len(err_handler.error_msgs) == 0
+        assert len(err_handler.warn_msgs) == 0
+        data = {tab: transform_lines_to_dicts(gs_data[tab], err_handler=err_handler) for tab in gs_data}
+
+        entities: Dict[EntityId, Entity] = {}
+        def add_entities(new_entities: Iterable[Entity]) -> None:
+            for e in new_entities:
+                if e.id in entities:
+                    err_handler.error(f"Entity '{e.id}' is already in entities")
+                    continue
+                entities[e.id] = e
+
+        add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=None, err_handler=err_handler))
+        res_prod_names = {args['id']: args['productionName'] for args in data["resources"] if 'productionName' in args}
+        res_args = [{name: args[name] for name in args if name != 'productionName'} for args in data['resources']]
+        for resource in parseSheet(Resource, res_args, allowed_prefixes=["res", "mat", "mge"], entities=entities, err_handler=err_handler):
+            add_entities([resource])
+            production = createProduction(resource, res_prod_names.get(resource.id), err_handler=err_handler)
+            if production is not None:
+                add_entities([production])
+
+        tech_unlock_args = {args['id']: {name: args[name] for name in args if name.startswith("unlocks")} for args in data["techs"]}
+        tech_args = [{name: args[name] for name in args if not name.startswith("unlocks")} for args in data["techs"]]
+        add_entities(parseSheet(Tech, tech_args, allowed_prefixes=["tec"], entities=entities, err_handler=err_handler))
+
+        add_entities(parseSheet(NaturalResource, data["naturalResources"], allowed_prefixes=["nat"], entities=None, err_handler=err_handler))
+        add_entities(parseSheet(MapTileEntity, data["tiles"], allowed_prefixes=["map"], entities=entities, err_handler=err_handler))
+
+        add_entities(parseSheet(Building, data["buildings"], allowed_prefixes=["bui"], entities=entities, err_handler=err_handler))
+        add_entities(parseSheet(Vyroba, data["vyrobas"], allowed_prefixes=["vyr"], entities=entities, err_handler=err_handler))
+
+        add_entities(parseSheet(Team, data["teams"], allowed_prefixes=["tym"], entities=entities, err_handler=err_handler))
+        add_entities(parseSheet(Org, data["orgs"], allowed_prefixes=["org"], entities=None, err_handler=err_handler))
+
+        for tech_id, unlock_args in tech_unlock_args.items():
+            assert tech_id in entities
+            tech = entities[tech_id]
+            assert isinstance(tech, Tech)
+            add_tech_unlocks(tech, unlock_args, entities=entities, err_handler=err_handler)
+
+        # TODO: compute EntityWithCost.unlockedBy (and check it was empty if required)
+        # TODO: update tech.unlocks from vyroba.unlockedBy
+        # TODO: assert not reward.isGeneric, f'Vyroba cannot reward generic resource "{reward}"'
+        # TODO: alias die-any
+        # TODO: building required features have to be natural
+        # TODO: check Team starting tile (or make if Entity)
+
+
+        # TODO work = self.entities["res-prace"]
+        # TODO obyvatel = self.entities["res-obyvatel"]
+        # TODO culture = self.entities["res-kultura"]
+        # TODO obyvatel.produces = work
+        # TODO culture.produces = obyvatel
+
+        entities_result = Entities(entities.values())
+
+        # checkUnlockedBy() # TODO
+        # checkUnlockConsistency() # TODO
+        # checkUnreachableByTech() # TODO
+        # checkGuaranteedIds() # TODO
+        # checkMap(entities_result) # TODO
+
+        return entities_result
+
+    @staticmethod
+    def load(filename: str | PathLike[str], *, err_handler = ErrorHandler()):
+        with open(filename) as file:
+            data = json.load(file)
+
+        typed_data: Dict[str, List[List[str]]] = data
+        # Check the correct type of the json data
+        assert isinstance(typed_data, dict)
+        for k, v in typed_data.items():
+            assert isinstance(k, str)
+            assert isinstance(v, list)
+            for inner in v:
+                assert isinstance(inner, list)
+                assert all(isinstance(x, str) for x in inner)
+
+        return EntityParser.parse(typed_data, err_handler=err_handler)

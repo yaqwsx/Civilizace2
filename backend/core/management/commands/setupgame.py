@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 from frozendict import frozendict
 from core.models.announcement import Announcement
 from game.entities import Entities, Entity, EntityId, Org, OrgRole, Team as TeamEntity
-from game.entityParser import loadEntities
+from game.entityParser import EntityParser
 from django.conf import settings
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
 from core.models import User, Team
@@ -46,7 +46,7 @@ class Command(BaseCommand):
 
     def handle(self, entities: str, *args, **options) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(entities)
-        ent = loadEntities(targetFile)
+        ent = EntityParser.load(targetFile)
 
         with transaction.atomic():
             self.clearGame()

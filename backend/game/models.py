@@ -16,7 +16,7 @@ from django_enumfield import enum
 from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionArgs, ActionInterface
 from game.entities import Entities, Entity
-from game.entityParser import parseEntities
+from game.entityParser import EntityParser, ErrorHandler
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState, MapState, TeamState, WorldState
 
@@ -41,8 +41,8 @@ class DbEntitiesManager(models.Manager):
 
         def reportError(msg: str):
             raise RuntimeError(msg)
-        entities = parseEntities(
-            dbEntities.data, reportError=reportError).gameOnlyEntities
+        entities = EntityParser.parse(
+            dbEntities.data, err_handler=ErrorHandler(reporter=reportError, no_warn=True)).gameOnlyEntities
         self.cache[revision] = entities
         return revision, entities
 

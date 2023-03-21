@@ -23,6 +23,17 @@ TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
 DIE_IDS: List[DieId] = ["die-lesy", "die-plane", "die-hory"]
 
 
+TECHNOLOGY_START = "tec-start"
+RESOURCE_VILLAGER = "res-obyvatel"
+RESOURCE_WORK = "res-prace"
+
+GUARANTEED_IDS = [
+    TECHNOLOGY_START,
+    RESOURCE_VILLAGER,
+    RESOURCE_WORK,
+]
+
+
 def dieName(id: DieId) -> str:
     # Why isn't this in entities?
     return {
@@ -39,8 +50,6 @@ def briefDieName(id: DieId) -> str:
         "die-plane": "Planinná",
         "die-hory": "Horská"
     }[id]
-
-# Type Aliases
 
 
 class EntityBase(BaseModel):
@@ -65,24 +74,12 @@ def adHocEntitiy(id) -> EntityBase:
     return EntityBase(id=id, name="")
 
 
-@dataclass(eq=False)
 class Team(EntityBase):
     color: str
     password: Optional[str]  # We use it to populate database
     visible: bool
     homeTileId: EntityId
-
-    @property
-    def hexColor(self):
-        {
-            "tym-zluti": "#eab308",
-            "tym-zeleni": "#16a34a",
-            "tym-ruzovi": "#db2777",
-            "tym-oranzovi": "#f97316",
-            "tym-modri": "#2563eb",
-            "tym-fialovi": "#a855f7",
-            "tym-cerveni": "#dc2626"
-        }.get(self.id, "#000000")
+    hexColor: str = "#000000"
 
 
 class OrgRole(Enum):
@@ -90,22 +87,18 @@ class OrgRole(Enum):
     SUPER = 1
 
 
-@dataclass(eq=False)
 class Org(EntityBase):
     role: OrgRole
     password: Optional[str]
 
 
-@dataclass(eq=False)
 class ResourceType(EntityBase):
     productionName: str
     colorName: str
-    colorVal: int
+    colorHex: str = "0x000000"
 
-
-@dataclass(eq=False)
 class Resource(EntityBase):
-    typ: Optional[Tuple[ResourceType, int]] = None
+    typ: Optional[ResourceType] = None
     produces: Optional[Resource] = None
 
     @property
@@ -121,12 +114,11 @@ class Resource(EntityBase):
         return not self.id.startswith("mat-") and not self.id.startswith("mge-")
 
 
-@dataclass(eq=False)
 class EntityWithCost(EntityBase):
-    cost: Dict[Resource, Decimal]
+    cost: Dict[Resource, Decimal] = {}
     points: int
     # duplicates: items in Tech.unlocks
-    unlockedBy: List[Tuple[EntityWithCost, DieId]] = []
+    unlockedBy: List[Tuple[Tech, DieId]] = []
 
     # The default deduced equality is a strong-value based one. However, since
     # there are loops in fields (via unlockedBy), the equality check never ends.
@@ -152,7 +144,7 @@ class EntityWithCost(EntityBase):
 
 class Tech(EntityWithCost):
     unlocks: List[Tuple[Entity, DieId]] = []
-    flavor: str
+    flavor: str = ""
 
     @property
     def unlocksVyrobas(self) -> Set[Vyroba]:
@@ -170,26 +162,24 @@ class Tech(EntityWithCost):
         return set(d for e, d in self.unlocks if e == target)
 
 
-@dataclass(eq=False)
 class TileFeature(EntityBase):
     pass
 
 
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
-    requiredFeatures: List[TileFeature]
-    flavor: str
+    requiredFeatures: List[TileFeature] = []
+    flavor: str = ""
 
 
 class NaturalResource(TileFeature):
-    pass
+    color: str
 
 
 class Building(EntityWithCost, TileFeature):
-    requiredFeatures: List[TileFeature]
+    requiredFeatures: List[TileFeature] = []
 
 
-@dataclass(eq=False)
 class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
@@ -226,17 +216,23 @@ class Entities(frozendict[EntityId, Entity]):
     def all(self) -> frozendict[EntityId, Entity]:
         return self
 
+    def _as_resource(self, id: EntityId) -> Resource:
+        assert id in self
+        resource = self[id]
+        assert isinstance(resource, Resource)
+        return resource
+
     @property
     def work(self) -> Resource:
-        return self["res-prace"]
+        return self._as_resource("res-prace")
 
     @property
     def obyvatel(self) -> Resource:
-        return self["res-obyvatel"]
+        return self._as_resource("res-obyvatel")
 
     @property
     def zbrane(self) -> Resource:
-        return self["mat-zbrane"]
+        return self._as_resource("mat-zbrane")
 
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:

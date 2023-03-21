@@ -1,8 +1,8 @@
 import os
 from django.conf import settings
-from game import entityParser
+from game.entityParser import EntityParser
 
-TEST_ENTITIES = entityParser.loadEntities(os.path.join(settings.DATA_PATH, "entities", "TEST.json"))
+TEST_ENTITIES = EntityParser.load(os.path.join(settings.DATA_PATH, "entities", "TEST.json"))
 TEAM_ADVANCED = TEST_ENTITIES["tym-zeleni"] # the developed team for complex testing
 TEAM_BASIC = TEST_ENTITIES["tym-cerveni"] # the team that is in the initial state, with home tile set up
 

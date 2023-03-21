@@ -7,8 +7,6 @@ from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
 
-from game.entityParser import DICE_IDS
-
 class ActionFailed(Exception):
     """
     Expects a pretty (markdown-formatted) message. This message will be seen
