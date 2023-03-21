@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
-from game.entities import DieId, Resource, Tech, Team
+from game.entities import Die, Resource, Tech, Team
 
 class ActionResearchArgs(ActionArgs):
     team: Team
@@ -28,7 +28,7 @@ class ActionResearchStart(ActionBase):
         return self.args.tech.cost
 
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
         assert self.teamState is not None
         return (self.teamState.getUnlockingDice(self.args.tech), self.args.tech.points)
 

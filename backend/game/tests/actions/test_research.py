@@ -3,7 +3,7 @@ from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchArgs, ActionResearchStart
-from game.entities import DieId
+from game.entities import Die
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
@@ -31,7 +31,7 @@ def test_start():
     cost = action.cost()
     dice, points = action.diceRequirements()
     assert cost == tech.cost
-    assert set(dice) == set(["die-lesy"])
+    assert set(dice) == set([entities.dice["die-lesy"]])
     assert points == 20
 
     action.applyCommit(1, 100)

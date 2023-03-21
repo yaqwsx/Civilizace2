@@ -14,8 +14,8 @@ from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Opt
 
 from . import entities
 from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
-from .entities import DieId, EntityId, Entities, Entity, EntityBase, EntityWithCost
-from .entities import Building, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
+from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost
+from .entities import Building, Die, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
 
 TModel = TypeVar("TModel", bound=BaseModel)
 TEntity = TypeVar("TEntity", bound=EntityBase)
@@ -427,11 +427,11 @@ def add_tech_unlocks(tech: Tech,
 
     unlocks_tech = unlock_args.get("unlocks-tech")
     if unlocks_tech is not None:
-        tech.unlocks += parseField(List[Tuple[Tech, DieId]], unlocks_tech, entities=entities, err_handler=err_handler)
+        tech.unlocks += parseField(List[Tuple[Tech, Die]], unlocks_tech, entities=entities, err_handler=err_handler)
 
     unlocks_other = unlock_args.get("unlocks-other")
     if unlocks_other is not None:
-        tech.unlocks += parseField(List[Tuple[EntityWithCost, DieId]], unlocks_other, entities=entities, err_handler=err_handler)
+        tech.unlocks += parseField(List[Tuple[EntityWithCost, Die]], unlocks_other, entities=entities, err_handler=err_handler)
 
 
 # TODO: remove
@@ -581,6 +581,7 @@ class EntityParser():
                     continue
                 entities[e.id] = e
 
+        add_entities(parseSheet(Die, data["dice"], allowed_prefixes=["die"], entities=None, err_handler=err_handler))
         add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=None, err_handler=err_handler))
         res_prod_names = {args['id']: args['productionName'] for args in data["resources"] if 'productionName' in args}
         res_args = [{name: args[name] for name in args if name != 'productionName'} for args in data['resources']]

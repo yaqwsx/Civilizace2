@@ -2,7 +2,7 @@ from math import ceil
 from typing import Dict
 from game.actions.actionBase import ActionBase, ActionFailed
 from game.actions.researchStart import ActionResearchArgs
-from game.entities import Resource, Tech, dieName
+from game.entities import Resource
 
 
 class ActionResearchFinish(ActionResearchArgs):
@@ -37,5 +37,5 @@ class ActionResearchFinish(ActionBase):
             self.args.tech.id + "]] byl dokončen."
         self._info += f"Vydejte týmu puntík na kostku"
         dice = ", ".join(
-            [dieName(die) for die in self.teamState.getUnlockingDice(self.args.tech)])
+            [die.name for die in self.teamState.getUnlockingDice(self.args.tech)])
         self._info += f"Vydejte týmu jeden žeton objevu: {dice}"

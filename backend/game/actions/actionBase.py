@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from pydantic import BaseModel, PrivateAttr
 from game.actions.common import ActionFailed, MessageBuilder
 
-from game.entities import DieId, Entities, Resource, Team
+from game.entities import Die, Entities, Resource, Team
 from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
 
@@ -48,7 +48,7 @@ class ActionInterface(BaseModel):
     def trace(self) -> MessageBuilder:
         return self._trace
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
         """
         Řekne, kolik teček je třeba hodit na jedné z kostek. Pokud vrátí prázdný
         seznam, není třeba házet.
@@ -265,7 +265,7 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
         notifications.append(message)
         self._notifications[team] = notifications
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
         return ((), 0)
 
     def throwCost(self) -> int:

@@ -17,7 +17,7 @@ from game.actions.actionBase import ActionInterface, ActionResult
 from game.actions.common import (ActionFailed, MessageBuilder)
 from game.actions.researchFinish import ActionResearchFinish
 from game.actions.researchStart import ActionResearchStart
-from game.entities import DieId, Entities, Entity, dieName
+from game.entities import Die, Entities, Entity
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbMapDiff,
                          DbState, DbSticker, DbTask, DbTaskAssignment, DbTurn, DiffType,
@@ -274,15 +274,15 @@ class ActionViewSet(viewsets.ViewSet):
         return result, gainedStickers
 
     @staticmethod
-    def _previewMessage(initiateResult: ActionResult, dice: Tuple[Iterable[DieId], int],
+    def _previewMessage(initiateResult: ActionResult, dice: Tuple[Iterable[Die], int],
             commitResult: ActionResult, stickers: Iterable[StickerId], delayed: int) -> str:
         b = MessageBuilder()
         b.add("## Předpoklady")
         b.add(initiateResult.message)
-        if dice[1]:
+        if dice[1] > 0:
             with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
-                for d in sorted(dice[0], key=dieName):
-                    addDice(dieName(d))
+                for d in sorted(dice[0], key=lambda die: die.name):
+                    addDice(d.name)
         else:
             b.add("Akce nevyžaduje házení kostkou")
 
@@ -296,7 +296,7 @@ class ActionViewSet(viewsets.ViewSet):
         return b.message
 
     @staticmethod
-    def _initiateMessage(initiateResult: ActionResult, dice: Tuple[Iterable[DieId], int],
+    def _initiateMessage(initiateResult: ActionResult, dice: Tuple[Iterable[Die], int],
             commitResult: Optional[ActionResult], stickers: Iterable[StickerId],
             delayedEffect: Optional[DbDelayedEffect]) -> str:
         b = MessageBuilder()
@@ -481,7 +481,7 @@ class ActionViewSet(viewsets.ViewSet):
                 if request.method == "GET":
                     return Response({
                         "requiredDots": diceReq[1],
-                        "allowedDice": sorted(diceReq[0], key=dieName),
+                        "allowedDice": sorted(diceReq[0], key=lambda d: d.name),
                         "throwCost": action.throwCost(),
                         "description": dbAction.description,
                         "team": action.team.id

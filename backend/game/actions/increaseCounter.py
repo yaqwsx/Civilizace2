@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase, ActionResult
-from game.entities import DieId, Resource, Team
+from game.entities import Die, Resource, Team
 from typing import Iterable, List, Optional, Set, Tuple
 
 # This action is a demonstration of action implementation. Basically you can say
@@ -28,8 +28,8 @@ class ActionIncreaseCounter(ActionBase):
         assert isinstance(self._generalArgs, ActionIncreaseCounterArgs)
         return self._generalArgs
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
-        return ["die-lesy"], 20
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
+        return [self.entities.dice["die-lesy"]], 20
 
     def _initiateImpl(self) -> None:
         self.trace.add("Zahájeno initiate")

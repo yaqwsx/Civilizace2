@@ -10,7 +10,6 @@ import os
 
 EntityId = str
 TeamId = str  # intentionally left weak
-DieId = str
 
 STARTER_ARMY_PRESTIGES = [15, 20, 25]
 BASE_ARMY_STRENGTH = 0
@@ -20,7 +19,6 @@ TILE_DISTANCES_RELATIVE = {0: Decimal(0),
                            -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
 TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
     "CIV_SPEED_RUN", None) != "1" else Decimal(30)
-DIE_IDS: List[DieId] = ["die-lesy", "die-plane", "die-hory"]
 
 
 TECHNOLOGY_START = "tec-start"
@@ -32,24 +30,6 @@ GUARANTEED_IDS = [
     RESOURCE_VILLAGER,
     RESOURCE_WORK,
 ]
-
-
-def dieName(id: DieId) -> str:
-    # Why isn't this in entities?
-    return {
-        "die-lesy": "Lesní kostka",
-        "die-plane": "Planinná kostka",
-        "die-hory": "Horská kostka"
-    }[id]
-
-
-def briefDieName(id: DieId) -> str:
-    # Why isn't this in entities?
-    return {
-        "die-lesy": "Lesní",
-        "die-plane": "Planinná",
-        "die-hory": "Horská"
-    }[id]
 
 
 class EntityBase(BaseModel):
@@ -95,6 +75,11 @@ class Org(EntityBase):
 
 
 @dataclass(init=False, eq=False)
+class Die(EntityBase):
+    briefName: str
+
+
+@dataclass(init=False, eq=False)
 class ResourceType(EntityBase):
     productionName: str
     colorName: str
@@ -123,7 +108,7 @@ class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal] = {}
     points: int
     # duplicates: items in Tech.unlocks
-    unlockedBy: List[Tuple[Tech, DieId]] = []
+    unlockedBy: List[Tuple[Tech, Die]] = []
 
     # The default deduced equality is a strong-value based one. However, since
     # there are loops in fields (via unlockedBy), the equality check never ends.
@@ -143,13 +128,13 @@ class EntityWithCost(EntityBase):
     #            [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
 
     @property
-    def unlockingDice(self) -> Set[DieId]:
+    def unlockingDice(self) -> Set[Die]:
         return set(d for e, d in self.unlockedBy)
 
 
 @dataclass(init=False, eq=False)
 class Tech(EntityWithCost):
-    unlocks: List[Tuple[Entity, DieId]] = []
+    unlocks: List[Tuple[Entity, Die]] = []
     flavor: str = ""
 
     @property
@@ -164,7 +149,7 @@ class Tech(EntityWithCost):
     def unlocksBuilding(self) -> Set[Building]:
         return set(x for x, _ in self.unlocks if isinstance(x, Building))
 
-    def allowedDie(self, target: Entity) -> Set[DieId]:
+    def allowedDie(self, target: Entity) -> Set[Die]:
         return set(d for e, d in self.unlocks if e == target)
 
 
@@ -205,6 +190,7 @@ Entity = Union[Resource,
                NaturalResource,
                Building,
                MapTileEntity,
+               Die,
                ResourceType,
                Team,
                Org]
@@ -274,6 +260,11 @@ class Entities(frozendict[EntityId, Entity]):
     def buildings(self) -> frozendict[EntityId, Building]:
         return frozendict({k: v for k, v in self.items()
                            if isinstance(v, Building)})
+
+    @cached_property
+    def dice(self) -> frozendict[EntityId, Die]:
+        return frozendict({k: v for k, v in self.items()
+                           if isinstance(v, Die)})
 
     @cached_property
     def orgs(self) -> frozendict[EntityId, Org]:

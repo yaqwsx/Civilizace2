@@ -3,7 +3,7 @@ from math import ceil, floor
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
-from game.entities import DieId, MapTileEntity, NaturalResource, Resource, Team, Vyroba
+from game.entities import Die, MapTileEntity, NaturalResource, Resource, Team, Vyroba
 from game.state import ArmyGoal, printResourceListForMarkdown
 
 
@@ -34,7 +34,7 @@ class ActionVyroba(ActionBase):
     def cost(self) -> Dict[Resource, Decimal]:
         return {resource: cost*self.args.count for resource, cost in self.args.vyroba.cost.items()}
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
         assert self.teamState is not None
         points = (self.args.vyroba.points * (1 + self.args.count))
         return (self.teamState.getUnlockingDice(self.args.vyroba), ceil(points / 2))

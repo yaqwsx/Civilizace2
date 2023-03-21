@@ -3,7 +3,7 @@ from math import ceil, floor
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase, ActionResult
 from game.actions.common import ActionFailed
-from game.entities import Building, DieId, MapTileEntity, Resource, Team, Vyroba
+from game.entities import Building, Die, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal
 
 class ActionBuildRoadArgs(ActionArgs):
@@ -27,8 +27,8 @@ class ActionBuildRoad(ActionBase):
         return {res: Decimal(cost) for res, cost in self.state.world.roadCost.items()}
 
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
-        return (DICE_IDS, self.state.world.roadPoints)
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
+        return (self.entities.dice.values(), self.state.world.roadPoints)
 
 
     def requiresDelayedEffect(self) -> Decimal:

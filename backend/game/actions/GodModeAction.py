@@ -3,7 +3,7 @@ import traceback
 from typing import Any, Dict, Iterable, List, Set, Tuple
 from game.actions.common import ActionFailed, MessageBuilder
 
-from game.entities import DieId
+from game.entities import Die
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState
 from .actionBase import ActionBase, ActionArgs, ActionResult
@@ -25,7 +25,7 @@ class GodModeAction(ActionBase):
         assert isinstance(self._generalArgs, GodModeArgs)
         return self._generalArgs
 
-    def diceRequirements(self) -> Tuple[Iterable[DieId], int]:
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
         return ((), 0)
 
     def applyInitiate(self) -> ActionResult:

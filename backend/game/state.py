@@ -296,7 +296,7 @@ class TeamState(StateModel):
     def homeTile(self) -> MapTile:
         return self.parent.map.getTileById(self.team.homeTileId)
 
-    def getUnlockingDice(self, entity: EntityWithCost) -> Iterable[DieId]:
+    def getUnlockingDice(self, entity: EntityWithCost) -> Iterable[Die]:
         return iter(die for entity, die in entity.unlockedBy if entity in self.techs)
 
     def collectStickerEntitySet(self) -> set[Entity]:

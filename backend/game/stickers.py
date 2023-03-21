@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from backend.settings import ICON_PATH
 from core.models.team import Team
 
-from game.entities import Building, Entity, Tech, Vyroba, briefDieName, dieName
+from game.entities import Building, Entity, Tech, Vyroba
 from game.models import DbDelayedEffect, DbEntities, DbSticker, InteractionType, StickerType
 from game.util import FileCache
 
@@ -237,7 +237,7 @@ def makeTechSticker(e: Tech, t: Team, stype: StickerType) -> Image:
         with b.withOffset(10):
             for t in uTechs:
                 costText = ", ".join([f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost.items())])
-                diceText = f"Kostka: {t.points}× {', '.join(briefDieName(d) for d in e.allowedDie(t))}"
+                diceText = f"Kostka: {t.points}× {', '.join(d.briefName for d in e.allowedDie(t))}"
                 b.addText(f"• {t.name}: ", FONT_BOLD)
                 with b.withOffset(b.offset + bulletWidth):
                     b.addText(diceText, FONT_NORMAL)
@@ -255,7 +255,7 @@ def makeBuildingSticker(e: Tech, t: Team, stype: StickerType) -> Image:
     featureText = ", ".join([f.name for f in e.requiredFeatures])
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
-    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(briefDieName(d) for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
+    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(d.briefName for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
         for r, a in sortedCost(e.cost.items()):
@@ -284,7 +284,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
         b.addText(e.flavor, FONT_NORMAL)
 
     featureText = ", ".join([f.name for f in e.requiredFeatures])
-    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(briefDieName(d) for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
+    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(d.briefName for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
     b.skip(5)

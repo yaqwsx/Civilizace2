@@ -2,7 +2,7 @@ from __future__ import annotations
 from ctypes import Union
 
 from decimal import Decimal
-from game.entities import Entity, EntityId, Resource, Team
+from game.entities import Die, Entity, EntityId, Resource, Team
 from typing import Dict, List, Any, Generator, Callable, Set, Iterable
 from pydantic import BaseModel, root_validator, validator
 import contextlib
@@ -69,19 +69,10 @@ class DebugException(Exception):
     pass
 
 class ActionCost(BaseModel):
-    allowedDice: Set[str] = set()
+    allowedDice: Set[Die] = set()
     requiredDots: int = 0
     postpone: int = 0
     resources: Dict[Resource, Decimal] = {}
-
-    @validator("allowedDice")
-    def validateDice(cls, v: Iterable[str]) -> Set[str]:
-        ALLOWED_DICE = DICE_IDS
-        dice = set(v)
-        for d in dice:
-            if d not in ALLOWED_DICE:
-                raise ValueError(f"Kostka {d} není dovolena. Dovolené kostky: {','.join(ALLOWED_DICE)}")
-        return dice
 
 
     @root_validator
@@ -105,16 +96,10 @@ class ActionCost(BaseModel):
         return {r: a for r, a in self.resources.items() if r.isMaterial}
 
     def formatDice(self):
-        # Why isn't this in entities?
-        names = {
-            "die-lesy": "Lesní kostka",
-            "die-plane": "Planina kostka",
-            "die-hory": "Horská kostka"
-        }
         if self.requiredDots == 0:
             return "Akce nevyžaduje házení kostkou"
         builder = MessageBuilder()
         with builder.startList(f"Je třeba hodit {self.requiredDots} na jedné z:") as addDice:
             for d in self.allowedDice:
-                addDice(names[d])
+                addDice(d.name)
         return builder.message

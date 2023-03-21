@@ -3,7 +3,7 @@ from math import ceil
 from typing import Dict, List, Optional, Set, Tuple
 from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
-from game.entities import DieId, Resource, Tech, Team
+from game.entities import Die, Resource, Tech, Team
 from game.state import printResourceListForMarkdown
 
 class ActionTradeArgs(ActionArgs):
