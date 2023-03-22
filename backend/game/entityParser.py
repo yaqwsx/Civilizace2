@@ -1,5 +1,5 @@
 from __future__ import annotations
-from collections import Counter
+from collections import Counter, deque
 import decimal
 from decimal import Decimal
 from enum import Enum
@@ -21,7 +21,9 @@ TModel = TypeVar("TModel", bound=BaseModel)
 TEntity = TypeVar("TEntity", bound=EntityBase)
 ReadOnlyEntityDict = Dict[EntityId, Entity] | frozendict[EntityId, Entity]
 
-DIE_ANY_ALIAS = "die-any"
+ALIASES: Dict[str, Callable[[ReadOnlyEntityDict], List[str]]] = {
+    "die-any": lambda entities: [e.id for e in entities.values() if isinstance(e, Die)],
+}
 
 def str_to_bool(value: str) -> bool:
     """Convert a string representation of truth to true (1) or false (0).
@@ -129,20 +131,61 @@ def transform_lines_to_dicts(lines: List[List[str]],
             for line in entity_lines
            ]
 
+def replace_alias(orig_value: str, replacing_values: Iterable[str], *, alias_pos: int, alias_len: int) -> Iterable[str]:
+    assert alias_pos >= 0
+    assert alias_len > 0
+    assert len(orig_value) >= alias_pos + alias_len
+
+    return iter(orig_value[:alias_pos] + repl_val + orig_value[alias_pos+alias_len:] for repl_val in replacing_values)
+
+def fully_resolve_alias(values: Iterable[str],
+                        *,
+                        alias: str,
+                        replacing_values: Callable[[], List[str]],
+                        err_handler: ErrorHandler,
+                        ) -> Iterable[str]:
+    assert len(alias) > 0
+    to_be_resolved = deque(values)
+    if all(value.find(alias) < 0 for value in to_be_resolved):
+        return to_be_resolved
+
+    repl_values = replacing_values()
+    if len(repl_values) == 0:
+        err_handler.warn(f"Alias {alias} has no replacing values when resolving {tuple(to_be_resolved)}")
+    resolved = []
+    while len(to_be_resolved) > 0:
+        value = to_be_resolved.popleft()
+        if (alias_pos := value.find(alias)) >= 0:
+            to_be_resolved.extend(replace_alias(value, repl_values, alias_pos=alias_pos, alias_len=len(alias)))
+        else:
+            resolved.append(value)
+    return resolved
+
+def fully_resolve_aliases(values: Iterable[str], *, entities: ReadOnlyEntityDict, err_handler: ErrorHandler) -> Iterable[str]:
+    for alias, repl_values in ALIASES.items():
+        assert len(alias) > 0
+        assert alias not in entities, f"Alias '{alias}' cannot be an Entity (type {type(entities[alias])})"
+        values = fully_resolve_alias(values,
+                                     alias=alias,
+                                     replacing_values=lambda: repl_values(entities),
+                                     err_handler=err_handler,
+                                     )
+    return values
 
 def splitIterableField(arg: str,
                        *,
                        delim: str,
                        allowed: Callable[[str], bool] = lambda s: s != "",
+                       entities: ReadOnlyEntityDict,
                        err_handler: ErrorHandler,
-                       ) -> List[str]:
+                       ) -> Iterable[str]:
     assert delim != ""
     result = list(map(str.strip, arg.split(delim)))
     if not allowed(result[-1]):
         result.pop()
     if not all(map(allowed, result)):
-        err_handler.error(f"Value '{arg}' not allowed in iterable with delim '{delim}'")
-    return result
+        err_handler.error(f"Value '{arg}' not allowed as iterable with delim '{delim}'")
+    return fully_resolve_aliases(result, entities=entities, err_handler=err_handler)
 
 def parseConstantFromDict(values: Dict[str, Any], arg: str) -> Any:
     assert all(name == name.casefold() for name in values)
@@ -166,14 +209,14 @@ def parseTupleField(tArgs: Tuple[Type, ...],
                     arg: str,
                     *,
                     delims: Delims,
-                    entities: Optional[ReadOnlyEntityDict],
+                    entities: ReadOnlyEntityDict,
                     err_handler: ErrorHandler,
                     ) -> Tuple[Any, ...]:
     assert len(tArgs) > 0
     assert delims.tuple_delim is not None, "No available delim to parse tuple of {tArgs} from '{arg}'"
-    splitArg = splitIterableField(arg, delim=delims.tuple_delim, err_handler=err_handler)
+    splitArg = list(splitIterableField(arg, delim=delims.tuple_delim, entities=entities, err_handler=err_handler))
     if len(splitArg) != len(tArgs):
-        err_handler.error(f"Not enough parts in '{arg}' for '{tArgs}' (with delim '{delims.tuple_delim}')")
+        err_handler.error(f"Wrong number of parts in '{arg}' for '{tArgs}' (with delim '{delims.tuple_delim}')")
     return tuple(parseField(tArg, sArg, delims=delims.without_tuple_delim(), entities=entities, err_handler=err_handler)
                     for tArg, sArg in zip(tArgs, splitArg, strict=True))
 
@@ -181,23 +224,23 @@ def parseListField(tArg: Type,
                    arg: str,
                    *,
                    delims: Delims,
-                   entities: Optional[ReadOnlyEntityDict],
+                   entities: ReadOnlyEntityDict,
                    err_handler: ErrorHandler,
                    ) -> List[Any]:
     assert delims.list_delim, "No available delim to parse list of {tArg} from '{arg}'"
     return [parseField(tArg, sArg, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
-                for sArg in splitIterableField(arg, delim=delims.list_delim, err_handler=err_handler)]
+                for sArg in splitIterableField(arg, delim=delims.list_delim, entities=entities, err_handler=err_handler)]
 
 def parseDictField(tArgs: Tuple[Type, Type],
                    arg: str,
                    *,
                    delims: Delims,
-                   entities: Optional[ReadOnlyEntityDict],
+                   entities: ReadOnlyEntityDict,
                    err_handler: ErrorHandler,
                    ) -> Dict[Any, Any]:
     assert delims.list_delim and delims.tuple_delim, "Not enough available delims to parse dict of {tArgs} from '{arg}'"
     pairValues = [parseTupleField(tArgs, pairValue, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
-                  for pairValue in splitIterableField(arg, delim=delims.list_delim, err_handler=err_handler)]
+                  for pairValue in splitIterableField(arg, delim=delims.list_delim, entities=entities, err_handler=err_handler)]
     if not unique(name for name, _ in pairValues):
         err_handler.error("Multiple keys in '{arg}' not allowed for dict of {tArgs} with delims '{delims.list_delim}' and '{delims.tuple_delim}'")
     return dict(pairValues)
@@ -206,7 +249,7 @@ def parseUnionAndOptionalField(tArgs: Tuple[Type, ...],
                                arg: str,
                                *,
                                delims: Delims,
-                               entities: Optional[ReadOnlyEntityDict],
+                               entities: ReadOnlyEntityDict,
                                err_handler: ErrorHandler,
                                ) -> Any:
     if len(tArgs) == 2 and type(None) in tArgs: # Optional
@@ -220,7 +263,7 @@ def parseGenericField(cls: Type,
                       arg: str,
                       *,
                       delims: Delims,
-                      entities: Optional[ReadOnlyEntityDict],
+                      entities: ReadOnlyEntityDict,
                       err_handler: ErrorHandler,
                       ) -> Any:
     origin = typing.get_origin(cls)
@@ -247,7 +290,7 @@ def parseField(cls: Type,
                arg: str,
                *,
                delims: Delims = Delims(),
-               entities: Optional[ReadOnlyEntityDict],
+               entities: ReadOnlyEntityDict,
                err_handler: ErrorHandler,
                ) -> Any:
     assert isinstance(arg, str)
@@ -270,7 +313,6 @@ def parseField(cls: Type,
     if issubclass(cls, Enum):
         return parseEnum(cls, arg)
     if issubclass(cls, EntityBase):
-        assert entities is not None
         entity = entities.get(arg)
         if entity is None:
             raise ParserError(f"Entity '{arg}' is not parsed yet")
@@ -284,7 +326,7 @@ def parseFieldArgs(argTypes: Dict[str, Tuple[Type, bool]],
                    args: Dict[str, str],
                    *,
                    delims: Delims,
-                   entities: Optional[ReadOnlyEntityDict],
+                   entities: ReadOnlyEntityDict,
                    err_handler: ErrorHandler,
                    ) -> Dict[str, Any]:
     unknown_fields = tuple(name for name in args if name not in argTypes)
@@ -324,7 +366,7 @@ def get_field_type(field: pydantic.fields.ModelField) -> Type:
 def parseModel(cls: Type[TModel],
                args: Dict[str, str],
                *,
-               entities: Optional[ReadOnlyEntityDict],
+               entities: ReadOnlyEntityDict,
                delims: Delims=Delims(),
                err_handler: ErrorHandler,
                ) -> TModel:
@@ -346,7 +388,7 @@ def parseEntity(cls: Type[TEntity],
                 args: Dict[str, str],
                 *,
                 allowed_prefixes: List[str],
-                entities: Optional[ReadOnlyEntityDict],
+                entities: ReadOnlyEntityDict,
                 delims: Delims=Delims(),
                 err_handler: ErrorHandler,
                 ) -> TEntity:
@@ -402,7 +444,7 @@ def parseSheet(entity_type: Type[TEntity],
                data: List[Dict[str, str]],
                *,
                allowed_prefixes: List[str],
-               entities: Optional[ReadOnlyEntityDict],
+               entities: ReadOnlyEntityDict,
                err_handler: ErrorHandler,
                ) -> Iterable[TEntity]:
     return iter(parseEntity(entity_type, args, allowed_prefixes=allowed_prefixes, entities=entities, err_handler=err_handler)
@@ -471,7 +513,7 @@ def createProduction(resource: Resource, prod_name: Optional[str], err_handler: 
             resource.icon = "UNKNOWN_ICON_a.svg"
         icon = resource.icon[:-len(mat_icon_suff)] + pro_icon_suff
 
-    return Resource(id=id, name=prod_name, typ=resource.typ, produces=resource, icon=icon)
+    return Resource(id=id, name=prod_name, typ=resource.typ, produces=resource, icon=icon)  # type: ignore
 
 
 
@@ -581,8 +623,8 @@ class EntityParser():
                     continue
                 entities[e.id] = e
 
-        add_entities(parseSheet(Die, data["dice"], allowed_prefixes=["die"], entities=None, err_handler=err_handler))
-        add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=None, err_handler=err_handler))
+        add_entities(parseSheet(Die, data["dice"], allowed_prefixes=["die"], entities=entities, err_handler=err_handler))
+        add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=entities, err_handler=err_handler))
         res_prod_names = {args['id']: args['productionName'] for args in data["resources"] if 'productionName' in args}
         res_args = [{name: args[name] for name in args if name != 'productionName'} for args in data['resources']]
         for resource in parseSheet(Resource, res_args, allowed_prefixes=["res", "mat", "mge"], entities=entities, err_handler=err_handler):
@@ -595,14 +637,14 @@ class EntityParser():
         tech_args = [{name: args[name] for name in args if not name.startswith("unlocks")} for args in data["techs"]]
         add_entities(parseSheet(Tech, tech_args, allowed_prefixes=["tec"], entities=entities, err_handler=err_handler))
 
-        add_entities(parseSheet(NaturalResource, data["naturalResources"], allowed_prefixes=["nat"], entities=None, err_handler=err_handler))
+        add_entities(parseSheet(NaturalResource, data["naturalResources"], allowed_prefixes=["nat"], entities=entities, err_handler=err_handler))
         add_entities(parseSheet(MapTileEntity, data["tiles"], allowed_prefixes=["map"], entities=entities, err_handler=err_handler))
 
         add_entities(parseSheet(Building, data["buildings"], allowed_prefixes=["bui"], entities=entities, err_handler=err_handler))
         add_entities(parseSheet(Vyroba, data["vyrobas"], allowed_prefixes=["vyr"], entities=entities, err_handler=err_handler))
 
         add_entities(parseSheet(Team, data["teams"], allowed_prefixes=["tym"], entities=entities, err_handler=err_handler))
-        add_entities(parseSheet(Org, data["orgs"], allowed_prefixes=["org"], entities=None, err_handler=err_handler))
+        add_entities(parseSheet(Org, data["orgs"], allowed_prefixes=["org"], entities=entities, err_handler=err_handler))
 
         for tech_id, unlock_args in tech_unlock_args.items():
             assert tech_id in entities
@@ -613,7 +655,6 @@ class EntityParser():
         # TODO: compute EntityWithCost.unlockedBy (and check it was empty if required)
         # TODO: update tech.unlocks from vyroba.unlockedBy
         # TODO: assert not reward.isGeneric, f'Vyroba cannot reward generic resource "{reward}"'
-        # TODO: alias die-any
         # TODO: building required features have to be natural
         # TODO: check Team starting tile (or make if Entity)
 
