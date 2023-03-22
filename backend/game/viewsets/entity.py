@@ -1,25 +1,28 @@
-from typing import Any, Optional, Tuple, Dict
+from typing import Any, List, Optional, Tuple, Dict
 from django.shortcuts import get_object_or_404
 from django.db.models.functions import Now
+from django.db.models.query import QuerySet
+from frozendict import frozendict
 from rest_framework import viewsets
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
-from game.entities import Entities, Entity, Tech
+from game.entities import Entities, Entity, EntityId, Tech, Resource, TeamId, Vyroba, MapTileEntity
 from game.gameGlue import serializeEntity, stateSerialize
 
 from rest_framework import serializers
 
 from game.models import DbDelayedEffect, DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
-from game.state import GameState, TeamState
+from game.state import GameState, TeamState, MapTile, Army
 
-from core.models import Team as DbTeam
+from core.models import User, Team as DbTeam
 from game.viewsets.stickers import DbStickerSerializer
 from game.viewsets.voucher import DbDelayedEffectSerializer
 
@@ -118,10 +121,9 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         resources = self.getTeamState(pk).resources
 
-        def enrich(entity: Entity) -> Dict[str, Any]:
-            return {"available": resources[entity]}
-
-        return Response({r.id: serializeEntity(r, enrich) for r in resources.keys() if resources[r] > 0})
+        assert all(amount >= 0 for amount in resources.values())
+        return Response({res.id: serializeEntity(res, {"available": resources[res]})
+                         for res in resources.keys() if resources[res] > 0})
 
     @action(detail=True)
     def vyrobas(self, request, pk):
@@ -136,13 +138,12 @@ class TeamViewSet(viewsets.ViewSet):
             tileFeatures = set(tile.buildings).union(tile.entity.naturalResources)
             return all(f in tileFeatures for f in vyroba.requiredFeatures)
 
-        def enrich(vyroba: Entity) -> Dict[str, Any]:
-            return {
-                "allowedTiles": [t.id for t in teamReachableTiles if isTileSuitable(vyroba, t)]
-            }
+        def allowed_tiles(vyroba: Vyroba) -> List[EntityId]:
+            return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]
 
         vList.sort(key=lambda x: x.id)
-        return Response({e.id: serializeEntity(e, enrich) for e in vList})
+        return Response({v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
+                            for v in vList})
 
 
     @action(detail=True)
@@ -168,7 +169,7 @@ class TeamViewSet(viewsets.ViewSet):
         for t in state.techs:
             teamTechs.update([x for x, _ in t.unlocks if isinstance(x, Tech)])
 
-        def enrich(tech):
+        def tech_extra_fields(tech):
             if tech in state.techs:
                 return { "status": "owned" }
             if tech in state.researching:
@@ -191,7 +192,7 @@ class TeamViewSet(viewsets.ViewSet):
                 }
             return { "status": "available" }
 
-        return Response({t.id: serializeEntity(t, enrich) for t in teamTechs})
+        return Response({tech.id: serializeEntity(tech, tech_extra_fields(tech)) for tech in teamTechs})
 
     @action(detail=True)
     def tasks(self, request, pk):
