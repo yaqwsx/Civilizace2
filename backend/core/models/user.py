@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -6,24 +7,21 @@ from core.models.team import Team
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username: str, password: Optional[str]=None, team: Optional[Team]=None) -> 'User':
-        if username is None:
-            raise TypeError('Users must have a username.')
+    def create_user(self, username: str, password: str, team: Optional[Team]=None) -> User:
+        assert isinstance(username, str)
+        assert isinstance(password, str)
+
         user = self.model(username=username, team=team)
         user.set_password(password)
         user.save(using=self._db)
 
         return user
 
-    def create_superuser(self, username: str, password: Optional[str]) -> 'User':
+    def create_superuser(self, username: str, password: str) -> User:
         """
         Create and return a `User` with superuser (admin) permissions.
         """
-        if password is None:
-            raise TypeError('Superusers must have a password.')
-        if username is None:
-            raise TypeError('Superusers must have an username.')
-
+        assert password is not None
         user = self.create_user(username, password)
         user.is_superuser = True
         user.save(using=self._db)
@@ -53,4 +51,3 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def isSuperUser(self) -> bool:
         return self.is_superuser
-

@@ -283,14 +283,10 @@ class Entities(frozendict[EntityId, Entity]):
 
     @staticmethod
     def _gameOnlyView(entity):
-        if isinstance(entity, Team):
-            t = entity.copy()
-            t.password = None
-            return t
-        if isinstance(entity, Org):
-            o = entity.copy()
-            o.password = None
-            return o
+        if isinstance(entity, Team) or isinstance(entity, Org):
+            e = entity.copy()
+            e.password = None
+            return e
         return entity
 
     @property

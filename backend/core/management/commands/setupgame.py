@@ -4,12 +4,12 @@ from argparse import ArgumentParser
 from typing import Optional
 from django.core.management import BaseCommand
 from frozendict import frozendict
-from core.models.announcement import Announcement
 from game.entities import Entities, Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import EntityParser
 from django.conf import settings
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
-from core.models import User, Team
+from core.models.announcement import Announcement
+from core.models import User, Team as DbTeam
 from game.state import GameState
 from django.db import transaction
 
@@ -24,14 +24,16 @@ class Command(BaseCommand):
     help = "usage: create [entities|users|state]+"
 
     @staticmethod
-    def create_or_update_user(username: str, password: Optional[str], superuser: bool=False, team: Optional[Team]=None) -> User:
+    def create_or_update_user(username: str, password: str, *, superuser: bool=False, team: Optional[DbTeam]=None) -> User:
+        assert password is not None
+        assert not superuser or team is None
         try:
-            u: User = User.objects.get(username=username)
-            u.set_password(password)
-            u.team = team
-            u.is_superuser = superuser
-            u.save()
-            return u
+            user: User = User.objects.get(username=username)
+            user.set_password(password)
+            user.team = team
+            user.is_superuser = superuser
+            user.save()
+            return user
         except User.DoesNotExist:
             if superuser:
                 return User.objects.create_superuser(username=username,
@@ -71,20 +73,25 @@ class Command(BaseCommand):
 
         Announcement.objects.all().delete()
         User.objects.all().delete()
-        Team.objects.all().delete()
+        DbTeam.objects.all().delete()
 
     def createOrgs(self, orgs: frozendict[EntityId, Org]) -> None:
-        for o in orgs.values():
-            self.create_or_update_user(username = o.id[4:], password=o.password,
-                                          superuser=o.role == OrgRole.SUPER)
+        for org in orgs.values():
+            assert org.password is not None, 'Org cannot have a blank password'
+            self.create_or_update_user(username = org.id[4:], password=org.password,
+                                          superuser=org.role == OrgRole.SUPER)
 
     def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
-        for t in teams.values():
-            teamModel = Team.objects.create(id=t.id, name=t.name, color=t.color,
-                                            visible=t.visible)
+        for team in teams.values():
+            teamModel = DbTeam.objects.create(id=team.id,
+                                                 name=team.name,
+                                                 color=team.color,
+                                                 visible=team.visible,
+                                                 )
             for i in range(4):
-                self.create_or_update_user(username=f"{t.id[4:]}{i+1}",
-                    password=t.password, superuser=False, team=teamModel)
+                assert team.password is not None, 'Team cannot have a blank password'
+                self.create_or_update_user(username=f"{team.id[4:]}{i+1}",
+                    password=team.password, superuser=False, team=teamModel)
 
     def createEntities(self, entityFile: str | os.PathLike[str]) -> None:
         with open(entityFile) as f:
