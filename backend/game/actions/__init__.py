@@ -1,4 +1,5 @@
 import pkgutil
+from typing import Dict, Type
 from game.actions.actionBase import ActionInterface, ActionArgs
 from collections import namedtuple
 import importlib
@@ -6,10 +7,10 @@ import inspect
 
 GameAction = namedtuple("GameAction", ["action", "argument"])
 
-def actionId(action):
+def actionId(action: Type) -> str:
     return action.__name__
 
-GAME_ACTIONS = {}
+GAME_ACTIONS: Dict[str, GameAction] = {}
 for pkg in pkgutil.iter_modules(__path__):
     if pkg.name in ["common", "actionBase"]:
         continue

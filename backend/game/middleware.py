@@ -4,7 +4,7 @@ import os
 import sys
 from game.actions.common import ActionCost
 from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
-from game.gameGlue import stateDeserialize, stateSerialize
+from game.gameGlue import stateSerialize
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTick, DbTurn, DbState, InteractionType
 from django.utils import timezone
 from django.db import transaction

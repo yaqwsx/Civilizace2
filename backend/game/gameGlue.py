@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from pydantic.fields import SHAPE_SINGLETON, MAPPING_LIKE_SHAPES, SHAPE_LIST, SHAPE_SET, ModelField
 from game.actions.actionBase import ActionArgs
 
-from game.entities import EntityBase, Entity, Entities, TEntity
+from game.entities import EntityBase, Entity, Entities
 from game.state import MapTile, StateModel
 
 TModel = TypeVar('TModel', bound=BaseModel)

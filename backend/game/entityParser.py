@@ -14,12 +14,12 @@ from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Opt
 
 from . import entities
 from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
-from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost
+from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost, TEntity
 from .entities import Building, Die, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
 
-TModel = TypeVar("TModel", bound=BaseModel)
-TEntity = TypeVar("TEntity", bound=EntityBase)
 ReadOnlyEntityDict = Dict[EntityId, Entity] | frozendict[EntityId, Entity]
+
+TModel = TypeVar("TModel", bound=BaseModel)
 
 ALIASES: Dict[str, Callable[[ReadOnlyEntityDict], List[str]]] = {
     "die-any": lambda entities: [e.id for e in entities.values() if isinstance(e, Die)],

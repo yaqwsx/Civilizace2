@@ -36,54 +36,58 @@ class EntityViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     @action(detail=False)
-    def resources(self, request):
+    def resources(self, request: Request) -> Response:
         return self._list("resources")
 
     @action(detail=False)
-    def techs(self, request):
+    def techs(self, request: Request) -> Response:
         return self._list("techs")
 
     @action(detail=False)
-    def vyrobas(self, request):
+    def vyrobas(self, request: Request) -> Response:
         return self._list("vyrobas")
 
     @action(detail=False)
-    def tiles(self, request):
+    def tiles(self, request: Request) -> Response:
         return self._list("tiles")
 
     @action(detail=False)
-    def buildings(self, request):
+    def buildings(self, request: Request) -> Response:
         return self._list("buildings")
 
     @action(detail=False)
-    def dice(self, request):
+    def dice(self, request: Request) -> Response:
         return self._list("dice")
 
-    def list(self, request):
+    def list(self, request: Request) -> Response:
         return self._list("all")
 
-    def _list(self, entityType):
+    def _list(self, entityType: str) -> Response:
         entities = DbEntities.objects.get_revision()[1]
-        subset = getattr(entities, entityType)
-        return Response({id: serializeEntity(e) for id, e in subset.items()})
+        subset: frozendict[EntityId, Entity] = getattr(entities, entityType)
+        assert isinstance(subset, frozendict)
+        return Response({e.id: serializeEntity(e) for e in subset.values()})
 
 class TeamViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, )
 
-    def validateAccess(self, user, teamId):
-        if not user.isOrg and user.team.id != teamId:
-            raise PermissionDenied("Nedovolený přístup")
+    def validateAccess(self, user: User, teamId: TeamId) -> None:
+        if not user.isOrg:
+            assert user.team is not None
+            if user.team.id != teamId:
+                raise PermissionDenied("Nedovolený přístup")
 
-    def getTeamState(self, teamId: str) -> TeamState:
+    def getTeamState(self, teamId: TeamId) -> TeamState:
         return self.getTeamStateAndEntities(teamId)[0]
 
-    def getTeamStateAndEntities(self, teamId: str):
-        dbState = DbState.objects.latest("id")
+    def getTeamStateAndEntities(self, teamId: TeamId) -> Tuple[TeamState, Entities]:
+        dbState: DbState = DbState.objects.latest("id")
         state = dbState.toIr()
         entities = dbState.entities
-        return state.teamStates[entities[teamId]], entities
+        team = entities.teams[teamId]
+        return state.teamStates[team], entities
 
-    def unreadAnnouncements(self, user, team):
+    def unreadAnnouncements(self, user: User, team: DbTeam) -> QuerySet[Announcement]:
         if user.isOrg:
             return Announcement.objects.getTeamUnread(team)
         return Announcement.objects.getUnread(user)
@@ -91,18 +95,16 @@ class TeamViewSet(viewsets.ViewSet):
     def list(self, request):
         if not request.user.isOrg:
             raise PermissionDenied("Nedovolený přístup")
-        serializer = TeamSerializer(DbTeam.objects.all(), many=True)
-        return Response(serializer.data)
+        return Response(TeamSerializer(DbTeam.objects.all(), many=True).data)
 
-    def retrieve(self, request, pk):
+    def retrieve(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
 
         t = get_object_or_404(DbTeam.objects.filter(visible=True), pk=pk)
-        serializer = TeamSerializer(t)
-        return Response(serializer.data)
+        return Response(TeamSerializer(t).data)
 
     @staticmethod
-    def serializeArmy(a, reachableTiles):
+    def serializeArmy(a: Army, reachableTiles) -> Dict[str, Any]:
         return {
             "index": a.index,
             "team": a.team,
@@ -117,7 +119,7 @@ class TeamViewSet(viewsets.ViewSet):
         }
 
     @action(detail=True)
-    def resources(self, request, pk):
+    def resources(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         resources = self.getTeamState(pk).resources
 
@@ -126,15 +128,15 @@ class TeamViewSet(viewsets.ViewSet):
                          for res in resources.keys() if resources[res] > 0})
 
     @action(detail=True)
-    def vyrobas(self, request, pk):
+    def vyrobas(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState, entities = self.getTeamStateAndEntities(pk)
         state = teamState.parent
 
         vList = list(teamState.vyrobas)
-        teamReachableTiles = state.map.getReachableTiles(entities[pk])
+        teamReachableTiles = state.map.getReachableTiles(entities.teams[pk])
 
-        def isTileSuitable(vyroba, tile):
+        def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
             tileFeatures = set(tile.buildings).union(tile.entity.naturalResources)
             return all(f in tileFeatures for f in vyroba.requiredFeatures)
 
@@ -147,7 +149,7 @@ class TeamViewSet(viewsets.ViewSet):
 
 
     @action(detail=True)
-    def buildings(self, request, pk):
+    def buildings(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState, entities = self.getTeamStateAndEntities(pk)
 
@@ -157,7 +159,7 @@ class TeamViewSet(viewsets.ViewSet):
 
 
     @action(detail=True)
-    def techs(self, request, pk):
+    def techs(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
 
@@ -195,7 +197,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response({tech.id: serializeEntity(tech, tech_extra_fields(tech)) for tech in teamTechs})
 
     @action(detail=True)
-    def tasks(self, request, pk):
+    def tasks(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
         if request.user.isOrg:
@@ -208,7 +210,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response({t.id: serializer(t).data for t in taskSet})
 
     @action(detail=True)
-    def work(self, request, pk):
+    def work(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         state = self.getTeamState(pk)
 
@@ -217,13 +219,14 @@ class TeamViewSet(viewsets.ViewSet):
         })
 
     @action(detail=True, methods=["POST"])
-    def changetask(self, request, pk):
+    def changetask(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
 
         deserializer = ChangeTaskSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
+        assert isinstance(data, dict)
 
         try:
             assignment = DbTaskAssignment.objects\
@@ -242,7 +245,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response({})
 
     @action(detail=True)
-    def dashboard(self, request, pk):
+    def dashboard(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
 
@@ -296,7 +299,7 @@ class TeamViewSet(viewsets.ViewSet):
         })
 
     @action(detail=True)
-    def announcements(self, request, pk):
+    def announcements(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
         return Response([
@@ -311,50 +314,51 @@ class TeamViewSet(viewsets.ViewSet):
         ])
 
     @action(detail=True)
-    def armies(self, request, pk):
+    def armies(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         tState, entities = self.getTeamStateAndEntities(pk)
         state = tState.parent
-        reachableTiles = state.map.getReachableTiles(entities[pk])
+        team = entities.teams[pk]
+        reachableTiles = state.map.getReachableTiles(team)
 
         return Response({a.index: self.serializeArmy(a, reachableTiles)
-                            for a in state.map.getTeamArmies(entities[pk])})
+                            for a in state.map.getTeamArmies(team)})
 
     @action(detail=True)
-    def stickers(self, request, pk):
+    def stickers(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         stickers = DbSticker.objects.filter(team__id=pk).order_by("-awardedAt")
         return Response(DbStickerSerializer(stickers, many=True).data)
 
     @action(detail=True)
-    def vouchers(self, request, pk):
+    def vouchers(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("withdrawn", "-round", "-target")
         return Response(DbDelayedEffectSerializer(effects, many=True).data)
 
 
     @action(detail=True)
-    def storage(self, request, pk):
+    def storage(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         storage = self.getTeamState(pk).storage
 
-        return Response({r.id: a for r, a in storage.items() if a > 0})
+        assert all(amount >= 0 for amount in storage.values())
+        return Response({res.id: amount for res, amount in storage.items() if amount > 0})
 
     @action(detail=True)
-    def feeding(self, request, pk):
+    def feeding(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState, entities = self.getTeamStateAndEntities(pk)
         state = teamState.parent
-        team = entities[pk]
 
-        return Response(stateSerialize(computeFeedRequirements(state, entities, team)))
+        return Response(stateSerialize(computeFeedRequirements(state, entities, entities.teams[pk])))
 
     @action(detail=True)
-    def tiles(self, request, pk):
+    def tiles(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         tState, entities = self.getTeamStateAndEntities(pk)
         state = tState.parent
-        teamE = entities[pk]
+        teamE = entities.teams[pk]
         reachableTiles = state.map.getReachableTiles(teamE)
 
         return Response({t.entity.id: {

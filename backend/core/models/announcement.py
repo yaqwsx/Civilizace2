@@ -1,8 +1,11 @@
-from typing import Optional
+from __future__ import annotations
+from datetime import datetime
+from typing import Any, Optional, TypeVar
 from django.db import models
 from core.models.user import User
 from core.models.team import Team
 from django.db.models import Count
+from django.db.models.query import QuerySet
 from django.utils import timezone
 
 class AnnouncementType(models.IntegerChoices):
@@ -11,26 +14,26 @@ class AnnouncementType(models.IntegerChoices):
     game = 3
 
 class AnnouncementManager(models.Manager):
-    def getUnread(self, user: User):
+    def getUnread(self, user: User) -> QuerySet[Announcement]:
         return self.getTeam(user.team) \
             .filter(~models.Exists(
                 ReadEvent.objects.filter(user=user, announcement=models.OuterRef("pk"))))
 
-    def getTeamUnread(self, team: Team):
+    def getTeamUnread(self, team: Team) -> QuerySet[Announcement]:
         return self.getTeam(team) \
             .filter(~models.Exists(
                 ReadEvent.objects.filter(announcement=models.OuterRef("pk"), user__team=team)
             ))
 
-    def getTeam(self, team: Optional[Team]):
+    def getTeam(self, team: Optional[Team]) -> QuerySet[Announcement]:
         return self.getVisible().filter(teams=team).prefetch_related("readevent_set")
 
-    def getVisible(self):
+    def getVisible(self) -> QuerySet[Announcement]:
         return self.get_queryset() \
             .filter(appearDatetime__lte=timezone.now()) \
             .order_by("-appearDatetime")
 
-    def getPublic(self):
+    def getPublic(self) -> QuerySet[Announcement]:
         tCount = Team.objects.filter(visible=True).count()
         return self.get_queryset() \
             .annotate(teams_count=Count("teams")).filter(teams_count__gte=tCount)
@@ -58,7 +61,7 @@ class Announcement(models.Model):
     def isPublic(self):
         return self.allowedTeams().count() == Team.objects.count()
 
-    def seenByTeamAt(self, team: Team):
+    def seenByTeamAt(self, team: Team) -> Optional[datetime]:
         try:
             event = ReadEvent.objects \
                 .filter(announcement=self, user__team=team, readAt__isnull=False) \

@@ -220,7 +220,7 @@ class DbState(models.Model):
             self._teamStates = []
 
     @property
-    def entities(self):
+    def entities(self) -> Entities:
         if self.interaction is None:
             return DbEntities.objects.get_revision()[1]
         return DbEntities.objects.get_revision(self.interaction.action.entitiesRevision)[1]

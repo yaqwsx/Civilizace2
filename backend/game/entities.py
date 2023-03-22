@@ -4,7 +4,7 @@ from decimal import Decimal
 from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
-from typing import Any, Optional, Set, Tuple, Union, Iterable, Dict, List
+from typing import Any, Optional, Set, Tuple, TypeVar, Union, Iterable, Dict, List
 from enum import Enum
 import os
 
@@ -194,6 +194,8 @@ Entity = Union[Resource,
                ResourceType,
                Team,
                Org]
+
+TEntity = TypeVar('TEntity', bound=Entity)
 
 
 class Entities(frozendict[EntityId, Entity]):
