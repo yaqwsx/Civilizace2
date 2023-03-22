@@ -406,9 +406,12 @@ class GameState(StateModel):
 
     def normalize(self) -> None:
         for team in self.teamStates.values():
-            team.resources = {r: a for r, a in team.resources.items() if a > 0}
-            team.granary = {r: a for r, a in team.granary.items() if a > 0}
-            team.storage = {r: a for r, a in team.storage.items() if a > 0}
+            assert all(amount >= 0 for amount in team.resources.values())
+            assert all(amount >= 0 for amount in team.granary.values())
+            assert all(amount >= 0 for amount in team.storage.values())
+            team.resources = {res: amount for res, amount in team.resources.items() if amount > 0}
+            team.granary = {res: amount for res, amount in team.granary.items() if amount > 0}
+            team.storage = {res: amount for res, amount in team.storage.items() if amount > 0}
 
 
 def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:

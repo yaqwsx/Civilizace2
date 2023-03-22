@@ -204,9 +204,9 @@ def resourceName(resource):
         return underline(n)
     return n
 
-def makeTechSticker(e: Tech, t: Team, stype: StickerType) -> Image:
+def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image:
     b = getDefaultStickerBuilder()
-    makeStickerHeader(e, t, b, first=stype == StickerType.techFirst)
+    makeStickerHeader(e, team, b, first=stype == StickerType.techFirst)
 
     if stype == StickerType.techSmall:
         return b.getImage()

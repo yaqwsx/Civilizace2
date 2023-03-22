@@ -285,15 +285,15 @@ class TeamViewSet(viewsets.ViewSet):
             },
             "announcements": [
                 {
-                    "id": a.id,
-                    "type": a.typeString(),
-                    "content": a.content,
+                    "id": announcement.id,
+                    "type": announcement.typeString(),
+                    "content": announcement.content,
                     "read": False,
-                    "appearDatetime": a.appearDatetime
-                } for a in self.unreadAnnouncements(request.user, team)
+                    "appearDatetime": announcement.appearDatetime
+                } for announcement in self.unreadAnnouncements(request.user, team)
             ],
             "armies": [
-                self.serializeArmy(a, None) for a in state.map.getTeamArmies(entities[pk])
+                self.serializeArmy(army, None) for army in state.map.getTeamArmies(entities[pk])
             ],
             "techs": list(x.id for x in teamState.techs),
         })
@@ -304,13 +304,13 @@ class TeamViewSet(viewsets.ViewSet):
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
         return Response([
             {
-                "id": a.id,
-                "type": a.typeString(),
-                "content": a.content,
-                "read": request.user in a.read.all(),
-                "appearDatetime": a.appearDatetime,
-                "readBy": set([x.team.name for x in a.read.all()]) if request.user.isOrg else None
-            } for a in Announcement.objects.getTeam(team)
+                "id": announcement.id,
+                "type": announcement.typeString(),
+                "content": announcement.content,
+                "read": request.user in announcement.read.all(),
+                "appearDatetime": announcement.appearDatetime,
+                "readBy": set([x.team.name for x in announcement.read.all()]) if request.user.isOrg else None
+            } for announcement in Announcement.objects.getTeam(team)
         ])
 
     @action(detail=True)
@@ -361,9 +361,9 @@ class TeamViewSet(viewsets.ViewSet):
         teamE = entities.teams[pk]
         reachableTiles = state.map.getReachableTiles(teamE)
 
-        return Response({t.entity.id: {
-            "entity": serializeEntity(t.entity),
-            "unfinished": [x.id for x in t.unfinished.get(teamE, [])],
-            "buildings": [x.id for x in t.buildings],
-            "richness": t.richness
-        } for t in reachableTiles})
+        return Response({tile.entity.id: {
+            "entity": serializeEntity(tile.entity),
+            "unfinished": [x.id for x in tile.unfinished.get(teamE, ())],
+            "buildings": [x.id for x in tile.buildings],
+            "richness": tile.richness
+        } for tile in reachableTiles})
