@@ -22,7 +22,7 @@ from game.state import GameState, MapState, TeamState, WorldState
 
 
 class DbEntitiesManager(models.Manager):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.cache: Dict[int, Entities] = {}
 
@@ -71,10 +71,10 @@ class DbAction(models.Model):
     args = JSONField()
 
     @property
-    def lastInteraction(self):
+    def lastInteraction(self) -> DbInteraction:
         return DbInteraction.objects.filter(action=self).latest("phase")
 
-    def getArgumentsIr(self, entities) -> ActionArgs:
+    def getArgumentsIr(self, entities: Entities) -> ActionArgs:
         ActionTypeInfo = GAME_ACTIONS[self.actionType]
         return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
 
@@ -98,7 +98,7 @@ class DbInteraction(models.Model):
     actionObject = JSONField()
     trace = models.TextField(default="")
 
-    def getActionIr(self, entities, state) -> ActionInterface:
+    def getActionIr(self, entities: Entities, state) -> ActionInterface:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
         action = stateDeserialize(
             ActionTypeInfo.action, self.actionObject, entities)
@@ -370,8 +370,12 @@ class DbSticker(models.Model):
         return DbEntities.objects.get_revision(self.entityRevision)[self.entityId]
 
     @property
-    def stickerPaperRequired(self):
+    def stickerPaperRequired(self) -> bool:
         return self.entityId.startswith("tec-")
+
+    @property
+    def stickerType(self) -> StickerType:
+        return StickerType(self.type)
 
 
 class PrinterManager(models.Manager):

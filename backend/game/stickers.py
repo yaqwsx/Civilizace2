@@ -6,6 +6,7 @@ import contextlib
 import math
 import os
 from pathlib import Path
+from collections.abc import Generator
 from typing import List, Optional
 
 import qrcode
@@ -26,9 +27,9 @@ FONT_HEADER = ImageFont.truetype(os.path.join(
     settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 30)
 
 
-def makeQrCode(content: str, pixelSize: int=3, borderQrPx: int=4) -> Image:
+def makeQrCode(content: str, pixelSize: int=3, borderQrPx: int=4) -> Image.Image:
     qr = qrcode.QRCode(
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        error_correction=qrcode.ERROR_CORRECT_H,
         box_size=pixelSize,
         border=borderQrPx,
     )
@@ -101,7 +102,7 @@ class StickerBuilder:
         return bulletBox[2]
 
     @contextlib.contextmanager
-    def withOffset(self, offset: int) -> None:
+    def withOffset(self, offset: int) -> Generator[None, None, None]:
         oldOffset = self.offset
         self.offset = offset
         try:
@@ -128,23 +129,24 @@ class StickerBuilder:
             self.img.paste(newImg, (xOffset, self.yPosition))
             self.yPosition += icon.height
 
-    def getImage(self, height: Optional[int]=None) -> Image:
+    def getImage(self, height: Optional[int]=None) -> Image.Image:
         if height is None:
             bbox = ImageOps.invert(self.img).getbbox()
+            assert bbox is not None, "Image is empty"
             height = bbox[3] + self.yMargin
         return self.img.crop((0, 0, self.img.width, height))
 
     def getTextSize(self, text, font):
         return self.drawInt.textbbox(xy=(0, 0),text=text, font=font)
 
-def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image:
+def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image.Image:
     if isinstance(e, Tech):
         return makeTechSticker(e, t, stype)
     if isinstance(e, Vyroba):
         return makeVyrobaSticker(e, t, stype)
     if isinstance(e, Building):
         return makeBuildingSticker(e, t, stype)
-    assert f"There is no recipe for making {type(e)} stickers"
+    assert False, f"There is no recipe for making {type(e)} stickers"
 
 def underline(string):
     s = ""
@@ -200,11 +202,12 @@ def sortedCost(items):
 
 def resourceName(resource):
     n = resource.name.replace(" ", " ")
+    # TODO: replace with `isProduction`
     if resource.id.startswith("pro-") or resource.id.startswith("pge-"):
         return underline(n)
     return n
 
-def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image:
+def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, team, b, first=stype == StickerType.techFirst)
 
@@ -246,7 +249,7 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image:
     makeStickerFooter(e, b)
     return b.getImage(mm2Pt(95))
 
-def makeBuildingSticker(e: Tech, t: Team, stype: StickerType) -> Image:
+def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
@@ -274,7 +277,7 @@ def makeBuildingSticker(e: Tech, t: Team, stype: StickerType) -> Image:
 
     return b.getImage()
 
-def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
+def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
@@ -308,7 +311,8 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image:
     makeStickerFooter(e, b)
     return b.getImage()
 
-def makeVoucherSticker(effect: DbDelayedEffect) -> Image:
+def makeVoucherSticker(effect: DbDelayedEffect) -> Image.Image:
+    assert effect.team is not None
     b = getDefaultStickerBuilder()
 
     b.hline(3, 0)
@@ -340,15 +344,16 @@ STICKER_CACHE = FileCache(settings.CACHE / "stickers", ".png")
 def getStickerFile(stickerModel: DbSticker) -> Path:
     _, entities = DbEntities.objects.get_revision(stickerModel.entityRevision)
     def render(path):
-        s = makeSticker(entities[stickerModel.entityId], stickerModel.team, stickerModel.type)
+        s = makeSticker(entities[stickerModel.entityId], stickerModel.team, stickerModel.stickerType)
         s.save(path)
     return STICKER_CACHE.path(stickerModel.ident, render)
 
 if __name__ == "__main__":
     from game.tests.actions.common import TEST_ENTITIES
+    team_zeleni = Team.objects.model(id="tea-zeleni", name="Zelení", color="green")
 
-    vyroba = makeSticker(TEST_ENTITIES["vyr-drevo1Pro"], StickerType.regular)
+    vyroba = makeSticker(TEST_ENTITIES["vyr-drevo1Pro"], team_zeleni, StickerType.regular)
     # vyroba.show()
-    tech = makeSticker(TEST_ENTITIES["tec-start"], StickerType.regular)
+    tech = makeSticker(TEST_ENTITIES["tec-start"], team_zeleni, StickerType.regular)
     tech.show()
     tech.save("test.png")

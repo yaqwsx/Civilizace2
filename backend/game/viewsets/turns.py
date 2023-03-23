@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -51,7 +52,7 @@ class TurnsViewSet(viewsets.ViewSet):
         return Response(DbTurnSerializer(turn).data)
 
     @action(detail=False)
-    def active(self, request):
+    def active(self, request: Request) -> Response:
         try:
             turn = DbTurn.objects.getActiveTurn()
             remaining = turn.startedAt + timezone.timedelta(seconds=turn.duration) - timezone.now()

@@ -29,6 +29,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
@@ -351,7 +352,7 @@ class ActionViewSet(viewsets.ViewSet):
             raise ActionFailed("Hra neběží. Není možné zadávat akce.") from None
 
     @action(methods=["POST"], detail=False)
-    def dry(self, request):
+    def dry(self, request: Request) -> Response:
         deserializer = InitiateSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
@@ -388,7 +389,7 @@ class ActionViewSet(viewsets.ViewSet):
 
     @action(methods=["POST"], detail=False)
     @transaction.atomic()
-    def initiate(self, request):
+    def initiate(self, request: Request) -> Response:
         deserializer = InitiateSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
@@ -461,7 +462,7 @@ class ActionViewSet(viewsets.ViewSet):
 
     @action(methods=["POST", "GET"], detail=True)
     @transaction.atomic()
-    def commit(self, request, pk=True):
+    def commit(self, request: Request, pk=True) -> Response:
         try:
             with transaction.atomic():
                 dbAction = get_object_or_404(DbAction, pk=pk)
@@ -532,7 +533,7 @@ class ActionViewSet(viewsets.ViewSet):
 
     @action(methods=["POST"], detail=True)
     @transaction.atomic()
-    def cancel(self, request, pk=True):
+    def cancel(self, request: Request, pk=True) -> Response:
         dbAction = get_object_or_404(DbAction, pk=pk)
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
@@ -560,7 +561,7 @@ class ActionViewSet(viewsets.ViewSet):
 
     @action(methods=["GET"], detail=False)
     @transaction.atomic()
-    def unfinished(self, request):
+    def unfinished(self, request: Request) -> Response:
         unfinishedInteractions = DbInteraction.objects \
             .filter(phase=InteractionType.initiate, author=request.user) \
             .annotate(interaction_count=Count("action__interactions")) \

@@ -33,7 +33,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
     def _withoutTeams(data):
         return {k: v for k, v in data.items() if k != "teams"}
 
-    def _setAuthor(self, announcement):
+    def _setAuthor(self, announcement: Announcement):
         user = None
         request = self.context.get("request")
         if request and hasattr(request, "user"):
@@ -42,7 +42,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             announcement.author = user
 
     def create(self, validated_data):
-        announcement = Announcement.objects.create(**self._withoutTeams(validated_data))
+        announcement: Announcement = Announcement.objects.create(**self._withoutTeams(validated_data))
         for t in validated_data["teams"]:
             announcement.teams.add(t)
         self._setAuthor(announcement)

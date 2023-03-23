@@ -8,6 +8,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from django.http import FileResponse
 
@@ -39,19 +40,19 @@ class StickerViewSet(viewsets.ViewSet):
         #     raise PermissionDenied("Nedovolený přístup")
         return sticker
 
-    def retrieve(self, request, pk):
+    def retrieve(self, request: Request, pk) -> Response:
         sticker = self._getSticker(request.user, pk)
         return Response(DbStickerSerializer(sticker).data)
 
     @action(detail=True, methods=["POST"])
-    def upgrade(self, request, pk):
+    def upgrade(self, request: Request, pk) -> Response:
         sticker = self._getSticker(request.user, pk)
         sticker.update()
         sticker.save()
         return Response({})
 
     @staticmethod
-    def printGeneral(request, imageFileStream) -> Response:
+    def printGeneral(request: Request, imageFileStream) -> Response:
         deserializer = PrintSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
@@ -74,13 +75,13 @@ class StickerViewSet(viewsets.ViewSet):
         return Response({})
 
     @action(detail=True, methods=["POST"])
-    def print(self, request, pk):
+    def print(self, request: Request, pk) -> Response:
         sticker = self._getSticker(request.user, pk)
 
         return self.printGeneral(request, open(getStickerFile(sticker), "rb"))
 
     # @action(detail=True, methods=["POST"])
-    # def printRelated(self, request, pk):
+    # def printRelated(self, request: Request, pk) -> Response:
     #     rootSticker = self._getSticker(request.user, pk)
     #     if not rootSticker.entityId.startswith("tec-"):
     #         return self.print(request, pk)
@@ -90,7 +91,7 @@ class StickerViewSet(viewsets.ViewSet):
     #     return self.printGeneral(request, open(getStickerFile(sticker), "rb"))
 
     @action(detail=True, methods=["GET"])
-    def image(self, request, pk):
+    def image(self, request: Request, pk) -> FileResponse:
         sticker = self._getSticker(request.user, pk)
         return FileResponse(open(getStickerFile(sticker), "rb"), filename=f"sticker_{sticker.id}.png")
 

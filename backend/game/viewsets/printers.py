@@ -3,6 +3,7 @@ from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework import serializers
 from django.utils import timezone
 
@@ -25,7 +26,7 @@ class PrinterViewSet(viewsets.ViewSet):
         return Response(PrinterSerializer(Printer.objects.all(), many=True).data)
 
     @action(detail=False, methods=["POST"])
-    def register(self, request):
+    def register(self, request: Request) -> Response:
         deserializer = PrinterSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data

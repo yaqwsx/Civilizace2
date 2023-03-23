@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from game.models import DbDelayedEffect, DbEntities, DbState
 from game.stickers import makeVoucherSticker
@@ -30,7 +31,7 @@ class VoucherViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["POST"])
     @transaction.atomic
-    def withdraw(self, request):
+    def withdraw(self, request: Request) -> Response:
         slugs = request.data.get("keys", [])
         stickers = set()
         messages = []
@@ -47,7 +48,7 @@ class VoucherViewSet(viewsets.ViewSet):
         })
 
     @action(detail=True, methods=["POST"])
-    def print(self, request, pk):
+    def print(self, request: Request, pk) -> Response:
         effect = get_object_or_404(DbDelayedEffect.objects.all(), slug=pk)
         img = makeVoucherSticker(effect)
 
