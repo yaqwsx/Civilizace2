@@ -13,7 +13,7 @@ from rest_framework.exceptions import PermissionDenied
 from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
-from game.entities import Entities, Entity, EntityId, Tech, Resource, TeamId, Vyroba, MapTileEntity
+from game.entities import Entities, Entity, EntityId, Tech, Resource, Vyroba, MapTileEntity
 from game.gameGlue import serializeEntity, stateSerialize
 
 from rest_framework import serializers
@@ -27,6 +27,8 @@ from game.viewsets.stickers import DbStickerSerializer
 from game.viewsets.voucher import DbDelayedEffectSerializer
 
 from .permissions import IsOrg
+
+TeamId = str  # intentionally left weak
 
 class ChangeTaskSerializer(serializers.Serializer):
     tech = serializers.CharField()

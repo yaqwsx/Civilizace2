@@ -4,12 +4,11 @@ from decimal import Decimal
 from frozendict import frozendict
 from functools import cached_property
 from pydantic import BaseModel
-from typing import Any, Optional, Set, Tuple, TypeVar, Union, Iterable, Dict, List
+from typing import Any, Optional, Set, Tuple, Type, TypeVar, Union, Iterable, Dict, List
 from enum import Enum
 import os
 
 EntityId = str
-TeamId = str  # intentionally left weak
 
 STARTER_ARMY_PRESTIGES = [15, 20, 25]
 BASE_ARMY_STRENGTH = 0
@@ -25,11 +24,7 @@ TECHNOLOGY_START = "tec-start"
 RESOURCE_VILLAGER = "res-obyvatel"
 RESOURCE_WORK = "res-prace"
 
-GUARANTEED_IDS = [
-    TECHNOLOGY_START,
-    RESOURCE_VILLAGER,
-    RESOURCE_WORK,
-]
+GUARANTEED_IDS: Dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
 
 class EntityBase(BaseModel):
@@ -52,26 +47,6 @@ class EntityBase(BaseModel):
 
 def adHocEntitiy(id) -> EntityBase:
     return EntityBase(id=id, name="")
-
-
-@dataclass(init=False, eq=False)
-class Team(EntityBase):
-    color: str
-    password: Optional[str]  # We use it to populate database
-    visible: bool
-    homeTileId: EntityId
-    hexColor: str = "#000000"
-
-
-class OrgRole(Enum):
-    ORG = 0
-    SUPER = 1
-
-
-@dataclass(init=False, eq=False)
-class Org(EntityBase):
-    role: OrgRole
-    password: Optional[str]
 
 
 @dataclass(init=False, eq=False)
@@ -104,6 +79,15 @@ class Resource(EntityBase):
 
 
 @dataclass(init=False, eq=False)
+class TileFeature(EntityBase):
+    pass
+
+@dataclass(init=False, eq=False)
+class NaturalResource(TileFeature):
+    color: str
+
+
+@dataclass(init=False, eq=False)
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal] = {}
     points: int
@@ -131,10 +115,19 @@ class EntityWithCost(EntityBase):
     def unlockingDice(self) -> Set[Die]:
         return set(d for e, d in self.unlockedBy)
 
+@dataclass(init=False, eq=False)
+class Vyroba(EntityWithCost):
+    reward: Tuple[Resource, Decimal]
+    requiredFeatures: List[TileFeature] = []
+    flavor: str = ""
+
+@dataclass(init=False, eq=False)
+class Building(EntityWithCost, TileFeature):
+    requiredFeatures: List[NaturalResource] = []
 
 @dataclass(init=False, eq=False)
 class Tech(EntityWithCost):
-    unlocks: List[Tuple[Entity, Die]] = []
+    unlocks: List[Tuple[EntityWithCost, Die]] = []
     flavor: str = ""
 
     @property
@@ -154,28 +147,6 @@ class Tech(EntityWithCost):
 
 
 @dataclass(init=False, eq=False)
-class TileFeature(EntityBase):
-    pass
-
-
-@dataclass(init=False, eq=False)
-class Vyroba(EntityWithCost):
-    reward: Tuple[Resource, Decimal]
-    requiredFeatures: List[TileFeature] = []
-    flavor: str = ""
-
-
-@dataclass(init=False, eq=False)
-class NaturalResource(TileFeature):
-    color: str
-
-
-@dataclass(init=False, eq=False)
-class Building(EntityWithCost, TileFeature):
-    requiredFeatures: List[TileFeature] = []
-
-
-@dataclass(init=False, eq=False)
 class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
@@ -183,19 +154,48 @@ class MapTileEntity(EntityBase):
     richness: int
 
 
+@dataclass(init=False, eq=False)
+class Team(EntityBase):
+    color: str
+    password: Optional[str]  # We use it to populate database
+    visible: bool
+    homeTile: MapTileEntity
+    hexColor: str = "#000000"
+
+
+class OrgRole(Enum):
+    ORG = 0
+    SUPER = 1
+
+@dataclass(init=False, eq=False)
+class Org(EntityBase):
+    role: OrgRole
+    password: Optional[str]
+
+
 # Common type of all available entities
-Entity = Union[Resource,
-               Tech,
-               Vyroba,
-               NaturalResource,
-               Building,
-               MapTileEntity,
-               Die,
+Entity = Union[Die,
                ResourceType,
+               Resource,
+               NaturalResource,
+               Vyroba,
+               Building,
+               Tech,
+               MapTileEntity,
                Team,
-               Org]
+               Org,
+               ]
+
+Vyroba.update_forward_refs()
 
 TEntity = TypeVar('TEntity', bound=Entity)
+
+
+GUARANTEED_IDS = {
+    TECHNOLOGY_START: Tech,
+    RESOURCE_VILLAGER: Resource,
+    RESOURCE_WORK: Resource,
+}
 
 
 class Entities(frozendict[EntityId, Entity]):
@@ -215,23 +215,23 @@ class Entities(frozendict[EntityId, Entity]):
     def all(self) -> frozendict[EntityId, Entity]:
         return self
 
-    def _as_resource(self, id: EntityId) -> Resource:
-        assert id in self
-        resource = self[id]
-        assert isinstance(resource, Resource)
-        return resource
-
     @property
     def work(self) -> Resource:
-        return self._as_resource("res-prace")
+        return self.resources[RESOURCE_WORK]
 
     @property
     def obyvatel(self) -> Resource:
-        return self._as_resource("res-obyvatel")
+        return self.resources[RESOURCE_VILLAGER]
 
     @property
-    def zbrane(self) -> Resource:
-        return self._as_resource("mat-zbrane")
+    def zbrane(self):
+        # TODO: remove
+        return self["mat-zbrane"]
+
+    @cached_property
+    def dice(self) -> frozendict[EntityId, Die]:
+        return frozendict({k: v for k, v in self.items()
+                           if isinstance(v, Die)})
 
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:
@@ -240,13 +240,23 @@ class Entities(frozendict[EntityId, Entity]):
 
     @cached_property
     def materials(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Resource) and v.isTracked})
+        return frozendict({k: v for k, v in self.resources.items()
+                           if v.isTracked})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:
+        return frozendict({k: v for k, v in self.resources.items()
+                           if v.isProduction})
+
+    @cached_property
+    def vyrobas(self) -> frozendict[EntityId, Vyroba]:
         return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Resource) and v.isProduction})
+                           if isinstance(v, Vyroba)})
+
+    @cached_property
+    def buildings(self) -> frozendict[EntityId, Building]:
+        return frozendict({k: v for k, v in self.items()
+                           if isinstance(v, Building)})
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
@@ -259,32 +269,17 @@ class Entities(frozendict[EntityId, Entity]):
                            if isinstance(v, MapTileEntity)})
 
     @cached_property
-    def buildings(self) -> frozendict[EntityId, Building]:
+    def teams(self) -> frozendict[EntityId, Team]:
         return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Building)})
-
-    @cached_property
-    def dice(self) -> frozendict[EntityId, Die]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Die)})
+                           if isinstance(v, Team)})
 
     @cached_property
     def orgs(self) -> frozendict[EntityId, Org]:
         return frozendict({k: v for k, v in self.items()
                            if isinstance(v, Org)})
 
-    @cached_property
-    def teams(self) -> frozendict[EntityId, Team]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Team)})
-
-    @cached_property
-    def vyrobas(self) -> frozendict[EntityId, Vyroba]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Vyroba)})
-
     @staticmethod
-    def _gameOnlyView(entity):
+    def _gameOnlyView(entity: Entity) -> Entity:
         if isinstance(entity, Team) or isinstance(entity, Org):
             e = entity.copy()
             e.password = None

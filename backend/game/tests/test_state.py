@@ -42,8 +42,9 @@ def test_homeTiles():
 
     teamState = state.teamStates[entities["tym-zeleni"]]
     tile = teamState.homeTile
-    id = tile.entity
-    assert id == entities["map-tile05"]
+    tile_entity = tile.entity
+    assert tile_entity.id == "map-tile05"
+    assert tile_entity == entities.tiles["map-tile05"]
 
 
 def test_addArmies():

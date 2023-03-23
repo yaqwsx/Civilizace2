@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import Counter, deque
+from contextlib import contextmanager
 import decimal
 from decimal import Decimal
 from enum import Enum
@@ -10,20 +11,34 @@ from os import PathLike
 import pydantic
 from pydantic import BaseModel, ValidationError
 import typing
-from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Optional, Protocol, Tuple, Type, TypeVar, TypedDict, Union
+from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Optional, Protocol, Set, Tuple, Type, TypeVar, TypedDict, Union
 
 from . import entities
 from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
 from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost, TEntity
 from .entities import Building, Die, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
 
-ReadOnlyEntityDict = Dict[EntityId, Entity] | frozendict[EntityId, Entity]
+T = TypeVar("T")
+U = TypeVar("U")
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
-ALIASES: Dict[str, Callable[[ReadOnlyEntityDict], List[str]]] = {
-    "die-any": lambda entities: [e.id for e in entities.values() if isinstance(e, Die)],
-}
+ReadOnlyDict = Dict[T, U] | frozendict[T, U]
+ReadOnlyEntityDict = ReadOnlyDict[EntityId, Entity]
+
+# Aliases duplicate the strings that they appear in
+# Notes:
+# - They work on substring substitution
+# - BE CAREFUL when the alias can be a substring of any value
+# - List is used to ensure the desired order of aliases
+# - They duplicate only in iterables
+# - They duplicate in the OUTER-MOST iterable (NOT in the inner-most)
+#     - (Implementation reason - it's not needed to be otherwise)
+#     - If e.g. Map[_, Set[<Aliasable>]] is required, this will have to be implemented
+ALIASES: List[Tuple[str, Callable[[ReadOnlyEntityDict], List[str]]]] = [
+    ("die-any", lambda entities: [e.id for e in entities.values() if isinstance(e, Die)]),
+]
+
 
 def str_to_bool(value: str) -> bool:
     """Convert a string representation of truth to true (1) or false (0).
@@ -52,23 +67,65 @@ class ParserError(Exception):
         return str(self)
 
 class ErrorHandler:
-    def __init__(self, *, reporter: Callable[[str], None] = print, max_errs: int = 10, no_warn: bool = False):
+    def __init__(self, *, reporter: Callable[[str], None] = print, max_errs: int = 10, no_warn: bool = False) -> None:
         self.reporter = reporter
         self.max_errs = max_errs
         self.no_warn = no_warn
         self.error_msgs: List[str] = []
         self.warn_msgs: List[str] = []
+        self.context_list = []
 
     def success(self) -> bool:
         return len(self.error_msgs) == 0
 
+    def check_success(self, result_reporter: Callable[[str], None]=print) -> None:
+        msgs = [('error', len(self.error_msgs)), ('warn', len(self.warn_msgs))]
+        msgs = [(name, count) for name, count in msgs if count > 0]
+
+        summary_msg = f"Parsing {'SUCCESS' if self.success() else 'FAILED'}"
+        if len(msgs) > 0:
+            msgs_summary = ', '.join(f"{count} {name}{'' if count == 1 else 's'}" for name, count in msgs)
+            summary_msg += f': {msgs_summary}'
+
+        result_reporter(summary_msg)
+        if not self.success():
+            raise ParserError(summary_msg)
+
     def errors_full(self) -> bool:
         return self.max_errs >= 0 and len(self.error_msgs) >= self.max_errs
 
+    def check_max_errs_reached(self) -> None:
+        if self.errors_full():
+            raise ParserError(f'Parsing FAILED: Stopping parsing, encountered max number of errors (max={self.max_errs})')
+
+    @property
+    def context_str(self):
+        return f"[{':'.join(self.context_list)}]"
+
+    @contextmanager
+    def add_context(self, context: str):
+        try:
+            self.context_list.append(context)
+            yield
+        finally:
+            self.pop_context(context)
+
+    def pop_context(self, expected_context: Optional[str]=None) -> None:
+        assert len(self.context_list) > 0
+        old_context = self.context_list.pop()
+        assert old_context == expected_context, \
+            f"Expected context '{expected_context}' but got '{old_context}' {self.context_str}"
+
+    def warn(self, warn_str: str) -> None:
+        self.warn_msgs.append(warn_str)
+        if not self.no_warn:
+            self.reporter(f"  {self.context_str} WARN: {warn_str}")
+
     def error(self, error_str: str, *, ignore_max_errs: bool = False) -> None:
         self.error_msgs.append(error_str)
-        if ignore_max_errs or not self.errors_full():
-            self.reporter(f"  ERROR: {error_str}")
+        self.reporter(f"  {self.context_str} ERROR: {error_str}")
+        if not ignore_max_errs:
+            self.check_max_errs_reached()
 
     # Ignores `self.max_errs`
     def validation_error(self, error: ValidationError) -> ParserError:
@@ -82,12 +139,8 @@ class ErrorHandler:
             err_type = err['type']
             err_ctx = ''.join(f'; {k}={v}' for k, v in err.get('ctx', {}).items())
             self.error(f"  Validation error for {model_name}, arg '{arg_name}': {err_msg} ({err_type}{err_ctx})", ignore_max_errs=True)
-        return ParserError(summary_str)
-
-    def warn(self, warn_str: str) -> None:
-        self.warn_msgs.append(warn_str)
-        if not self.no_warn:
-            self.reporter(f"  WARN: {warn_str}")
+        self.check_max_errs_reached()
+        raise ParserError(f'Parsing FAILED: Encountered validation error, so far encountered {len(self.error_msgs)} errors')
 
 
 class Delims:
@@ -162,7 +215,7 @@ def fully_resolve_alias(values: Iterable[str],
     return resolved
 
 def fully_resolve_aliases(values: Iterable[str], *, entities: ReadOnlyEntityDict, err_handler: ErrorHandler) -> Iterable[str]:
-    for alias, repl_values in ALIASES.items():
+    for alias, repl_values in ALIASES:
         assert len(alias) > 0
         assert alias not in entities, f"Alias '{alias}' cannot be an Entity (type {type(entities[alias])})"
         values = fully_resolve_alias(values,
@@ -393,11 +446,15 @@ def parseEntity(cls: Type[TEntity],
                 err_handler: ErrorHandler,
                 ) -> TEntity:
     assert len(allowed_prefixes) > 0
+    old_err_count = len(err_handler.error_msgs)
+    with err_handler.add_context(f"entity(id='{args.get('id', None)}')"):
+        updateEntityArgs(cls, args, err_handler=err_handler)
+        entity = parseModel(cls, args, entities=entities, delims=delims, err_handler=err_handler)
+        if all(not entity.id.startswith(prefix) for prefix in allowed_prefixes):
+            err_handler.error(f"Id '{entity.id}' does not start with any of {allowed_prefixes}")
 
-    updateEntityArgs(cls, args, err_handler=err_handler)
-    entity = parseModel(cls, args, entities=entities, delims=delims, err_handler=err_handler)
-    if all(not entity.id.startswith(prefix) for prefix in allowed_prefixes):
-        err_handler.error(f"Id '{entity.id}' does not start with any of {allowed_prefixes}")
+    if (err_count := len(err_handler.error_msgs) - old_err_count) > 0:
+        err_handler.error(f"New {err_count} errors while parsing entity '{entity.id} ({entity.name})'")
     return entity
 
 def updateEntityArgs(cls: Type[TEntity], args: Dict[str, str], *, err_handler: ErrorHandler) -> None:
@@ -410,6 +467,7 @@ def updateEntityArgs(cls: Type[TEntity], args: Dict[str, str], *, err_handler: E
             err_handler.error(f"Don't use 'cost', use 'cost-work' and 'cost-other' instead")
         if "cost-work" not in args:
             err_handler.error(f"Expected 'cost-work' in {tuple(args)}")
+            return
         cost_work = args.pop("cost-work")
         cost_other = args.pop("cost-other", "")
         if RESOURCE_WORK in cost_other:
@@ -432,12 +490,25 @@ def updateEntityArgs(cls: Type[TEntity], args: Dict[str, str], *, err_handler: E
         if cost_villager is not None:
             args["cost"] = f"{RESOURCE_VILLAGER}:{cost_villager},{args['cost']}"
 
+    def tileIdFromName(name: str) -> EntityId:
+        return f'map-tile-{name}'
+
     if issubclass(cls, MapTileEntity):
         if "id" in args:
             err_handler.error(f"Don't use 'id', id is computed automatically from 'index'")
-        if "index" not in args:
-            err_handler.error(f"Expected required value for 'index' {tuple(args)}")
-        args['id'] = "map-tile" + args['index'].rjust(2, "0")
+        if "name" not in args:
+            err_handler.error(f"Expected required value for 'name' {tuple(args)}")
+            return
+        args['id'] = tileIdFromName(args['name'])
+
+    if issubclass(cls, Team):
+        if "homeTile" in args:
+            err_handler.error(f"Don't use 'homeTile', use 'homeTileName' instead")
+        if "homeTileName" not in args:
+            err_handler.error(f"Expected required value for 'homeTileName' {tuple(args)}")
+            return
+        homeTileName = args.pop('homeTileName')
+        args['homeTile'] = tileIdFromName(homeTileName)
 
 
 def parseSheet(entity_type: Type[TEntity],
@@ -449,7 +520,6 @@ def parseSheet(entity_type: Type[TEntity],
                ) -> Iterable[TEntity]:
     return iter(parseEntity(entity_type, args, allowed_prefixes=allowed_prefixes, entities=entities, err_handler=err_handler)
                     for args in data)
-
 
 
 def add_tech_unlocks(tech: Tech,
@@ -476,25 +546,27 @@ def add_tech_unlocks(tech: Tech,
         tech.unlocks += parseField(List[Tuple[EntityWithCost, Die]], unlocks_other, entities=entities, err_handler=err_handler)
 
 
-# TODO: remove
-# def readRole(s: str) -> OrgRole:
-#     s = s.lower()
-#     if s == "org":
-#         return OrgRole.ORG
-#     if s == "super":
-#         return OrgRole.SUPER
-#     raise RuntimeError(f"{s} is not a valid role")
+def add_hardcoded_values(entities: Dict[str, Entity], *, err_handler: ErrorHandler) -> None:
+    work = entities[RESOURCE_WORK]
+    obyvatel = entities[RESOURCE_VILLAGER]
+    assert isinstance(work, Resource)
+    assert isinstance(obyvatel, Resource)
+    obyvatel.produces = work
+
+def production_prefix(resource_id: EntityId, *, err_handler: ErrorHandler) -> Optional[str]:
+    if resource_id.startswith("mat"):
+        return "pro"
+    if resource_id.startswith("mge"):
+        return "pge"
+    if resource_id.startswith("res"):
+        return None
+
+    err_handler.error(f"Resource has invalid id '{resource_id}'")
+    return None
+
 
 def createProduction(resource: Resource, prod_name: Optional[str], err_handler: ErrorHandler) -> Optional[Resource]:
-    if resource.id.startswith("mat"):
-        prod_prefix = "pro"
-    elif resource.id.startswith("mge"):
-        prod_prefix = "pge"
-    else:
-        if not resource.id.startswith("res"):
-            err_handler.error(f"Resource has invalid id '{resource.id}'")
-        prod_prefix = None
-
+    prod_prefix = production_prefix(resource.id, err_handler=err_handler)
     if prod_prefix is None:
         return None
 
@@ -516,28 +588,39 @@ def createProduction(resource: Resource, prod_name: Optional[str], err_handler: 
     return Resource(id=id, name=prod_name, typ=resource.typ, produces=resource, icon=icon)  # type: ignore
 
 
+def with_productions(resources: Iterable[Resource],
+                    res_prod_names: ReadOnlyDict[EntityId, str],
+                    *,
+                    err_handler: ErrorHandler,
+                    ) -> Iterable[Resource]:
+    for resource in resources:
+        yield resource
+        production = createProduction(resource, res_prod_names.get(resource.id), err_handler=err_handler)
+        if production is not None:
+            yield production
+
+
+def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
+    for entity in entities.values():
+        if isinstance(entity, EntityWithCost):
+            for tech, die in entity.unlockedBy:
+                tech.unlocks.append((entity, die))
+            entity.unlockedBy.clear()
+
+    for tech in entities.values():
+        if isinstance(tech, Tech):
+            for entity, die in tech.unlocks:
+                entity.unlockedBy.append((tech, die))
+
 
 def checkGuaranteedIds(entities: ReadOnlyEntityDict, *, err_handler: ErrorHandler) -> None:
     for id in GUARANTEED_IDS:
         if id not in entities:
             err_handler.error(f"Missing guaranteed entity id '{id}'")
+        elif not isinstance(entities[id], GUARANTEED_IDS[id]):
+            err_handler.error(f"Guaranteed entity '{id}' has wrong type, expected '{GUARANTEED_IDS[id]}' but got '{type(entities[id])}'")
 
-
-def checkUnlockConsistency(entities: Entities, *, err_handler: ErrorHandler) -> None:
-    for entity in entities.values():
-        if not isinstance(entity, EntityWithCost):
-            continue
-        for tech, die in entity.unlockedBy:
-            assert tech is entities[tech.id]
-            assert die in tech.allowedDie(entity)
-            assert tech.unlocks.count((entity, die)) == 1
-        if isinstance(entity, Tech):
-            for unlocks_ent, die in entity.unlocks:
-                assert isinstance(unlocks_ent, EntityWithCost)
-                assert (entity, die) in unlocks_ent.unlockedBy
-                assert unlocks_ent.unlockedBy.count((entity, die)) == 1
-
-def checkUnlockedBy(entities: Entities, *, err_handler: ErrorHandler) -> None:
+def checkEntitiesHaveUnlockedBy(entities: Entities, *, err_handler: ErrorHandler) -> None:
     for entity in entities.values():
         if not isinstance(entity, EntityWithCost):
             continue
@@ -548,132 +631,125 @@ def checkUnlockedBy(entities: Entities, *, err_handler: ErrorHandler) -> None:
         if len(entity.unlockedBy) == 0:
             err_handler.warn(f"{entity.id} ({entity.name}) doesn't have unlocking edge")
 
+# TODO: check - and probably change
 def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
-    visited_entities: Dict[EntityId, EntityWithCost] = {}
+    visited_entities: Set[EntityWithCost] = set([entities.techs[TECHNOLOGY_START]])
     changed = True
     while changed:
         changed = False
         for entity in entities.values():
             if not isinstance(entity, EntityWithCost):
                 continue
-            if entity.id in visited_entities:
+            if entity in visited_entities:
                 continue
-            if all(tech.id in visited_entities for tech, _ in entity.unlockedBy):
-                visited_entities[entity.id] = entity
+            if any(tech in visited_entities for tech, _ in entity.unlockedBy):
+                visited_entities.add(entity)
                 changed = True
-    unreachable = [entity for entity in entities.values() if isinstance(entity, EntityWithCost) if entity not in visited_entities]
+    unreachable = [entity.id for entity in entities.values() if isinstance(entity, EntityWithCost) if entity not in visited_entities]
     if len(unreachable) > 0:
         err_handler.warn(f"There are unreachable entities with cost {unreachable}")
 
+def check_teams_have_different_home_tiles(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    if not unique(team.homeTile for team in entities.teams.values()):
+        err_handler.error(f"There are multiple teams with the same home tile")
 
-# def getEdgesFromField(entities: ReadOnlyEntityDict, field: str) -> List[Tuple[Entity, str]]:
-#     chunks = [x.strip() for x in field.split(",")]
-#     result = []
-#     for chunk in chunks:
-#         split = chunk.split(":")
-#         assert len(split) == 2, "Invalid edge: " + chunk
-#         targetId = split[0]
-#         assert targetId in entities, "Unknown unlocking tech id \""\
-#             + targetId \
-#             + ("\"" if targetId[3] ==
-#                 "-" else "\": Id is not exactly 3 symbols long")
-#         targetEntity = entities[targetId]
+def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    if len(entities.tiles) != 4 * len(entities.teams):
+        err_handler.error(f"World size is wrong: \
+            There are {len(entities.tiles)} tiles \
+            and {len(entities.teams)} teams (expecting 4 tiles per team)")
 
-#         die = split[1].strip()
-#         if die == "die-any":
-#             for die in DIE_IDS:
-#                 result.append((targetEntity, die))
-#             continue
-#         assert die in DIE_IDS, "Unknown unlocking die id \"" + \
-#             die + "\". Allowed dice are " + str(DIE_IDS)
-#         result.append((targetEntity, die))
-#     return result
+    expected_index_range = range(len(entities.tiles))
+    tile_indices = Counter(tile.index for tile in entities.tiles.values())
 
+    missing_indices = tuple(index for index in expected_index_range if tile_indices[index] == 0)
+    out_of_bound_indices = tuple(index for index in tile_indices if index not in expected_index_range)
+    duplicate_indices = {index: count for index, count in tile_indices.items() if count > 1}
 
-# def checkMap(entities: Entities, err_handler: ErrorHandler) -> None:
-#     if len(entities.teams) * 4 != len(entities.tiles):
-#         err_handler.error("World size is wrong: \
-#             There are {} tiles and {} teams \
-#                 (expecting 4 tiles per team)".format(
-#             len(entities.tiles),
-#             len(entities.teams)))
-#         return
+    if len(out_of_bound_indices) > 0:
+        err_handler.error(f"Out of bound tile indices: {out_of_bound_indices}", ignore_max_errs=True)
+    if len(duplicate_indices) > 0:
+        err_handler.error(f"Duplicate tile indices: {duplicate_indices}", ignore_max_errs=True)
+    if len(missing_indices) > 0:
+        err_handler.error(f"Missing tile indices: {missing_indices}", ignore_max_errs=True)
 
-#     tiles = entities.tiles
-#     for i in range(len(tiles)):
-#         count = sum(1 for x in tiles.values() if x.index == i)
-#         if count > 1:
-#             err_handler.error(
-#                 "Tile index {} occured {} times".format(i, count))
-#         if count < 1:
-#             err_handler.error("Tile index {} missing".format(i))
+    err_handler.check_max_errs_reached()
+
 
 class EntityParser():
     @staticmethod
-    def parse(gs_data: Dict[str, List[List[str]]], *, err_handler: ErrorHandler = ErrorHandler()) -> Entities:
+    def parse(gs_data: Dict[str, List[List[str]]],
+              *,
+              err_handler: ErrorHandler = ErrorHandler(),
+              result_reporter: Optional[Callable[[str], None]] = None,
+              ) -> Entities:
         assert len(err_handler.error_msgs) == 0
         assert len(err_handler.warn_msgs) == 0
-        data = {tab: transform_lines_to_dicts(gs_data[tab], err_handler=err_handler) for tab in gs_data}
 
-        entities: Dict[EntityId, Entity] = {}
+        if result_reporter is None:
+            result_reporter = err_handler.reporter
+
+        data = frozendict({tab: transform_lines_to_dicts(gs_data[tab], err_handler=err_handler) for tab in gs_data})
+
+        entities_map: Dict[EntityId, Entity] = {}
         def add_entities(new_entities: Iterable[Entity]) -> None:
             for e in new_entities:
-                if e.id in entities:
+                if e.id in entities_map:
                     err_handler.error(f"Entity '{e.id}' is already in entities")
                     continue
-                entities[e.id] = e
+                entities_map[e.id] = e
 
-        add_entities(parseSheet(Die, data["dice"], allowed_prefixes=["die"], entities=entities, err_handler=err_handler))
-        add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=entities, err_handler=err_handler))
-        res_prod_names = {args['id']: args['productionName'] for args in data["resources"] if 'productionName' in args}
-        res_args = [{name: args[name] for name in args if name != 'productionName'} for args in data['resources']]
-        for resource in parseSheet(Resource, res_args, allowed_prefixes=["res", "mat", "mge"], entities=entities, err_handler=err_handler):
-            add_entities([resource])
-            production = createProduction(resource, res_prod_names.get(resource.id), err_handler=err_handler)
-            if production is not None:
-                add_entities([production])
+        with err_handler.add_context('dice'):
+            add_entities(parseSheet(Die, data["dice"], allowed_prefixes=["die"], entities=entities_map, err_handler=err_handler))
+        with err_handler.add_context('resourceTypes'):
+            add_entities(parseSheet(ResourceType, data["resourceTypes"], allowed_prefixes=["typ"], entities=entities_map, err_handler=err_handler))
+        with err_handler.add_context('resources'):
+            res_args = [{name: args[name] for name in args if name != 'productionName'} for args in data['resources']]
+            resources = parseSheet(Resource, res_args, allowed_prefixes=["res", "mat", "mge"], entities=entities_map, err_handler=err_handler)
+            res_prod_names = {args['id']: args['productionName'] for args in data["resources"] if 'productionName' in args}
+            add_entities(with_productions(resources, res_prod_names, err_handler=err_handler))
 
-        tech_unlock_args = {args['id']: {name: args[name] for name in args if name.startswith("unlocks")} for args in data["techs"]}
-        tech_args = [{name: args[name] for name in args if not name.startswith("unlocks")} for args in data["techs"]]
-        add_entities(parseSheet(Tech, tech_args, allowed_prefixes=["tec"], entities=entities, err_handler=err_handler))
+        with err_handler.add_context('techs'):
+            tech_unlock_args = {args['id']: {name: args[name] for name in args if name.startswith("unlocks")} for args in data["techs"]}
+            tech_args = [{name: args[name] for name in args if not name.startswith("unlocks")} for args in data["techs"]]
+            add_entities(parseSheet(Tech, tech_args, allowed_prefixes=["tec"], entities=entities_map, err_handler=err_handler))
 
-        add_entities(parseSheet(NaturalResource, data["naturalResources"], allowed_prefixes=["nat"], entities=entities, err_handler=err_handler))
-        add_entities(parseSheet(MapTileEntity, data["tiles"], allowed_prefixes=["map"], entities=entities, err_handler=err_handler))
+        with err_handler.add_context('naturalResources'):
+            add_entities(parseSheet(NaturalResource, data["naturalResources"], allowed_prefixes=["nat"], entities=entities_map, err_handler=err_handler))
+        with err_handler.add_context('tiles'):
+            add_entities(parseSheet(MapTileEntity, data["tiles"], allowed_prefixes=["map"], entities=entities_map, err_handler=err_handler))
 
-        add_entities(parseSheet(Building, data["buildings"], allowed_prefixes=["bui"], entities=entities, err_handler=err_handler))
-        add_entities(parseSheet(Vyroba, data["vyrobas"], allowed_prefixes=["vyr"], entities=entities, err_handler=err_handler))
+        with err_handler.add_context('buildings'):
+            add_entities(parseSheet(Building, data["buildings"], allowed_prefixes=["bui"], entities=entities_map, err_handler=err_handler))
+        with err_handler.add_context('vyrobas'):
+            add_entities(parseSheet(Vyroba, data["vyrobas"], allowed_prefixes=["vyr"], entities=entities_map, err_handler=err_handler))
 
-        add_entities(parseSheet(Team, data["teams"], allowed_prefixes=["tym"], entities=entities, err_handler=err_handler))
-        add_entities(parseSheet(Org, data["orgs"], allowed_prefixes=["org"], entities=entities, err_handler=err_handler))
+        with err_handler.add_context('teams'):
+            add_entities(parseSheet(Team, data["teams"], allowed_prefixes=["tym"], entities=entities_map, err_handler=err_handler))
+        with err_handler.add_context('orgs'):
+            add_entities(parseSheet(Org, data["orgs"], allowed_prefixes=["org"], entities=entities_map, err_handler=err_handler))
 
-        for tech_id, unlock_args in tech_unlock_args.items():
-            assert tech_id in entities
-            tech = entities[tech_id]
-            assert isinstance(tech, Tech)
-            add_tech_unlocks(tech, unlock_args, entities=entities, err_handler=err_handler)
+        with err_handler.add_context('tech unlocks'):
+            for tech_id, unlock_args in tech_unlock_args.items():
+                assert tech_id in entities_map
+                tech = entities_map[tech_id]
+                assert isinstance(tech, Tech)
+                add_tech_unlocks(tech, unlock_args, entities=entities_map, err_handler=err_handler)
 
-        # TODO: compute EntityWithCost.unlockedBy (and check it was empty if required)
-        # TODO: update tech.unlocks from vyroba.unlockedBy
-        # TODO: assert not reward.isGeneric, f'Vyroba cannot reward generic resource "{reward}"'
-        # TODO: building required features have to be natural
-        # TODO: check Team starting tile (or make if Entity)
+        checkGuaranteedIds(entities_map, err_handler=err_handler)
+        add_hardcoded_values(entities_map, err_handler=err_handler)
 
+        synchronizeUnlocks(entities_map)
 
-        # TODO work = self.entities["res-prace"]
-        # TODO obyvatel = self.entities["res-obyvatel"]
-        # TODO culture = self.entities["res-kultura"]
-        # TODO obyvatel.produces = work
-        # TODO culture.produces = obyvatel
+        entities = Entities(entities_map.values())
+        with err_handler.add_context('final checks'):
+            check_teams_have_different_home_tiles(entities, err_handler=err_handler)
+            checkUnreachableByTech(entities, err_handler=err_handler)
+            checkMap(entities, err_handler=err_handler)
 
-        entities_result = Entities(entities.values())
-
-        # checkUnlockedBy() # TODO
-        # checkUnlockConsistency() # TODO
-        # checkUnreachableByTech() # TODO
-        # checkGuaranteedIds() # TODO
-        # checkMap(entities_result) # TODO
-
-        return entities_result
+        err_handler.check_success(result_reporter=result_reporter)
+        assert err_handler.success()
+        return entities
 
     @staticmethod
     def load(filename: str | PathLike[str], *, err_handler = ErrorHandler()):

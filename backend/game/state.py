@@ -217,7 +217,7 @@ class MapState(StateModel):
                 return army.team
 
         for team in self.parent.teamStates.keys():
-            if team.homeTileId == tile.id:
+            if team.homeTile == tile:
                 return team
         return None
 
@@ -294,7 +294,9 @@ class TeamState(StateModel):
 
     @property
     def homeTile(self) -> MapTile:
-        return self.parent.map.getTileById(self.team.homeTileId)
+        tile = self.parent.map.getTileById(self.team.homeTile.id)
+        assert tile is not None
+        return tile
 
     def getUnlockingDice(self, entity: EntityWithCost) -> Iterable[Die]:
         return iter(die for entity, die in entity.unlockedBy if entity in self.techs)
