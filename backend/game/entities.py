@@ -49,18 +49,18 @@ def adHocEntitiy(id) -> EntityBase:
     return EntityBase(id=id, name="")
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Die(EntityBase):
     briefName: str
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class ResourceType(EntityBase):
     productionName: str
     colorName: str
     colorHex: str = "0x000000"
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Resource(EntityBase):
     typ: Optional[ResourceType] = None
     produces: Optional[Resource] = None
@@ -78,16 +78,16 @@ class Resource(EntityBase):
         return not self.id.startswith("mat-") and not self.id.startswith("mge-")
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class TileFeature(EntityBase):
     pass
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class NaturalResource(TileFeature):
     color: str
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal] = {}
     points: int
@@ -115,17 +115,17 @@ class EntityWithCost(EntityBase):
     def unlockingDice(self) -> Set[Die]:
         return set(d for e, d in self.unlockedBy)
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
     requiredFeatures: List[TileFeature] = []
     flavor: str = ""
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Building(EntityWithCost, TileFeature):
     requiredFeatures: List[NaturalResource] = []
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Tech(EntityWithCost):
     unlocks: List[Tuple[EntityWithCost, Die]] = []
     flavor: str = ""
@@ -146,7 +146,7 @@ class Tech(EntityWithCost):
         return set(d for e, d in self.unlocks if e == target)
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class MapTileEntity(EntityBase):
     index: int
     parcelCount: int
@@ -154,7 +154,7 @@ class MapTileEntity(EntityBase):
     richness: int
 
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Team(EntityBase):
     color: str
     password: Optional[str]  # We use it to populate database
@@ -167,7 +167,7 @@ class OrgRole(Enum):
     ORG = 0
     SUPER = 1
 
-@dataclass(init=False, eq=False)
+@dataclass(init=False, repr=False, eq=False)
 class Org(EntityBase):
     role: OrgRole
     password: Optional[str]

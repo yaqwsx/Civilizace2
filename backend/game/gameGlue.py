@@ -32,7 +32,10 @@ def _stateSerialize(what: Any) -> Any:
         return tuple(_stateSerialize(x) for x in what)
     if isinstance(what, dict):
         return {_stateSerialize(k): _stateSerialize(v) for k, v in what.items()}
-    assert isinstance(what, str | int | type(None))
+    if isinstance(what, float):  # TODO: check float type
+        print('Unexpected float type during serialization')
+        return what
+    assert isinstance(what, str | int | type(None)), f'Unexpected type {type(what)} during serialization'
     return what
 
 def stateSerialize(model: BaseModel) -> Dict[str, Any]:
