@@ -64,16 +64,17 @@ def _stateDeserialize(data: Any, field: ModelField, entities: Entities) -> Any:
         return _stateDeserializeSingleton(data, field.type_, required, entities)
     if field.shape in MAPPING_LIKE_SHAPES:
         assert field.key_field is not None
-        assert isinstance(data, dict)
+        assert isinstance(data, dict), f"Expected {dict}, but got {type(data)} (field: {field})"
         return {_stateDeserialize(k, field.key_field, entities):
                     _stateDeserializeSingleton(v, field.type_, required, entities)
                 for k, v in data.items()}
     if field.shape == SHAPE_LIST:
-        assert isinstance(data, list)
+        assert isinstance(data, list), f"Expected {list}, but got {type(data)} (field: {field})"
         return [_stateDeserializeSingleton(x, field.type_, required, entities)
                 for x in data]
     if field.shape == SHAPE_SET:
-        assert isinstance(data, set)
+        # TODO: check if list in following condition is ok
+        assert isinstance(data, set | list), f"Expected {set}, but got {type(data)} (field: {field})"
         return set(_stateDeserializeSingleton(x, field.type_, required, entities)
                 for x in data)
     raise NotImplementedError(f"Shape type {field.shape} not implemented")
@@ -115,9 +116,10 @@ def _stateDeserializeSingleton(data: Optional[Any], expectedType: Type, required
     if issubclass(expectedType, enum.Enum):
         assert isinstance(data, str | int)
         return expectedType(data)
-    assert issubclass(expectedType, int | Decimal | str)
-    assert not issubclass(expectedType, bool)  # Don't construct bool from str
-    assert isinstance(data, str | int)
+    assert not issubclass(expectedType, bool), "Don't construct bool from str"
+    # TODO: check if float is ok
+    assert issubclass(expectedType, int | float | Decimal | str), f"Unexpected type {expectedType}"
+    assert isinstance(data, str | int | float), f"data of unexpected type {type(data)}"
     return expectedType(data)
 
 def serializeEntity(entity: EntityBase, extraFields: Dict[str, Any] = {}) -> Dict[str, Any]:

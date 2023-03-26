@@ -43,6 +43,7 @@ class DbEntitiesManager(models.Manager):
             raise RuntimeError(msg)
         entities = EntityParser.parse(dbEntities.data,
                                       err_handler=ErrorHandler(reporter=reportError, no_warn=True),
+                                      result_reporter=lambda x: None,
                                       ).entities.gameOnlyEntities
         self.cache[revision] = entities
         return revision, entities
