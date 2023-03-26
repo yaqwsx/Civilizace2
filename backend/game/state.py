@@ -250,12 +250,12 @@ class MapState(StateModel):
     def createInitial(cls, entities: Entities) -> MapState:
         armies = []
         teams = entities.teams.values()
-        armies.extend([Army(team=team, index=i, name="A", level=3)
-                      for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+8, name="B", level=2)
-                      for i, team in enumerate(teams)])
-        armies.extend([Army(team=team, index=i+16, name="C", level=1)
-                      for i, team in enumerate(teams)])
+        armies.extend(Army(team=team, index=i, name="A", level=3)
+                      for i, team in enumerate(teams))
+        armies.extend(Army(team=team, index=i+8, name="B", level=2)
+                      for i, team in enumerate(teams))
+        armies.extend(Army(team=team, index=i+16, name="C", level=1)
+                      for i, team in enumerate(teams))
 
         return MapState(
             tiles={tile.index: MapTile(
@@ -334,8 +334,8 @@ class TeamState(StateModel):
         return self.resources.get(adHocEntitiy("res-obyvatel"), 0)
 
     @property
-    def population(self) -> int:
-        return sum([amount for resource, amount in self.resources.items() if resource.id in ["res-obyvatel"]]) + self.employees
+    def population(self) -> Decimal:
+        return self.obyvatels + self.employees
 
     @property
     def culture(self) -> Decimal:
@@ -360,11 +360,11 @@ class TeamState(StateModel):
 class WorldState(StateModel):
     turn: int = 0
     casteCount: int = 3
-    buildDemolitionCost: Dict[Resource, int]
+    buildDemolitionCost: Dict[Resource, int] = {}
     combatRandomness: float = 0.5
-    roadCost: Dict[Resource, int] = {}
+    roadCost: Dict[Resource, int]
     roadPoints: int = 10
-    armyUpgradeCosts: Dict[int, Dict[Resource, int]] = {}
+    armyUpgradeCosts: Dict[int, Dict[Resource, int]]
 
 
 class GameState(StateModel):
@@ -381,25 +381,12 @@ class GameState(StateModel):
         return self.teamStates[id.team].armies.get(id) if id != None else None
 
     @classmethod
-    def createInitial(cls, entities: Entities) -> GameState:
-        teamStates = {}
-        for v in entities.teams.values():
-            teamStates[v] = TeamState.createInitial(v, entities)
-
+    def createInitial(cls, entities: Entities, initWorldState: WorldState) -> GameState:
         return GameState(
-            turn=0,
-            teamStates={team: TeamState.createInitial(
-                team, entities) for team in entities.teams.values()},
+            teamStates={team: TeamState.createInitial(team, entities)
+                            for team in entities.teams.values()},
             map=MapState.createInitial(entities),
-            world=WorldState(
-                buildDemolitionCost={entities["mge-obchod-3"]: 10},
-                roadCost={entities["mge-stavivo-2"]: 10,
-                          entities["mge-nastroj-2"]: 10,
-                          entities.work: 50},
-                armyUpgradeCosts={
-                    2: {entities["mat-kladivo"]: 2},
-                    3: {entities["mat-kladivo"]: 5, entities["mat-textil"]: 3}}
-            )
+            world=initWorldState
         )
 
     def __init__(self, *args, **kwargs) -> None:

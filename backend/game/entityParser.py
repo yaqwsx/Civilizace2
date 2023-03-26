@@ -11,12 +11,13 @@ from os import PathLike
 import pydantic
 from pydantic import BaseModel, ValidationError
 import typing
-from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, Optional, Protocol, Set, Tuple, Type, TypeVar, TypedDict, Union
+from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, NamedTuple, Optional, Protocol, Set, Tuple, Type, TypeVar, TypedDict, Union
 
 from . import entities
 from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
-from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost, TEntity
+from .entities import EntityId, Entities, Entity, EntityBase, EntityWithCost, TEntity, UserEntity
 from .entities import Building, Die, MapTileEntity, NaturalResource, Org, Resource, ResourceType, Team, Tech, Vyroba
+from .state import WorldState
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -78,13 +79,13 @@ class ErrorHandler:
     def success(self) -> bool:
         return len(self.error_msgs) == 0
 
-    def check_success(self, result_reporter: Callable[[str], None]=print) -> None:
+    def check_success(self, name: str, result_reporter: Callable[[str], None]=print) -> None:
         msgs = [('error', len(self.error_msgs)), ('warn', len(self.warn_msgs))]
-        msgs = [(name, count) for name, count in msgs if count > 0]
+        msgs = [(msg_type, count) for msg_type, count in msgs if count > 0]
 
-        summary_msg = f"Parsing {'SUCCESS' if self.success() else 'FAILED'}"
+        summary_msg = f"Parsing {name} {'SUCCESS' if self.success() else 'FAILED'}"
         if len(msgs) > 0:
-            msgs_summary = ', '.join(f"{count} {name}{'' if count == 1 else 's'}" for name, count in msgs)
+            msgs_summary = ', '.join(f"{count} {msg_type}{'' if count == 1 else 's'}" for msg_type, count in msgs)
             summary_msg += f': {msgs_summary}'
 
         result_reporter(summary_msg)
@@ -146,18 +147,25 @@ class ErrorHandler:
 class Delims:
     def __init__(self,
                  *,
-                 list_delim: Optional[str] = ',',
-                 tuple_delim: Optional[str] = ':',
+                 list_delims: List[str] = [',', ';'],
+                 tuple_delims: List[str] = [':', '/'],
                  ):
-        assert list_delim != ""
-        assert tuple_delim != ""
-        self.list_delim = list_delim
-        self.tuple_delim = tuple_delim
+        assert all(delim != "" for delim in list_delims)
+        assert all(delim != "" for delim in tuple_delims)
+        self.list_delims = list_delims
+        self.tuple_delims = tuple_delims
+
+    def next_list_delim(self) -> Optional[str]:
+        return None if len(self.list_delims) ==0 else self.list_delims[0]
+    def next_tuple_delim(self) -> Optional[str]:
+        return None if len(self.tuple_delims) ==0 else self.tuple_delims[0]
 
     def without_list_delim(self) -> Delims:
-        return Delims(list_delim=None, tuple_delim=self.tuple_delim)
+        assert len(self.list_delims) > 0
+        return Delims(list_delims=self.list_delims[1:], tuple_delims=self.tuple_delims)
     def without_tuple_delim(self) -> Delims:
-        return Delims(list_delim=self.list_delim, tuple_delim=None)
+        assert len(self.tuple_delims) > 0
+        return Delims(list_delims=self.list_delims, tuple_delims=self.tuple_delims[1:])
 
 
 def value_preprocess(value: str) -> Optional[str]:
@@ -266,11 +274,13 @@ def parseTupleField(tArgs: Tuple[Type, ...],
                     err_handler: ErrorHandler,
                     ) -> Tuple[Any, ...]:
     assert len(tArgs) > 0
-    assert delims.tuple_delim is not None, "No available delim to parse tuple of {tArgs} from '{arg}'"
-    splitArg = list(splitIterableField(arg, delim=delims.tuple_delim, entities=entities, err_handler=err_handler))
+    delim = delims.next_tuple_delim()
+    assert delim, f"No available delim to parse tuple of {tArgs} from '{arg}'"
+    next_delims = delims.without_tuple_delim()
+    splitArg = list(splitIterableField(arg, delim=delim, entities=entities, err_handler=err_handler))
     if len(splitArg) != len(tArgs):
-        err_handler.error(f"Wrong number of parts in '{arg}' for '{tArgs}' (with delim '{delims.tuple_delim}')")
-    return tuple(parseField(tArg, sArg, delims=delims.without_tuple_delim(), entities=entities, err_handler=err_handler)
+        err_handler.error(f"Wrong number of parts in '{arg}' for '{tArgs}' (with delim '{delim}')")
+    return tuple(parseField(tArg, sArg, delims=next_delims, entities=entities, err_handler=err_handler)
                     for tArg, sArg in zip(tArgs, splitArg, strict=True))
 
 def parseListField(tArg: Type,
@@ -280,9 +290,11 @@ def parseListField(tArg: Type,
                    entities: ReadOnlyEntityDict,
                    err_handler: ErrorHandler,
                    ) -> List[Any]:
-    assert delims.list_delim, "No available delim to parse list of {tArg} from '{arg}'"
-    return [parseField(tArg, sArg, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
-                for sArg in splitIterableField(arg, delim=delims.list_delim, entities=entities, err_handler=err_handler)]
+    delim = delims.next_list_delim()
+    assert delim, f"No available delim to parse list of {tArg} from '{arg}'"
+    next_delims = delims.without_list_delim()
+    return [parseField(tArg, sArg, delims=next_delims, entities=entities, err_handler=err_handler)
+                for sArg in splitIterableField(arg, delim=delim, entities=entities, err_handler=err_handler)]
 
 def parseDictField(tArgs: Tuple[Type, Type],
                    arg: str,
@@ -291,11 +303,13 @@ def parseDictField(tArgs: Tuple[Type, Type],
                    entities: ReadOnlyEntityDict,
                    err_handler: ErrorHandler,
                    ) -> Dict[Any, Any]:
-    assert delims.list_delim and delims.tuple_delim, "Not enough available delims to parse dict of {tArgs} from '{arg}'"
-    pairValues = [parseTupleField(tArgs, pairValue, delims=delims.without_list_delim(), entities=entities, err_handler=err_handler)
-                  for pairValue in splitIterableField(arg, delim=delims.list_delim, entities=entities, err_handler=err_handler)]
+    delim = delims.next_list_delim()
+    assert delim and delims.next_tuple_delim(), f"Not enough available delims to parse dict of {tArgs} from '{arg}'"
+    next_delims = delims.without_list_delim()
+    pairValues = [parseTupleField(tArgs, pairValue, delims=next_delims, entities=entities, err_handler=err_handler)
+                  for pairValue in splitIterableField(arg, delim=delim, entities=entities, err_handler=err_handler)]
     if not unique(name for name, _ in pairValues):
-        err_handler.error("Multiple keys in '{arg}' not allowed for dict of {tArgs} with delims '{delims.list_delim}' and '{delims.tuple_delim}'")
+        err_handler.error(f"Multiple keys in '{arg}' not allowed for dict of {tArgs} with delims '{delim}' and '{next_delims.next_tuple_delim()}'")
     return dict(pairValues)
 
 def parseUnionAndOptionalField(tArgs: Tuple[Type, ...],
@@ -375,8 +389,8 @@ def parseField(cls: Type,
     raise NotImplementedError(f"Parsing {cls} is not implemented")
 
 
-def parseFieldArgs(argTypes: Dict[str, Tuple[Type, bool]],
-                   args: Dict[str, str],
+def parseFieldArgs(argTypes: ReadOnlyDict[str, Tuple[Type, bool]],
+                   args: ReadOnlyDict[str, str],
                    *,
                    delims: Delims,
                    entities: ReadOnlyEntityDict,
@@ -417,7 +431,7 @@ def get_field_type(field: pydantic.fields.ModelField) -> Type:
     assert False, f"Could not resolve field type of '{outer_type}' (from {field})"
 
 def parseModel(cls: Type[TModel],
-               args: Dict[str, str],
+               args: ReadOnlyDict[str, str],
                *,
                entities: ReadOnlyEntityDict,
                delims: Delims=Delims(),
@@ -676,20 +690,59 @@ def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
     err_handler.check_max_errs_reached()
 
 
+def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    for user in entities:
+        if not isinstance(user, UserEntity):
+            continue
+        if user.username is None or user.username == "":
+            err_handler.error(f"User '{user}' cannot have blank username")
+        if user.password is None or user.password == "":
+            err_handler.error(f"User '{user}' cannot have blank password")
+
+
 class EntityParser():
+    class Result(NamedTuple):
+        entities: Entities
+        init_world_state: WorldState
+
     @staticmethod
-    def parse(gs_data: Dict[str, List[List[str]]],
+    def parse_init_world_state(data: ReadOnlyDict[str, List[Dict[str, str]]],
+                               entities: Entities,
+                               *,
+                               err_handler: ErrorHandler = ErrorHandler(),
+                               result_reporter: Optional[Callable[[str], None]] = None,
+                               ) -> WorldState:
+        assert len(err_handler.error_msgs) == 0
+
+        if result_reporter is None:
+            result_reporter = err_handler.reporter
+
+        with err_handler.add_context('initWorldState'):
+            states = data['initWorldState']
+            if len(states) == 0:
+                err_handler.error(f'No init world state')
+                raise ParserError('No init world state')
+            if len(states) != 1:
+                err_handler.error(f'Wrong number of init world states, expected 1, got {len(states)}')
+            state_args = states[0]
+
+            world_state = parseModel(WorldState, state_args, entities=entities, err_handler=err_handler)
+
+        err_handler.check_success('Init World State', result_reporter=result_reporter)
+        assert err_handler.success()
+        return world_state
+
+
+    @staticmethod
+    def parse_entities(data: ReadOnlyDict[str, List[Dict[str, str]]],
               *,
               err_handler: ErrorHandler = ErrorHandler(),
               result_reporter: Optional[Callable[[str], None]] = None,
               ) -> Entities:
         assert len(err_handler.error_msgs) == 0
-        assert len(err_handler.warn_msgs) == 0
 
         if result_reporter is None:
             result_reporter = err_handler.reporter
-
-        data = frozendict({tab: transform_lines_to_dicts(gs_data[tab], err_handler=err_handler) for tab in gs_data})
 
         entities_map: Dict[EntityId, Entity] = {}
         def add_entities(new_entities: Iterable[Entity]) -> None:
@@ -746,24 +799,45 @@ class EntityParser():
             check_teams_have_different_home_tiles(entities, err_handler=err_handler)
             checkUnreachableByTech(entities, err_handler=err_handler)
             checkMap(entities, err_handler=err_handler)
+            checkUsersHaveLogins(entities, err_handler=err_handler)
 
-        err_handler.check_success(result_reporter=result_reporter)
+        err_handler.check_success('Entities', result_reporter=result_reporter)
         assert err_handler.success()
         return entities
 
+
     @staticmethod
-    def load(filename: str | PathLike[str], *, err_handler = ErrorHandler()):
+    def parse(gs_data: Dict[str, List[List[str]]],
+              *,
+              err_handler: ErrorHandler = ErrorHandler(),
+              result_reporter: Optional[Callable[[str], None]] = None,
+              ) -> EntityParser.Result:
+        assert len(err_handler.error_msgs) == 0
+        assert len(err_handler.warn_msgs) == 0
+
+        data = frozendict({tab: transform_lines_to_dicts(gs_data[tab], err_handler=err_handler) for tab in gs_data})
+
+        entities = EntityParser.parse_entities(data, err_handler=err_handler, result_reporter=result_reporter)
+        init_world_state = EntityParser.parse_init_world_state(data, entities, err_handler=err_handler, result_reporter=result_reporter)
+        assert err_handler.success()
+        return EntityParser.Result(entities, init_world_state)
+
+    @staticmethod
+    def load_gs_data(filename: str | PathLike[str]) -> Dict[str, List[List[str]]]:
         with open(filename) as file:
             data = json.load(file)
 
-        typed_data: Dict[str, List[List[str]]] = data
         # Check the correct type of the json data
-        assert isinstance(typed_data, dict)
-        for k, v in typed_data.items():
+        assert isinstance(data, dict)
+        for k, v in data.items():
             assert isinstance(k, str)
             assert isinstance(v, list)
             for inner in v:
                 assert isinstance(inner, list)
                 assert all(isinstance(x, str) for x in inner)
+        return data
 
-        return EntityParser.parse(typed_data, err_handler=err_handler)
+    @staticmethod
+    def load(filename: str | PathLike[str], *, err_handler = ErrorHandler()) -> EntityParser.Result:
+        data = EntityParser.load_gs_data(filename)
+        return EntityParser.parse(data, err_handler=err_handler)

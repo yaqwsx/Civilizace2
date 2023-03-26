@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, setname: str, *args, **kwargs) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(setname)
-        ent = EntityParser.load(targetFile)
+        _ = EntityParser.load(targetFile)
         with open(targetFile) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)

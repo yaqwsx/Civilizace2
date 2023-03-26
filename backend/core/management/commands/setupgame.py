@@ -10,7 +10,7 @@ from django.conf import settings
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
 from core.models.announcement import Announcement
 from core.models import User, Team as DbTeam
-from game.state import GameState
+from game.state import GameState, WorldState
 from django.db import transaction
 
 from game.viewsets.action import ActionViewSet
@@ -44,19 +44,19 @@ class Command(BaseCommand):
                                                 team=team)
 
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument("entities", type=str)
+        parser.add_argument("set", type=str)
 
-    def handle(self, entities: str, *args, **options) -> None:
-        targetFile = settings.ENTITY_PATH / setFilename(entities)
-        ent = EntityParser.load(targetFile)
+    def handle(self, set: str, *args, **options) -> None:
+        targetFile = settings.ENTITY_PATH / setFilename(set)
+        data = EntityParser.load(targetFile)
 
         with transaction.atomic():
             self.clearGame()
 
-            self.createOrgs(ent.orgs)
-            self.createTeams(ent.teams)
+            self.createOrgs(data.entities.orgs)
+            self.createTeams(data.entities.teams)
             self.createEntities(targetFile)
-            self.createInitialState(ent, entities)
+            self.createInitialState(data.entities, data.init_world_state)
             self.createRounds()
 
     def clearGame(self) -> None:
@@ -77,8 +77,9 @@ class Command(BaseCommand):
 
     def createOrgs(self, orgs: frozendict[EntityId, Org]) -> None:
         for org in orgs.values():
-            assert org.password is not None, 'Org cannot have a blank password'
-            self.create_or_update_user(username = org.id[4:], password=org.password,
+            assert org.username is not None, f'Org {org} cannot have a blank username'
+            assert org.password is not None, f'Org {org} cannot have a blank password'
+            self.create_or_update_user(username = org.username, password=org.password,
                                           superuser=org.role == OrgRole.SUPER)
 
     def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
@@ -89,21 +90,18 @@ class Command(BaseCommand):
                                                  visible=team.visible,
                                                  )
             for i in range(4):
-                assert team.password is not None, 'Team cannot have a blank password'
+                assert team.username is not None, f'Team {team} cannot have a blank username'
+                assert team.password is not None, f'Team {team} cannot have a blank password'
                 self.create_or_update_user(username=f"{team.id[4:]}{i+1}",
                     password=team.password, superuser=False, team=teamModel)
 
-    def createEntities(self, entityFile: str | os.PathLike[str]) -> None:
-        with open(entityFile) as f:
+    def createEntities(self, entityFilename: str | os.PathLike[str]) -> None:
+        with open(entityFilename) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)
 
-    def createInitialState(self, entities: Entities, setname: str) -> None:
-        if setname == "TEST":
-            from game.tests.actions.common import createTestInitState
-            irState = createTestInitState()
-        else:
-            irState = GameState.createInitial(entities)
+    def createInitialState(self, entities: Entities, initWorldState: WorldState) -> None:
+        irState = GameState.createInitial(entities, initWorldState)
         state = DbState.objects.createFromIr(irState)
         stickers = {t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()}
         res = set()

@@ -153,11 +153,16 @@ class MapTileEntity(EntityBase):
     naturalResources: List[NaturalResource]
     richness: int
 
+@dataclass(init=False, repr=False, eq=False)
+class UserEntity(EntityBase):
+    # We use it to populate database
+    username: Optional[str]
+    password: Optional[str]
+
 
 @dataclass(init=False, repr=False, eq=False)
-class Team(EntityBase):
+class Team(UserEntity):
     color: str
-    password: Optional[str]  # We use it to populate database
     visible: bool
     homeTile: MapTileEntity
     hexColor: str = "#000000"
@@ -168,9 +173,13 @@ class OrgRole(Enum):
     SUPER = 1
 
 @dataclass(init=False, repr=False, eq=False)
-class Org(EntityBase):
+class Org(UserEntity):
     role: OrgRole
-    password: Optional[str]
+
+
+@dataclass(init=False, repr=False, eq=False)
+class GameInitState(BaseModel):
+    turn: int = 0
 
 
 # Common type of all available entities
@@ -280,8 +289,9 @@ class Entities(frozendict[EntityId, Entity]):
 
     @staticmethod
     def _gameOnlyView(entity: Entity) -> Entity:
-        if isinstance(entity, Team) or isinstance(entity, Org):
+        if isinstance(entity, UserEntity):
             e = entity.copy()
+            e.username = None
             e.password = None
             return e
         return entity

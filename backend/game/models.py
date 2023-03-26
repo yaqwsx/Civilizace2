@@ -41,8 +41,9 @@ class DbEntitiesManager(models.Manager):
 
         def reportError(msg: str):
             raise RuntimeError(msg)
-        entities = EntityParser.parse(
-            dbEntities.data, err_handler=ErrorHandler(reporter=reportError, no_warn=True)).gameOnlyEntities
+        entities = EntityParser.parse(dbEntities.data,
+                                      err_handler=ErrorHandler(reporter=reportError, no_warn=True),
+                                      ).entities.gameOnlyEntities
         self.cache[revision] = entities
         return revision, entities
 
@@ -119,14 +120,14 @@ class DbTeamState(models.Model):
 class DbMapState(models.Model):
     data = JSONField("data")
 
-    def toIr(self, entities) -> TeamState:
+    def toIr(self, entities) -> MapState:
         return stateDeserialize(MapState, self.data, entities)
 
 
 class DbWorldState(models.Model):
     data = JSONField("data")
 
-    def toIr(self, entities) -> TeamState:
+    def toIr(self, entities) -> WorldState:
         return stateDeserialize(WorldState, self.data, entities)
 
 

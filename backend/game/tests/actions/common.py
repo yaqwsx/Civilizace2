@@ -8,6 +8,7 @@ TEAM_ADVANCED = TEST_ENTITIES.teams["tym-zeleni"] # the developed team for compl
 TEAM_BASIC = TEST_ENTITIES.teams["tym-cerveni"] # the team that is in the initial state, with home tile set up
 
 
+# TODO: move to Google Sheets
 def createTestInitState(entities: Entities=TEST_ENTITIES):
     from game.state import Army, ArmyMode, GameState
 

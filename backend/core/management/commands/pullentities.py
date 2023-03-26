@@ -26,7 +26,7 @@ def checkAndSave(data: dict[str, list[list[str]]],
                  fileName: str | PathLike[str],
                  err_handler: ErrorHandler = ErrorHandler(),
                  ):
-    entities = EntityParser.parse(data, err_handler=err_handler)
+    entities, _ = EntityParser.parse(data, err_handler=err_handler)
     assert err_handler.success()
 
     counter = Counter([x[:3] for x in entities.keys()])
@@ -45,6 +45,8 @@ def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
         print(f"Pulling world {name} to file {targetFile}")
         data = pullEntityTable(id)
         checkAndSave(data, targetFile, err_handler=err_handler)
+    except AssertionError as e:
+        raise
     except Exception as e:
         sys.exit(f"ERROR: Failed to save entities {name}. Cause: {e.__repr__()}")
 
