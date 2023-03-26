@@ -116,7 +116,10 @@ def _stateDeserializeSingleton(data: Optional[Any], expectedType: Type, required
     if issubclass(expectedType, enum.Enum):
         assert isinstance(data, str | int)
         return expectedType(data)
-    assert not issubclass(expectedType, bool), "Don't construct bool from str"
+    if issubclass(expectedType, bool):
+        assert not isinstance(data, str), "Don't construct bool from str"
+        assert isinstance(data, int)
+        return expectedType(data)
     # TODO: check if float is ok
     assert issubclass(expectedType, int | float | Decimal | str), f"Unexpected type {expectedType}"
     assert isinstance(data, str | int | float), f"data of unexpected type {type(data)}"
