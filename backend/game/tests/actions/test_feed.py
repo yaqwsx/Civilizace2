@@ -1,3 +1,4 @@
+from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionException, ActionFailed
 from game.actions.feed import ActionFeed, ActionFeedArgs, FeedRequirements, computeFeedRequirements
@@ -107,15 +108,15 @@ def test_highlevelFood():
     state.world.turn = 1
 
     state.teamStates[team].employees = 20
-    state.teamStates[team].resources[entities.obyvatel] = 80
+    state.teamStates[team].resources[entities.obyvatel] = Decimal(80)
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].population == 100
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(team=team, materials={
-        entities["mat-bobule"]: 100,
-        entities["mat-cukr"]: 100,
-        entities["mat-maso"]: 100,
-        entities["mat-dobytek"]: 100
+        entities.resources["mat-bobule"]: 100,
+        entities.resources["mat-cukr"]: 100,
+        entities.resources["mat-maso"]: 100,
+        entities.resources["mat-dobytek"]: 100
     }))
 
     action.applyCommit()
@@ -133,20 +134,20 @@ def test_highlevelLuxury():
     state.teamStates[team].resources = {}
     state.teamStates[team].storage = {}
     state.teamStates[team].granary = {}
-    state.teamStates[team].resources[entities.work] = 200
-    state.teamStates[team].resources[entities.obyvatel] = 400
-    state.teamStates[team].resources[entities["res-kultura"]] = 50
+    state.teamStates[team].resources[entities.work] = Decimal(200)
+    state.teamStates[team].resources[entities.obyvatel] = Decimal(400)
+    state.teamStates[team].resources[entities.resources["res-kultura"]] = Decimal(50)
     state.teamStates[team].employees = 600
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(team=team, materials={
-        entities["mat-bobule"]: 100,
-        entities["mat-cukr"]: 100,
-        entities["mat-maso"]: 100,
-        entities["mat-dobytek"]: 100,
-        entities["mat-kuze"]: 100,
-        entities["mat-keramika"]: 100,
-        entities["mat-sklo"]: 100,
-        entities["mat-bylina"]: 100
+        entities.resources["mat-bobule"]: 100,
+        entities.resources["mat-cukr"]: 100,
+        entities.resources["mat-maso"]: 100,
+        entities.resources["mat-dobytek"]: 100,
+        entities.resources["mat-kuze"]: 100,
+        entities.resources["mat-keramika"]: 100,
+        entities.resources["mat-sklo"]: 100,
+        entities.resources["mat-bylina"]: 100
     }))
 
     action.applyCommit()
@@ -167,11 +168,11 @@ def test_repeatedFeed():
     assert state.teamStates[team].resources[entities.obyvatel] == 100
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
-        team=team, materials={entities["mat-bobule"]: 10}))
+        team=team, materials={entities.resources["mat-bobule"]: 10}))
     action.applyCommit()
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
-        team=team, materials={entities["mat-bobule"]: 10}))
+        team=team, materials={entities.resources["mat-bobule"]: 10}))
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()
@@ -183,45 +184,45 @@ def test_productions():
     state.world.turn = 1
 
     state.teamStates[team].resources = {
-        entities["res-kultura"]: 20,
-        entities["res-prace"]: 200,
-        entities["res-obyvatel"]: 400,
-        entities["pro-bobule"]: 20,
-        entities["pro-kuze"]: 5,
-        entities["pro-drevo"]: 3
+        entities.resources["res-kultura"]: 20,
+        entities.resources["res-prace"]: 200,
+        entities.resources["res-obyvatel"]: 400,
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 5,
+        entities.resources["pro-drevo"]: 3
     }
     state.teamStates[team].storage = {
-        entities["mat-bobule"]: 8,
-        entities["mat-drevo"]: 3,
-        entities["mat-cukr"]: 6
+        entities.resources["mat-bobule"]: 8,
+        entities.resources["mat-drevo"]: 3,
+        entities.resources["mat-cukr"]: 6
     }
     state.teamStates[team].granary = {
-        entities["pro-bobule"]: 20,
-        entities["pro-kuze"]: 10,
-        entities["pro-maso"]: 8
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 10,
+        entities.resources["pro-maso"]: 8
     }
 
     action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
-        team=team, materials={entities["mat-maso"]: 1}))
+        team=team, materials={entities.resources["mat-maso"]: 1}))
     action.applyCommit()
 
     assert state.teamStates[team].resources == {
-        entities["res-kultura"]: 20,
-        entities["res-prace"]: 100 + 417,
-        entities["res-obyvatel"]: 410 + 20 + 7,
-        entities["pro-bobule"]: 20,
-        entities["pro-kuze"]: 5,
-        entities["pro-drevo"]: 3
+        entities.resources["res-kultura"]: 20,
+        entities.resources["res-prace"]: 100 + 417,
+        entities.resources["res-obyvatel"]: 410 + 20 + 7,
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 5,
+        entities.resources["pro-drevo"]: 3
     }
 
     assert state.teamStates[team].storage == {
-        entities["mat-bobule"]: 10,
-        entities["mat-drevo"]: 6,
-        entities["mat-cukr"]: 6,
-        entities["mat-kuze"]: 5
+        entities.resources["mat-bobule"]: 10,
+        entities.resources["mat-drevo"]: 6,
+        entities.resources["mat-cukr"]: 6,
+        entities.resources["mat-kuze"]: 5
     }
     assert state.teamStates[team].granary == {
-        entities["pro-bobule"]: 20,
-        entities["pro-kuze"]: 10,
-        entities["pro-maso"]: 8
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 10,
+        entities.resources["pro-maso"]: 8
     }

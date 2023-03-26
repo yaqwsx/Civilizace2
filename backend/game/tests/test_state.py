@@ -23,15 +23,15 @@ def test_serialize():
     y = stateDeserialize(GameState, s, TEST_ENTITIES)
     y._setParent()
     assert x == y
-    assert x.map._parent == x.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
-    assert y.map._parent == y.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
+    assert x.map._parent == x.teamStates[TEST_ENTITIES.teams["tym-zeleni"]]._parent
+    assert y.map._parent == y.teamStates[TEST_ENTITIES.teams["tym-zeleni"]]._parent
 
     sRepr = json.dumps(s)
     jRepr = json.loads(sRepr)
     z = stateDeserialize(GameState, jRepr, TEST_ENTITIES)
     z._setParent()
     assert x == z
-    assert z.map._parent == z.teamStates[TEST_ENTITIES["tym-zeleni"]]._parent
+    assert z.map._parent == z.teamStates[TEST_ENTITIES.teams["tym-zeleni"]]._parent
 
 
 
@@ -40,7 +40,7 @@ def test_homeTiles():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    teamState = state.teamStates[entities["tym-zeleni"]]
+    teamState = state.teamStates[entities.teams["tym-zeleni"]]
     tile = teamState.homeTile
     tile_entity = tile.entity
     assert tile_entity.id == "map-tile05"

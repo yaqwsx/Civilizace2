@@ -10,4 +10,4 @@ def test_homeTiles():
 
 def test_fields():
     entities = TEST_ENTITIES
-    assert "Well seasoned" == entities["tec-maso"].flavor
+    assert "Well seasoned" == entities.techs["tec-maso"].flavor

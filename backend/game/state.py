@@ -327,11 +327,11 @@ class TeamState(StateModel):
 
     @property
     def work(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-prace"), 0)
+        return self.resources.get(adHocEntitiy("res-prace"), Decimal(0))
 
     @property
     def obyvatels(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-obyvatel"), 0)
+        return self.resources.get(adHocEntitiy("res-obyvatel"), Decimal(0))
 
     @property
     def population(self) -> Decimal:
@@ -339,15 +339,15 @@ class TeamState(StateModel):
 
     @property
     def culture(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-kultura"), 0)
+        return self.resources.get(adHocEntitiy("res-kultura"), Decimal(0))
 
     @classmethod
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         return TeamState(
             team=team,
-            redCounter=0,
-            blueCounter=0,
-            techs=[entities["tec-start"]],
+            redCounter=Decimal(0),
+            blueCounter=Decimal(0),
+            techs=set([entities.techs[TECHNOLOGY_START]]),
             resources={
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),

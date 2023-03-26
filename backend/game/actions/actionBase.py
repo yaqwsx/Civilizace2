@@ -224,7 +224,9 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
                 team.resources[resource] = team.resources.get(
                     resource, 0) - amount
                 if resource.id == "res-obyvatel":
-                    team.addEmployees(amount)
+                    value, denom = amount.as_integer_ratio()
+                    assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                    team.addEmployees(value)
                 if team.resources[resource] < 0:
                     missing[resource] = -team.resources[resource]
             else:
@@ -245,7 +247,9 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
             if excludeWork and resource == self.entities.work:
                 continue
             if excludeWork and resource.id == "res-obyvatel":
-                team.addEmployees(-amount)
+                value, denom = amount.as_integer_ratio()
+                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                team.addEmployees(-value)
             if resource.isTracked:
                 team.resources[resource] = team.resources.get(
                     resource, 0) + amount
