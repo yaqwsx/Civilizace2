@@ -38,7 +38,7 @@ def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -
 
 class ActionFeedArgs(ActionArgs):
     team: Team
-    materials: Dict[Resource, int]
+    materials: Dict[Resource, Decimal]
 
 class ActionFeed(ActionBase):
 
@@ -52,10 +52,10 @@ class ActionFeed(ActionBase):
         return self._generalArgs
 
 
-    def _addObyvatel(self, amount): # supports negative amounts
-        self.teamState.resources[self.entities["res-obyvatel"]] = self.teamState.resources.get(self.entities["res-obyvatel"], 0) + amount
-        if self.teamState.resources[self.entities["res-obyvatel"]] < 0:
-            self.teamState.resources[self.entities["res-obyvatel"]] = 0
+    def _addObyvatel(self, amount: int) -> None: # supports negative amounts
+        self.teamState.resources[self.entities.obyvatel] = self.teamState.resources.get(self.entities.obyvatel, Decimal(0)) + amount
+        if self.teamState.resources[self.entities.obyvatel] < 0:
+            self.teamState.resources[self.entities.obyvatel] = Decimal(0)
 
 
     def cost(self) -> Dict[Resource, Decimal]:
@@ -71,7 +71,7 @@ class ActionFeed(ActionBase):
 
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
-        paidFood = sum(amount for resource, amount in self.args.materials.items() if resource.typ[0] == self.entities["typ-jidlo"])
+        paidFood = floor(sum(amount for resource, amount in self.args.materials.items() if resource.typ[0] == self.entities["typ-jidlo"]))
 
         newborns = 0
         if req.tokensRequired > paidFood:

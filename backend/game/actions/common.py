@@ -1,9 +1,7 @@
 from __future__ import annotations
-from ctypes import Union
-
 from decimal import Decimal
 from game.entities import Die, Entity, EntityId, Resource, Team
-from typing import Dict, List, Any, Generator, Callable, Set, Iterable
+from typing import Dict, List, Any, Generator, Callable, Set, Iterable, Union
 from pydantic import BaseModel, root_validator, validator
 import contextlib
 
@@ -12,9 +10,9 @@ class ActionFailed(Exception):
     Expects a pretty (markdown-formatted) message. This message will be seen
     by the user. That is raise ActionFailed(message)
     """
-    def __init__(self, message):
+    def __init__(self, message: Union[str, MessageBuilder]):
         if isinstance(message, MessageBuilder):
-            super().__init__(message.message)
+            message = message.message
         super().__init__(message)
 
 class MessageBuilder(BaseModel):
@@ -29,9 +27,9 @@ class MessageBuilder(BaseModel):
         return self
 
     def add(self, message: str) -> None:
-        if message == None:
+        if len(message) == 0:
             return
-        if len(self.message) > 0:
+        if not self.empty:
             self.message += "\n\n"
         self.message += message
 

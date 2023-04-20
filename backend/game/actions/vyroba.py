@@ -10,7 +10,7 @@ from game.state import ArmyGoal, printResourceListForMarkdown
 class ActionVyrobaArgs(ActionArgs):
     team: Team
     vyroba: Vyroba
-    count: Decimal
+    count: int
     tile: MapTileEntity
     plunder: bool
     genericsMapping: Dict[Resource, Resource] = {}
@@ -44,7 +44,6 @@ class ActionVyroba(ActionBase):
 
     def _commitImpl(self) -> None:
         tile = self.tileState
-        assert tile is not None
         vyroba = self.args.vyroba
         if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
             raise ActionFailed(
@@ -68,7 +67,6 @@ class ActionVyroba(ActionBase):
         plundered = 0
 
         tile = self.tileState
-        assert tile is not None
         multiplier = 1 + (tile.richnessTokens/Decimal(10))
         if self.args.plunder:
             plundered = min(tile.richnessTokens, self.args.count)

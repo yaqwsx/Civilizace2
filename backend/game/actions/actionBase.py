@@ -150,16 +150,26 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
     # Private API below
 
     @property
-    def teamState(self) -> Optional[TeamState]:
-        if hasattr(self._generalArgs, "team"):
-            return self.state.teamStates[self._generalArgs.team]
-        return None
+    def hasTeam(self) -> bool:
+        return hasattr(self._generalArgs, "team")
+    @property
+    def teamState(self) -> TeamState:
+        assert self.hasTeam
+        team = self._generalArgs.team
+        assert isinstance(team, Team), f"Argument team is not Team ({team})"
+        return self.state.teamStates[team]
 
     @property
-    def tileState(self) -> Optional[MapTile]:
-        if hasattr(self._generalArgs, "tile"):
-            return self.state.map.getTileById(self._generalArgs.tile.id)
-        return None
+    def hasTile(self) -> bool:
+        return hasattr(self._generalArgs, "tile")
+    @property
+    def tileState(self) -> MapTile:
+        assert self.hasTile
+        tile = self._generalArgs.tile
+        assert isinstance(tile, MapTileEntity), f"Argument tile is not MapTileEntity ({tile})"
+        tileState = self.state.map.getTileById(tile.id)
+        assert tileState is not None, f"Invalid tile in args: {tile}"
+        return tileState
 
     def _setupPrivateAttrs(self):
         self._errors = MessageBuilder()

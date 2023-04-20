@@ -3,7 +3,9 @@ import json
 import math
 import traceback
 from typing import Dict, Iterable, List, Optional, Set, Tuple
+from game.actions.actionBase import ActionBase
 from game.serializers import DbActionSerializer
+from game.state import GameState
 from core.models.user import User
 from core.models.announcement import Announcement, AnnouncementType
 
@@ -91,8 +93,8 @@ class ActionViewSet(viewsets.ViewSet):
 
     @staticmethod
     def dbStoreInteraction(dbAction: DbAction, dbState: DbState,
-                           interactionType: InteractionType, user: User,
-                           state: StateModel, action: ActionInterface):
+                           interactionType: InteractionType, user: Optional[User],
+                           state: GameState, action: ActionBase):
         interaction = DbInteraction(
             phase=interactionType,
             action=dbAction,
