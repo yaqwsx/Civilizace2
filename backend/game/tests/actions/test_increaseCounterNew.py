@@ -3,7 +3,6 @@ from game.actions.actionBase import makeAction
 from game.actions.increaseCounter import ActionIncreaseCounter, ActionIncreaseCounterArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 from game.state import GameState
-from game.actions.common import ActionException
 
 import pytest
 

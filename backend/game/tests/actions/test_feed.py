@@ -1,6 +1,6 @@
 from decimal import Decimal
 from game.actions.actionBase import makeAction
-from game.actions.common import ActionException, ActionFailed
+from game.actions.common import ActionFailed
 from game.actions.feed import ActionFeed, ActionFeedArgs, FeedRequirements, computeFeedRequirements
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 

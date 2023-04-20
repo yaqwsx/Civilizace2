@@ -1,7 +1,7 @@
 # import pytest
 # from game import state
 # from game.actions.armyDeploy import ActionArmyDeploy, ArmyGoal
-# from game.actions.common import ActionException, DebugException
+# from game.actions.common import DebugException
 # from game.state import Army, ArmyId, ArmyState
 # from game.tests.actions.common import TEAM_ADVANCED, TEAM_BASIC
 # from testing import PYTEST_COLLECT, reimport

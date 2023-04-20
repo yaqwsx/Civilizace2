@@ -50,21 +50,12 @@ class MessageBuilder(BaseModel):
 
     def addEntityDict(self, header: str, items: Dict[Entity, Union[int, float, Decimal]]):
         with self.startList(header) as addLine:
-            for e, a in items.items():
-                addLine(f"[[{e.id}|{a}]]")
-
-    def addListItem(self, item: str) -> None:
-        self.message += "\n- " + item
+            for entity, amount in items.items():
+                addLine(f"[[{entity.id}|{amount}]]")
 
     @property
     def empty(self) -> bool:
         return len(self.message) == 0
-
-class ActionException(Exception):
-    pass
-
-class DebugException(Exception):
-    pass
 
 class ActionCost(BaseModel):
     allowedDice: Set[Die] = set()
