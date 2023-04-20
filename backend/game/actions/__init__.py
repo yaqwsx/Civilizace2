@@ -1,13 +1,14 @@
 import pkgutil
-from typing import Dict, Type
-from game.actions.actionBase import ActionInterface, ActionArgs
-from collections import namedtuple
+from typing import Dict, NamedTuple, Optional, Type
+from game.actions.actionBase import ActionBase, ActionArgs
 import importlib
 import inspect
 
-GameAction = namedtuple("GameAction", ["action", "argument"])
+class GameAction(NamedTuple):
+    action: Type[ActionBase]
+    argument: Type[ActionArgs]
 
-def actionId(action: Type) -> str:
+def actionId(action: Type[ActionBase]) -> str:
     return action.__name__
 
 GAME_ACTIONS: Dict[str, GameAction] = {}
@@ -16,18 +17,22 @@ for pkg in pkgutil.iter_modules(__path__):
         continue
     actionPkg = importlib.import_module(f"game.actions.{pkg.name}")
 
-    action = None
-    args = None
+    action: Optional[Type[ActionBase]] = None
+    args: Optional[Type[ActionArgs]] = None
     for name in dir(actionPkg):
         item = getattr(actionPkg, name)
         if not inspect.isclass(item):
             continue
-        if issubclass(item, ActionInterface):
-            if action is None or not issubclass(action, item):
+        if issubclass(item, ActionBase):
+            if action is None or issubclass(item, action):
                 action = item
+            elif not issubclass(action, item):
+                raise RuntimeError(f"Modul {pkg.name} obsahuje dvě implementace akcí {action} a {item}")
         elif issubclass(item, ActionArgs):
-            if args is None or not issubclass(args, item):
+            if args is None or issubclass(item, args):
                 args = item
+            elif not issubclass(args, item):
+                raise RuntimeError(f"Modul {pkg.name} obsahuje dvě implementace argumentů {args} a {item}")
     if action is None:
         raise RuntimeError(f"Modul {pkg.name} neobsahuje implementaci akce")
     if args is None:
