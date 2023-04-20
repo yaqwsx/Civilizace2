@@ -209,7 +209,6 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
             self._errors.add(message)
             raise ActionFailed(self._errors)
 
-    @property
     def _ensureValid(self) -> None:
         if not self._errors.empty:
             raise ActionFailed(self._errors)

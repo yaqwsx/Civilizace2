@@ -54,7 +54,7 @@ class ActionVyroba(ActionBase):
                 continue
             self._ensure(f in tile.features,
                          f"Na poli {tile.name} chybí {f.name}")
-        self._ensureValid
+        self._ensureValid()
 
         self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
 
