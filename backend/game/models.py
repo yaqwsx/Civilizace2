@@ -14,7 +14,7 @@ from django.utils.crypto import get_random_string
 from django_enumfield import enum
 
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import ActionArgs, ActionInterface
+from game.actions.actionBase import ActionArgs, ActionBase
 from game.entities import Entities, Entity
 from game.entityParser import EntityParser, ErrorHandler
 from game.gameGlue import stateDeserialize, stateSerialize
@@ -100,7 +100,7 @@ class DbInteraction(models.Model):
     actionObject = JSONField()
     trace = models.TextField(default="")
 
-    def getActionIr(self, entities: Entities, state) -> ActionInterface:
+    def getActionIr(self, entities: Entities, state) -> ActionBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
         action = stateDeserialize(
             ActionTypeInfo.action, self.actionObject, entities)
