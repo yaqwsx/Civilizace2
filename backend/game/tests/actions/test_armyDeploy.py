@@ -12,7 +12,7 @@
 
 
 import pytest
-from game.actions.ArmyDeploy import ActionArmyDeploy, ActionArmyDeployArgs
+from game.actions.armyDeploy import ActionArmyDeploy, ActionArmyDeployArgs
 from game.actions.actionBase import makeAction
 from game.actions.armyRetreat import ActionArmyRetreat, ActionArmyRetreatArgs
 from game.actions.common import ActionFailed
