@@ -2,7 +2,7 @@ import pytest
 from core.management.commands.addarmies import addArmies
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.researchStart import ActionResearchArgs, ActionResearchStart
+from game.actions.researchStart import ResearchArgs, ResearchStartAction
 from game.state import GameState
 from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState

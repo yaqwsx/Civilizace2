@@ -157,7 +157,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     const actionArgs = useMemo(() => {
         return { team: props.teamId, materials: {} };
     }, [props.teamId]);
-    const { preview, error } = useActionPreview("ActionFeed", actionArgs, () => true);
+    const { preview, error } = useActionPreview("FeedAction", actionArgs, () => true);
     const [submitting, setSubmitting] = useState(false);
 
     useScanner((items: string[]) => {
@@ -169,7 +169,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
             setSubmitting(true);
             axiosService
                 .post<any, any>("/game/actions/initiate/", {
-                    action: "ActionFeed",
+                    action: "FeedAction",
                     args: actionArgs,
                 })
                 .then((data) => {

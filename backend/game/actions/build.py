@@ -6,7 +6,7 @@ from game.actions.common import ActionFailed
 from game.entities import Building, Die, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal
 
-class ActionBuildArgs(ActionArgs):
+class BuildArgs(ActionArgs):
     team: Team
     build: Building
     tile: MapTileEntity
@@ -16,11 +16,11 @@ class ActionBuildArgs(ActionArgs):
     equipment: Optional[int]
 
 
-class ActionBuild(ActionBase):
+class BuildAction(ActionBase):
 
     @property
-    def args(self) -> ActionBuildArgs:
-        assert isinstance(self._generalArgs, ActionBuildArgs)
+    def args(self) -> BuildArgs:
+        assert isinstance(self._generalArgs, BuildArgs)
         return self._generalArgs
 
 

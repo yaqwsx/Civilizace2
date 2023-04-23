@@ -17,8 +17,8 @@ from django.utils import timezone
 from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionInterface, ActionResult
 from game.actions.common import (ActionFailed, MessageBuilder)
-from game.actions.researchFinish import ActionResearchFinish
-from game.actions.researchStart import ActionResearchStart
+from game.actions.researchFinish import ResearchFinishAction
+from game.actions.researchStart import ResearchStartAction
 from game.entities import Die, Entities, Entity
 from game.gameGlue import serializeEntity, stateDeserialize, stateSerialize
 from game.models import (DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbMapDiff,
@@ -63,7 +63,7 @@ class ActionViewSet(viewsets.ViewSet):
                 team = Team.objects.get(id=action.args.team.id)
         except Team.DoesNotExist:
             pass
-        if isinstance(action, ActionResearchStart):
+        if isinstance(action, ResearchStartAction):
             if action.args.task is None:
                 return
             try:
@@ -76,7 +76,7 @@ class ActionViewSet(viewsets.ViewSet):
                 techId=action.args.tech.id,
             )
             return
-        if isinstance(action, ActionResearchFinish):
+        if isinstance(action, ResearchFinishAction):
             for t in DbTaskAssignment.objects.filter(team=team, techId=action.args.tech.id, finishedAt=None):
                 t.finishedAt = Now()
                 t.save()

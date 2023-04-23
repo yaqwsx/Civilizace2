@@ -4,16 +4,16 @@ from game.actions.actionBase import ActionArgs, ActionBase
 from game.actions.common import ActionFailed
 from game.entities import Die, Resource, Tech, Team
 
-class ActionResearchArgs(ActionArgs):
+class ResearchArgs(ActionArgs):
     team: Team
     tech: Tech
     task: Optional[str]=None
 
-class ActionResearchStart(ActionBase):
+class ResearchStartAction(ActionBase):
 
     @property
-    def args(self) -> ActionResearchArgs:
-        assert isinstance(self._generalArgs, ActionResearchArgs)
+    def args(self) -> ResearchArgs:
+        assert isinstance(self._generalArgs, ResearchArgs)
         return self._generalArgs
 
     @property

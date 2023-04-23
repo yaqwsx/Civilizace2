@@ -36,19 +36,19 @@ def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -
     )
 
 
-class ActionFeedArgs(ActionArgs):
+class FeedArgs(ActionArgs):
     team: Team
     materials: Dict[Resource, Decimal]
 
-class ActionFeed(ActionBase):
+class FeedAction(ActionBase):
 
     @property
     def description(self):
         return f"Krmení obyvatelstva ({self.args.team.name})"
 
     @property
-    def args(self) -> ActionFeedArgs:
-        assert isinstance(self._generalArgs, ActionFeedArgs)
+    def args(self) -> FeedArgs:
+        assert isinstance(self._generalArgs, FeedArgs)
         return self._generalArgs
 
 

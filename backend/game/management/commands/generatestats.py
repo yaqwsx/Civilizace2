@@ -370,11 +370,11 @@ class Command(BaseCommand):
             tId = action.args["team"]
             t = entities[tId]
             overview[t]["interactions"] = overview[t].get("interactions", 0) + 1
-            if action.actionType == "ActionArmyDeploy":
+            if action.actionType == "ArmyDeployAction":
                 overview[t]["attacks"] = overview[t].get("attacks", 0) + 1
-            if action.actionType == "ActionBuild":
+            if action.actionType == "BuildAction":
                 overview[t]["buildings"] = overview[t].get("buildings", 0) + 1
-            if action.actionType == "ActionBuildRoad":
+            if action.actionType == "BuildRoadAction":
                 overview[t]["roads"] = overview[t].get("roads", 0) + 1
 
         techStickers = list(DbSticker.objects.filter(type=StickerType.techFirst))

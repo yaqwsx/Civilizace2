@@ -1,6 +1,6 @@
 # import pytest
 # from game import state
-# from game.actions.armyDeploy import ActionArmyDeploy, ArmyGoal
+# from game.actions.armyDeploy import ArmyDeployAction, ArmyGoal
 # from game.actions.common import DebugException
 # from game.state import Army, ArmyId, ArmyState
 # from game.tests.actions.common import TEAM_ADVANCED, TEAM_BASIC
@@ -8,13 +8,13 @@
 
 # if not PYTEST_COLLECT:
 #     from game.tests.actions.common import TEST_ENTITIES, createTestInitState
-#     from game.actions.armyDeploy import ActionArmyDeployArgs, ArmyGoal
+#     from game.actions.armyDeploy import ArmyDeployArgs, ArmyGoal
 
 
 import pytest
-from game.actions.armyDeploy import ActionArmyDeploy, ActionArmyDeployArgs
+from game.actions.armyDeploy import ArmyDeployAction, ArmyDeployArgs
 from game.actions.actionBase import makeAction
-from game.actions.armyRetreat import ActionArmyRetreat, ActionArmyRetreatArgs
+from game.actions.armyRetreat import ArmyRetreatAction, ArmyRetreatArgs
 from game.actions.common import ActionFailed
 from game.entities import Entities, MapTileEntity
 from game.state import Army, ArmyGoal, ArmyMode, GameState, MapTile, StateModel
@@ -36,8 +36,8 @@ def test_cost():
     army = state.map.armies[0]
     tile = entities["map-tile19"]
 
-    args = ActionArmyDeployArgs(armyIndex=2, tile=tile, goal=ArmyGoal.Occupy, equipment=10, team=teams[0])
-    action = makeAction(ActionArmyDeploy, entities=entities, state=state, args=args)
+    args = ArmyDeployArgs(armyIndex=2, tile=tile, goal=ArmyGoal.Occupy, equipment=10, team=teams[0])
+    action = makeAction(ArmyDeployAction, entities=entities, state=state, args=args)
 
     cost = action.cost()
     assert cost == {entities.zbrane: 10}, f"Requires {cost} (exp. 10x zbrane)"
@@ -63,8 +63,8 @@ def test_commit():
     tile = entities["map-tile04"]
     teams = list(entities.teams.values())
 
-    args = ActionArmyDeployArgs(armyIndex=armyIndex, tile=tile, goal=ArmyGoal.Occupy, equipment=10, team=teams[0])
-    action = makeAction(ActionArmyDeploy, args=args, entities=entities, state=state)
+    args = ArmyDeployArgs(armyIndex=armyIndex, tile=tile, goal=ArmyGoal.Occupy, equipment=10, team=teams[0])
+    action = makeAction(ArmyDeployAction, args=args, entities=entities, state=state)
     result = action.applyCommit()
 
     army = state.map.armies[armyIndex]
@@ -80,8 +80,8 @@ def test_overequip():
     armyIndex = 17
     tile = entities["map-tile04"]
 
-    args = ActionArmyDeployArgs(armyIndex=armyIndex, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=11)
-    action = makeAction(ActionArmyDeploy, args=args, entities=entities, state=state)
+    args = ArmyDeployArgs(armyIndex=armyIndex, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=11)
+    action = makeAction(ArmyDeployAction, args=args, entities=entities, state=state)
     with pytest.raises(ActionFailed) as einfo:
         action.cost()
 
@@ -94,8 +94,8 @@ def test_underequip():
     armyIndex = 17
     tile = entities["map-tile04"]
 
-    args = ActionArmyDeployArgs(armyIndex=armyIndex, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=0)
-    action = makeAction(ActionArmyDeploy, args=args, entities=entities, state=state)
+    args = ArmyDeployArgs(armyIndex=armyIndex, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=0)
+    action = makeAction(ArmyDeployAction, args=args, entities=entities, state=state)
     with pytest.raises(ActionFailed) as einfo:
         action.cost()
         action.applyCommit()
@@ -103,8 +103,8 @@ def test_underequip():
 
 
 def sendArmyTo(entities: Entities, state: GameState, army: Army, tile: MapTileEntity, goal: ArmyGoal=ArmyGoal.Occupy, equipment=0, boost=0, friendlyTeam=None):
-    args = ActionArmyDeployArgs(armyIndex=army.index, tile=tile, team=army.team, goal=goal, equipment=equipment, friendlyTeam=friendlyTeam)
-    action = makeAction(ActionArmyDeploy, args=args, entities=entities, state=state)
+    args = ArmyDeployArgs(armyIndex=army.index, tile=tile, team=army.team, goal=goal, equipment=equipment, friendlyTeam=friendlyTeam)
+    action = makeAction(ArmyDeployAction, args=args, entities=entities, state=state)
     action.applyCommit()
     army.boost = boost
     return action.applyDelayedEffect()
@@ -485,8 +485,8 @@ def test_retreatArmy():
 
     sendArmyTo(entities, state, armies[2], tile, equipment=15, goal=ArmyGoal.Occupy)
 
-    args = ActionArmyRetreatArgs(armyIndex=army.index, team=army.team)
-    action = makeAction(ActionArmyRetreat, args=args, entities=entities, state=state)
+    args = ArmyRetreatArgs(armyIndex=army.index, team=army.team)
+    action = makeAction(ArmyRetreatAction, args=args, entities=entities, state=state)
     result = action.applyCommit()
 
     assert map.getOccupyingArmy(tile) == None

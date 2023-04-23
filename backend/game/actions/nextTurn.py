@@ -6,17 +6,17 @@ from game.actions.actionBase import ActionArgs
 from game.actions.actionBase import ActionBase
 from game.entities import Resource
 
-class ActionNextTurnArgs(ActionArgs):
+class NextTurnArgs(ActionArgs):
     pass
 
-class ActionNextTurn(ActionBase):
+class NextTurnAction(ActionBase):
     @property
     def description(self):
         return "Další kolo"
 
     @property
-    def args(self) -> ActionNextTurnArgs:
-        assert isinstance(self._generalArgs, ActionNextTurnArgs)
+    def args(self) -> NextTurnArgs:
+        assert isinstance(self._generalArgs, NextTurnArgs)
         return self._generalArgs
 
 

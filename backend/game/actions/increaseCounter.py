@@ -9,12 +9,12 @@ from typing import Iterable, List, Optional, Set, Tuple
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
 # the player sacrificed to gods) and then it gains some blue counter
 
-class ActionIncreaseCounterArgs(ActionArgs):
+class IncreaseCounterArgs(ActionArgs):
     team: Team
     red: Decimal
     resource: Optional[Resource]=None
 
-class ActionIncreaseCounter(ActionBase):
+class IncreaseCounterAction(ActionBase):
     # Tady si můžu dodefinovat libovolná pole. Ale měla by mít defaultní hodnotu
     # (aby šel objekt zkonstruovat jen na základě stavu, entit a argumentů)
     # Tato hodnota bude uchována mezi voláními jednotlivých kroků
@@ -24,8 +24,8 @@ class ActionIncreaseCounter(ActionBase):
         return {}
 
     @property
-    def args(self) -> ActionIncreaseCounterArgs:
-        assert isinstance(self._generalArgs, ActionIncreaseCounterArgs)
+    def args(self) -> IncreaseCounterArgs:
+        assert isinstance(self._generalArgs, IncreaseCounterArgs)
         return self._generalArgs
 
     def diceRequirements(self) -> Tuple[Iterable[Die], int]:

@@ -1,5 +1,5 @@
 # from decimal import Decimal
-# from game.actions.increaseCounter import ActionIncreaseCounter, ActionIncreaseCounterArgs
+# from game.actions.increaseCounter import IncreaseCounterAction, IncreaseCounterArgs
 # from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 # from game.state import GameState
 # from game.actions.common import ActionException
@@ -12,8 +12,8 @@
 # def test_withoutResources():
 #     state = createTestInitState()
 #     entities = TEST_ENTITIES
-#     args = ActionIncreaseCounterArgs(red=Decimal(5), team=team)
-#     action = ActionIncreaseCounter(state=state, entities=entities, args=args)
+#     args = IncreaseCounterArgs(red=Decimal(5), team=team)
+#     action = IncreaseCounterAction(state=state, entities=entities, args=args)
 
 #     cost = action.cost()
 
@@ -30,8 +30,8 @@
 
 # def test_withResources():
 #     state = createTestInitState()
-#     args = ActionIncreaseCounterArgs(red=Decimal(5), resource=TEST_ENTITIES["mat-drevo"], team=team)
-#     action = ActionIncreaseCounter(state=state, entities=entities, args=args)
+#     args = IncreaseCounterArgs(red=Decimal(5), resource=TEST_ENTITIES["mat-drevo"], team=team)
+#     action = IncreaseCounterAction(state=state, entities=entities, args=args)
 
 #     prev = state.teamStates[team].blueCounter
 #     action.commit()
@@ -43,8 +43,8 @@
 
 # def test_tooMany():
 #     state = GameState.createInitial(TEST_ENTITIES)
-#     args = ActionIncreaseCounterArgs(red=Decimal(12), team=team)
-#     action = ActionIncreaseCounter(state=state, entities=entities, args=args)
+#     args = IncreaseCounterArgs(red=Decimal(12), team=team)
+#     action = IncreaseCounterAction(state=state, entities=entities, args=args)
 
 #     with pytest.raises(ActionException) as einfo:
 #         action.commit()

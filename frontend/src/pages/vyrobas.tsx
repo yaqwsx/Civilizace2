@@ -306,7 +306,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
         <PerformAction
             team={props.team}
             actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
-            actionId="ActionVyroba"
+            actionId="VyrobaAction"
             actionArgs={{
                 team: props.team.id,
                 vyroba: props.vyroba.id,
@@ -563,7 +563,7 @@ function WithdrawStorage(props: { team: Team }) {
                 <Dialog onClose={() => setSubmitting(false)}>
                     <PerformAction
                         actionName={`Výběr ze skladu pro tým ${props.team.name}`}
-                        actionId="ActionWithdraw"
+                        actionId="WithdrawAction"
                         actionArgs={{
                             team: props.team.id,
                             resources: toWithdraw,

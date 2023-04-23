@@ -1,6 +1,6 @@
 import pytest
 from game.actions.actionBase import makeAction
-from game.actions.buildRoad import ActionBuildRoad, ActionBuildRoadArgs
+from game.actions.buildRoad import BuildRoadAction, BuildRoadArgs
 from game.actions.common import ActionFailed
 from game.state import ArmyGoal
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
@@ -15,8 +15,8 @@ def test_buildRoad():
 
     sendArmyTo(entities, state, state.map.armies[3], entities["map-tile28"], equipment=5, goal=ArmyGoal.Occupy)
 
-    action = makeAction(ActionBuildRoad,
-                        state=state, entities=entities, args=ActionBuildRoadArgs(team=team, tile=tile.entity))
+    action = makeAction(BuildRoadAction,
+                        state=state, entities=entities, args=BuildRoadArgs(team=team, tile=tile.entity))
     action.applyCommit(1, 100)
 
     teamState = state.teamStates[team]
@@ -32,7 +32,7 @@ def test_unownedTile():
     team = entities["tym-zluti"]
     tile = state.map.tiles[28]
 
-    action = makeAction(ActionBuildRoad,
-                        state=state, entities=entities, args=ActionBuildRoadArgs(team=team, tile=tile.entity))
+    action = makeAction(BuildRoadAction,
+                        state=state, entities=entities, args=BuildRoadArgs(team=team, tile=tile.entity))
     with pytest.raises(ActionFailed) as einfo:
         result = action.applyCommit()

@@ -6,16 +6,16 @@ from game.actions.common import ActionFailed
 from game.entities import Die, Resource, Tech, Team
 from game.state import printResourceListForMarkdown
 
-class ActionTradeArgs(ActionArgs):
+class TradeArgs(ActionArgs):
     team: Team
     receiver: Team
     resources: Dict[Resource, Decimal]
 
-class ActionTrade(ActionBase):
+class TradeAction(ActionBase):
 
     @property
-    def args(self) -> ActionTradeArgs:
-        assert isinstance(self._generalArgs, ActionTradeArgs)
+    def args(self) -> TradeArgs:
+        assert isinstance(self._generalArgs, TradeArgs)
         return self._generalArgs
 
     @property

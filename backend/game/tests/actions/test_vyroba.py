@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.vyroba import ActionVyroba, ActionVyrobaArgs
+from game.actions.vyroba import VyrobaAction, VyrobaArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 from game.tests.actions.test_armyDeploy import sendArmyTo
 
@@ -16,14 +16,14 @@ def test_initiate():
     team = state.teamStates[teamId]
     originalResources = team.resources.copy()
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
         count = 1,
         tile = team.homeTile.entity,
         plunder = False,
         team = teamId
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 90
@@ -32,7 +32,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.count = 5
-    action =  makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action =  makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -41,7 +41,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.vyroba = entities["vyr-drevo1Pro"]
-    action =  makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action =  makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -60,14 +60,14 @@ def test_simple():
     team.resources[entities["pro-drevo"]] = 20
     originalResources = team.resources.copy()
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
         count = 1,
         tile = team.homeTile.entity,
         plunder = False,
         team = teamId
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
@@ -83,14 +83,14 @@ def test_production():
     team = state.teamStates[teamId]
     team.resources[entities["pro-drevo"]] = 20
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevo1Pro"],
         count = 1,
         tile = team.homeTile.entity,
         plunder = False,
         team = teamId
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
@@ -106,14 +106,14 @@ def test_distance():
     team = state.teamStates[teamId]
     team.resources[entities["pro-drevo"]] = 20
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevo1Mat"],
         count = 1,
         tile = entities["map-tile06"],
         plunder = False,
         team = teamId
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
     distance = action.requiresDelayedEffect()
     assert distance == 600
 
@@ -126,14 +126,14 @@ def test_richnessMaterial():
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
         count = 2,
         tile = tile.entity,
         plunder = False,
         team = team.team
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 20)
@@ -153,14 +153,14 @@ def test_richnessProduction():
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 2,
         tile = tile.entity,
         plunder = False,
         team = team.team
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 20)
@@ -180,14 +180,14 @@ def test_plunderMaterial():
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevoLes"],
         count = 2,
         tile = tile.entity,
         plunder = True,
         team = team.team
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 20)
@@ -207,14 +207,14 @@ def test_plunderProduction():
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 4,
         tile = tile.entity,
         plunder = True,
         team = team.team
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 20)
@@ -233,14 +233,14 @@ def test_featureMissing():
     tile = state.map.tiles[27]
     team.resources[entities["pro-drevo"]] = 20
 
-    args = ActionVyrobaArgs(
+    args = VyrobaArgs(
         vyroba = entities["vyr-drevoProdLes"],
         count = 2,
         tile = tile.entity,
         plunder = False,
         team = team.team
     )
-    action = makeAction(ActionVyroba, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     with pytest.raises(ActionFailed) as einfo:

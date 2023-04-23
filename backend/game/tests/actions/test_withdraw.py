@@ -1,6 +1,6 @@
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.withdraw import ActionWithdraw, ActionWithdrawArgs
+from game.actions.withdraw import WithdrawAction, WithdrawArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
@@ -14,8 +14,8 @@ def test_withdraw():
     teamState = state.teamStates[team]
     teamState.storage = sampleStorage.copy()
 
-    args = ActionWithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
-    action = makeAction(ActionWithdraw, state=state, entities=entities, args=args)
+    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
+    action = makeAction(WithdrawAction, state=state, entities=entities, args=args)
 
     result = action.applyCommit()
     assert teamState.storage[entities["mat-drevo"]] == 8
@@ -42,8 +42,8 @@ def test_noWork():
     teamState.storage = sampleStorage.copy()
     teamState.resources[entities.work] = 1
 
-    args = ActionWithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
-    action = makeAction(ActionWithdraw, state=state, entities=entities, args=args)
+    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
+    action = makeAction(WithdrawAction, state=state, entities=entities, args=args)
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()

@@ -5,16 +5,16 @@ from game.entities import Resource, Team, Tech
 from game.state import printResourceListForMarkdown
 
 
-class ActionWithdrawArgs(ActionArgs):
+class WithdrawArgs(ActionArgs):
     team: Team
     resources: Dict[Resource, int]
 
 
-class ActionWithdraw(ActionBase):
+class WithdrawAction(ActionBase):
 
     @property
-    def args(self) -> ActionWithdrawArgs:
-        assert isinstance(self._generalArgs, ActionWithdrawArgs)
+    def args(self) -> WithdrawArgs:
+        assert isinstance(self._generalArgs, WithdrawArgs)
         return self._generalArgs
 
     @property

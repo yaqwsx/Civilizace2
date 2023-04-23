@@ -280,7 +280,7 @@ function TechItem(props: {
                 >
                     <PerformAction
                         actionName={`Dokončit zkoumání ${tech.name} pro ${props.team.name}`}
-                        actionId="ActionResearchFinish"
+                        actionId="ResearchFinishAction"
                         actionArgs={{
                             tech: tech.id,
                             team: props.team.id,
@@ -301,7 +301,7 @@ function TechItem(props: {
                 <Dialog onClose={toggleStartTask}>
                     <PerformAction
                         actionName={`Začít zkoumat ${tech.name} pro ${props.team.name}`}
-                        actionId="ActionResearchStart"
+                        actionId="ResearchStartAction"
                         actionArgs={{
                             tech: tech.id,
                             team: props.team.id,

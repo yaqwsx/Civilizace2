@@ -1,7 +1,7 @@
 from typing import Set
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.trade import ActionTrade, ActionTradeArgs
+from game.actions.trade import TradeAction, TradeArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
@@ -17,19 +17,19 @@ def test_cost():
     team.resources[entities["pro-cukr"]] = 2
     team.resources[entities["pro-drevo"]] = 5
 
-    cost = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2})).cost()
+    cost = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2})).cost()
     assert cost == {entities["mge-obchod-2"]:2}
 
-    cost = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-cukr"]: 1})).cost()
+    cost = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-cukr"]: 1})).cost()
     assert cost == {entities["mge-obchod-6"]:1}
 
-    cost = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3})).cost()
+    cost = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3})).cost()
     assert cost == {entities["mge-obchod-3"]:3}
 
-    cost = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3, entities["pro-maso"]: 2})).cost()
+    cost = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3, entities["pro-maso"]: 2})).cost()
     assert cost == {entities["mge-obchod-3"]:5}
 
-    cost = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3, entities["pro-cukr"]: 2})).cost()
+    cost = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-drevo"]: 3, entities["pro-cukr"]: 2})).cost()
     assert cost == {entities["mge-obchod-3"]:3, entities["mge-obchod-6"]:2}
 
 
@@ -43,13 +43,13 @@ def test_success():
     team.resources = {entities["pro-bobule"]:10, entities["pro-drevo"]:5}
     them.resources = {}
 
-    result = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2})).applyCommit()
+    result = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2})).applyCommit()
 
     assert team.resources == {entities["pro-bobule"]:8, entities["pro-drevo"]:5}
     assert them.resources == {entities["pro-bobule"]:2}
     assert len(result.notifications[TEAM_ADVANCED]) == 1
 
-    result = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2, entities["pro-drevo"]: 2})).applyCommit()
+    result = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 2, entities["pro-drevo"]: 2})).applyCommit()
 
     assert team.resources == {entities["pro-bobule"]:6, entities["pro-drevo"]:3}
     assert them.resources == {entities["pro-bobule"]:4, entities["pro-drevo"]:2}
@@ -65,7 +65,7 @@ def test_invalidResource():
     team.resources = {entities["pro-bobule"]:10, entities["pro-drevo"]:5}
 
     with pytest.raises(ActionFailed) as einfo:
-        result = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["mat-bobule"]: 2})).applyCommit()
+        result = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["mat-bobule"]: 2})).applyCommit()
 
 
 def test_insufficient():
@@ -77,7 +77,7 @@ def test_insufficient():
     team.resources = {entities["pro-bobule"]:10, entities["pro-drevo"]:5}
 
     with pytest.raises(ActionFailed) as einfo:
-        result = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 20})).applyCommit()
+        result = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-bobule"]: 20})).applyCommit()
 
 
 def test_unknownResource():
@@ -89,6 +89,6 @@ def test_unknownResource():
     team.resources = {entities["pro-bobule"]:10, entities["pro-drevo"]:5}
 
     with pytest.raises(ActionFailed) as einfo:
-        result = makeAction(ActionTrade, state=state, entities=entities, args=ActionTradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-kuze"]: 2})).applyCommit()
+        result = makeAction(TradeAction, state=state, entities=entities, args=TradeArgs(team=teamId, receiver=TEAM_ADVANCED, resources={entities["pro-kuze"]: 2})).applyCommit()
 
 

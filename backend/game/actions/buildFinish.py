@@ -3,18 +3,18 @@ from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
 from game.entities import Building, MapTileEntity, Resource, Team, Tech
 
 
-class ActionBuildFinishArgs(ActionArgs):
+class BuildFinishArgs(ActionArgs):
     team: Team
     tile: MapTileEntity
     build: Building
     demolish: Optional[Building]
 
 
-class ActionBuildFinish(ActionBase):
+class BuildFinishAction(ActionBase):
 
     @property
-    def args(self) -> ActionBuildFinishArgs:
-        assert isinstance(self._generalArgs, ActionBuildFinishArgs)
+    def args(self) -> BuildFinishArgs:
+        assert isinstance(self._generalArgs, BuildFinishArgs)
         return self._generalArgs
 
     @property

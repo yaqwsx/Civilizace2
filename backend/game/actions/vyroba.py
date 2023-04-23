@@ -7,7 +7,7 @@ from game.entities import Die, MapTileEntity, NaturalResource, Resource, Team, V
 from game.state import ArmyGoal, printResourceListForMarkdown
 
 
-class ActionVyrobaArgs(ActionArgs):
+class VyrobaArgs(ActionArgs):
     team: Team
     vyroba: Vyroba
     count: int
@@ -20,11 +20,11 @@ class ActionVyrobaArgs(ActionArgs):
     equipment: Optional[int]
 
 
-class ActionVyroba(ActionBase):
+class VyrobaAction(ActionBase):
 
     @property
-    def args(self) -> ActionVyrobaArgs:
-        assert isinstance(self._generalArgs, ActionVyrobaArgs)
+    def args(self) -> VyrobaArgs:
+        assert isinstance(self._generalArgs, VyrobaArgs)
         return self._generalArgs
 
     @property

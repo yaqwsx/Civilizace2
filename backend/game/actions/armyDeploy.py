@@ -10,7 +10,7 @@ from game.entities import MapTileEntity, Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode, MapTile, MapState
 
 
-class ActionArmyDeployArgs(ActionArgs):
+class ArmyDeployArgs(ActionArgs):
     team: Team
     armyIndex: int
     tile: MapTileEntity
@@ -20,11 +20,11 @@ class ActionArmyDeployArgs(ActionArgs):
     friendlyTeam: Optional[Team]
 
 
-class ActionArmyDeploy(ActionBase):
+class ArmyDeployAction(ActionBase):
 
     @property
-    def args(self) -> ActionArmyDeployArgs:
-        assert isinstance(self._generalArgs, ActionArmyDeployArgs)
+    def args(self) -> ArmyDeployArgs:
+        assert isinstance(self._generalArgs, ArmyDeployArgs)
         return self._generalArgs
 
     @property

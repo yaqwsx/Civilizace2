@@ -3,14 +3,14 @@ from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed, Action
 from game.entities import Resource, Team, Tech
 from game.state import ArmyMode
 
-class ActionArmyUpgradeArgs(ActionArgs):
+class ArmyUpgradeArgs(ActionArgs):
     team: Team
     armyIndex: int
 
-class ActionArmyUpgrade(ActionBase):
+class ArmyUpgradeAction(ActionBase):
     @property
-    def args(self) -> ActionArmyUpgradeArgs:
-        assert isinstance(self._generalArgs, ActionArmyUpgradeArgs)
+    def args(self) -> ArmyUpgradeArgs:
+        assert isinstance(self._generalArgs, ArmyUpgradeArgs)
         return self._generalArgs
 
     @property

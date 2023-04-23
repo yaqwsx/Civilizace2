@@ -6,16 +6,16 @@ from game.actions.common import ActionFailed
 from game.entities import Building, Die, MapTileEntity, Resource, Team, Vyroba
 from game.state import ArmyGoal
 
-class ActionBuildRoadArgs(ActionArgs):
+class BuildRoadArgs(ActionArgs):
     team: Team
     tile: MapTileEntity
 
 
-class ActionBuildRoad(ActionBase):
+class BuildRoadAction(ActionBase):
 
     @property
-    def args(self) -> ActionBuildRoadArgs:
-        assert isinstance(self._generalArgs, ActionBuildRoadArgs)
+    def args(self) -> BuildRoadArgs:
+        assert isinstance(self._generalArgs, BuildRoadArgs)
         return self._generalArgs
 
 

@@ -1,7 +1,7 @@
 import pytest
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.researchStart import ActionResearchArgs, ActionResearchStart
+from game.actions.researchStart import ResearchArgs, ResearchStartAction
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
 team = TEAM_BASIC
@@ -10,8 +10,8 @@ def test_payResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = makeAction(ActionResearchStart,
-        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-a"], team=team))
+    action = makeAction(ResearchStartAction,
+        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=team))
 
     teamState = state.teamStates[team]
     teamState.resources = {
@@ -94,8 +94,8 @@ def test_payResources():
 def test_receiveResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    action = makeAction(ActionResearchStart,
-        state=state, entities=entities, args=ActionResearchArgs(tech=entities["tec-a"], team=team))
+    action = makeAction(ResearchStartAction,
+        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=team))
 
     teamState = state.teamStates[team]
 

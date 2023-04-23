@@ -177,7 +177,7 @@ export function DiscoverAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionDiscoverTile"
+            actionId="DiscoverTileAction"
             actionName={`Objevit dílek mapy týmem ${props.team.name}`}
             argsValid={(a: any) => a?.team && a?.tile}
             actionArgs={{
@@ -203,7 +203,7 @@ export function CultureAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionAddCultureArgs"
+            actionId="AddCultureAction"
             actionName={`Udělit kulturu týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
@@ -249,7 +249,7 @@ export function BuildingAgenda(props: { team: Team }) {
         <>
             <h1>Stavění budovy pro tým {props.team.name}</h1>
             <PerformAction
-                actionId="ActionBuild"
+                actionId="BuildAction"
                 actionName={`Stavba budovy týmu ${props.team.name}`}
                 actionArgs={{
                     team: props.team.id,
@@ -351,7 +351,7 @@ export function BuildingFinishAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionBuildFinish"
+            actionId="BuildFinishAction"
             actionName={`Kolaudace budovy týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
@@ -405,7 +405,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionBuildRoad"
+            actionId="BuildRoadAction"
             actionName={`Postavit cestu týmem ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
@@ -469,7 +469,7 @@ export function TradeAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionTrade"
+            actionId="TradeAction"
             actionName={`Obchod ${props.team.name} → ${recipient?.name}`}
             actionArgs={{
                 team: props.team.id,
@@ -679,7 +679,7 @@ function ArmyDeployForm(props: {
         <Dialog onClose={props.onFinish}>
             <PerformAction
                 actionName={`Vyslat armádu ${props.army.prestige} týmu ${props.team.name}`}
-                actionId="ActionArmyDeploy"
+                actionId="ArmyDeployAction"
                 actionArgs={{
                     team: props.team.id,
                     armyIndex: props.army.index,
@@ -745,7 +745,7 @@ function ArmyRetreatForm(props: {
                         {props.team.name}
                     </>
                 }
-                actionId="ActionArmyRetreat"
+                actionId="ArmyRetreatAction"
                 actionArgs={{
                     team: props.team.id,
                     armyIndex: props?.army?.index,
@@ -772,7 +772,7 @@ function ArmyUpgradeForm(props: {
                         {props.team.name}
                     </>
                 }
-                actionId="ActionArmyUpgrade"
+                actionId="ArmyUpgradeAction"
                 actionArgs={{
                     team: props.team.id,
                     armyIndex: props.army.index,
@@ -922,7 +922,7 @@ export function FeedingAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionFeed"
+            actionId="FeedAction"
             actionName={`Krmení týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
@@ -979,7 +979,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
 
     return (
         <PerformAction
-            actionId="ActionGranary"
+            actionId="GranaryAction"
             actionName={`Automatizace krmení ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,

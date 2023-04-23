@@ -3,7 +3,7 @@ import json
 import os
 import sys
 from game.actions.common import ActionCost
-from game.actions.nextTurn import ActionNextTurn, ActionNextTurnArgs
+from game.actions.nextTurn import NextTurnAction, NextTurnArgs
 from game.gameGlue import stateSerialize
 from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbTick, DbTurn, DbState, InteractionType
 from django.utils import timezone
@@ -51,9 +51,9 @@ def makeNextTurnAction():
     state = dbState.toIr()
     prevState = dbState.toIr()
 
-    action = ActionViewSet.constructAction("ActionNextTurn", {}, entities, state)
+    action = ActionViewSet.constructAction("NextTurnAction", {}, entities, state)
     dbAction = DbAction(
-            actionType="ActionNextTurn",
+            actionType="NextTurnAction",
             entitiesRevision=entityRevision,
             args=stateSerialize(action.args))
     dbAction.save()

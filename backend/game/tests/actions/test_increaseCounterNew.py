@@ -1,6 +1,6 @@
 from decimal import Decimal
 from game.actions.actionBase import makeAction
-from game.actions.increaseCounter import ActionIncreaseCounter, ActionIncreaseCounterArgs
+from game.actions.increaseCounter import IncreaseCounterAction, IncreaseCounterArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 from game.state import GameState
 
@@ -12,8 +12,8 @@ entities = TEST_ENTITIES
 def test_something():
     state = createTestInitState()
     entities = TEST_ENTITIES
-    args = ActionIncreaseCounterArgs(red=Decimal(5), team=team)
-    action = makeAction(ActionIncreaseCounter, state=state, entities=entities, args=args)
+    args = IncreaseCounterArgs(red=Decimal(5), team=team)
+    action = makeAction(IncreaseCounterAction, state=state, entities=entities, args=args)
 
     req = action.diceRequirements()
     action.applyInitiate()

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.feed import ActionFeed, ActionFeedArgs, FeedRequirements, computeFeedRequirements
+from game.actions.feed import FeedAction, FeedArgs, FeedRequirements, computeFeedRequirements
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
 
 import pytest
@@ -74,7 +74,7 @@ def test_simpleFeed():
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
         team=team, materials={entities["mat-bobule"]: 10}))
 
     action.applyCommit()
@@ -92,7 +92,7 @@ def test_starve():
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
         team=team, materials={entities["mat-bobule"]: 1}))
 
     action.applyCommit()
@@ -112,7 +112,7 @@ def test_highlevelFood():
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].population == 100
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(team=team, materials={
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(team=team, materials={
         entities.resources["mat-bobule"]: 100,
         entities.resources["mat-cukr"]: 100,
         entities.resources["mat-maso"]: 100,
@@ -139,7 +139,7 @@ def test_highlevelLuxury():
     state.teamStates[team].resources[entities.resources["res-kultura"]] = Decimal(50)
     state.teamStates[team].employees = 600
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(team=team, materials={
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(team=team, materials={
         entities.resources["mat-bobule"]: 100,
         entities.resources["mat-cukr"]: 100,
         entities.resources["mat-maso"]: 100,
@@ -167,11 +167,11 @@ def test_repeatedFeed():
     assert state.teamStates[team].resources[entities.work] == 100
     assert state.teamStates[team].resources[entities.obyvatel] == 100
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
         team=team, materials={entities.resources["mat-bobule"]: 10}))
     action.applyCommit()
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
         team=team, materials={entities.resources["mat-bobule"]: 10}))
 
     with pytest.raises(ActionFailed) as einfo:
@@ -202,7 +202,7 @@ def test_productions():
         entities.resources["pro-maso"]: 8
     }
 
-    action = makeAction(ActionFeed, state=state, entities=entities, args=ActionFeedArgs(
+    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
         team=team, materials={entities.resources["mat-maso"]: 1}))
     action.applyCommit()
 

@@ -1,18 +1,18 @@
 from math import ceil
 from typing import Dict
 from game.actions.actionBase import ActionBase, ActionFailed
-from game.actions.researchStart import ActionResearchArgs
+from game.actions.researchStart import ResearchArgs
 from game.entities import Resource
 
 
-class ActionResearchFinish(ActionResearchArgs):
+class ResearchFinishArgs(ResearchArgs):
     pass
 
 
-class ActionResearchFinish(ActionBase):
+class ResearchFinishAction(ActionBase):
     @property
-    def args(self) -> ActionResearchArgs:
-        assert isinstance(self._generalArgs, ActionResearchArgs)
+    def args(self) -> ResearchFinishArgs:
+        assert isinstance(self._generalArgs, ResearchFinishArgs)
         return self._generalArgs
 
     @property

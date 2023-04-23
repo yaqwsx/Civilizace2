@@ -9,7 +9,7 @@ class DiscoverTileArgs(ActionArgs):
     team: Team
     tile: MapTileEntity
 
-class ActionDiscoverTile(ActionBase):
+class DiscoverTileAction(ActionBase):
 
     @property
     def args(self) -> DiscoverTileArgs:

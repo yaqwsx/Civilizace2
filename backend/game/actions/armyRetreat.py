@@ -4,14 +4,14 @@ from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
 from game.entities import Resource, Team, Tech
 from game.state import ArmyMode
 
-class ActionArmyRetreatArgs(ActionArgs):
+class ArmyRetreatArgs(ActionArgs):
     team: Team
     armyIndex: int
 
-class ActionArmyRetreat(ActionBase):
+class ArmyRetreatAction(ActionBase):
     @property
-    def args(self) -> ActionArmyRetreatArgs:
-        assert isinstance(self._generalArgs, ActionArmyRetreatArgs)
+    def args(self) -> ArmyRetreatArgs:
+        assert isinstance(self._generalArgs, ArmyRetreatArgs)
         return self._generalArgs
 
     @property

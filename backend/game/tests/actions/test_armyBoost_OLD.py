@@ -1,6 +1,6 @@
 # import pytest
 # from game.actions.armyBoost import ActionBoost, ActionBoostArgs
-# from game.actions.armyDeploy import ActionArmyDeploy, ActionArmyDeployArgs, ArmyGoal
+# from game.actions.armyDeploy import ArmyDeployAction, ArmyDeployArgs, ArmyGoal
 # from game.actions.common import ActionException
 # from game.state import Army, ArmyId, ArmyState
 # from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
@@ -14,7 +14,7 @@
 #     army = state.teamStates[team].armies[armyId]
 #     tile = entities["map-tile04"]
 
-#     ActionArmyDeploy(args=ActionArmyDeployArgs(army=armyId, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=10), entities=entities, state=state)\
+#     ArmyDeployAction(args=ArmyDeployArgs(army=armyId, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=10), entities=entities, state=state)\
 #         .commit()
 
 #     action = ActionBoost(args=ActionBoostArgs(team=team, prestige=armyId.prestige, boost=2), entities=entities, state=state)
@@ -37,7 +37,7 @@
 #         # Army is not marching towards a tile
 #         action.commit()
 
-#     ActionArmyDeploy(args=ActionArmyDeployArgs(army=armyId, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=10), entities=entities, state=state)\
+#     ArmyDeployAction(args=ArmyDeployArgs(army=armyId, tile=tile, team=team, goal=ArmyGoal.Occupy, equipment=10), entities=entities, state=state)\
 #         .commit()
 #     ActionBoost(args=ActionBoostArgs(team=team, prestige=armyId.prestige, boost=2), entities=entities, state=state)\
 #         .commit()

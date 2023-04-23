@@ -4,15 +4,15 @@ from game.actions.actionBase import ActionArgs, ActionBase
 from game.entities import Resource, Team, Tech
 from game.state import printResourceListForMarkdown
 
-class ActionGranaryArgs(ActionArgs):
+class GranaryArgs(ActionArgs):
     team: Team
     productions: Dict[Resource, int] # int is here on purpose - it does not make sense to use fractions of food
 
-class ActionGranary(ActionBase):
+class GranaryAction(ActionBase):
 
     @property
-    def args(self) -> ActionGranaryArgs:
-        assert isinstance(self._generalArgs, ActionGranaryArgs)
+    def args(self) -> GranaryArgs:
+        assert isinstance(self._generalArgs, GranaryArgs)
         return self._generalArgs
 
     @property

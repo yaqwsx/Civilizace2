@@ -9,7 +9,7 @@ class AddCultureArgs(ActionArgs):
     team: Team
     culture: Decimal
 
-class ActionAddCultureArgs(ActionBase):
+class AddCultureAction(ActionBase):
 
     @property
     def args(self) -> AddCultureArgs:
