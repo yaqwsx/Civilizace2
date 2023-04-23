@@ -1,55 +1,58 @@
+from decimal import Decimal
 from typing import Dict, Optional
-from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed
-from game.entities import Building, MapTileEntity, Resource, Team, Tech
+
+from typing_extensions import override
+
+from game.actions.actionBase import (TeamActionArgs, TeamInteractionActionBase,
+                                     TileActionArgs)
+from game.entities import Building, Resource
 
 
-class BuildFinishArgs(ActionArgs):
-    team: Team
-    tile: MapTileEntity
+class BuildFinishArgs(TeamActionArgs, TileActionArgs):
     build: Building
     demolish: Optional[Building]
 
 
-class BuildFinishAction(ActionBase):
-
+class BuildFinishAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> BuildFinishArgs:
         assert isinstance(self._generalArgs, BuildFinishArgs)
         return self._generalArgs
 
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Kolaudace budovy {self.args.build.name} na poli {self.args.tile.name} ({self.args.team.name})"
 
-
-    def cost(self) -> Dict[Resource, int]:
+    @override
+    def cost(self) -> Dict[Resource, Decimal]:
         return self.state.world.buildDemolitionCost if self.args.demolish != None else {}
 
+    @override
+    def _initiateCheck(self) -> None:
+        tileState = self.args.tileState(self.state)
 
-    def _commitImpl(self) -> None:
-        tile = self.state.map.tiles[self.args.tile.index]
+        self._ensureStrong(self.args.build not in tileState.buildings,
+                           f"Budova již na poli existuje a nelze postavit další.")
+        self._ensureStrong(self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+                           f"Budovu nelze zkolaudovat, protože pole {self.args.tile.name} není v držení týmu.")
 
-        if self.args.build in tile.buildings:
-            self._warnings += f"Budova již na poli existuje a nelze postavit další."
-            return
-        if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
-            raise ActionFailed(f"Budovu nelze postavit, protože pole {self.args.tile.name} není v držení týmu.")
+        self._ensureStrong(self.args.build in tileState.unfinished.get(self.args.team, []),
+                           f"Budova {self.args.build.name} na poli {self.args.tile.name} neexistuje nebo nebyla dokončena.")
 
+        self._ensureStrong(tileState.parcelCount < len(tileState.buildings) or self.args.demolish is not None,
+                           f"Nedostatek parcel na poli {self.args.tile.name}. Je nutné vybrat budovu k demolici")
+        self._ensureStrong(tileState.parcelCount >= len(tileState.buildings) or self.args.demolish is None,
+                           f"Nelze zbourat budovu. Na poli {self.args.tile.name} jsou ještě volné parcely")
 
-        if not self.args.build in tile.unfinished.get(self.args.team, []):
-            raise ActionFailed(f"Budova {self.args.build.name} na poli {tile.name} neexistuje nebo nebyla dokončena. Zkontrolujte, že tým odevzdal směnku k dokončení budovy.")
+    @override
+    def _commitSuccessImpl(self) -> None:
+        tileState = self.args.tileState(self.state)
 
-        if (occupier := self.state.map.getOccupyingTeam(tile.entity)) != self.team:
-            raise ActionFailed(f"Pole není týmem obsazeno týmu, takže budovu nyní nelze zkolaudovat.")
-
-        if tile.parcelCount == len(tile.buildings) and self.args.demolish == None:
-            raise ActionFailed(f"Nedostatek parcel na poli {tile.name}. Je nutné vybrat budovu k demolici")
-        if tile.parcelCount < len(tile.buildings) and self.args.demolish != None:
-            raise ActionFailed(f"Nelze zbourat budovu. Na poli {tile.name} jsou ještě volné parcely")
-
-        if self.args.demolish != None:
-            tile.buildings.remove(self.args.demolish)
-            self._info += f"Na poli {tile.name} byla zbořena budova {self.args.demolish.name}."
-        tile.unfinished[self.args.team].remove(self.args.build)
-        tile.buildings.add(self.args.build)
-        self._info += f"Stavba {self.args.build.name} na poli {tile.name} dokončena a zkolaudována."
+        if self.args.demolish is not None:
+            tileState.buildings.remove(self.args.demolish)
+            self._info += f"Na poli {self.args.tile.name} byla zbořena budova {self.args.demolish.name}."
+        tileState.unfinished[self.args.team].remove(self.args.build)
+        tileState.buildings.add(self.args.build)
+        self._info += f"Stavba {self.args.build.name} na poli {self.args.tile.name} dokončena a zkolaudována."

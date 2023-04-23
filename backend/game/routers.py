@@ -1,26 +1,27 @@
 from rest_framework.routers import SimpleRouter
-from game.viewsets.armies import ArmiesViewSet
 
+from game.viewsets.action_no_init import NoInitActionViewSet
+from game.viewsets.action_team import TeamActionViewSet
+from game.viewsets.action_view_helper import ActionLogViewSet
+from game.viewsets.armies import ArmiesViewSet
 from game.viewsets.entity import EntityViewSet, TeamViewSet
 from game.viewsets.map import MapViewSet
 from game.viewsets.mapdiff import MapDiffViewSet
 from game.viewsets.printers import PrinterViewSet
+from game.viewsets.state import StateViewSet
 from game.viewsets.stickers import StickerViewSet
 from game.viewsets.tasks import TaskViewSet
-from game.viewsets.action import ActionViewSet, ActionLogViewSet
-from game.viewsets.turns import TurnsViewSet
-from game.viewsets.voucher import VoucherViewSet
-from game.viewsets.state import StateViewSet
 from game.viewsets.tick import TickViewSet
+from game.viewsets.turns import TurnsViewSet
 
 routes = SimpleRouter()
 routes.register(r'entities', EntityViewSet, basename="entities")
 routes.register(r'teams', TeamViewSet, basename="gameteams")
 routes.register(r'tasks', TaskViewSet, basename="tasks")
-routes.register(r'actions/logs', ActionLogViewSet, basename="actionlog")
-routes.register(r'actions', ActionViewSet, basename="actions")
+routes.register(r'actions/logs', ActionLogViewSet, basename="actionlogs")
+routes.register(r'actions/team', TeamActionViewSet, basename="actionsteam")
+routes.register(r'actions/noinit', NoInitActionViewSet, basename="actionsnoinit")
 routes.register(r'turns', TurnsViewSet, basename="turns")
-routes.register(r'vouchers', VoucherViewSet, basename="vouchers")
 routes.register(r'printers', PrinterViewSet, basename="printers")
 routes.register(r'stickers', StickerViewSet, basename="stickers")
 routes.register(r'state', StateViewSet, basename="states")

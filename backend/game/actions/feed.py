@@ -3,75 +3,72 @@ from math import ceil, floor
 from typing import Dict, List, Tuple
 
 from pydantic import BaseModel
-from game.actions.actionBase import ActionArgs
-from game.actions.common import ActionFailed
-from game.actions.actionBase import ActionBase
+from typing_extensions import override
+
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.entities import Entities, Resource, Team
-from game.state import GameState
+from game.state import GameState, TeamState
+
 
 class FeedRequirements(BaseModel):
     tokensRequired: int
     tokensPerCaste: int
     casteCount: int
-    automated: List[Tuple[Resource, int]] # sorted in preferred display order
+    automated: List[Tuple[Resource, Decimal]] # sorted in preferred display order
 
 
-def computeFeedRequirements(state: GameState, entities: Entities,  team: Team) -> FeedRequirements:
-    teamState = state.teamStates[team]
+def computeFeedRequirements(state: GameState, entities: Entities, team: Team) -> FeedRequirements:
+    teamState: TeamState = state.teamStates[team]
     tokensRequired = ceil(teamState.population / 20)
     foodPerCaste = ceil(tokensRequired / (2*state.world.casteCount))
 
-    automated = [(production.produces, amount) for production, amount in teamState.granary.items()]
-    automatedCount = sum([amount for production, amount in automated if production.typ[0] == entities["typ-jidlo"]])
+    automated = [(production.produces, amount) for production, amount in teamState.granary.items() if production.produces is not None]
+    automatedCount = floor(sum(amount for production, amount in automated if production.typ == entities["typ-jidlo"]))
 
-    automated.sort(key=lambda x: -x[0].typ[1]) # tertiary order: resource level
     automated.sort(key=lambda x: -x[1]) # secondary order: amount
-    automated.sort(key=lambda x: 0 if x[0].typ[0] == entities["typ-jidlo"] else 1) # primary order: type
+    automated.sort(key=lambda x: x[0].typ != entities["typ-jidlo"]) # primary order: type
 
     return FeedRequirements(
-        tokensRequired=max(tokensRequired-automatedCount, 0),
+        tokensRequired=max(tokensRequired - automatedCount, 0),
         tokensPerCaste=foodPerCaste,
         casteCount=state.world.casteCount,
         automated=automated
     )
 
 
-class FeedArgs(ActionArgs):
-    team: Team
-    materials: Dict[Resource, Decimal]
+class FeedArgs(TeamActionArgs):
+    materials: Dict[Resource, int]
 
-class FeedAction(ActionBase):
-
+class FeedAction(TeamInteractionActionBase):
     @property
-    def description(self):
-        return f"Krmení obyvatelstva ({self.args.team.name})"
-
-    @property
+    @override
     def args(self) -> FeedArgs:
         assert isinstance(self._generalArgs, FeedArgs)
         return self._generalArgs
 
+    @property
+    @override
+    def description(self) -> str:
+        return f"Krmení obyvatelstva ({self.args.team.name})"
+
+    @override
+    def cost(self) -> Dict[Resource, int]:
+        return self.args.materials
 
     def _addObyvatel(self, amount: int) -> None: # supports negative amounts
         self.teamState.resources[self.entities.obyvatel] = self.teamState.resources.get(self.entities.obyvatel, Decimal(0)) + amount
         if self.teamState.resources[self.entities.obyvatel] < 0:
             self.teamState.resources[self.entities.obyvatel] = Decimal(0)
 
+    @override
+    def _initiateCheck(self) -> None:
+        self._ensureStrong(self.teamState.turn < self.state.world.turn, "V tomto kole už jste krmili.")
 
-    def cost(self) -> Dict[Resource, Decimal]:
-        return self.args.materials
-
-
-    def _commitImpl(self) -> None:
-        teamTurn = self.teamState.turn
-        worldTurn = self.state.world.turn
-
-        if teamTurn >= worldTurn:
-            raise ActionFailed(f"V tomto kole už jste krmili.")
-
+    @override
+    def _commitSuccessImpl(self) -> None:
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
-        paidFood = floor(sum(amount for resource, amount in self.args.materials.items() if resource.typ[0] == self.entities["typ-jidlo"]))
+        paidFood = sum(amount for resource, amount in self.args.materials.items() if resource.typ == self.entities["typ-jidlo"])
 
         newborns = 0
         if req.tokensRequired > paidFood:
@@ -105,9 +102,9 @@ class FeedAction(ActionBase):
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
 
-        self.teamState.resources[self.entities.work] = floor(self.teamState.resources.get(self.entities.work, 0) / 2)
+        self.teamState.resources[self.entities.work] = self.teamState.resources.get(self.entities.work, Decimal(0)) // 2
 
-        reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces != None}
-        self.receiveResources(reward)
+        reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces is not None}
+        self._receiveResources(reward)
 
-        self.teamState.turn = worldTurn
+        self.teamState.turn = self.state.world.turn

@@ -189,13 +189,13 @@ class MapState(StateModel):
         home = self.getHomeOfTeam(team)
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8)  # Tiles are around the map
-        multiplier = 1
+        multiplier = Decimal(1)
         teamState = self.parent.teamStates[team]
         if tile in teamState.roadsTo:
-            multiplier -= 0.5
+            multiplier -= Decimal(0.5)
         if self.getOccupyingTeam(tile) == team:
-            multiplier -= 0.5
-        return Decimal(float(distance) * multiplier)
+            multiplier -= Decimal(0.5)
+        return distance * multiplier
 
     def getReachableTiles(self, team: Team) -> List[MapTile]:
         index = self.getHomeOfTeam(team).index
@@ -360,11 +360,11 @@ class TeamState(StateModel):
 class WorldState(StateModel):
     turn: int = 0
     casteCount: int = 3
-    buildDemolitionCost: Dict[Resource, int] = {}
+    buildDemolitionCost: Dict[Resource, Decimal] = {}
     combatRandomness: float = 0.5
     roadCost: Dict[Resource, int]
     roadPoints: int = 10
-    armyUpgradeCosts: Dict[int, Dict[Resource, int]]
+    armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]]
 
 
 class GameState(StateModel):
@@ -403,7 +403,7 @@ class GameState(StateModel):
             team.storage = {res: amount for res, amount in team.storage.items() if amount > 0}
 
 
-def printResourceListForMarkdown(resources: Dict[Resource, Decimal], roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:
+def printResourceListForMarkdown(resources: CostDict, roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:
     message = MessageBuilder()
     with message.startList("") as addLine:
         for resource, amount in resources.items():

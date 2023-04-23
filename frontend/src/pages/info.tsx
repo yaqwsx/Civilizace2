@@ -168,7 +168,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
         if (items[0] == "ans-yes" && preview && preview.success) {
             setSubmitting(true);
             axiosService
-                .post<any, any>("/game/actions/initiate/", {
+                    .post<any, any>("/game/actions/team/initiate/", {
                     action: "FeedAction",
                     args: actionArgs,
                 })

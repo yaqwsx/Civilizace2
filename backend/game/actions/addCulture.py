@@ -1,34 +1,35 @@
 from decimal import Decimal
-from typing import Dict
-from game.actions.actionBase import ActionArgs, ActionBase
-from game.actions.actionBase import ActionResult
-from game.actions.common import ActionFailed
-from game.entities import MapTileEntity, Resource, Team
 
-class AddCultureArgs(ActionArgs):
-    team: Team
+from typing_extensions import override
+
+from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
+                                     TeamActionBase)
+
+
+class AddCultureArgs(TeamActionArgs):
     culture: Decimal
 
-class AddCultureAction(ActionBase):
 
+class AddCultureAction(TeamActionBase, NoInitActionBase):
     @property
+    @override
     def args(self) -> AddCultureArgs:
         assert isinstance(self._generalArgs, AddCultureArgs)
         return self._generalArgs
 
-
     @property
-    def description(self):
-        return f"Přidat kulturu týmu {self.args.team.name}"
+    @override
+    def description(self) -> str:
+        return f"Přidat {self.args.culture} kultury týmu {self.args.team.name}"
 
-    def cost(self) -> Dict[Resource, Decimal]:
-        return {}
-
+    @override
     def _commitImpl(self) -> None:
-        if self.args.culture < 0:
-            raise ActionFailed("Nemůžu udělit zápornou kulturu")
+        self._ensureStrong(self.args.culture >= 0,
+                           "Nemůžu udělit zápornou kulturu")
+
         tState = self.teamState
-        assert tState is not None
-        c = self.entities["res-kultura"]
-        tState.resources[c] = tState.resources.get(c, 0) + self.args.culture
-        self._info.add(f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[c]}.")
+        culture = self.entities.culture
+        tState.resources[culture] = tState.resources.get(
+            culture, Decimal(0)) + self.args.culture
+        self._info.add(
+            f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}.")

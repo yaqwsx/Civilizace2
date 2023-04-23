@@ -59,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'game.middleware.turnUpdateMiddleware',
-    # 'game.middleware.delayedEffectsMiddleware',
+    'game.middleware.scheduledActionsMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'

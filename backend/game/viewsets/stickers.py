@@ -1,7 +1,9 @@
 import io
+from typing import NamedTuple
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import requests
+from game.entities import Entity, Team as TeamEntity
 from game.models import DbEntities, DbSticker, Printer
 from ipware import get_client_ip
 from rest_framework import serializers, viewsets
@@ -13,6 +15,10 @@ from rest_framework.permissions import IsAuthenticated
 from django.http import FileResponse
 
 from game.stickers import getStickerFile
+
+class Sticker(NamedTuple):
+    team: TeamEntity
+    entity: Entity
 
 class NoSuchPrinter(APIException):
     status_code = 400

@@ -23,6 +23,7 @@ TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
 TECHNOLOGY_START = "tec-start"
 RESOURCE_VILLAGER = "res-obyvatel"
 RESOURCE_WORK = "res-prace"
+RESOURCE_CULTURE = "res-kultura"
 
 GUARANTEED_IDS: Dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
@@ -198,12 +199,14 @@ Entity = Union[Die,
 Vyroba.update_forward_refs()
 
 TEntity = TypeVar('TEntity', bound=Entity)
+CostDict = Union[Dict[Resource, Decimal], Dict[Resource, int]]
 
 
 GUARANTEED_IDS = {
     TECHNOLOGY_START: Tech,
     RESOURCE_VILLAGER: Resource,
     RESOURCE_WORK: Resource,
+    RESOURCE_CULTURE: Resource,
 }
 
 
@@ -221,10 +224,6 @@ class Entities(frozendict[EntityId, Entity]):
         ...
 
     @property
-    def all(self) -> frozendict[EntityId, Entity]:
-        return self
-
-    @property
     def work(self) -> Resource:
         return self.resources[RESOURCE_WORK]
 
@@ -233,9 +232,18 @@ class Entities(frozendict[EntityId, Entity]):
         return self.resources[RESOURCE_VILLAGER]
 
     @property
-    def zbrane(self):
+    def culture(self) -> Resource:
+        return self.resources[RESOURCE_CULTURE]
+
+    @property
+    def zbrane(self) -> Resource:
         # TODO: remove
-        return self["mat-zbrane"]
+        return self.resources["mat-zbrane"]
+
+
+    @property
+    def all(self) -> frozendict[EntityId, Entity]:
+        return self
 
     @cached_property
     def dice(self) -> frozendict[EntityId, Die]:
@@ -248,9 +256,9 @@ class Entities(frozendict[EntityId, Entity]):
                            if isinstance(v, Resource)})
 
     @cached_property
-    def materials(self) -> frozendict[EntityId, Resource]:
+    def not_tracked_resources(self) -> frozendict[EntityId, Resource]:
         return frozendict({k: v for k, v in self.resources.items()
-                           if v.isTracked})
+                           if not v.isTracked})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:

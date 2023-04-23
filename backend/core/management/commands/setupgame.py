@@ -7,13 +7,14 @@ from frozendict import frozendict
 from game.entities import Entities, Entity, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import EntityParser
 from django.conf import settings
-from game.models import DbAction, DbDelayedEffect, DbEntities, DbInteraction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
+from game.models import DbAction, DbEntities, DbInteraction, DbScheduledAction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
 from core.models.announcement import Announcement
 from core.models import User, Team as DbTeam
 from game.state import GameState, WorldState
 from django.db import transaction
 
-from game.viewsets.action import ActionViewSet
+from game.viewsets.action_view_helper import ActionViewHelper
+from game.viewsets.stickers import Sticker
 
 from .pullentities import setFilename
 
@@ -62,7 +63,7 @@ class Command(BaseCommand):
     def clearGame(self) -> None:
         DbTick.objects.all().delete()
         DbSticker.objects.all().delete()
-        DbDelayedEffect.objects.all().delete()
+        DbScheduledAction.objects.all().delete()
         DbEntities.objects.all().delete()
         DbAction.objects.all().delete()
         DbInteraction.objects.all().delete()
@@ -107,8 +108,8 @@ class Command(BaseCommand):
         res = set()
         for t, sSet in stickers.items():
             for e in sSet:
-                res.add((t, e))
-        ActionViewSet._awardStickers(res)
+                res.add(Sticker(t, e))
+        ActionViewHelper._awardStickers(res)
 
 
     def createRounds(self) -> None:

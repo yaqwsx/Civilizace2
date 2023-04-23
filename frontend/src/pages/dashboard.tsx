@@ -42,7 +42,7 @@ import { toast } from "react-toastify";
 import { TurnCountdownSticker } from "../elements/turns";
 import QRCode from "react-qr-code";
 import { strictEqual } from "assert";
-import { PrintStickers, PrintVoucher } from "../elements/printing";
+import { PrintStickers } from "../elements/printing";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
 
@@ -86,7 +86,6 @@ function DashboardMenuImpl() {
         { url: "tasks", name: "Úkoly", orgOnly: false },
         { url: "announcements", name: "Oznámení", orgOnly: false },
         { url: "stickers", name: "Samolepky", orgOnly: true },
-        { url: "vouchers", name: "Směnky", orgOnly: true },
     ];
 
     let accessibleSubLinks = user?.isOrg
@@ -185,14 +184,6 @@ export function Dashboard() {
                     element={
                         <RequireOrg>
                             <TeamStickers />
-                        </RequireOrg>
-                    }
-                />
-                <Route
-                    path=":teamId/vouchers"
-                    element={
-                        <RequireOrg>
-                            <TeamVouchers />
                         </RequireOrg>
                     }
                 />
@@ -740,92 +731,6 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
                 <Dialog onClose={() => setIsPrinting(false)}>
                     <PrintStickers
                         stickers={[props.sticker]}
-                        onPrinted={() => setIsPrinting(false)}
-                    />
-                </Dialog>
-            )}
-        </div>
-    );
-}
-
-function TeamVouchers() {
-    const { teamId } = useParams();
-    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
-    const { data, error: dataError } = useSWR<any[]>(
-        () => (teamId ? `game/teams/${teamId}/vouchers` : null),
-        fetcher
-    );
-
-    if (!team || !data) {
-        return (
-            <LoadingOrError
-                loading={teamLoading || (!data && !dataError)}
-                error={combineErrors([teamError, dataError])}
-                message={"Nedaří se spojit serverem"}
-            />
-        );
-    }
-    return (
-        <>
-            <h1>Seznam směnek pro tým {team.name}</h1>
-            <div className="w-full">
-                {data.map((v) => (
-                    <Voucher key={v.id} voucher={v} />
-                ))}
-            </div>
-        </>
-    );
-}
-
-function Voucher(props: { voucher: any }) {
-    const [printing, setIsPrinting] = useState(false);
-
-    let v = props.voucher;
-
-    let className = classNames(
-        "w-full rounded bg-white p-5 shadow my-3",
-        v.withdrawn && "bg-gray-200",
-        v.performed && !v.withdrawn && "bg-green-200"
-    );
-
-    return (
-        <div className={className}>
-            <h1>Odložený efekt {props.voucher.slug}</h1>
-            <div className="flex w-full p-0">
-                <div className="m-0 w-full md:w-2/3">
-                    <ul>
-                        <li>
-                            <b>Popis: </b>
-                            {v?.description
-                                ? v.description
-                                : "Popisek nebyl implementován. Honza a Maara, uličníci jedni!"}
-                        </li>
-                        <li>
-                            <b>Vyplní se v: </b>
-                            {v.round}. kole, {Math.round(v.target / 60)}. minutě
-                        </li>
-                        <li>
-                            <b>Stav:</b>{" "}
-                            {v.performed
-                                ? v.withdrawn
-                                    ? "Vybráno"
-                                    : "Nevybráno"
-                                : "Čeká na vyplnění"}
-                        </li>
-                    </ul>
-                </div>
-                <div className="m-0 w-full md:w-1/3">
-                    <Button
-                        label={printing ? "Tisknu" : "Tisknout"}
-                        onClick={() => setIsPrinting(true)}
-                    />
-                </div>
-            </div>
-
-            {printing && (
-                <Dialog onClose={() => setIsPrinting(false)}>
-                    <PrintVoucher
-                        voucher={props.voucher.slug}
                         onPrinted={() => setIsPrinting(false)}
                     />
                 </Dialog>

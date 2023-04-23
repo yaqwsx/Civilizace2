@@ -6,15 +6,15 @@ from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, 
 import pytest
 
 entities = TEST_ENTITIES
-team = TEAM_BASIC
+teamState = TEAM_BASIC
 sampleStorage = {entities["mat-drevo"]:10, entities["mat-bobule"]:5}
 
 def test_withdraw():
     state = createTestInitState()
-    teamState = state.teamStates[team]
+    teamState = state.teamStates[teamState]
     teamState.storage = sampleStorage.copy()
 
-    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
+    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=teamState)
     action = makeAction(WithdrawAction, state=state, entities=entities, args=args)
 
     result = action.applyCommit()
@@ -38,11 +38,11 @@ def test_withdraw():
 
 def test_noWork():
     state = createTestInitState()
-    teamState = state.teamStates[team]
+    teamState = state.teamStates[teamState]
     teamState.storage = sampleStorage.copy()
     teamState.resources[entities.work] = 1
 
-    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=team)
+    args = WithdrawArgs(resources = {entities["mat-drevo"]:2}, team=teamState)
     action = makeAction(WithdrawAction, state=state, entities=entities, args=args)
 
     with pytest.raises(ActionFailed) as einfo:

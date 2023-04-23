@@ -293,7 +293,6 @@ function TechItem(props: {
                             toggleFinishTask();
                             props.onTaskMutation();
                         }}
-                        team={props.team}
                     />
                 </Dialog>
             ) : null}
@@ -326,7 +325,6 @@ function TechItem(props: {
                             toggleStartTask();
                             props.onTaskMutation();
                         }}
-                        team={props.team}
                     />
                 </Dialog>
             ) : null}

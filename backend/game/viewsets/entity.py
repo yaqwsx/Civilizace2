@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Tuple, Dict
 from django.shortcuts import get_object_or_404
-from django.db.models.functions import Now
 from django.db.models.query import QuerySet
+from django.utils import timezone
 from frozendict import frozendict
 from rest_framework import viewsets
 
@@ -18,13 +18,12 @@ from game.gameGlue import serializeEntity, stateSerialize
 
 from rest_framework import serializers
 
-from game.models import DbDelayedEffect, DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
+from game.models import DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import GameState, TeamState, MapTile, Army
 
 from core.models import User, Team as DbTeam
 from game.viewsets.stickers import DbStickerSerializer
-from game.viewsets.voucher import DbDelayedEffectSerializer
 
 from .permissions import IsOrg
 
@@ -191,7 +190,7 @@ class TeamViewSet(viewsets.ViewSet):
                         "teamDescription": task.teamDescription,
                         "orgDescription": task.orgDescription,
                         "capacity": task.capacity,
-                        "occupiedCount": DbTaskAssignment.objects.filter(task=task).count()
+                        "occupiedCount": task.occupiedCount,
                     }
                 }
             return { "status": "available" }
@@ -233,7 +232,7 @@ class TeamViewSet(viewsets.ViewSet):
         try:
             assignment = DbTaskAssignment.objects\
                             .get(team=team, techId=data["tech"], finishedAt=None)
-            assignment.finishedAt = Now()
+            assignment.finishedAt = timezone.now()
             assignment.abandoned = True
             assignment.save()
         except DbTaskAssignment.DoesNotExist:
@@ -331,13 +330,6 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         stickers = DbSticker.objects.filter(team__id=pk).order_by("-awardedAt")
         return Response(DbStickerSerializer(stickers, many=True).data)
-
-    @action(detail=True)
-    def vouchers(self, request: Request, pk: TeamId) -> Response:
-        self.validateAccess(request.user, pk)
-        effects = DbDelayedEffect.objects.filter(team__id=pk).order_by("withdrawn", "-round", "-target")
-        return Response(DbDelayedEffectSerializer(effects, many=True).data)
-
 
     @action(detail=True)
     def storage(self, request: Request, pk: TeamId) -> Response:

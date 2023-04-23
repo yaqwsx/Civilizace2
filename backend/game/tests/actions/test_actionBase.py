@@ -4,16 +4,16 @@ from game.actions.common import ActionFailed
 from game.actions.researchStart import ResearchArgs, ResearchStartAction
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
-team = TEAM_BASIC
+teamState = TEAM_BASIC
 
 def test_payResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
     action = makeAction(ResearchStartAction,
-        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=team))
+        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=teamState))
 
-    teamState = state.teamStates[team]
+    teamState = state.teamStates[teamState]
     teamState.resources = {
         entities["res-prace"]: 100,
         entities["res-obyvatel"]: 100,
@@ -95,9 +95,9 @@ def test_receiveResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
     action = makeAction(ResearchStartAction,
-        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=team))
+        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=teamState))
 
-    teamState = state.teamStates[team]
+    teamState = state.teamStates[teamState]
 
     teamState.storage = {}
     teamState.resources = {}

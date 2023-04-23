@@ -1,8 +1,9 @@
 from __future__ import annotations
+import functools
 
 import string
 from functools import cached_property
-from typing import Dict, Optional, Tuple
+from typing import Dict, NamedTuple, Optional, Tuple
 
 from core.models import Team, User
 from core.models.fields import JSONField
@@ -14,11 +15,70 @@ from django.utils.crypto import get_random_string
 from django_enumfield import enum
 
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import ActionArgs, ActionBase
+from game.actions.actionBase import ActionArgs, ActionCommonBase
 from game.entities import Entities, Entity
 from game.entityParser import EntityParser, ErrorHandler
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState, MapState, TeamState, WorldState
+
+def print_time(time_s: int) -> str:
+    return f"{time_s // 60:02}:{time_s % 60:02}"
+
+@functools.total_ordering
+class GameTime(NamedTuple):
+    round: DbTurn
+    time: int
+
+    @property
+    def round_id(self) -> int:
+        return self.round.id
+
+    @property
+    def secs(self) -> int:
+        return self.time % 60
+
+    @property
+    def mins(self) -> int:
+        return self.time // 60
+
+    def __str__(self) -> str:
+        return f"{self.round_id}–{self.mins:02}:{self.secs:02}"
+
+    def __lt__(self, other: GameTime) -> bool:
+        if not isinstance(other, GameTime):
+            raise TypeError(f"comparison not supported between instances of '{type(self).__name__}' and '{type(other).__name__}'")
+        return self.round_id < other.round_id or (self.round_id == other.round_id and self.time < other.time)
+
+
+class DbTurn(models.Model):
+    class Meta:
+        get_latest_by = "id"
+
+    startedAt = models.DateTimeField(null=True)
+    enabled = models.BooleanField(default=False)
+    duration = models.IntegerField(
+        default=15*60, validators=[MinValueValidator(0)])  # In seconds
+
+    @staticmethod
+    def getActiveTurn() -> DbTurn:
+        turn = DbTurn.objects \
+            .filter(enabled=True, startedAt__isnull=False).latest('id')
+        assert turn.startedAt is not None
+        if timezone.now() > turn.startedAt + timezone.timedelta(seconds=turn.duration):
+            # Turn already ended
+            raise DbTurn.DoesNotExist()
+        return turn
+
+    @cached_property
+    def next(self) -> DbTurn:
+        return DbTurn.objects.get(id=self.id + 1)
+
+    @cached_property
+    def prev(self) -> Optional[DbTurn]:
+        try:
+            return DbTurn.objects.get(id=self.id - 1)
+        except DbTurn.DoesNotExist:
+            return None
 
 
 class DbEntitiesManager(models.Manager):
@@ -72,7 +132,6 @@ class DbAction(models.Model):
     description = models.TextField(null=True)
     args = JSONField()
 
-    @property
     def lastInteraction(self) -> DbInteraction:
         return DbInteraction.objects.filter(action=self).latest("phase")
 
@@ -80,27 +139,53 @@ class DbAction(models.Model):
         ActionTypeInfo = GAME_ACTIONS[self.actionType]
         return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
 
+class DbScheduledAction(models.Model):
+    action = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=False, related_name="scheduled")
+
+    created = models.DateTimeField("Time of creating the action", auto_now_add=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_from = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=True, related_name="subsequent")
+
+    start_round = models.ForeignKey(DbTurn, on_delete=models.CASCADE)
+    start_time_s = models.IntegerField(validators=[MinValueValidator(0)])
+    delay_s = models.IntegerField(validators=[MinValueValidator(0)])
+    performed = models.BooleanField(default=False)
+
+    @property
+    def startGameTime(self) -> GameTime:
+        return GameTime(self.start_round, self.start_time_s)
+
+    def targetGameTime(self) -> Optional[GameTime]:
+        try:
+            turn = self.start_round
+            time = self.start_time_s + self.delay_s
+            while time >= turn.duration:
+                time -= turn.duration
+                turn = turn.next
+        except DbTurn.DoesNotExist:
+            return None
+        assert time >= 0
+        return GameTime(turn, time)
+
 
 class InteractionType(enum.Enum):
     initiate = 0
     commit = 1
-    cancel = 2
-    delayed = 3
-    delayedReward = 4
+    revert = 2 # Reverted initiate
 
 
 class DbInteraction(models.Model):
     created = models.DateTimeField(
         "Time of creating the action", auto_now_add=True)
-    phase = enum.EnumField(InteractionType)
+    phase: InteractionType = enum.EnumField(InteractionType)  # type: ignore
     action = models.ForeignKey(
         DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
     trace = models.TextField(default="")
 
-    def getActionIr(self, entities: Entities, state) -> ActionBase:
+    def getActionIr(self, entities: Entities, state: GameState) -> ActionCommonBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
         action = stateDeserialize(
             ActionTypeInfo.action, self.actionObject, entities)
@@ -150,6 +235,7 @@ class DbStateManager(models.Manager):
 class DbState(models.Model):
     class Meta:
         get_latest_by = "id"
+
     mapState = models.ForeignKey(
         DbMapState, on_delete=models.CASCADE, null=False)
     worldState = models.ForeignKey(
@@ -248,8 +334,8 @@ class DbTask(models.Model):
         super().save(*args, **kwargs)
 
     @property
-    def occupiedCount(self):
-        return self.assignments.filter(finishedAt=None).count()
+    def occupiedCount(self) -> int:
+        return self.assignments.filter(finishedAt=None).count()  # type: ignore - related_name from DbTaskAssignment
 
 
 class DbTaskAssignment(models.Model):
@@ -271,79 +357,6 @@ class DbTaskPreference(models.Model):
     task = models.ForeignKey(
         DbTask, on_delete=models.CASCADE, related_name="techs")
     techId = models.CharField(max_length=32)
-
-
-class DbTurnManager(models.Manager):
-    def getActiveTurn(self):
-        object = self.get_queryset() \
-            .filter(enabled=True, startedAt__isnull=False).latest()
-        if timezone.now() > object.startedAt + timezone.timedelta(seconds=object.duration):
-            raise DbTurn.DoesNotExist()
-        return object
-
-
-class DbTurn(models.Model):
-    class Meta:
-        get_latest_by = "id"
-    startedAt = models.DateTimeField(null=True)
-    enabled = models.BooleanField(default=False)
-    duration = models.IntegerField(
-        default=15*60, validators=[MinValueValidator(0)])  # In seconds
-
-    objects = DbTurnManager()
-
-    @cached_property
-    def next(self):
-        return DbTurn.objects.get(id=self.id + 1)
-
-    @cached_property
-    def prev(self):
-        try:
-            return DbTurn.objects.get(id=self.id - 1)
-        except DbTurn.DoesNotExist:
-            return None
-
-    @cached_property
-    def shouldStartAt(self):
-        if self.startedAt is not None:
-            return self.startedAt
-        return self.prev.shouldStartAt + timezone.timedelta(seconds=self.prev.duration)
-
-
-class DbDelayedEffect(models.Model):
-    slug = models.SlugField(max_length=8)
-    team = models.ForeignKey(
-        Team, related_name="vouchers", null=True, on_delete=models.CASCADE)
-    round = models.IntegerField()
-    target = models.IntegerField()  # In seconds
-    action = models.ForeignKey(DbAction, on_delete=models.CASCADE)
-    stickers = JSONField(null=True)
-    performed = models.BooleanField(default=False)
-    withdrawn = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = self._generateSlug()
-        super().save(*args, **kwargs)
-
-    @staticmethod
-    def _generateSlug() -> str:
-        slug = None
-        while slug is None:
-            slug = get_random_string(5, string.ascii_uppercase)
-            if DbDelayedEffect.objects.filter(slug=slug).exists():
-                slug = None
-        return slug
-
-    @property
-    def description(self):
-        return self.action.description
-
-    @property
-    def gameTime(self) -> Tuple[int, int, int]:
-        mins = int(self.target // 60)
-        secs = int(self.target % 60)
-        return self.round, mins, secs
 
 
 class StickerType(models.IntegerChoices):

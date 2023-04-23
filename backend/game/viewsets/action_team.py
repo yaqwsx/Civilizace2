@@ -1,0 +1,332 @@
+import traceback
+from typing import Iterable, Optional, Tuple
+
+from django.db import transaction
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework import serializers, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+
+from core.models.team import Team
+from game.actions import GAME_ACTIONS
+from game.actions.actionBase import ActionResult, TeamInteractionActionBase
+from game.actions.common import ActionFailed, MessageBuilder
+from game.actions.researchFinish import ResearchFinishAction
+from game.actions.researchStart import ResearchStartAction
+from game.entities import Die, Entities
+from game.entities import Team as TeamEntity
+from game.gameGlue import serializeEntity, stateSerialize
+from game.models import (DbAction, DbEntities, DbInteraction, DbState, DbTask,
+                         DbTaskAssignment, InteractionType)
+from game.state import GameState
+from game.viewsets.action_view_helper import (ActionViewHelper,
+                                              UnexpectedActionTypeError,
+                                              UnexpectedStateError)
+from game.viewsets.permissions import IsOrg
+from game.viewsets.stickers import DbStickerSerializer, Sticker
+
+
+def checkInitiatePhase(interaction: InteractionType) -> None:
+    if interaction == InteractionType.initiate:
+        return
+    elif interaction == InteractionType.revert:
+        raise UnexpectedStateError("Akce již byla zrušena.")
+    elif interaction == InteractionType.commit:
+        raise UnexpectedStateError("Akce již byla uzavřena.")
+    else:
+        raise UnexpectedStateError(f"Neočekávaný stav akce ({interaction})")
+
+
+class InitiateSerializer(serializers.Serializer):
+    action = serializers.ChoiceField(list(id for (id, action) in GAME_ACTIONS.items() if issubclass(action.action, TeamInteractionActionBase)))
+    args = serializers.JSONField()
+
+class CommitSerializer(serializers.Serializer):
+    throws = serializers.IntegerField()
+    dots = serializers.IntegerField()
+
+class TeamActionViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated, IsOrg)
+
+    @staticmethod
+    def _handleExtraCommitSteps(action):
+        team = None
+        try:
+            if hasattr(action.args, "team"):
+                team = Team.objects.get(id=action.args.team.id)
+        except Team.DoesNotExist:
+            pass
+        if isinstance(action, ResearchStartAction):
+            if action.args.task is None:
+                return
+            try:
+                task = DbTask.objects.get(id=action.args.task)
+            except DbTask.DoesNotExist:
+                return
+            DbTaskAssignment.objects.create(
+                team=team,
+                task=task,
+                techId=action.args.tech.id,
+            )
+            return
+        if isinstance(action, ResearchFinishAction):
+            for t in DbTaskAssignment.objects.filter(team=team, techId=action.args.tech.id, finishedAt=None):
+                t.finishedAt = timezone.now()
+                t.save()
+
+    @staticmethod
+    def _previewDryInteractionMessage(initiateInfo: str, dice: Tuple[Iterable[Die], int],
+            commitResult: ActionResult, stickers: Iterable[Sticker],
+            team: Optional[TeamEntity], entities: Entities, state: GameState) -> str:
+        b = MessageBuilder()
+        b.add("## Předpoklady")
+        b.add(initiateInfo)
+        if dice[1] > 0:
+            with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
+                for d in sorted(dice[0], key=lambda die: die.name):
+                    addDice(d.name)
+        else:
+            b.add("Akce nevyžaduje házení kostkou")
+
+        b.add("## Efekty")
+        b.add(commitResult.message)
+        with b.startList("Budou vydány samolepky:") as addLine:
+            for t, e in stickers:
+                addLine(f"samolepka {e.name} pro tým {t.name}")
+
+        for scheduled in commitResult.scheduledActions:
+            b += ActionViewHelper._previewScheduledAction(scheduled, team=team, entities=entities, state=state)
+
+        return b.message
+
+    @action(methods=["POST"], detail=False)
+    def dry(self, request: Request) -> Response:
+        deserializer = InitiateSerializer(data=request.data)
+        deserializer.is_valid(raise_exception=True)
+        data = deserializer.validated_data
+
+        _, entities = DbEntities.objects.get_revision()
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+        sourceState = dbState.toIr()
+
+        try:
+            ActionViewHelper._ensureGameIsRunning(data["action"])
+            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
+            if not isinstance(action, TeamInteractionActionBase):
+                raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
+
+            initiateInfo = action.applyInitiate()
+            commitResult = action.commitSuccess()
+
+            stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
+
+            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, action.diceRequirements(),
+                    commitResult, stickers, team=action.args.team, entities=action.entities, state=action.state)
+
+            return Response(data={
+                "success": True,
+                "expected": commitResult.expected,
+                "message": message,
+            })
+        except ActionFailed as e:
+            return ActionViewHelper._actionFailedResponse(e)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return ActionViewHelper._unexpectedErrorResponse(e, tb)
+
+    @action(methods=["POST"], detail=False)
+    @transaction.atomic()
+    def initiate(self, request: Request) -> Response:
+        deserializer = InitiateSerializer(data=request.data)
+        deserializer.is_valid(raise_exception=True)
+        data = deserializer.validated_data
+
+        try:
+            ActionViewHelper._ensureGameIsRunning(data["action"])
+
+            entityRevision, entities = DbEntities.objects.get_revision()
+            dbState = DbState.objects.latest()
+            state = dbState.toIr()
+            sourceState = dbState.toIr()
+            dryState = dbState.toIr()
+
+            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
+            dryAction = ActionViewHelper.constructAction(data["action"], data["args"], entities, dryState)
+            if not isinstance(action, TeamInteractionActionBase):
+                raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
+            if not isinstance(dryAction, TeamInteractionActionBase):
+                raise UnexpectedActionTypeError(dryAction, TeamInteractionActionBase)
+
+            initiateInfo = action.applyInitiate()
+            dryAction.applyInitiate()
+            diceReq = action.diceRequirements()
+
+            dbAction = DbAction.objects.create(
+                    actionType=data["action"],
+                    entitiesRevision=entityRevision,
+                    args=stateSerialize(action.args))
+            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
+                InteractionType.initiate, request.user, state, action)
+
+            if diceReq[1] != 0:
+                # Let's perform the commit on dryState as some validation
+                # happens in commit /o\
+                dryAction.commitSuccess()
+
+                return Response(data={
+                    "success": True,
+                    "expected": True,
+                    "action": dbAction.id,
+                    "committed": False,
+                    "message": initiateInfo,
+                })
+
+            commitResult = action.commitThrows(throws=0, dots=0)
+            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
+                InteractionType.commit, request.user, state, action)
+
+            TeamActionViewSet._handleExtraCommitSteps(action)
+
+            gainedStickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=state)
+            ActionViewHelper._markMapDiff(sourceState, state)
+
+            scheduled = [ActionViewHelper._dbScheduleAction(scheduledAction, source=dbAction, author=request.user)
+                         for scheduledAction in commitResult.scheduledActions]
+
+            awardedStickers = ActionViewHelper._awardStickers(gainedStickers)
+            ActionViewHelper.addResultNotifications(commitResult)
+
+            msgBuilder = MessageBuilder(message=initiateInfo)
+            msgBuilder += ActionViewHelper._commitMessage(commitResult, scheduled)
+
+            return Response(data={
+                "success": True,
+                "expected": commitResult.expected,
+                "action": dbAction.id,
+                "committed": True,
+                "message": msgBuilder.message,
+                "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+            })
+        except ActionFailed as e:
+            return ActionViewHelper._actionFailedResponse(e)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return ActionViewHelper._unexpectedErrorResponse(e, tb)
+
+    @action(methods=["POST", "GET"], detail=True)
+    @transaction.atomic()
+    def commit(self, request: Request, pk=True) -> Response:
+        dbAction = get_object_or_404(DbAction, pk=pk)
+
+        _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+        sourceState = dbState.toIr()
+
+        dbInteraction = dbAction.lastInteraction()
+        checkInitiatePhase(dbInteraction.phase)
+
+        action = dbInteraction.getActionIr(entities, state)
+        if not isinstance(action, TeamInteractionActionBase):
+            raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
+
+        reqDice, reqDots = action.diceRequirements()
+
+        if request.method == "GET":
+            return Response({
+                "requiredDots": reqDots,
+                "allowedDice": list(map(serializeEntity, sorted(reqDice, key=lambda d: d.name))),
+                "throwCost": action.throwCost(),
+                "description": dbAction.description,
+                "team": action.args.team.id
+            })
+
+        # We want to allow finish action even when the game is not running
+        # ActionViewHelper._ensureGameIsRunning(dbAction.actionType)
+        try:
+            deserializer = CommitSerializer(data=request.data)
+            deserializer.is_valid(raise_exception=True)
+            params = deserializer.validated_data
+
+            if params["throws"] < 0:
+                raise ActionFailed("Nemůžete zadat záporné hody")
+            if params["dots"] < 0:
+                raise ActionFailed("Nemůžete zadat záporné tečky")
+
+            commitResult = action.commitThrows(throws=params["throws"], dots=params["dots"])
+            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
+                InteractionType.commit,request.user, state, action)
+
+            TeamActionViewSet._handleExtraCommitSteps(action)
+
+            gainedStickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=state)
+            ActionViewHelper._markMapDiff(sourceState, state)
+
+            scheduled = [ActionViewHelper._dbScheduleAction(scheduledAction, source=dbAction, author=request.user)
+                         for scheduledAction in commitResult.scheduledActions]
+
+            awardedStickers = ActionViewHelper._awardStickers(gainedStickers)
+            ActionViewHelper.addResultNotifications(commitResult)
+
+            return Response(data={
+                "success": True,
+                "expected": commitResult.expected,
+                "message": ActionViewHelper._commitMessage(commitResult, scheduled),
+                "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+            })
+        except ActionFailed as e:
+            return ActionViewHelper._actionFailedResponse(e)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return ActionViewHelper._unexpectedErrorResponse(e, tb)
+
+    @action(methods=["POST"], detail=True)
+    @transaction.atomic()
+    def revert(self, request: Request, pk=True) -> Response:
+        dbAction = get_object_or_404(DbAction, pk=pk)
+        _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
+
+        dbState = DbState.objects.latest()
+        state = dbState.toIr()
+
+        dbInteraction = dbAction.lastInteraction()
+        checkInitiatePhase(dbInteraction.phase)
+
+        action = dbInteraction.getActionIr(entities, state)
+        if not isinstance(action, TeamInteractionActionBase):
+            raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
+
+        try:
+            result = action.revertInitiate()
+            ActionViewHelper.dbStoreInteraction(dbAction, dbState, InteractionType.revert,
+                request.user, state, action)
+            return Response({
+                "success": True,
+                "message": f"## Akce zrušena\n\n{result}"
+            })
+        except ActionFailed as e:
+            return ActionViewHelper._actionFailedResponse(e)
+        except Exception as e:
+            tb = traceback.format_exc()
+            return ActionViewHelper._unexpectedErrorResponse(e, tb)
+
+
+    @action(methods=["GET"], detail=False)
+    @transaction.atomic()
+    def unfinished(self, request: Request) -> Response:
+        unfinishedInteractions = DbInteraction.objects \
+            .filter(phase=InteractionType.initiate, author=request.user) \
+            .annotate(interaction_count=Count("action__interactions")) \
+            .filter(interaction_count=1)
+        unfinishedActions = DbAction.objects \
+            .filter(interactions__in=unfinishedInteractions).distinct()
+        return Response([{
+                "id": x.id,
+                "description": x.description
+            } for x in unfinishedActions])

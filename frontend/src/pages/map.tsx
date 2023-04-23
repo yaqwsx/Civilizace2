@@ -690,7 +690,6 @@ function ArmyDeployForm(props: {
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
-                team={props.team}
                 argsValid={(a: any) => a.tile && a.equipment >= 0}
                 extraPreview={
                     <>
@@ -752,7 +751,6 @@ function ArmyRetreatForm(props: {
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
-                team={props.team}
             />
         </Dialog>
     );
@@ -779,7 +777,6 @@ function ArmyUpgradeForm(props: {
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
-                team={props.team}
             />
         </Dialog>
     );

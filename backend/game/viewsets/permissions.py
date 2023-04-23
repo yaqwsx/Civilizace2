@@ -5,5 +5,5 @@ class IsOrg(BasePermission):
         return request.user.isOrg
 
 class IsSuperOrg(BasePermission):
-    def has_object_permission(self, request, view):
+    def has_permission(self, request, view):
         return request.user.isOrg and request.user.isSuperUser

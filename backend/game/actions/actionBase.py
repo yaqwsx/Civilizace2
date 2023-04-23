@@ -1,32 +1,54 @@
-import contextlib
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, NamedTuple, Tuple, Type, TypeVar
 
 from pydantic import BaseModel, PrivateAttr
-from game.actions.common import ActionFailed, MessageBuilder
+from typing_extensions import override
 
-from game.entities import Die, Entities, Resource, Team
-from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
+from game.actions.common import ActionFailed, MessageBuilder
+from game.entities import (CostDict, Die, Entities, MapTileEntity, Resource,
+                           Team)
+from game.state import (GameState, MapTile, TeamState,
+                        printResourceListForMarkdown)
 
 
 class ActionArgs(BaseModel):
     pass
 
+class TeamActionArgs(ActionArgs):
+    team: Team
 
-class ActionResult(BaseModel):
-    expected: bool  # Was the result expected or unexpected
-    message: str
-    notifications: Dict[Team, List[str]] = {}
+class TileActionArgs(ActionArgs):
+    tile: MapTileEntity
+
+    def tileState(self, state: GameState) -> MapTile:
+        tileState = state.map.getTileById(self.tile.id)
+        assert tileState is not None, f"Invalid tile in args: {self.tile}"
+        return tileState
 
 
-class ActionInterface(BaseModel):
+TAction = TypeVar("TAction", bound="ActionCommonBase")
+
+class ActionCommonBase(BaseModel, metaclass=ABCMeta):
+    # Anything that is specified as PrivateAttr is not persistent. I know that
+    # you like to have a lot of objects passed implicitly between the function,
+    # instead of explicitly, so this is how you can do it.
     _state: GameState = PrivateAttr()        # We don't store state
     _entities: Entities = PrivateAttr()      # Nor entities
-    _generalArgs: Any = PrivateAttr()        # Nor args
+    _generalArgs: ActionArgs = PrivateAttr() # Nor args
     _trace: MessageBuilder = PrivateAttr(default=MessageBuilder())
                                              # Nor traces. They always empty
+
+    # This is mostly used such that user code logs messages
+    # and wrappers inspect them.
+    _errors: MessageBuilder = PrivateAttr(MessageBuilder())
+    _warnings: MessageBuilder = PrivateAttr(MessageBuilder())
+    _info: MessageBuilder = PrivateAttr(MessageBuilder())
+    _notifications: Dict[Team, List[str]] = PrivateAttr({})
+    _scheduled_actions: List[ScheduledAction] = PrivateAttr([])
 
     # Private (and thus non-store args) have to start with underscore. Let's
     # give them normal names
@@ -39,143 +61,242 @@ class ActionInterface(BaseModel):
         return self._entities
 
     @property
-    def team(self) -> Optional[Team]:
-        if hasattr(self._generalArgs, "team"):
-            return self._generalArgs.team
-        return None
-
-    @property
     def trace(self) -> MessageBuilder:
         return self._trace
 
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        """
-        Řekne, kolik teček je třeba hodit na jedné z kostek. Pokud vrátí prázdný
-        seznam, není třeba házet.
-        """
-        raise NotImplementedError("You have to implement this")
+    # Factory
 
-    def throwCost(self) -> int:
+    @classmethod
+    def makeAction(cls: Type[TAction], state: GameState, entities: Entities, args: ActionArgs) -> TAction:
+        """The type of `args` has to match the `TAction`
         """
-        Řekne, kolik práce stojí jeden hod
-        """
-        raise NotImplementedError("You have to implement this")
+        action = cls()
+        action._state = state
+        action._entities = entities
+        action._generalArgs = args
+        return action
 
-    def applyInitiate(self) -> ActionResult:
-        """
-        Voláno, když je třeba provést akci. Uvede herní stav do takového stavu,
-        aby byl tým schopen házet kostkou a mohlo se přejít na commit.
-        """
-        raise NotImplementedError("You have to implement this")
-
-    def applyCommit(self, throws: int, dots: int) -> ActionResult:
-        """
-        Voláno, když je je doházeno (i když se neházelo). Zajistí promítnutí
-        výsledků do stavu. Včetně toho, že tým naházel málo.
-        """
-        raise NotImplementedError("You have to implement this")
-
-    def requiresDelayedEffect(self) -> int:
-        """
-        Říká, jestli akce má odložený efekt a za kolik sekund.
-        """
-        raise NotImplementedError("You have to implement this")
-
-    def applyDelayedEffect(self) -> ActionResult:
-        """
-        Voláno přesně, když má proběhnout odložený efekt. Zpráva se zde nikam
-        nepromítne a měla by být prázdná.
-        """
-        raise NotImplementedError("You have to implement this")
-
-    def applyDelayedReward(self) -> ActionResult:
-        """
-        Provede propsání odměny týmů do stavu. Děje se když tým přijde se
-        směnkou.
-        """
-        raise NotImplementedError("You have to implement this")
-
-    def revertInitiate(self) -> ActionResult:
-        """
-        Vrátí efekty initiate
-        """
-        raise NotImplementedError("You have to implement this")
-
-def makeAction(cls, state, entities, args):
-    action = cls()
-    action._state = state
-    action._entities = entities
-    action._generalArgs = args
-    return action
-
-
-class ActionBase(ActionInterface, metaclass=ABCMeta):
-    # Anything that is specified as PrivateAttr is not persistent. I know that
-    # you like to have a lot of objects passed implicitly between the function,
-    # instead of explicitly, so this is how you can do it.
-    #
-    # For example, initiate can reset these fields, call some functions that will
-    # use them and then initiate can inspect them.
-    _errors: MessageBuilder = PrivateAttr()
-    _warnings: MessageBuilder = PrivateAttr()
-    _info: MessageBuilder = PrivateAttr()
-    _notifications: Dict[Team, List[str]] = PrivateAttr()
-
-    # The following fields are persistent:
-    paid: Dict[Resource, Decimal] = {}
-    delayedInfoMessage: Optional[str]
-    delayedWarnMessage: Optional[str]
-
-    # Methods to be implemented by derives
+    # Methods to be implemented by concrete actions
 
     @property
     @abstractmethod
     def args(self) -> ActionArgs:
-        raise NotImplementedError()
+        return self._generalArgs
 
     @property
     @abstractmethod
     def description(self) -> str:
         raise NotImplementedError()
 
-    # @abstractmethod
-    def cost(self) -> Dict[Resource, Decimal]:
-        raise NotImplementedError()
+    # Private API
 
-    @abstractmethod
-    def _commitImpl(self) -> None:
-        raise NotImplementedError()
-
-
-    # Private API below
-
-    @property
-    def hasTeam(self) -> bool:
-        return hasattr(self._generalArgs, "team")
-    @property
-    def teamState(self) -> TeamState:
-        assert self.hasTeam
-        team = self._generalArgs.team
-        assert isinstance(team, Team), f"Argument team is not Team ({team})"
-        return self.state.teamStates[team]
-
-    @property
-    def hasTile(self) -> bool:
-        return hasattr(self._generalArgs, "tile")
-    @property
-    def tileState(self) -> MapTile:
-        assert self.hasTile
-        tile = self._generalArgs.tile
-        assert isinstance(tile, MapTileEntity), f"Argument tile is not MapTileEntity ({tile})"
-        tileState = self.state.map.getTileById(tile.id)
-        assert tileState is not None, f"Invalid tile in args: {tile}"
-        return tileState
-
-    def _setupPrivateAttrs(self):
+    def _clearMessageBuilders(self) -> None:
         self._errors = MessageBuilder()
         self._warnings = MessageBuilder()
         self._info = MessageBuilder()
         self._notifications = {}
+
+    def _addNotification(self, team: Team, message: str) -> None:
+        if team not in self._notifications:
+            self._notifications[team] = []
+        self._notifications[team].append(message)
+
+    def _scheduleAction(self,
+                        actionType: Type[NoInitActionBase],
+                        args: ActionArgs,
+                        delay_s: int) -> ScheduledAction:
+        action = ScheduledAction(actionType, args=args, delay_s=delay_s)
+        self._scheduled_actions.append(action)
+        return action
+
+    def _ensure(self, condition: bool, message: str) -> bool:
+        """
+        Checks the condition, if it doesn't hold, return error
+        """
+        if not condition:
+            self._errors.add(message)
+            return False
+        return True
+
+    def _ensureStrong(self, condition: bool, message: str) -> None:
+        """
+        Checks the condition, if it doesn't hold, raise ActionFailed
+        """
+        if not self._ensure(condition, message):
+            raise ActionFailed(self._errors)
+
+    def _ensureValid(self) -> None:
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
+
+    def _generateActionResult(self) -> ActionResult:
+        """Generates ActionResult from messages.
+
+        Raises ActionFailed if any errors exist.
+
+        Returns ActionResult with any warnings, infos and notifications.
+        """
+        if not self._errors.empty:
+            raise ActionFailed(self._errors)
+
+        msgBuilder = MessageBuilder()
+        msgBuilder.add(self._warnings.message)
+        msgBuilder.add(self._info.message)
+
+        return ActionResult(
+            expected=self._warnings.empty,
+            message=msgBuilder.message,
+            notifications=self._notifications,
+            scheduledActions=self._scheduled_actions,
+            )
+
+
+class TeamActionBase(ActionCommonBase):
+    """Represents action which has Args subtype of `TeamActionArgs`.
+    """
+    @property
+    @abstractmethod
+    @override
+    def args(self) -> TeamActionArgs:
+        assert isinstance(args := super().args, TeamActionArgs)
+        return args
+
+    @property
+    def teamState(self) -> TeamState:
+        assert isinstance(args := self.args, TeamActionArgs)
+        return self.state.teamStates[args.team]
+
+    # Private API
+
+    def _receiveResources(self, resources: CostDict, *, instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
+        team = self.teamState
+        storage: Dict[Resource, Decimal] = {}
+        for resource, amount in resources.items():
+            if excludeWork and resource == self.entities.work:
+                continue
+            if excludeWork and resource.id == "res-obyvatel":
+                value, denom = amount.as_integer_ratio()
+                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                team.addEmployees(-value)
+            if resource.isTracked:
+                if resource not in team.resources:
+                    team.resources[resource] = Decimal(0)
+                team.resources[resource] += amount
+            else:
+                storage[resource] = Decimal(amount)
+        if instantWithdraw:
+            return storage
+        for resource, amount in storage.items():
+            amount = team.storage.get(resource, Decimal(0)) + amount
+            if amount > team.storageCapacity and resource.id != "mat-zbrane":
+                amount = team.storageCapacity
+            team.storage[resource] = amount
+        return {}
+
+
+class TeamInteractionActionBase(TeamActionBase):
+    """Represents `TeamActionBase` which is a team interaction
+    (has initiate phase).
+    """
+    # The following fields are persistent
+
+    paid: Dict[Resource, Decimal] = {}
+
+    # Public API
+
+    def applyInitiate(self) -> str:
+        """
+        Voláno, když je třeba provést akci. Uvede herní stav do takového stavu,
+        aby byl tým schopen házet kostkou a mohlo se přejít na commit.
+
+        Returns: informace pro orgy o výběru materiálů.
+        """
+        assert not isinstance(self, NoInitActionBase)
+
+        self._initiateCheck()
+        self._ensureValid()
+        require = self._payResources(self.cost())
+        if len(require) > 0:
+            return f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
+        else:
+            return "Není potřeba vybírat od týmu žádný materiál"
+
+    def revertInitiate(self) -> str:
+        """
+        Vrátí efekty initiate (e.g. chyba orga)
+
+        Returns: informace pro orgy o vrácení materiálů.
+        """
+        reward = self._revertPaidResources(instantWithdraw=True)
+        return f"Vraťte týmu materiály:\n\n{printResourceListForMarkdown(reward, ceil)}"
+
+    def commitThrows(self, *, throws: int, dots: int) -> ActionResult:
+        """
+        Voláno, když se doházelo.
+        Zajistí promítnutí výsledků do stavu.
+        Včetně toho, že tým naházel málo.
+        """
+        assert not isinstance(self, NoInitActionBase)
+        self._clearMessageBuilders()
+
+        self._initiateCheck()
+        self._ensureValid()
+        if not self._performThrow(throws, dots):
+            reward = self._revertPaidResources(instantWithdraw=True, excludeWork=True)
+            self._warnings += f"Házení kostkou neuspělo. Produkce byly týmu vráceny. O zaplacené materiály tým přišel a nic mu nevracíte."
+            return self._generateActionResult()
+
+        self._commitSuccessImpl()
+
+        return self._generateActionResult()
+
+    def commitSuccess(self) -> ActionResult:
+        """
+        Voláno, když chci automaticky vykonat akci bez házení.
+        Zajistí promítnutí výsledků do stavu.
+
+        Používá se v dry-run a případně u godmode.
+        """
+        assert not isinstance(self, NoInitActionBase)
+        self._clearMessageBuilders()
+
+        self._commitSuccessImpl()
+
+        return self._generateActionResult()
+
+    # Methods to be implemented/overriden by concrete actions
+
+    def cost(self) -> CostDict:
+        return {}
+
+    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
+        """
+        Řekne, kolik teček je třeba hodit na jedné z kostek.
+        Pokud vrátí 0, není třeba házet.
+        """
+        return ((), 0)
+
+    def throwCost(self) -> int:
+        """
+        Řekne, kolik práce stojí jeden hod
+        """
+        return self.teamState.throwCost
+
+    @abstractmethod
+    def _commitSuccessImpl(self) -> None:
+        raise NotImplementedError()
+
+    def _initiateCheck(self) -> None:
+        """Umožňuje akci neumožnit zadat initiate.
+
+        Je potřeba vyhodit `ActionFailed`.
+        Další informace se nepropíší.
+
+        Je voláno před Initiate i před Commit.
+        """
+        pass
+
+    # Private API
 
     def _performThrow(self, throws: int, dots: int) -> bool:
         """
@@ -187,7 +308,7 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
             assert dots == 0
             return True
         _, dotsRequired = self.diceRequirements()
-        workConsumed = throws * tState.throwCost
+        workConsumed = throws * self.throwCost()
         workAvailable = tState.work
 
         tState.resources[self.entities.work] = max(
@@ -197,179 +318,83 @@ class ActionBase(ActionInterface, metaclass=ABCMeta):
                                "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
         if dotsRequired > dots:
-            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots})" +
+            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots}). " +
                                "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
         return True
 
-    def _ensure(self, condition: bool, message: str) -> bool:
-        """
-        Checks the condition, if it doesn't hold, yield error
-        """
-        if not condition:
-            self._errors.add(message)
-            return False
-        return True
-
-    def _ensureStrong(self, condition: bool, message: str) -> None:
-        """
-        Checks the condition, if it doesn't hold, yield error
-        """
-        if not condition:
-            self._errors.add(message)
-            raise ActionFailed(self._errors)
-
-    def _ensureValid(self) -> None:
-        if not self._errors.empty:
-            raise ActionFailed(self._errors)
-
-    def payResources(self, resources: Dict[Resource, Decimal]) -> Dict[Resource, Decimal]:
-        team = self.teamState
-        assert team is not None
+    def _payResources(self, resources: CostDict) -> Dict[Resource, Decimal]:
+        teamState = self.teamState
         tokens = {}
         missing = {}
         for resource, amount in resources.items():
-            if resource.isTracked:
-                team.resources[resource] = team.resources.get(
-                    resource, 0) - amount
-                if resource.id == "res-obyvatel":
-                    value, denom = amount.as_integer_ratio()
-                    assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
-                    team.addEmployees(value)
-                if team.resources[resource] < 0:
-                    missing[resource] = -team.resources[resource]
-            else:
-                if amount != 0:
-                    tokens[resource] = amount
+            if amount < 0:
+                raise RuntimeError(f"Pay amount cannot be negative ({amount}× {resource.name})")
+            if amount == 0:
+                continue
 
-        if missing != {}:
-            raise ActionFailed(
-                f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
+            if not resource.isTracked:
+                tokens[resource] = amount
+
+            if resource == self.entities.obyvatel:
+                value, denom = amount.as_integer_ratio()
+                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                teamState.addEmployees(value)
+            if resource not in teamState.resources:
+                teamState.resources[resource] = Decimal(0)
+            teamState.resources[resource] -= amount
+
+            if teamState.resources[resource] < 0:
+                missing[resource] = -teamState.resources[resource]
+            if teamState.resources[resource] == 0:
+                del teamState.resources[resource]
+
+        self._ensureStrong(len(missing) == 0,
+                           f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
+
+        # TODO check if multiple runs of commit can happen (would result in multiplicating input cost)
+        for resource, amount in resources.items():
+            if resource not in self.paid:
+                self.paid[resource] = Decimal(0)
+            self.paid[resource] += amount
 
         return tokens
 
-    def receiveResources(self, resources: Dict[Resource, Decimal], instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
-        team = self.teamState
-        assert team is not None
-        storage = {}
-        for resource, amount in resources.items():
-            if excludeWork and resource == self.entities.work:
-                continue
-            if excludeWork and resource.id == "res-obyvatel":
-                value, denom = amount.as_integer_ratio()
-                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
-                team.addEmployees(-value)
-            if resource.isTracked:
-                team.resources[resource] = team.resources.get(
-                    resource, 0) + amount
-            else:
-                storage[resource] = amount
-        if instantWithdraw:
-            return storage
-        for resource, amount in storage.items():
-            amount = team.storage.get(resource, 0) + amount
-            if amount > team.storageCapacity and resource.id != "mat-zbrane":
-                amount = team.storageCapacity
-            team.storage[resource] = amount
-        return {}
+    def _revertPaidResources(self, *, instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
+        """Gives back `self.paid` resources and empties them.
+        """
+        result = self._receiveResources(self.paid, instantWithdraw=instantWithdraw, excludeWork=excludeWork)
+        self.paid = {}
+        return result
 
-    def addNotification(self, team: Team, message: str) -> None:
-        notifications = self._notifications.get(team, [])
-        notifications.append(message)
-        self._notifications[team] = notifications
 
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        return ((), 0)
-
-    def throwCost(self) -> int:
-        assert self.teamState is not None
-        return self.teamState.throwCost
-
-    def requiresDelayedEffect(self) -> int:
-        return 0
-
-    def costSubstituted(self):
-        cost = self.cost()
-        if hasattr(self._generalArgs, "genericsMapping"):
-            mapping = self._generalArgs.genericsMapping
-            cost = {(mapping[generic] if generic in mapping else generic)
-                     : amount for generic, amount in cost.items()}
-        return cost
-
-    def applyInitiate(self) -> ActionResult:
-        cost = self.costSubstituted()
-        message = ""
-        if len(cost) > 0:
-            require = self.payResources(cost)
-            if len(require) == 0:
-                message = "Není potřeba vybírat od týmu žádný materiál"
-            else:
-                message = f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
-
-        return ActionResult(
-            expected=True,
-            message=message)
-
-    def revertInitiate(self) -> ActionResult:
-        cost = self.cost()
-        reward = self.receiveResources(cost, instantWithdraw=True)
-        message = f"Vraťte týmu materiály:\n\n{printResourceListForMarkdown(reward, ceil)}"
-
-        return ActionResult(
-            expected=True,
-            message=message)
-
-    def cancelAction(self):
-        cost = self.costSubstituted()
-        reward = self.receiveResources(
-            cost, instantWithdraw=True, excludeWork=True)
-
-    def generateActionResult(self):
-        if not self._errors.empty:
-            raise ActionFailed(self._errors)
-        if not self._warnings.empty:
-            return ActionResult(
-                expected=False,
-                message=self._warnings.message + "\n\n" + self._info.message,
-                notifications=self._notifications)
-        return ActionResult(
-            expected=True,
-            message=self._info.message,
-            notifications=self._notifications)
-
-    def applyCommit(self, throws: int = 0, dots: int = 0) -> ActionResult:
-        self._setupPrivateAttrs()
-        throwingSucc = self._performThrow(throws, dots)
-        if not throwingSucc:
-            self.cancelAction()
-            self._warnings += f"Házení kostkou neuspělo. Produkce byly týmu vráceny. O zaplacené materiály tým přišel a nic mu nevracíte."
-            return self.generateActionResult()
-
+class NoInitActionBase(ActionCommonBase):
+    def commit(self) -> ActionResult:
+        """
+        Voláno pro vykonání akce. Zajistí promítnutí výsledků do stavu.
+        """
+        assert not isinstance(self, TeamInteractionActionBase)
+        self._clearMessageBuilders()
         self._commitImpl()
-        if self.requiresDelayedEffect() == 0:
-            self._applyDelayedEffect()
-            self._applyDelayedReward()
+        return self._generateActionResult()
 
-        return self.generateActionResult()
+    @abstractmethod
+    def _commitImpl(self) -> None:
+        raise NotImplementedError()
 
-    def applyDelayedEffect(self) -> ActionResult:
-        self._setupPrivateAttrs()
-        self._applyDelayedEffect()
-        self.delayedWarnMessage = self._warnings.message
-        self.delayedInfoMessage = self._info.message
-        return self.generateActionResult()
 
-    def applyDelayedReward(self) -> ActionResult:
-        self._setupPrivateAttrs()
-        if self.delayedWarnMessage != None:
-            self._warnings += self.delayedWarnMessage
-        if self.delayedInfoMessage != None:
-            self._info += self.delayedInfoMessage
-        self._applyDelayedReward()
-        return self.generateActionResult()
+class ScheduledAction(NamedTuple):
+    actionType: Type[NoInitActionBase]
+    args: ActionArgs
+    delay_s: int
 
-    def _applyDelayedEffect(self) -> None:
-        pass
+    @property
+    def actionName(self):
+        return self.actionType.__name__
 
-    def _applyDelayedReward(self) -> None:
-        pass
+
+class ActionResult(BaseModel):
+    expected: bool  # Was the result expected or unexpected
+    message: str
+    notifications: Dict[Team, List[str]]
+    scheduledActions: List[ScheduledAction]

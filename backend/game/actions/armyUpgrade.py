@@ -1,43 +1,51 @@
+from decimal import Decimal
 from typing import Dict
-from game.actions.actionBase import ActionArgs, ActionBase, ActionFailed, ActionResult
-from game.entities import Resource, Team, Tech
-from game.state import ArmyMode
 
-class ArmyUpgradeArgs(ActionArgs):
-    team: Team
+from typing_extensions import override
+
+from game.entities import Resource
+from game.state import Army, ArmyMode
+
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+
+
+class ArmyUpgradeArgs(TeamActionArgs):
     armyIndex: int
 
-class ArmyUpgradeAction(ActionBase):
+
+class ArmyUpgradeAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> ArmyUpgradeArgs:
         assert isinstance(self._generalArgs, ArmyUpgradeArgs)
         return self._generalArgs
 
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Vylepšení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
 
-    def applyInitiate(self) -> ActionResult:
-        army = self.state.map.armies[self.args.armyIndex]
-        if army.team != self.args.team:
-            raise ActionFailed(f"Armáda nepatří týmu {self.args.team.name}")
-        if army.mode != ArmyMode.Idle:
-            raise ActionFailed(f"Nelze vylepši armádu, která není doma.")
-        if army.level == 3:
-            raise ActionFailed(f"Armáda má už level 3, není možné ji povyýšit")
-        # We have to check for the army level before cost. This is why it is
-        # necessary to validate in initiate. Not in commit! However, the current
-        # implementation of applyInitiate doesn't allow for it, so we have to
-        # override. It is quirky, but there is no other way at the moment...
-        return super().applyInitiate()
-
-    def cost(self) -> Dict[Resource, int]:
+    @override
+    def cost(self) -> Dict[Resource, Decimal]:
         army = self.state.map.armies[self.args.armyIndex]
         return self.state.world.armyUpgradeCosts[army.level + 1]
 
-    def _commitImpl(self) -> None:
-        army = self.state.map.armies[self.args.armyIndex]
+    @property
+    def army(self) -> Army:
+        return self.state.map.armies[self.args.armyIndex]
 
+    @override
+    def _initiateCheck(self) -> None:
+        army = self.army
+        self._ensureStrong(army.team == self.args.team,
+                           f"Armáda nepatří týmu {self.args.team.name}")
+        self._ensureStrong(army.mode == ArmyMode.Idle,
+                           "Nelze vylepši armádu, která není doma.")
+        self._ensureStrong(
+            army.level < 3, f"Armáda má už level {army.level}, není možné ji povyýšit")
+
+    @override
+    def _commitSuccessImpl(self) -> None:
+        army = self.army
         army.level += 1
-
         self._info += f"Armáda {army.name} byla vylepšena na úroveň {army.level}"

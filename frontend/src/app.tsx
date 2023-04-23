@@ -41,7 +41,6 @@ import "./index.css";
 import { Forbidden } from "./pages/forbidden";
 import { Tech, TechMenu } from "./pages/techs";
 import { Tasks, TasksMenu } from "./pages/tasks";
-import { Vouchers, VouchersMenu } from "./pages/vouchers";
 import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { ToastProvider } from "./elements/toast";
 import { useTeamIdFromUrl } from "./elements/team";
@@ -209,7 +208,6 @@ function OrgMenu() {
                 path="dashboard/"
             />
             <MenuItemT name="Kola" icon={faHistory} path="turns/" />
-            <MenuItemT name="Směnky" icon={faTicket} path="vouchers/" />
             <MenuItemT name="Výroby" icon={faIndustry} path="vyrobas/" />
             <MenuItemT name="Technologie" icon={faFlask} path="techs/" />
             <MenuItemT name="Mapa" icon={faMountainCity} path="map/" />
@@ -243,7 +241,6 @@ function ApplicationMenu() {
             <Routes>
                 <Route path="/dashboard/*" element={<DashboardMenu />} />
                 <Route path="/turns" element={<TurnsMenu />} />
-                <Route path="/vouchers" element={<VouchersMenu />} />
                 <Route path="/vyrobas" element={<VyrobaMenu />} />
                 <Route path="/techs" element={<TechMenu />} />
                 <Route path="/tasks/*" element={<TasksMenu />} />
@@ -356,10 +353,6 @@ function ScannerNavigator() {
                 page = "techs";
                 return;
             }
-            if (item.startsWith("vou-")) {
-                page = "vouchers";
-                return;
-            }
         });
         if (page) {
             console.log(`Navigating to ${page}#${args.join("&")}`);
@@ -411,11 +404,10 @@ function OrgPages() {
             <Route path="/vyrobas" element={<Vyroba />} />
             <Route path="/techs" element={<Tech />} />
             <Route path="/map" element={<MapAgenda />} />
-            <Route path="/vouchers" element={<Vouchers />} />
             <Route path="/tasks/*" element={<Tasks />} />
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
-            <Route path="/actions/:actionId" element={<FinishAction/>}/>
+            <Route path="/actions/team/:actionId" element={<FinishAction/>}/>
             <Route
                 path="*"
                 element={

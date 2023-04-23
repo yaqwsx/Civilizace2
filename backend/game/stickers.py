@@ -16,7 +16,7 @@ from backend.settings import ICON_PATH
 from core.models.team import Team
 
 from game.entities import Building, Entity, Tech, Vyroba
-from game.models import DbDelayedEffect, DbEntities, DbSticker, InteractionType, StickerType
+from game.models import DbEntities, DbSticker, InteractionType, StickerType
 from game.util import FileCache
 
 FONT_NORMAL = ImageFont.truetype(os.path.join(
@@ -309,34 +309,6 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
             pass
 
     makeStickerFooter(e, b)
-    return b.getImage()
-
-def makeVoucherSticker(effect: DbDelayedEffect) -> Image.Image:
-    assert effect.team is not None
-    b = getDefaultStickerBuilder()
-
-    b.hline(3, 0)
-    b.skip(100)
-    b.hline(3, 0)
-    b.skip(5)
-    qr = makeQrCode(f"vou-{effect.slug.upper()}", pixelSize=3, borderQrPx=4)
-
-    b.img.paste(qr, (b.offset + b.xMargin - 12, b.yPosition))
-    qrBottom = b.yPosition + qr.height
-    b.skip(12)
-    with b.withOffset(qr.width):
-        b.addText(f"Směnka pro {effect.team.name}", FONT_BOLD)
-        b.addText(f"Kód: {effect.slug.upper()}", FONT_BOLD)
-    b.yPosition = max(b.yPosition, qrBottom) + 10
-    b.addText(f"Nabývá efektu v {effect.round}–{math.floor(effect.target // 60)}:{effect.target % 60}", FONT_BOLD)
-    try:
-        b.addText(effect.description, FONT_NORMAL)
-    except:
-        pass
-    b.hline(1, 0)
-    b.skip(5)
-    b.skip(40)
-    b.hline(3, 0)
     return b.getImage()
 
 STICKER_CACHE = FileCache(settings.CACHE / "stickers", ".png")

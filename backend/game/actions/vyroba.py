@@ -1,89 +1,141 @@
+from collections import defaultdict
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, Iterable, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs, ActionBase
-from game.actions.common import ActionFailed
-from game.entities import Die, MapTileEntity, NaturalResource, Resource, Team, Vyroba
-from game.state import ArmyGoal, printResourceListForMarkdown
+from typing import Dict, Iterable, NamedTuple, Optional, Tuple
+
+from typing_extensions import override
+
+from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
+                                     TeamActionBase, TeamInteractionActionBase,
+                                     TileActionArgs)
+from game.actions.common import MessageBuilder
+from game.entities import Die, Resource, Vyroba
+from game.state import printResourceListForMarkdown
 
 
-class VyrobaArgs(ActionArgs):
-    team: Team
+class VyrobaArgs(TeamActionArgs, TileActionArgs):
     vyroba: Vyroba
     count: int
-    tile: MapTileEntity
     plunder: bool
     genericsMapping: Dict[Resource, Resource] = {}
 
-    armyIndex: Optional[int]
-    goal: Optional[ArmyGoal]
-    equipment: Optional[int]
+class VyrobaReward(NamedTuple):
+    reward: Dict[Resource, Decimal]
+    bonus: Decimal
+    plundered: Optional[int]
+
+    def tracked(self) -> Dict[Resource, Decimal]:
+        return {reward: amount for reward, amount in self.reward.items() if reward.isTracked}
 
 
-class VyrobaAction(ActionBase):
+def computeVyrobaReward(args: VyrobaArgs, tileRichnessTokens: int) -> VyrobaReward:
+    resource, amount = args.vyroba.reward
+    amount *= args.count
 
+    bonus = Decimal(tileRichnessTokens) / 10
+    if args.plunder:
+        plundered = min(tileRichnessTokens, args.count)
+        tileRichnessTokens -= plundered
+    else:
+        plundered = None
+
+    reward = {resource: amount * (1 + bonus) + (plundered or 0)}
+    return VyrobaReward(reward=reward, bonus=bonus, plundered=plundered)
+
+
+class VyrobaAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> VyrobaArgs:
         assert isinstance(self._generalArgs, VyrobaArgs)
         return self._generalArgs
 
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Výroba {self.args.vyroba.reward[1]*self.args.count}× {self.args.vyroba.reward[0].name} ({self.args.team.name})"
 
+    @override
     def cost(self) -> Dict[Resource, Decimal]:
-        return {resource: cost*self.args.count for resource, cost in self.args.vyroba.cost.items()}
+        result: Dict[Resource, Decimal] = defaultdict(Decimal)
+        for resource, cost in self.args.vyroba.cost.items():
+            if resource in self.args.genericsMapping:
+                resource = self.args.genericsMapping[resource]
+            result[resource] += cost * self.args.count
+        return result
 
+    @override
     def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        assert self.teamState is not None
-        points = (self.args.vyroba.points * (1 + self.args.count))
-        return (self.teamState.getUnlockingDice(self.args.vyroba), ceil(points / 2))
+        points = ceil(self.args.vyroba.points * (1 + self.args.count) / 2)
+        return (self.teamState.getUnlockingDice(self.args.vyroba), points)
 
-    def requiresDelayedEffect(self) -> Decimal:
-        return self.state.map.getActualDistance(self.args.team, self.args.tile)
+    def travelTime(self) -> int:
+        return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))
 
+    @override
+    def _initiateCheck(self) -> None:
+        self._ensureStrong(self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+                           f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
+        for feature in self.args.vyroba.requiredFeatures:
+            self._ensure(feature in self.args.tileState(self.state).features,
+                         f"Na poli {self.args.tile.name} chybí {feature.name}")
+
+    @override
+    def _commitSuccessImpl(self) -> None:
+        if travelTime := self.travelTime() > 0:
+            scheduled = self._scheduleAction(VyrobaCompletedAction, self.args, travelTime)
+            self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(scheduled.delay_s / 60)} minut"
+        else:
+            self._info += f"Zadání výroby bylo úspěšné"
+            tileState = self.args.tileState(self.state)
+            reward = computeVyrobaReward(self.args, tileState.richnessTokens)
+
+            if reward.plundered is not None:
+                tileState.richnessTokens -= reward.plundered
+                assert tileState.richnessTokens >= 0
+
+            instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
+            self._info += f"Dejte týmu materiály:\n\n{printResourceListForMarkdown(instantReward, floor)}"
+
+            if len(tracked := reward.tracked()) > 0:
+                self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+            if reward.bonus != 0:
+                self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
+            if reward.plundered is not None:
+                self._info += f"Odebráno {reward.plundered} jednotek úrody"
+
+
+class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
+    @property
+    @override
+    def args(self) -> VyrobaArgs:
+        assert isinstance(self._generalArgs, VyrobaArgs)
+        return self._generalArgs
+
+    @property
+    @override
+    def description(self) -> str:
+        return f"Dokončení výroby {self.args.vyroba.name} na poli {self.args.tile.name} ({self.args.team.name})"
+
+    @override
     def _commitImpl(self) -> None:
-        tile = self.tileState
-        vyroba = self.args.vyroba
-        if self.state.map.getOccupyingTeam(self.args.tile) != self.team:
-            raise ActionFailed(
-                f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
-        for f in vyroba.requiredFeatures:
-            if not isinstance(f, NaturalResource):
-                continue
-            self._ensure(f in tile.features,
-                         f"Na poli {tile.name} chybí {f.name}")
-        self._ensureValid()
+        tileState = self.args.tileState(self.state)
+        reward = computeVyrobaReward(self.args, tileState.richnessTokens)
 
-        self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(self.requiresDelayedEffect() / 60)} minut"
+        if reward.plundered is not None:
+            tileState.richnessTokens -= reward.plundered
+            assert tileState.richnessTokens >= 0
 
-    def _applyDelayedReward(self) -> None:
-        self._setupPrivateAttrs()
-        reward = self.args.vyroba.reward
-        resource = reward[0]
-        amount = reward[1] * self.args.count
+        self._receiveResources(reward.reward)
 
-        multiplier = 1
-        plundered = 0
+        if len(tracked := reward.tracked()) > 0:
+            self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+        if reward.bonus != 0:
+            self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
+        if reward.plundered is not None:
+            self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
-        tile = self.tileState
-        multiplier = 1 + (tile.richnessTokens/Decimal(10))
-        if self.args.plunder:
-            plundered = min(tile.richnessTokens, self.args.count)
-            tile.richnessTokens -= plundered
-
-        reward = {resource: amount*multiplier + plundered}
-
-        tokens = self.receiveResources(reward, instantWithdraw=True)
-
-        prods = {r: a for r, a in reward.items() if r.isTracked}
-        if prods != {}:
-            self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(prods)}"
-        if multiplier > 1:
-            self._info += f"Bonus za úrodnost výroby: +{ceil((multiplier-1)*100)}%"
-        if plundered > 0:
-            self._info += f"Odebráno {plundered} jednotek úrody"
-        if tokens != {}:
-            self._info += f"Vydejte týmu:\n\n{printResourceListForMarkdown(tokens, floor)}"
-        if self.args.vyroba.id == "vyr-koloRezerva":
-            self._info += "Oznamte týmu, že VŮZ JE OPRAVEN a popřejte jim ŠŤASTNOU CESTU!"
+        msgBuilder = MessageBuilder(message=f"Výroba [[{self.args.vyroba.id}]] dokončena")
+        msgBuilder += self._warnings
+        msgBuilder += self._info
+        self._addNotification(self.args.team, msgBuilder.message)

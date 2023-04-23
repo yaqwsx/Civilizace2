@@ -6,13 +6,13 @@ from game.state import GameState
 
 import pytest
 
-team = TEAM_ADVANCED
+teamState = TEAM_ADVANCED
 entities = TEST_ENTITIES
 
 def test_something():
     state = createTestInitState()
     entities = TEST_ENTITIES
-    args = IncreaseCounterArgs(red=Decimal(5), team=team)
+    args = IncreaseCounterArgs(red=Decimal(5), team=teamState)
     action = makeAction(IncreaseCounterAction, state=state, entities=entities, args=args)
 
     req = action.diceRequirements()

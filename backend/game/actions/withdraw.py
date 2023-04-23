@@ -1,51 +1,47 @@
+from decimal import Decimal
 from typing import Dict
-from game.actions.actionBase import ActionArgs, ActionBase
-from game.actions.common import ActionFailed
-from game.entities import Resource, Team, Tech
+
+from typing_extensions import override
+
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.entities import Resource
 from game.state import printResourceListForMarkdown
 
 
-class WithdrawArgs(ActionArgs):
-    team: Team
+class WithdrawArgs(TeamActionArgs):
     resources: Dict[Resource, int]
 
 
-class WithdrawAction(ActionBase):
-
+class WithdrawAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> WithdrawArgs:
         assert isinstance(self._generalArgs, WithdrawArgs)
         return self._generalArgs
 
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Výběr materiálů ze skladu ({self.args.team.name})"
 
+    @override
+    def cost(self) -> Dict[Resource, int]:
+        return {self.entities.work: max(0, sum(self.args.resources.values()))}
 
-    def cost(self):
-        return {}
-
-    def _commitImpl(self) -> None:
-        missing = {}
-        empty = []
+    @override
+    def _initiateCheck(self) -> None:
         for resource, amount in self.args.resources.items():
-            if amount == 0:
-                continue
-            stored = self.teamState.storage.get(resource, 0)
-            if amount > stored:
-                missing[resource] = amount - stored
-                continue
-            self.teamState.storage[resource] = stored - amount
+            self._ensure(amount >= 0, f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]")
 
+    @override
+    def _commitSuccessImpl(self) -> None:
         for resource, amount in self.args.resources.items():
-            if amount == 0:
-                empty.append(resource)
-        for resource in empty:
-            del self.teamState.storage[resource]
+            if resource not in self.teamState.storage:
+                self.teamState.storage[resource] = Decimal(0)
+            self.teamState.storage[resource] -= amount
+            assert self.teamState.storage[resource] >= 0
 
-        if missing != {}:
-            raise ActionFailed(f"Chybí zdroje ve skladu:\n\n{printResourceListForMarkdown(missing)}")
-
-        self.payResources({self.entities.work: sum(self.args.resources.values())})
+            if self.teamState.storage[resource] == 0:
+                del self.teamState.storage[resource]
 
         self._info += f"Vydejte týmu zdroje: \n{printResourceListForMarkdown(self.args.resources)}"

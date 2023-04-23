@@ -54,7 +54,8 @@ class TurnsViewSet(viewsets.ViewSet):
     @action(detail=False)
     def active(self, request: Request) -> Response:
         try:
-            turn = DbTurn.objects.getActiveTurn()
+            turn = DbTurn.getActiveTurn()
+            assert turn.startedAt is not None
             remaining = turn.startedAt + timezone.timedelta(seconds=turn.duration) - timezone.now()
             secsRemaining = remaining.total_seconds()
             if secsRemaining < 0:

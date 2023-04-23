@@ -1,5 +1,4 @@
 import pytest
-from game.actions.actionBase import makeAction
 from game.actions.build import BuildAction, BuildArgs
 from game.actions.buildFinish import BuildFinishAction, BuildFinishArgs
 from game.actions.common import ActionFailed
@@ -13,7 +12,7 @@ def test_homeStart():
     team = entities["tym-zluti"]
     tile = state.map.tiles[29]
 
-    action = makeAction(BuildAction,
+    action = BuildAction.makeAction(
         state=state, entities=entities, args=BuildArgs(build=building, team=team, tile=tile.entity))
     action.applyCommit(1, 100)
 
@@ -27,7 +26,7 @@ def test_homeFinish():
     team = entities["tym-zluti"]
     tile = state.map.tiles[29]
 
-    action = makeAction(BuildAction,
+    action = BuildAction.makeAction(
         state=state, entities=entities, args=BuildArgs(build=building, team=team, tile=tile.entity))
     action.applyCommit(1, 100)
 
@@ -51,7 +50,7 @@ def test_failStartExisting():
     team = entities["tym-zluti"]
     tile = state.map.tiles[29]
 
-    start = makeAction(BuildAction,
+    start = BuildAction.makeAction(
         state=state, entities=entities, args=BuildArgs(build=building, team=team, tile=tile.entity))
     start.applyCommit(1, 100)
 
@@ -70,7 +69,7 @@ def test_buildOnOccupied():
     team = entities["tym-zluti"]
     tile = state.map.tiles[28]
 
-    action = makeAction(BuildAction,
+    action = BuildAction.makeAction(
         state=state, entities=entities, args=BuildArgs(build=building, team=team, tile=tile.entity))
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()

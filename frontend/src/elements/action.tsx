@@ -29,7 +29,7 @@ import _ from "lodash";
 import useSWR, { useSWRConfig } from "swr";
 import { useTeamWork } from "./entities";
 import { useElementSize, useDebounce } from "usehooks-ts";
-import { PrintStickers, PrintVoucher } from "./printing";
+import { PrintStickers } from "./printing";
 import { Link, Navigate } from "react-router-dom";
 import { useDebounceDeep } from "../utils/react";
 import { atomWithHash } from "jotai/utils";
@@ -46,7 +46,7 @@ export const finishedActionIdAtom = atomWithHash<number | null>(
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
-        "game/actions/unfinished",
+        "game/actions/team/unfinished",
         fetcher,
         {
             refreshInterval: refreshInterval,
@@ -72,7 +72,7 @@ export function UnfinishedActionBar() {
                 return (
                     <Link
                         key={a.id}
-                        to={`/actions/${a.id}`}
+                        to={`/actions/team/${a.id}`}
                         className="block w-full"
                     >
                         Máte nedokončenou akci {a.id}: {a.description}.
@@ -101,7 +101,7 @@ export function useActionPreview(
         if (!actionArgs || !debouncedArgs || !argsValid(debouncedArgs)) return;
 
         axiosService
-            .post<any, any>("/game/actions/dry/", {
+            .post<any, any>("/game/actions/team/dry/", {
                 action: actionId,
                 args: debouncedArgs,
             })
@@ -131,7 +131,6 @@ export enum ActionPhase {
 }
 
 export function PerformAction(props: {
-    team?: Team;
     actionName: any;
     actionId: string;
     actionArgs: any;
@@ -253,7 +252,7 @@ function ActionPreviewPhase(props: {
     const { actions } = useUnfinishedActions();
 
     if (actions && actions.length != 0) {
-        return <Navigate to={`/actions/${actions[0].id}`} />;
+        return <Navigate to={`/actions/team/${actions[0].id}`} />;
     }
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
@@ -266,7 +265,7 @@ function ActionPreviewPhase(props: {
     let handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<any, any>("/game/actions/initiate/", {
+            .post<any, any>("/game/actions/team/initiate/", {
                 action: props.actionId,
                 args: props.actionArgs,
             })
@@ -350,7 +349,7 @@ export function ActionDicePhase(props: {
     changePhase: (phase: ActionPhase, data: any) => void;
 }) {
     const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
-        `/game/actions/${props.actionId}/commit`,
+        `/game/actions/team/${props.actionId}/commit`,
         fetcher
     );
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
@@ -394,7 +393,7 @@ export function ActionDicePhase(props: {
             return;
         setSubmitting(true);
         axiosService
-            .post<any, any>(`/game/actions/${props.actionId}/commit/`, {
+            .post<any, any>(`/game/actions/team/${props.actionId}/commit/`, {
                 throws: throwInfo.throws,
                 dots: throwInfo.dots,
             })
@@ -402,7 +401,7 @@ export function ActionDicePhase(props: {
                 setSubmitting(false);
                 let result = data.data;
                 setFinishedAction(props.actionId);
-                mutate("/game/actions/unfinished");
+                mutate("/game/actions/team/unfinished");
                 props.changePhase(ActionPhase.finish, result);
             })
             .catch((error) => {
@@ -417,11 +416,11 @@ export function ActionDicePhase(props: {
         ) {
             setSubmitting(true);
             axiosService
-                .post<any, any>(`/game/actions/${props.actionId}/cancel/`)
+                .post<any, any>(`/game/actions/team/${props.actionId}/revert/`)
                 .then((data) => {
                     setSubmitting(false);
                     setFinishedAction(props.actionId);
-                    mutate("/game/actions/unfinished");
+                    mutate("/game/actions/team/unfinished");
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);
                 })
@@ -604,10 +603,7 @@ export function ActionFinishPhase(props: {
     const [canQuit, setCanQuit] = useState(false);
 
     useEffect(() => {
-        if (
-            !props.response.voucher &&
-            (!props.response?.stickers || props.response.stickers.length == 0)
-        )
+        if (!props.response?.stickers || props.response.stickers.length == 0)
             setCanQuit(true);
     }, [props.response]);
 
@@ -622,13 +618,6 @@ export function ActionFinishPhase(props: {
             {props.response?.stickers && props.response.stickers.length > 0 && (
                 <PrintStickers
                     stickers={props.response.stickers}
-                    onPrinted={() => setCanQuit(true)}
-                />
-            )}
-
-            {props.response.voucher && (
-                <PrintVoucher
-                    voucher={props.response.voucher}
                     onPrinted={() => setCanQuit(true)}
                 />
             )}

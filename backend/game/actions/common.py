@@ -1,28 +1,36 @@
 from __future__ import annotations
-from decimal import Decimal
-from game.entities import Die, Entity, EntityId, Resource, Team
-from typing import Dict, List, Any, Generator, Callable, Set, Iterable, Union
-from pydantic import BaseModel, root_validator, validator
+
 import contextlib
+from decimal import Decimal
+from typing import Any, Callable, Dict, Generator, List, Set, Union
+
+from pydantic import BaseModel, root_validator
+
+from game.entities import Die, Entity, Resource
+
 
 class ActionFailed(Exception):
     """
     Expects a pretty (markdown-formatted) message. This message will be seen
     by the user. That is raise ActionFailed(message)
     """
+
     def __init__(self, message: Union[str, MessageBuilder]):
         if isinstance(message, MessageBuilder):
             message = message.message
         super().__init__(message)
+
 
 class MessageBuilder(BaseModel):
     """
     The goal is to simplify building markdown messages and not thinking about
     the whitespace. Adding to this creates new paragraph automatically.
     """
-    message: str=""
+    message: str = ""
 
     def __iadd__(self, other: Any) -> MessageBuilder:
+        if isinstance(other, MessageBuilder):
+            other = other.message
         self.add(str(other))
         return self
 
@@ -41,9 +49,8 @@ class MessageBuilder(BaseModel):
         finally:
             if len(lines) > 0:
                 if header != "":
-                     self.add(header)
+                    self.add(header)
                 self.addList(lines)
-
 
     def addList(self, items: List[str]) -> None:
         self.add("\n".join(["- " + x for x in items]))
@@ -57,12 +64,12 @@ class MessageBuilder(BaseModel):
     def empty(self) -> bool:
         return len(self.message) == 0
 
+
 class ActionCost(BaseModel):
     allowedDice: Set[Die] = set()
     requiredDots: int = 0
     postpone: int = 0
     resources: Dict[Resource, Decimal] = {}
-
 
     @root_validator
     def validate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
@@ -71,18 +78,16 @@ class ActionCost(BaseModel):
         if requiredDots < 0:
             raise ValueError("Nemůžu chtít záporně mnoho puntíků")
         if requiredDots == 0 and len(allowedDice) > 0:
-            raise ValueError("Nemůžu mít povolené kostky a chtít 0 puntíků")
+            raise ValueError(
+                "Nemůžu mít povolené kostky a chtít 0 puntíků")
         if requiredDots > 0 and len(allowedDice) == 0:
-            raise ValueError("Nemůžu chtít puntíky a nespecifikovat kostky")
+            raise ValueError(
+                "Nemůžu chtít puntíky a nespecifikovat kostky")
         return values
 
     @property
     def productions(self):
         return {r: a for r, a in self.resources.items() if r.isProduction}
-
-    @property
-    def materials(self):
-        return {r: a for r, a in self.resources.items() if r.isMaterial}
 
     def formatDice(self):
         if self.requiredDots == 0:

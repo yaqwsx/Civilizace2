@@ -1,29 +1,27 @@
-from decimal import Decimal
-from math import ceil, floor
-from typing import Dict
-from pydantic import BaseModel
-from game.actions.actionBase import ActionArgs
-from game.actions.actionBase import ActionBase
-from game.entities import Resource
+from math import ceil
+
+from typing_extensions import override
+
+from game.actions.actionBase import ActionArgs, NoInitActionBase
+
 
 class NextTurnArgs(ActionArgs):
     pass
 
-class NextTurnAction(ActionBase):
-    @property
-    def description(self):
-        return "Další kolo"
 
+class NextTurnAction(NoInitActionBase):
     @property
+    @override
     def args(self) -> NextTurnArgs:
         assert isinstance(self._generalArgs, NextTurnArgs)
         return self._generalArgs
 
+    @property
+    @override
+    def description(self) -> str:
+        return "Další kolo"
 
-    def cost(self) -> Dict[Resource, Decimal]:
-        return {}
-
-
+    @override
     def _commitImpl(self) -> None:
         self.state.world.turn += 1
         self._info += f"Začalo kolo {self.state.world.turn}"

@@ -123,9 +123,7 @@ function interactionName(id: number) {
     const NAMES = [
         "initiate",
         "commit",
-        "cancel",
-        "delayed",
-        "delayedReward",
+        "revert",
     ];
 
     if (id < 0 || id >= NAMES.length )

@@ -1,56 +1,77 @@
 from decimal import Decimal
-from math import ceil
-from typing import Dict, List, Optional, Set, Tuple
-from game.actions.actionBase import ActionArgs, ActionBase
-from game.actions.common import ActionFailed
-from game.entities import Die, Resource, Tech, Team
+from typing import Dict, List
+
+from typing_extensions import override
+
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.entities import Resource, Team
 from game.state import printResourceListForMarkdown
 
-class TradeArgs(ActionArgs):
-    team: Team
+
+class TradeArgs(TeamActionArgs):
     receiver: Team
     resources: Dict[Resource, Decimal]
 
-class TradeAction(ActionBase):
 
+class TradeAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> TradeArgs:
         assert isinstance(self._generalArgs, TradeArgs)
         return self._generalArgs
 
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Prodej produkce týmu {self.args.receiver.name} ({self.args.team.name})"
 
-
+    @override
     def cost(self) -> Dict[Resource, Decimal]:
-        cost = {}
-        for resource, amount in self.args.resources.items():
-            level = resource.typ[1]
-            payResource = self.entities[f"mge-obchod-{level}"]
-            cost[payResource] = cost.get(payResource, 0) + ceil(amount)
+        amount = sum(self.args.resources.values(), Decimal(0))
+        return {self.entities.resources['mge-obchod']: amount}
 
-        return cost
+    def getNontradable(self) -> List[Resource]:
+        return [self.entities.work, self.entities.obyvatel, self.entities.culture]
 
-
-    def _commitImpl(self) -> None:
-        team = self.teamState
-
+    @override
+    def _initiateCheck(self) -> None:
         with self._errors.startList("Obchod nelze provést") as err:
+            teamState = self.teamState
+            nontradable = self.getNontradable()
             for resource, amount in self.args.resources.items():
-                available = team.resources.get(resource, 0)
-
-                if resource.id[:4] != "pro-":
-                    err(f"Nelze obchodovat [[{resource}]]")
+                if not resource.isProduction or resource in nontradable:
+                    err(f"Nelze obchodovat [[{resource.id}]]")
                     continue
 
+                if amount < 0:
+                    err(
+                        f"Nelze obchodovat záporné množství {amount}×[[{resource.id}]]")
+                    continue
+
+                available = teamState.resources.get(resource, Decimal(0))
                 if amount > available:
-                    err(f"Tým {self.args.receiver.name} nemá dostatek [[{resource}]] (dostupné: {available}, požadováno: {amount})")
+                    err(
+                        f"Tým {self.args.team.name} nemá dostatek [[{resource.id}]] (dostupné: {available}, požadováno: {amount})")
                     continue
 
-                them = self.state.teamStates[self.args.receiver]
-                team.resources[resource] = available - amount
-                them.resources[resource] = them.resources.get(resource, 0) + amount
+    @override
+    def _commitSuccessImpl(self) -> None:
+        teamState = self.teamState
+
+        for resource, amount in self.args.resources.items():
+            them = self.state.teamStates[self.args.receiver]
+
+            if resource not in teamState.resources:
+                teamState.resources[resource] = Decimal(0)
+            if resource not in them.resources:
+                them.resources[resource] = Decimal(0)
+
+            teamState.resources[resource] -= amount
+            them.resources[resource] += amount
+
+            assert amount >= 0
+            assert teamState.resources[resource] >= 0
 
         self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}: {printResourceListForMarkdown(self.args.resources)}"
-        self._notifications = {self.args.receiver: [f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}"]}
+        self._addNotification(self.args.receiver,
+                              f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}")

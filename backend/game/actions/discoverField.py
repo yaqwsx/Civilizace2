@@ -1,36 +1,32 @@
-from decimal import Decimal
-from typing import Dict
-from game.actions.actionBase import ActionArgs, ActionBase
-from game.actions.actionBase import ActionResult
-from game.actions.common import ActionFailed
-from game.entities import MapTileEntity, Resource, Team
+from typing_extensions import override
 
-class DiscoverTileArgs(ActionArgs):
-    team: Team
-    tile: MapTileEntity
+from game.actions.actionBase import (TeamActionArgs, TeamInteractionActionBase,
+                                     TileActionArgs)
 
-class DiscoverTileAction(ActionBase):
 
+class DiscoverTileArgs(TeamActionArgs, TileActionArgs):
+    pass
+
+
+class DiscoverTileAction(TeamInteractionActionBase):
     @property
+    @override
     def args(self) -> DiscoverTileArgs:
         assert isinstance(self._generalArgs, DiscoverTileArgs)
         return self._generalArgs
 
-
     @property
-    def description(self):
+    @override
+    def description(self) -> str:
         return f"Objevit dílek mapy {self.args.tile.name} týmem {self.args.team.name}"
 
-    def cost(self) -> Dict[Resource, Decimal]:
-        return {}
-
-    def applyInitiate(self) -> ActionResult:
+    @override
+    def _initiateCheck(self) -> None:
         for tState in self.state.teamStates.values():
-            if self.args.tile in tState.discoveredTiles:
-                raise ActionFailed(f"Dílek [[{self.args.tile.id}]] už byl objeven týmem {tState.team.name}.")
-        return super().applyInitiate()
+            self._ensureStrong(self.args.tile not in tState.discoveredTiles,
+                               f"Dílek [[{self.args.tile.id}]] už byl objeven týmem {tState.team.name}.")
 
-    def _commitImpl(self) -> None:
-        tState = self.teamState
-        tState.discoveredTiles.add(self.args.tile)
+    @override
+    def _commitSuccessImpl(self) -> None:
+        self.teamState.discoveredTiles.add(self.args.tile)
         self._info.add(f"Dílek [[{self.args.tile.id}]] byl objeven.")

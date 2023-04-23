@@ -304,7 +304,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     return (
         <PerformAction
-            team={props.team}
             actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
             actionId="VyrobaAction"
             actionArgs={{
@@ -314,7 +313,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                 tile: tile,
                 plunder: plunder,
                 genericsMapping: concretization,
-                // TBA army
             }}
             argsValid={(a) => a.tile}
             onFinish={() => props.onReset()}

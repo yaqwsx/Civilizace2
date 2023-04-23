@@ -148,7 +148,6 @@ export interface ActionResponse {
     expected: boolean;
     message: string;
     action?: Number;
-    voucher?: string;
     stickers: Sticker[];
 }
 
