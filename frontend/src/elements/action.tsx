@@ -181,7 +181,7 @@ export function PerformAction(props: {
         return (
             <>
                 <ActionDicePhase
-                    actionId={phase.data.action}
+                    actionNumber={phase.data.action}
                     message={phase.data.message}
                     actionName={props.actionName}
                     changePhase={changePhase}
@@ -343,13 +343,13 @@ function ActionPreviewPhase(props: {
 }
 
 export function ActionDicePhase(props: {
-    actionId: number;
+    actionNumber: number;
     message: string;
     actionName: any;
     changePhase: (phase: ActionPhase, data: any) => void;
 }) {
     const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
-        `/game/actions/team/${props.actionId}/commit`,
+        `/game/actions/team/${props.actionNumber}/commit`,
         fetcher
     );
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
@@ -363,7 +363,7 @@ export function ActionDicePhase(props: {
         return () => {
             setActiveAction(null);
         };
-    }, [props.actionId]);
+    }, [props.actionNumber]);
 
     let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
 
@@ -393,14 +393,14 @@ export function ActionDicePhase(props: {
             return;
         setSubmitting(true);
         axiosService
-            .post<any, any>(`/game/actions/team/${props.actionId}/commit/`, {
+            .post<any, any>(`/game/actions/team/${props.actionNumber}/commit/`, {
                 throws: throwInfo.throws,
                 dots: throwInfo.dots,
             })
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
-                setFinishedAction(props.actionId);
+                setFinishedAction(props.actionNumber);
                 mutate("/game/actions/team/unfinished");
                 props.changePhase(ActionPhase.finish, result);
             })
@@ -416,10 +416,10 @@ export function ActionDicePhase(props: {
         ) {
             setSubmitting(true);
             axiosService
-                .post<any, any>(`/game/actions/team/${props.actionId}/revert/`)
+                .post<any, any>(`/game/actions/team/${props.actionNumber}/revert/`)
                 .then((data) => {
                     setSubmitting(false);
-                    setFinishedAction(props.actionId);
+                    setFinishedAction(props.actionNumber);
                     mutate("/game/actions/team/unfinished");
                     let result = data.data;
                     props.changePhase(ActionPhase.finish, result);

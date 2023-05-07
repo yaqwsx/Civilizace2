@@ -12,9 +12,12 @@ import {
 import { ErrorMessage, SuccessMessage } from "../elements/messages";
 import { fetcher } from "../utils/axios";
 import AceEditor from "react-ace";
+import { useHideMenu } from "./atoms";
 
 
 export function ActionLog() {
+    useHideMenu();
+
     const [page, setPage] = useState(0);
     const { data, error } = useSWR<any>(`game/actions/logs?${page}`, fetcher);
 

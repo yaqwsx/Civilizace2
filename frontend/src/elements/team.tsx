@@ -38,11 +38,11 @@ export function useTeamIdFromUrl() {
 }
 
 export function useTeamFromUrl() {
-    const [teamId, setTeamId] = useAtom(urlTeamAtom);
+    const [teamId, setTeamId] = useTeamIdFromUrl();
     const { teams, loading, error } = useTeams();
 
     let team = undefined;
-    if (!loading && !error && teams) {
+    if (!loading && !error && teams && teamId) {
         for (const i in teams) {
             if (teams[i].id === teamId) {
                 team = teams[i];
@@ -52,6 +52,7 @@ export function useTeamFromUrl() {
     }
     let combinedError = undefined;
     if (error) combinedError = error;
+    else if (loading) new Error(`Could not load teams`);
     else if (!team && teamId)
         combinedError = new Error(`No such team ${teamId}`);
 

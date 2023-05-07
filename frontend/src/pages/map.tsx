@@ -58,7 +58,7 @@ export function MapAgenda() {
     const { team, setTeam, loading, error } = useTeamFromUrl();
     const [action, setAction] = useAtom(urlMapActionAtom);
 
-    if (loading) {
+    if (loading || error) {
         return (
             <LoadingOrError
                 loading={loading}

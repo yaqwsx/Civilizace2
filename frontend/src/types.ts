@@ -128,11 +128,6 @@ export interface Turn {
     next?: Turn;
 }
 
-export enum ActionStatus {
-    Success = "success",
-    Fail = "fail"
-}
-
 export interface Sticker {
     id: number;
     entityId: string;
@@ -142,6 +137,11 @@ export interface Sticker {
     team: string;
 }
 
+
+export enum ActionStatus {
+    Success = "success",
+    Fail = "fail"
+}
 
 export interface ActionResponse {
     success: boolean;

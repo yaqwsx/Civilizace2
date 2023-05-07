@@ -44,7 +44,7 @@ export function FinishAction() {
             <h1>Máte nedokončenou akci {actionId}, je třeba ji dokončit než můžete zadávat další akce.</h1>
             {!finished ? (
                 <ActionDicePhase
-                    actionId={action.id}
+                    actionNumber={action.id}
                     message={""}
                     changePhase={(p, d) => {
                         setResponse(d);
