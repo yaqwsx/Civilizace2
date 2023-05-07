@@ -307,9 +307,6 @@ class TeamInteractionActionBase(TeamActionBase):
         successful or not.
         """
         tState = self.teamState
-        if throws == 0 or tState is None:
-            assert dots == 0
-            return True
         _, dotsRequired = self.diceRequirements()
         workConsumed = throws * self.throwCost()
         workAvailable = tState.work
