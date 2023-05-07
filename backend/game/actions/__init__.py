@@ -40,6 +40,8 @@ def loadActions() -> Dict[str, GameAction]:
             item = getattr(actionPkg, name)
             if not inspect.isclass(item):
                 continue
+            if item in (ActionCommonBase, NoInitActionBase, TeamActionBase, TeamInteractionActionBase, TeamActionArgs):
+                continue
             if issubclass(item, ActionCommonBase):
                 actions.append(item)
             elif issubclass(item, ActionArgs):

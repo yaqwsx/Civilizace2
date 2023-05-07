@@ -260,6 +260,9 @@ class TeamInteractionActionBase(TeamActionBase):
         assert not isinstance(self, NoInitActionBase)
         self._clearMessageBuilders()
 
+        self._initiateCheck()
+        self._ensureValid()
+
         self._commitSuccessImpl()
 
         return self._generateActionResult()
