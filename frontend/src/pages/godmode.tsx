@@ -48,7 +48,7 @@ export function GodModeImpl(props: {state: any; onFinish: () => void}) {
         <>
             <h1>God mode</h1>
             <AceEditor
-                mode="javascript"
+                mode="json"
                 theme="github"
                 onChange={setNewStateStr}
                 name="godmodeeditor"

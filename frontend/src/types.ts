@@ -143,6 +143,12 @@ export enum ActionStatus {
     Fail = "fail"
 }
 
+export interface ServerActionType {
+    id: string;
+    has_init: boolean;
+    args: Record<string, { type: string, required: boolean, default?: any }>;
+}
+
 export interface ActionResponse {
     success: boolean;
     expected: boolean;

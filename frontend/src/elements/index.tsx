@@ -113,14 +113,14 @@ export function FormRow(props: FormRowProps) {
 }
 
 type SpinboxInputType = {
-    value: number;
+    value?: number;
     onChange: (value: number) => void;
     className?: string;
     disabled?: boolean;
 };
 export function SpinboxInput(props: SpinboxInputType) {
     const incValue = (amount: number) => {
-        let value = props.value + amount;
+        let value = (props.value ?? 0) + amount;
         props.onChange(value);
     };
 

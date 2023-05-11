@@ -84,26 +84,31 @@ export function UnfinishedActionBar() {
     );
 }
 
-export function useActionPreview(
+export function useActionPreview(props: {
     actionId: string,
     actionArgs: any,
-    argsValid: (args: any) => boolean
-) {
+    argsValid: (args: any) => boolean,
+    ignoreCost?: boolean,
+    ignoreGameStop?: boolean,
+    isNoInit?: boolean,
+}) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
-    const debouncedArgs = useDebounceDeep(actionArgs, 500);
+    const debouncedArgs = useDebounceDeep(props.actionArgs, 500);
 
     useEffect(() => {
         setError(null);
         setPreview(null);
 
-        if (!actionArgs || !debouncedArgs || !argsValid(debouncedArgs)) return;
+        if (!props.actionArgs || !debouncedArgs || !props.argsValid(debouncedArgs)) return;
 
         axiosService
-            .post<any, any>("/game/actions/team/dry/", {
-                action: actionId,
+            .post<any, any>(`/game/actions/${props.isNoInit ? 'noinit' : 'team'}/dry/`, {
+                action: props.actionId,
                 args: debouncedArgs,
+                ignore_cost: props.ignoreCost,
+                ignore_game_stop: props.ignoreGameStop,
             })
             .then((data) => {
                 setTimeout(() => {
@@ -115,7 +120,7 @@ export function useActionPreview(
                 setPreview(null);
                 setError(error);
             });
-    }, [actionId, debouncedArgs]);
+    }, [props.actionId, debouncedArgs]);
 
     return {
         preview: preview,
@@ -138,10 +143,12 @@ export function PerformAction(props: {
     extraPreview?: any;
     onFinish: () => void;
     onBack: () => void;
+    ignoreCost?: boolean;
+    ignoreGameStop?: boolean;
+    ignoreThrows?: boolean;
 }) {
-    const [phase, setPhase] = useState<any>({
+    const [phase, setPhase] = useState<{phase: ActionPhase, data?: any}>({
         phase: ActionPhase.initiatePhase,
-        data: null,
     });
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
 
@@ -164,7 +171,7 @@ export function PerformAction(props: {
     if (phase.phase == ActionPhase.initiatePhase) {
         return (
             <>
-                {props.extraPreview ? props.extraPreview : null}
+                {props.extraPreview ?? null}
                 <ActionPreviewPhase
                     actionName={props.actionName}
                     actionId={props.actionId}
@@ -172,23 +179,39 @@ export function PerformAction(props: {
                     onAbort={props.onBack}
                     changePhase={changePhase}
                     argsValid={argsValid}
+                    ignoreCost={props.ignoreCost}
+                    ignoreGameStop={props.ignoreGameStop}
                 />
                 <div className="my-8 h-1 w-full" />
             </>
         );
     }
     if (phase.phase == ActionPhase.diceThrowPhase) {
-        return (
-            <>
-                <ActionDicePhase
-                    actionNumber={phase.data.action}
-                    message={phase.data.message}
-                    actionName={props.actionName}
-                    changePhase={changePhase}
-                />
-                <div className="my-8 h-1 w-full" />
-            </>
-        );
+        if (props.ignoreThrows) {
+            return (
+                <>
+                    <IgnoreActionDicePhase
+                        actionNumber={phase.data.action}
+                        message={phase.data.message}
+                        actionName={props.actionName}
+                        changePhase={changePhase}
+                    />
+                    <div className="my-8 h-1 w-full" />
+                </>
+            );
+        } else {
+            return (
+                <>
+                    <IgnoreActionDicePhase
+                        actionNumber={phase.data.action}
+                        message={phase.data.message}
+                        actionName={props.actionName}
+                        changePhase={changePhase}
+                    />
+                    <div className="my-8 h-1 w-full" />
+                </>
+            );
+        }
     }
 
     if (phase.phase == ActionPhase.finish) {
@@ -212,6 +235,176 @@ export function PerformAction(props: {
     );
 }
 
+export function PerformNoInitAction(props: {
+    actionName: any;
+    actionId: string;
+    actionArgs: any;
+    argsValid?: (args: any) => boolean;
+    extraPreview?: any;
+    onFinish: () => void;
+    onBack: () => void;
+    ignoreGameStop?: boolean;
+}) {
+    const [completedData, setCompletedData] = useState<any>(undefined);
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+
+    useEffect(() => {
+        return () => {
+            setActiveAction(null);
+        };
+    }, []);
+
+    let argsValid =
+        props.argsValid === undefined ? () => true : props.argsValid;
+
+    if (completedData === undefined) {
+        return (
+            <>
+                {props.extraPreview ? props.extraPreview : undefined}
+                <NoInitActionPreviewPhase
+                    actionName={props.actionName}
+                    actionId={props.actionId}
+                    actionArgs={props.actionArgs}
+                    onAbort={props.onBack}
+                    changePhase={(_, data) => setCompletedData(data === undefined ? {} : data)}
+                    argsValid={argsValid}
+                    ignoreGameStop={props.ignoreGameStop}
+                />
+                <div className="my-8 h-1 w-full" />
+            </>
+        );
+    }
+
+    if (completedData !== undefined) {
+        return (
+            <>
+                <ActionFinishPhase
+                    response={completedData}
+                    actionName={props.actionName}
+                    onFinish={props.onFinish}
+                />
+                <div className="my-8 h-1 w-full" />
+            </>
+        );
+    }
+
+    return (
+        <ErrorMessage>
+            Toto nemělo nastat. Není to nic vážného, ale až budeš mít chvíli,
+            řekni o tom Honzovi
+        </ErrorMessage>
+    );
+}
+
+function NoInitActionPreviewPhase(props: {
+    actionName: any;
+    actionId: string;
+    actionArgs: any;
+    onAbort: () => void;
+    changePhase: (phase: ActionPhase, data: any) => void;
+    argsValid: (args: any) => boolean;
+    ignoreGameStop?: boolean;
+}) {
+    const { preview, error, debouncedArgs } = useActionPreview({
+        actionId: props.actionId,
+        actionArgs: props.actionArgs,
+        argsValid: props.argsValid,
+        ignoreGameStop: props.ignoreGameStop,
+        isNoInit: true,
+    });
+    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(undefined);
+    const [submitting, setSubmitting] = useState(false);
+    const [commitResult, setCommitResult] = useState<ActionResponse | undefined>(undefined);
+    const [loaderHeight, setLoaderHeight] = useState(0);
+    const [messageRef, { height }] = useElementSize();
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+
+
+    if (height != 0 && height != loaderHeight) setLoaderHeight(height);
+
+    if (!_.isEqual(lastArgs, [props.actionId, props.actionArgs])) {
+        setLastArgs([props.actionId, props.actionArgs]);
+        setCommitResult(undefined);
+    }
+
+    let handleSubmit = () => {
+        setSubmitting(true);
+        axiosService
+            .post<any, any>("/game/actions/noinit/commit/", {
+                action: props.actionId,
+                args: props.actionArgs,
+                ignore_game_stop: props.ignoreGameStop,
+            })
+            .then((data) => {
+                setSubmitting(false);
+                let result = data.data;
+                setActiveAction(result?.action);
+                if (result.success) {
+                    props.changePhase(ActionPhase.finish, result);
+                    setFinishedAction(result?.action);
+                } else {
+                    setCommitResult(result);
+                    toast.error(
+                        "Akci se nepodařilo provést. Podívejte se na výstup a případně opakujte"
+                    );
+                }
+            })
+            .catch((error) => {
+                setSubmitting(false);
+                toast.error(`Nastala neočekávaná chyba: ${error}`);
+            });
+    };
+    return (
+        <>
+            <h1>Náhled efektu akce {props.actionName}</h1>
+            {preview || !props.argsValid(debouncedArgs) ? (
+                <div ref={messageRef}>
+                    {props.argsValid(debouncedArgs) ? (
+                        // @ts-ignore
+                        <ActionMessage response={commitResult ?? preview} />
+                    ) : (
+                        <ErrorMessage>
+                            Zadané argumenty jsou neplatné.
+                        </ErrorMessage>
+                    )}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        height:
+                            loaderHeight > 0 ? loaderHeight + 48 : undefined,
+                    }}
+                >
+                    <LoadingOrError
+                        loading={!preview && !error}
+                        error={error}
+                        message="Nemůžu načíst výsledek akce. Dejte o tom vědět Honzovi a Maarovi"
+                    />
+                </div>
+            )}
+            <div className="row">
+                <Button
+                    label="Zpět"
+                    disabled={submitting}
+                    onClick={props.onAbort}
+                    className="my-4 mx-0 w-full bg-red-500 hover:bg-red-600 md:w-1/2"
+                />
+                <Button
+                    label={submitting ? "Odesílám data" : "Zahájit akci"}
+                    disabled={
+                        submitting ||
+                        !preview?.success ||
+                        !props.argsValid(debouncedArgs)
+                    }
+                    onClick={handleSubmit}
+                    className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"
+                />
+            </div>
+        </>
+    );
+}
+
 export function ActionMessage(props: { response: ActionResponse }) {
     let Message = props.response.success
         ? props.response.expected
@@ -232,17 +425,19 @@ function ActionPreviewPhase(props: {
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
     argsValid: (args: any) => boolean;
+    ignoreCost?: boolean;
+    ignoreGameStop?: boolean;
 }) {
-    const { preview, error, debouncedArgs } = useActionPreview(
-        props.actionId,
-        props.actionArgs,
-        props.argsValid
-    );
-    const [lastArgs, setLastArgs] = useState<any>([null, null]);
+    const { preview, error, debouncedArgs } = useActionPreview({
+        actionId: props.actionId,
+        actionArgs: props.actionArgs,
+        argsValid: props.argsValid,
+        ignoreCost: props.ignoreCost,
+        ignoreGameStop: props.ignoreGameStop,
+    });
+    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(undefined);
     const [submitting, setSubmitting] = useState(false);
-    const [initiateResult, setInitiateResult] = useState<ActionResponse | null>(
-        null
-    );
+    const [initiateResult, setInitiateResult] = useState<ActionResponse | undefined>(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
@@ -259,7 +454,7 @@ function ActionPreviewPhase(props: {
 
     if (!_.isEqual(lastArgs, [props.actionId, props.actionArgs])) {
         setLastArgs([props.actionId, props.actionArgs]);
-        setInitiateResult(null);
+        setInitiateResult(undefined);
     }
 
     let handleSubmit = () => {
@@ -268,6 +463,8 @@ function ActionPreviewPhase(props: {
             .post<any, any>("/game/actions/team/initiate/", {
                 action: props.actionId,
                 args: props.actionArgs,
+                ignore_cost: props.ignoreCost,
+                ignore_game_stop: props.ignoreGameStop,
             })
             .then((data) => {
                 setSubmitting(false);
@@ -338,6 +535,58 @@ function ActionPreviewPhase(props: {
                     className="my-4 mx-0 w-full bg-green-500 hover:bg-green-600 md:w-1/2"
                 />
             </div>
+        </>
+    );
+}
+
+export function IgnoreActionDicePhase(props: {
+    actionNumber: number;
+    message: string;
+    actionName: any;
+    changePhase: (phase: ActionPhase, data: any) => void;
+}) {
+    const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
+        `/game/actions/team/${props.actionNumber}/commit`,
+        fetcher
+    );
+    const { mutate } = useSWRConfig();
+
+    const header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
+
+    if (!action) {
+        return (
+            <>
+                {header}
+                <LoadingOrError
+                    loading={!action && !actionErr}
+                    error={actionErr}
+                    message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
+                />
+            </>
+        );
+    }
+
+    axiosService
+        .post<any, any>(`/game/actions/team/${props.actionNumber}/commit/`, {
+            throws: 0,
+            dots: 0,
+            ignore_throws: true,
+        })
+        .then((data) => {
+            let result = data.data;
+            mutate("/game/actions/team/unfinished");
+            props.changePhase(ActionPhase.finish, result);
+        })
+        .catch((error) => {
+            toast.error(`Nastala neočekávaná chyba: ${error}`);
+        });
+
+    return (
+        <>
+            {header}
+            <NeutralMessage className="my-0">
+                <CiviMarkdown>Házení kostkou se ignoruje</CiviMarkdown>
+            </NeutralMessage>
         </>
     );
 }
@@ -511,8 +760,8 @@ function DiceThrowForm(props: {
 
     let throwsLeft = teamWork
         ? Math.floor(
-              (teamWork - props.throws * props.throwCost) / props.throwCost
-          )
+            (teamWork - props.throws * props.throwCost) / props.throwCost
+        )
         : "??";
 
     return (

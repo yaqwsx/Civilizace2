@@ -93,10 +93,10 @@ function Countdown() {
                 {paused
                     ? "Hra je aktuálně pozastavena"
                     : // @ts-ignore
-                      `Herní čas: ${info.id}­–${String(minutesFow).padStart(
-                          2,
-                          "0"
-                      )}:${String(secsFow).padStart(2, "0")}`}
+                    `Herní čas: ${info.id}­–${String(minutesFow).padStart(
+                        2,
+                        "0"
+                    )}:${String(secsFow).padStart(2, "0")}`}
             </h1>
             <div style={{ fontSize: "30px" }} className="leading-none">
                 {!paused &&
@@ -157,7 +157,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     const actionArgs = useMemo(() => {
         return { team: props.teamId, materials: {} };
     }, [props.teamId]);
-    const { preview, error } = useActionPreview("FeedAction", actionArgs, () => true);
+    const { preview, error } = useActionPreview({ actionId: "FeedAction", actionArgs, argsValid: () => true });
     const [submitting, setSubmitting] = useState(false);
 
     useScanner((items: string[]) => {
@@ -168,7 +168,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
         if (items[0] == "ans-yes" && preview && preview.success) {
             setSubmitting(true);
             axiosService
-                    .post<any, any>("/game/actions/team/initiate/", {
+                .post<any, any>("/game/actions/team/initiate/", {
                     action: "FeedAction",
                     args: actionArgs,
                 })

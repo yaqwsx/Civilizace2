@@ -25,9 +25,9 @@ import {
     faCubesStacked,
     faStickyNote,
     faMountainCity,
-    faTicket,
     faSkullCrossbones,
     faTimeline,
+    faBook,
 } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -54,6 +54,7 @@ import { UnfinishedActionBar } from "./elements/action";
 import { FinishAction } from "./pages/action";
 import { MapDiff } from "./pages/mapdiff";
 import { ActionLog } from "./pages/actionlog";
+import { AnyAction } from "./pages/anyaction";
 
 function IconHamburger() {
     return (
@@ -219,6 +220,11 @@ function OrgMenu() {
             />
             {account.user.is_superuser ? (
                 <>
+                    <MenuItemT
+                        name="Zadání akce"
+                        icon={faBook}
+                        path="actions/"
+                    />
                     <MenuItemT
                         name="God mode"
                         icon={faSkullCrossbones}
@@ -423,6 +429,7 @@ function OrgPages() {
 function SuperOrgPages() {
     return (
         <Routes>
+            <Route path="/actions" element={<AnyAction />} />
             <Route path="/godmode" element={<GodMode />} />
             <Route path="/actionlog" element={<ActionLog />} />
             <Route path="*" element={<Error404 />} />
