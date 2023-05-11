@@ -53,8 +53,8 @@ def stateDeserialize(cls: Type[TModel], data: Dict[str, Any], entities: Entities
     for field in cls.__fields__.values():
         if field.name in data:
             source[field.name] = _stateDeserialize(data[field.name], field, entities)
-        else:
-            assert not field.required
+        elif field.required:
+            raise RuntimeError(f"Field {field.name} required, but not provided")
     # TODO: check impact of `cls.validate(source)` on performance (would be the prefered way)
     return cls.construct(**source)
 
@@ -105,24 +105,30 @@ def _stateDeserializeSingleton(data: Optional[Any], expectedType: Type, required
         return _stateDeserializeGeneric(data, expectedType, entities)
     assert isinstance(expectedType, type), 'expectedType has to be type or generic type'
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
-        assert isinstance(data, dict)
+        assert isinstance(data, dict), f"Expected dict for {expectedType}, but got {type(data)}"
         assert all(isinstance(name, str) for name in data)
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):
-        assert isinstance(data, str)
-        entity = entities[data]
-        assert isinstance(entity, expectedType)
+        assert isinstance(data, str), f"Expected str for {expectedType}, but got {type(data)}"
+        if data in entities:
+            entity = entities[data]
+        else:
+            raise RuntimeError(f"Could not find entity with id '{data}'")
+        if not isinstance(entity, expectedType):
+            raise RuntimeError(f"Entity {entity} is not {expectedType.__name__}")
         return entity
     if issubclass(expectedType, enum.Enum):
-        assert isinstance(data, str | int)
+        assert isinstance(data, str | int), f"Expected str or int for Enum {expectedType}, but got {type(data)}"
+        if isinstance(data, str):
+            return expectedType._member_map_[data]
         return expectedType(data)
     if issubclass(expectedType, bool):
         assert not isinstance(data, str), "Don't construct bool from str"
-        assert isinstance(data, int)
+        assert isinstance(data, int), f"Expected int for {expectedType}, but got {type(data)}"
         return expectedType(data)
     # TODO: check if float is ok
     assert issubclass(expectedType, int | float | Decimal | str), f"Unexpected type {expectedType}"
-    assert isinstance(data, str | int | float), f"data of unexpected type {type(data)}"
+    assert isinstance(data, str | int | float), f"Data of unexpected type {type(data)}"
     return expectedType(data)
 
 def serializeEntity(entity: EntityBase, extraFields: Dict[str, Any] = {}) -> Dict[str, Any]:

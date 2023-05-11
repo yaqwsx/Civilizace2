@@ -1,5 +1,5 @@
 from core.serializers import TeamSerializer
-from core.models import Team
+from core.models import Team, User
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
@@ -13,6 +13,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     ordering = ["-id"]
 
     def get_queryset(self):
+        assert isinstance(self.request.user, User)
         if self.request.user.isOrg:
             return Team.objects.all()
         return Team.objects.filter(visible=True)

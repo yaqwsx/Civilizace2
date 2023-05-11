@@ -25,7 +25,7 @@ from game.entities import Tech
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (DbAction, DbEntities, DbInteraction, DbMapDiff,
                          DbScheduledAction, DbState, DbSticker, DbTurn,
-                         DiffType, InteractionType, StickerType)
+                         DiffType, GameTime, InteractionType, StickerType)
 from game.serializers import DbActionSerializer
 from game.state import GameState
 from game.viewsets.permissions import IsOrg
@@ -50,7 +50,10 @@ class ActionViewHelper():
     @staticmethod
     def constructAction(actionType: str, args: Dict[str, Any], entities: Entities, state: GameState) -> ActionCommonBase:
         Action = GAME_ACTIONS[actionType]
-        argsObj = stateDeserialize(Action.argument, args, entities)
+        try:
+            argsObj = stateDeserialize(Action.argument, args, entities)
+        except KeyError as e:
+            raise UnexpectedStateError(f"Invalid args to action (KeyError: {e})") from e
         return Action.action.makeAction(state=state, entities=entities, args=argsObj)
 
     @staticmethod
@@ -168,15 +171,9 @@ class ActionViewHelper():
             awardedStickers.append(dbSticker)
         return awardedStickers
 
-
     @staticmethod
     def _dbScheduleAction(scheduled: ScheduledAction, *, source: DbAction, author: Optional[User]) -> DbScheduledAction:
-        activeTurn = DbTurn.getActiveTurn()
-        assert activeTurn.startedAt is not None
-        time_s = math.floor((activeTurn.startedAt - timezone.now()).total_seconds())
-        if time_s < 0:
-            raise RuntimeError(f"Turn {activeTurn.id} started in the future")
-        time_s = min(time_s, activeTurn.duration)
+        gameTime = GameTime.getNearestTime()
 
         dbAction = DbAction.objects.create(
                 actionType = scheduled.actionName,
@@ -188,8 +185,8 @@ class ActionViewHelper():
                 delay_s = scheduled.delay_s,
                 author = author,
                 created_from = source,
-                start_round = DbTurn.getActiveTurn(),
-                start_time_s = time_s,
+                start_round = gameTime.round,
+                start_time_s = gameTime.time,
             )
 
     @staticmethod
@@ -288,8 +285,6 @@ class ActionViewHelper():
 
     @staticmethod
     def _ensureGameIsRunning(actionName: str) -> None:
-        if actionName in ["GodModeAction"]:
-            return
         try:
             DbTurn.getActiveTurn()
         except DbTurn.DoesNotExist:

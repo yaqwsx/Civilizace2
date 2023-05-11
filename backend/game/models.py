@@ -1,5 +1,6 @@
 from __future__ import annotations
 import functools
+import math
 
 import string
 from functools import cached_property
@@ -48,6 +49,21 @@ class GameTime(NamedTuple):
         if not isinstance(other, GameTime):
             raise TypeError(f"comparison not supported between instances of '{type(self).__name__}' and '{type(other).__name__}'")
         return self.round_id < other.round_id or (self.round_id == other.round_id and self.time < other.time)
+
+    @staticmethod
+    def getNearestTime() -> GameTime:
+        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).order_by('id').last()
+        if turn is None:
+            turn = DbTurn.objects.earliest('-enabled', 'id')
+
+        if turn.startedAt is None:
+            return GameTime(turn, 0)
+
+        time_s = math.floor((turn.startedAt - timezone.now()).total_seconds())
+        if time_s < 0:
+            raise RuntimeError(f"Turn {turn.id} started in the future")
+        time_s = min(time_s, turn.duration)
+        return GameTime(turn, time_s)
 
 
 class DbTurn(models.Model):

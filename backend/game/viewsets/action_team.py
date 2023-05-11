@@ -21,7 +21,7 @@ from game.entities import Die, Entities
 from game.entities import Team as TeamEntity
 from game.gameGlue import serializeEntity, stateSerialize
 from game.models import (DbAction, DbEntities, DbInteraction, DbState, DbTask,
-                         DbTaskAssignment, InteractionType)
+                         DbTaskAssignment, GameTime, InteractionType)
 from game.state import GameState
 from game.viewsets.action_view_helper import (ActionViewHelper,
                                               UnexpectedActionTypeError,
@@ -44,10 +44,13 @@ def checkInitiatePhase(interaction: InteractionType) -> None:
 class InitiateSerializer(serializers.Serializer):
     action = serializers.ChoiceField(list(id for (id, action) in GAME_ACTIONS.items() if issubclass(action.action, TeamInteractionActionBase)))
     args = serializers.JSONField()
+    ignore_cost = serializers.BooleanField(default=False)  # type: ignore
+    ignore_game_stop = serializers.BooleanField(default=False)  # type: ignore
 
-class CommitSerializer(serializers.Serializer):
-    throws = serializers.IntegerField()
-    dots = serializers.IntegerField()
+class ThrowsSerializer(serializers.Serializer):
+    throws = serializers.IntegerField(min_value=0)
+    dots = serializers.IntegerField(min_value=0)
+    ignore_throws = serializers.BooleanField(default=False)  # type: ignore
 
 class TeamActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
@@ -115,13 +118,18 @@ class TeamActionViewSet(viewsets.ViewSet):
         sourceState = dbState.toIr()
 
         try:
-            ActionViewHelper._ensureGameIsRunning(data["action"])
+            if request.user.is_superuser and data["ignore_game_stop"]:
+                ActionViewHelper._ensureGameIsRunning(data["action"])
+
             action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
             if not isinstance(action, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
 
-            initiateInfo = action.applyInitiate()
+            initiateInfo = action.applyInitiate(ignore_cost=data["ignore_cost"])
             commitResult = action.commitSuccess()
+
+            # Check if the game started
+            _ = GameTime.getNearestTime() if len(commitResult.scheduledActions) > 0 else None
 
             stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
 
@@ -147,7 +155,8 @@ class TeamActionViewSet(viewsets.ViewSet):
         data = deserializer.validated_data
 
         try:
-            ActionViewHelper._ensureGameIsRunning(data["action"])
+            if request.user.is_superuser and data["ignore_game_stop"]:
+                ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
             dbState = DbState.objects.latest()
@@ -162,8 +171,8 @@ class TeamActionViewSet(viewsets.ViewSet):
             if not isinstance(dryAction, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(dryAction, TeamInteractionActionBase)
 
-            initiateInfo = action.applyInitiate()
-            dryAction.applyInitiate()
+            initiateInfo = action.applyInitiate(ignore_cost=data["ignore_cost"])
+            dryAction.applyInitiate(ignore_cost=data["ignore_cost"])
             diceReq = action.diceRequirements()
 
             dbAction = DbAction.objects.create(
@@ -250,16 +259,16 @@ class TeamActionViewSet(viewsets.ViewSet):
         # We want to allow finish action even when the game is not running
         # ActionViewHelper._ensureGameIsRunning(dbAction.actionType)
         try:
-            deserializer = CommitSerializer(data=request.data)
+            deserializer = ThrowsSerializer(data=request.data)
             deserializer.is_valid(raise_exception=True)
             params = deserializer.validated_data
+            assert params["throws"] >= 0, "ThrowsSerializer does not allow negative throws"
+            assert params["dots"] >= 0, "ThrowsSerializer does not allow negative dots"
 
-            if params["throws"] < 0:
-                raise ActionFailed("Nemůžete zadat záporné hody")
-            if params["dots"] < 0:
-                raise ActionFailed("Nemůžete zadat záporné tečky")
-
-            commitResult = action.commitThrows(throws=params["throws"], dots=params["dots"])
+            if request.user.is_superuser and params['ignore_throws']:
+                commitResult = action.commitSuccess()
+            else:
+                commitResult = action.commitThrows(throws=params["throws"], dots=params["dots"])
             ActionViewHelper.dbStoreInteraction(dbAction, dbState,
                 InteractionType.commit,request.user, state, action)
 

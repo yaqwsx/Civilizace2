@@ -56,10 +56,6 @@ class TurnsViewSet(viewsets.ViewSet):
         try:
             turn = DbTurn.getActiveTurn()
             assert turn.startedAt is not None
-            remaining = turn.startedAt + timezone.timedelta(seconds=turn.duration) - timezone.now()
-            secsRemaining = remaining.total_seconds()
-            if secsRemaining < 0:
-                return Response({"id": -1})
             return Response(DbTurnSerializer(turn).data)
         except DbTurn.DoesNotExist:
             return Response({"id": -1})

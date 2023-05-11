@@ -204,7 +204,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     # Public API
 
-    def applyInitiate(self) -> str:
+    def applyInitiate(self, *, ignore_cost: bool = False) -> str:
         """
         Voláno, když je třeba provést akci. Uvede herní stav do takového stavu,
         aby byl tým schopen házet kostkou a mohlo se přejít na commit.
@@ -215,6 +215,10 @@ class TeamInteractionActionBase(TeamActionBase):
 
         self._initiateCheck()
         self._ensureValid()
+
+        if ignore_cost:
+            return "Ignoruje se placení za akci"
+
         require = self._payResources(self.cost())
         if len(require) > 0:
             return f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"

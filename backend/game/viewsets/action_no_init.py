@@ -13,7 +13,7 @@ from game.actions.actionBase import ActionResult, NoInitActionBase
 from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import Entities
 from game.gameGlue import stateSerialize
-from game.models import DbAction, DbEntities, DbState, InteractionType
+from game.models import DbAction, DbEntities, DbState, GameTime, InteractionType
 from game.state import GameState
 from game.viewsets.action_view_helper import (ActionViewHelper,
                                               UnexpectedActionTypeError)
@@ -24,6 +24,7 @@ from game.viewsets.stickers import DbStickerSerializer, Sticker
 class NoInitActionSerializer(serializers.Serializer):
     action = serializers.ChoiceField(list(id for (id, action) in GAME_ACTIONS.items() if issubclass(action.action, NoInitActionBase)))
     args = serializers.JSONField()
+    ignore_game_stop = serializers.BooleanField(default=True)  # type: ignore
 
 class NoInitActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg, IsSuperOrg)
@@ -57,11 +58,12 @@ class NoInitActionViewSet(viewsets.ViewSet):
         msgBuilder = MessageBuilder()
 
         try:
-            ActionViewHelper._ensureGameIsRunning(data["action"])
+            assert request.user.is_superuser, "Only superusers can run NoInit actions"
+            if not data["ignore_game_stop"]:
+                ActionViewHelper._ensureGameIsRunning(data["action"])
         except ActionFailed as e:
             msgBuilder += str(e)
-            msgBuilder += "Ignoring stopped game for preview."
-            pass
+            msgBuilder += "Ignoruje se zastavení hry pro preview."
 
 
         try:
@@ -70,6 +72,9 @@ class NoInitActionViewSet(viewsets.ViewSet):
                 raise UnexpectedActionTypeError(action, NoInitActionBase)
 
             commitResult = action.commit()
+
+            # Check if the game started
+            _ = GameTime.getNearestTime() if len(commitResult.scheduledActions) > 0 else None
 
             stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
 
@@ -94,7 +99,9 @@ class NoInitActionViewSet(viewsets.ViewSet):
         data = deserializer.validated_data
 
         try:
-            ActionViewHelper._ensureGameIsRunning(data["action"])
+            assert request.user.is_superuser, "Only superusers can run NoInit actions"
+            if not data["ignore_game_stop"]:
+                ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
             dbState = DbState.objects.latest()
