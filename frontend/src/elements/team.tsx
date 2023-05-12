@@ -76,7 +76,7 @@ export function TeamSelector(props: TeamSelectorProps) {
     if (error && props.onError) {
         props.onError(
             "Nemůžu načíst týmy ze serveru. Zkouším znovu...\n" +
-                error.toString()
+            error.toString()
         );
     }
 
@@ -112,15 +112,17 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
             {!props.allowNull || (
                 <button
                     className={classNames(
-                        "bg-transparent",
                         "rounded-md",
                         "m-2",
+                        "shadow-lg",
+                        "bg-transparent",
                         "flex-auto",
                         {
                             "scale-110 border-4 border-black font-bold":
                                 !props?.active?.id,
                         }
                     )}
+                    style={{ width: "70px", height: "70px" }}
                     onClick={() => {
                         if (props.onChange) props.onChange(undefined);
                     }}
