@@ -12,7 +12,7 @@ import {
     LoadingOrError,
     SpinboxInput,
 } from "../elements";
-import { PerformAction } from "../elements/action";
+import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect, ArmySelectBox } from "../elements/army";
 import { EntityTag, useEntities } from "../elements/entities";
 import { BuildingSelect, TeamTileSelect, TileSelect } from "../elements/map";
@@ -202,7 +202,7 @@ export function CultureAgenda(props: { team: Team }) {
     const [action, setAction] = useAtom(urlMapActionAtom);
 
     return (
-        <PerformAction
+        <PerformNoInitAction
             actionId="AddCultureAction"
             actionName={`Udělit kulturu týmu ${props.team.name}`}
             actionArgs={{

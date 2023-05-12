@@ -7,7 +7,7 @@ from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
 
 
 class AddCultureArgs(TeamActionArgs):
-    culture: Decimal
+    culture: int
 
 
 class AddCultureAction(TeamActionBase, NoInitActionBase):

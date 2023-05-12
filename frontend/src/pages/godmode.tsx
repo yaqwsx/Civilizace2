@@ -4,7 +4,7 @@ import "jsoneditor-react/es/editor.min.css";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { Button, Dialog, LoadingOrError } from "../elements";
-import { PerformAction } from "../elements/action";
+import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import { objectMap } from "../utils/functional";
 import AceEditor from "react-ace";
@@ -78,7 +78,7 @@ export function GodModeImpl(props: {state: any; onFinish: () => void}) {
             />
             {isSubmitting && (
                 <Dialog onClose={() => setIsSubmitting(false)}>
-                    <PerformAction
+                    <PerformNoInitAction
                         actionName="GodMode"
                         actionId="GodModeAction"
                         actionArgs={{

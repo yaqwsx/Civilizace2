@@ -283,13 +283,11 @@ export function AnyAction() {
             </FormRow>
             <div className={`w-full rounded h-4 my-4 ${!noInit ? "bg-green-800" : "bg-purple-800"}`} ></div>
 
-            <div className="md:flex md:items-center mb-6">
-                <div className="py-1 md:w-1/2">
-                    <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
-                        Ignore Game Stop
+            <div className="flex justify-center items-center mb-6">
+                <div className="mx-10 field">
+                    <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                        Ignore Game Stop:
                     </label>
-                </div>
-                <div className="field flex flex-wrap md:w-1/2">
                     <input
                         className="checkboxinput"
                         type="checkbox"
@@ -297,32 +295,32 @@ export function AnyAction() {
                         onChange={(e) => setIgnoreGameStop(e.target.checked)}
                     />
                 </div>
-                <div className="py-1 md:w-1/2">
-                    <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
-                        Ignore Cost
-                    </label>
-                </div>
-                <div className="field flex flex-wrap md:w-1/2">
-                    <input
-                        className="checkboxinput"
-                        type="checkbox"
-                        checked={ignoreCost}
-                        onChange={(e) => setIgnoreCost(e.target.checked)}
-                    />
-                </div>
-                <div className="py-1 md:w-1/2">
-                    <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
-                        Ignore Throws
-                    </label>
-                </div>
-                <div className="field flex flex-wrap md:w-1/2">
-                    <input
-                        className="checkboxinput"
-                        type="checkbox"
-                        checked={ignoreThrows}
-                        onChange={(e) => setIgnoreThrows(e.target.checked)}
-                    />
-                </div>
+                {!noInit &&
+                    <>
+                        <div className="mx-10 field">
+                            <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                                Ignore Cost:
+                            </label>
+                            <input
+                                className="checkboxinput"
+                                type="checkbox"
+                                checked={ignoreCost}
+                                onChange={(e) => setIgnoreCost(e.target.checked)}
+                            />
+                        </div>
+                        <div className="mx-10 field">
+                            <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                                Ignore Throws:
+                            </label>
+                            <input
+                                className="checkboxinput"
+                                type="checkbox"
+                                checked={ignoreThrows}
+                                onChange={(e) => setIgnoreThrows(e.target.checked)}
+                            />
+                        </div>
+                    </>
+                }
             </div>
 
             <h2>Vyberte akci</h2>
@@ -349,9 +347,9 @@ export function AnyAction() {
                 <PerformAnyAction
                     action={action}
                     onReset={() => setActionId(undefined)}
-                    ignoreCost={ignoreCost}
+                    ignoreCost={noInit ? undefined : ignoreCost}
+                    ignoreThrows={noInit ? undefined : ignoreThrows}
                     ignoreGameStop={ignoreGameStop}
-                    ignoreThrows={ignoreThrows}
                     isNoInit={noInit}
                 />
             ) : null}
@@ -472,7 +470,7 @@ function JsonForm(props: { value: any, onChange: (value: any) => void, lines?: n
         value={JSON.stringify(props.value, undefined, 2)}
         className="w-full"
         minLines={props.lines}
-        maxLines={Infinity}
+        maxLines={20}
         setOptions={{
             enableBasicAutocompletion: false,
             enableLiveAutocompletion: false,

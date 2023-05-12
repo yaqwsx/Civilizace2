@@ -26,7 +26,7 @@ class GodModeAction(NoInitActionBase):
         return "Godmode Action"
 
     @override
-    def _commitImpl(self, throws: int, dots: int) -> None:
+    def _commitImpl(self) -> None:
         currentState = stateDeserialize(GameState, stateSerialize(self.state), self.entities)
         originalState = self.args.original
         newState = self.args.new
