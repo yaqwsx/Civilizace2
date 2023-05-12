@@ -63,37 +63,3 @@ class MessageBuilder(BaseModel):
     @property
     def empty(self) -> bool:
         return len(self.message) == 0
-
-
-class ActionCost(BaseModel):
-    allowedDice: Set[Die] = set()
-    requiredDots: int = 0
-    postpone: int = 0
-    resources: Dict[Resource, Decimal] = {}
-
-    @root_validator
-    def validate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        allowedDice = values.get("allowedDice", [])
-        requiredDots = values.get("requiredDots", 0)
-        if requiredDots < 0:
-            raise ValueError("Nemůžu chtít záporně mnoho puntíků")
-        if requiredDots == 0 and len(allowedDice) > 0:
-            raise ValueError(
-                "Nemůžu mít povolené kostky a chtít 0 puntíků")
-        if requiredDots > 0 and len(allowedDice) == 0:
-            raise ValueError(
-                "Nemůžu chtít puntíky a nespecifikovat kostky")
-        return values
-
-    @property
-    def productions(self):
-        return {r: a for r, a in self.resources.items() if r.isProduction}
-
-    def formatDice(self):
-        if self.requiredDots == 0:
-            return "Akce nevyžaduje házení kostkou"
-        builder = MessageBuilder()
-        with builder.startList(f"Je třeba hodit {self.requiredDots} na jedné z:") as addDice:
-            for d in self.allowedDice:
-                addDice(d.name)
-        return builder.message

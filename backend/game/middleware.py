@@ -5,7 +5,6 @@ from math import floor
 import os
 import sys
 from typing import Iterable
-from game.actions.common import ActionCost
 from game.actions.nextTurn import NextTurnAction, NextTurnArgs
 from game.gameGlue import stateSerialize
 from game.models import DbAction, DbEntities, DbInteraction, DbScheduledAction, DbState, DbTick, DbTurn, GameTime, InteractionType
