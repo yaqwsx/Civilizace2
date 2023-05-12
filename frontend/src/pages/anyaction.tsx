@@ -21,6 +21,8 @@ import AceEditor from "react-ace";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { EntityBase, EntityResource, EntityTech, EntityVyroba, ServerActionType, Team } from "../types";
 import { useEntities } from "../elements/entities";
+import _ from "lodash";
+import { Ace } from "ace-builds";
 
 const urlActionAtom = atomWithHash<string | undefined>(
     "action",
@@ -61,6 +63,7 @@ const urlIgnoreThrowsAtom = atomWithHash<boolean>(
 type ArgumentFormProps = {
     value: any,
     onChange: (value: any) => void,
+    onError: (value: string) => void,
 };
 
 type ArgumentInfo = {
@@ -88,6 +91,7 @@ function UnknownArgTypeForm(name: string, serverInfo: { type: string, required: 
             <p>Expected type: {typeStr}{error ? ` (${error})` : ''}</p>
             <JsonForm
                 onChange={props.onChange}
+                onError={props.onError}
                 value={props.value}
                 lines={2}
             />
@@ -165,13 +169,13 @@ function GetArgForm(props: {
             }
         case 'gamestate':
             {
-                const fetchState = (props: { setState: (state: any) => void, setError: (error: any) => void }) => {
-                    props.setState(null);
-                    props.setError(null);
+                const fetchState = (props: { setState: (state: any) => void, setError: (error: string) => void }) => {
+                    props.setError("Loading current state");
                     fetcher("/game/state/latest").then((data) => {
                         props.setState(data);
                     }).catch((error) => {
-                        props.setError(error);
+                        console.error("Couldn't fetch state", error);
+                        props.setError(String(error));
                     })
                 }
 
@@ -182,6 +186,7 @@ function GetArgForm(props: {
                             <div className="mx-0 w-3/4 flex-initial px-1">
                                 <JsonForm
                                     onChange={p.onChange}
+                                    onError={p.onError}
                                     value={p.value}
                                 />
                             </div>
@@ -189,7 +194,7 @@ function GetArgForm(props: {
                                 <Button
                                     label="Reload State"
                                     className="my-auto mx-auto bg-purple-700 hover:bg-purple-800"
-                                    onClick={() => fetchState({ setState: p.onChange, setError: (error) => { } })} // TODO: dont ignore error
+                                    onClick={() => fetchState({ setState: p.onChange, setError: p.onError })}
                                 />
                             </div>
                         </div>
@@ -410,12 +415,38 @@ function PerformAnyAction(props: {
 }) {
     const urlTeam = useTeamFromUrl();
     const [args, setArgs] = useState<Record<string, any>>({});
+    const [argErrors, setArgErrors] = useState<Record<string, any>>({});
     const [lastActionId, setLastActionId] = useState<string | undefined>(undefined);
 
     if (lastActionId !== props.action.id) {
         setLastActionId(props.action.id);
-        const defaultArgs = Object.fromEntries(Object.entries(props.action.args).map(([name, argInfo]) => [name, argInfo.default]));
+        const defaultArgs = Object.fromEntries(
+            Object.entries(props.action.args)
+                .filter(([name]) => name !== 'team')
+                .map(([name, argInfo]) => [name, argInfo.default])
+        );
         setArgs(defaultArgs);
+        setArgErrors(Object.fromEntries(
+            Object.entries(props.action.args)
+                .filter(([name, argInfo]) => name !== 'team' && !argInfo.isValid(argInfo.default))
+                .map(([name, argInfo]) => [name, `${argInfo.default === undefined ? "Chybějící" : "Nevalidní"} argument`])
+        ));
+    }
+
+    const handleArgError = (name: string, error?: string) => {
+        argErrors[name] = error;
+        setArgErrors({ ...argErrors });
+    }
+    const handleArgChange = (name: string, value: any) => {
+        if (args[name] !== value) {
+            args[name] = value;
+            setArgs({ ...args });
+            if (props.action.args[name].isValid(value)) {
+                handleArgError(name, undefined);
+            } else {
+                handleArgError(name, `${value === undefined ? "Chybějící" : "Nevalidní"} argument`);
+            }
+        }
     }
 
     if (urlTeam.error) {
@@ -453,17 +484,12 @@ function PerformAnyAction(props: {
                     <FormRow
                         key={name}
                         label={`Argument '${name}':`}
-                        error={argInfo.isValid(args[name]) ? null : `${args[name] === undefined ? "Chybějící" : "Nevalidní"} argument`}
+                        error={argErrors[name]}
                     >
                         {argInfo.form({
                             value: args[name],
-                            onChange: (value: any) => {
-                                console.log('Arg change', { name, new_value: value, old_value: args[name] });
-                                if (args[name] !== value) {
-                                    args[name] = value;
-                                    setArgs({ ...args });
-                                }
-                            }
+                            onChange: (value: any) => handleArgChange(name, value),
+                            onError: (error: string) => handleArgError(name, error),
                         })}
                     </FormRow>
                 );
@@ -498,16 +524,31 @@ function PerformAnyAction(props: {
     />;
 }
 
-function JsonForm(props: { value: any, onChange: (value: any) => void, lines?: number }) {
-    const [editor, setEditor] = useState<any>(undefined);
+function JsonForm(props: {
+    value: any,
+    onChange: (value: any) => void,
+    onError: (value: string) => void,
+    lines?: number,
+}) {
+    const [lastValue, setLastValue] = useState<any>(undefined);
+    const [argsStr, setArgsStr] = useState<string>("");
+    const [editor, setEditor] = useState<Ace.Editor | undefined>(undefined);
+
+    if (props.value !== lastValue) {
+        setLastValue(props.value);
+        setArgsStr(JSON.stringify(props.value, undefined, 2));
+    }
 
     return <AceEditor
         mode="json"
         theme="github"
         onChange={(value: string) => {
+            setArgsStr(value);
             try {
                 props.onChange(JSON.parse(value));
-            } catch { }
+            } catch (e) {
+                props.onError(String(e));
+            }
         }}
         name="argeditor"
         onLoad={setEditor}
@@ -515,7 +556,7 @@ function JsonForm(props: { value: any, onChange: (value: any) => void, lines?: n
         showPrintMargin={true}
         showGutter={true}
         highlightActiveLine={true}
-        value={JSON.stringify(props.value, undefined, 2)}
+        value={argsStr}
         className="w-full"
         minLines={props.lines}
         maxLines={20}
