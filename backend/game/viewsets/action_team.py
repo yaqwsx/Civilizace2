@@ -118,7 +118,7 @@ class TeamActionViewSet(viewsets.ViewSet):
         sourceState = dbState.toIr()
 
         try:
-            if request.user.is_superuser and data["ignore_game_stop"]:
+            if not request.user.is_superuser or not data["ignore_game_stop"]:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
@@ -155,7 +155,7 @@ class TeamActionViewSet(viewsets.ViewSet):
         data = deserializer.validated_data
 
         try:
-            if request.user.is_superuser and data["ignore_game_stop"]:
+            if not request.user.is_superuser or not data["ignore_game_stop"]:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
