@@ -163,6 +163,39 @@ function GetArgForm(props: {
                     </select>
                 );
             }
+        case 'gamestate':
+            {
+                const fetchState = (props: { setState: (state: any) => void, setError: (error: any) => void }) => {
+                    props.setState(null);
+                    props.setError(null);
+                    fetcher("/game/state/latest").then((data) => {
+                        props.setState(data);
+                    }).catch((error) => {
+                        props.setError(error);
+                    })
+                }
+
+                return (p: ArgumentFormProps) => (
+                    <>
+                        <p>Expected type: GameState</p>
+                        <div className="flex flex-wrap w-full">
+                            <div className="mx-0 w-3/4 flex-initial px-1">
+                                <JsonForm
+                                    onChange={p.onChange}
+                                    value={p.value}
+                                />
+                            </div>
+                            <div className="mx-0 w-1/4 flex-initial px-1 flex">
+                                <Button
+                                    label="Reload State"
+                                    className="my-auto mx-auto bg-purple-700 hover:bg-purple-800"
+                                    onClick={() => fetchState({ setState: p.onChange, setError: (error) => { } })} // TODO: dont ignore error
+                                />
+                            </div>
+                        </div>
+                    </>
+                );
+            }
         case 'enum':
             return (p: ArgumentFormProps) => (
                 <select
