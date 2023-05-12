@@ -42,7 +42,7 @@ class MessageBuilder(BaseModel):
         self.message += message
 
     @contextlib.contextmanager
-    def startList(self, header: str) -> Generator[Callable[[str], None], None, None]:
+    def startList(self, header: str = "") -> Generator[Callable[[str], None], None, None]:
         lines = []
         try:
             yield lambda x: lines.append(x)

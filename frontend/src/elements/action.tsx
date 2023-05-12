@@ -88,27 +88,34 @@ export function useActionPreview(props: {
     actionId: string,
     actionArgs: any,
     argsValid: (args: any) => boolean,
-    ignoreCost?: boolean,
     ignoreGameStop?: boolean,
+    ignoreCost?: boolean,
+    ignoreThrows?: boolean,
     isNoInit?: boolean,
 }) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
-    const debouncedArgs = useDebounceDeep(props.actionArgs, 500);
+    const debounced = useDebounceDeep({
+        args: props.actionArgs,
+        ignoreCost: props.ignoreCost,
+        ignoreGameStop: props.ignoreGameStop,
+        ignoreThrows: props.ignoreThrows,
+    }, 500);
 
     useEffect(() => {
         setError(null);
         setPreview(null);
 
-        if (!props.actionArgs || !debouncedArgs || !props.argsValid(debouncedArgs)) return;
+        if (!props.actionArgs || !debounced.args || !props.argsValid(debounced.args)) return;
 
         axiosService
             .post<any, any>(`/game/actions/${props.isNoInit ? 'noinit' : 'team'}/dry/`, {
                 action: props.actionId,
-                args: debouncedArgs,
-                ignore_cost: props.ignoreCost,
-                ignore_game_stop: props.ignoreGameStop,
+                args: debounced.args,
+                ignore_cost: debounced.ignoreCost,
+                ignore_game_stop: debounced.ignoreGameStop,
+                ignore_throws: debounced.ignoreThrows,
             })
             .then((data) => {
                 setTimeout(() => {
@@ -120,12 +127,12 @@ export function useActionPreview(props: {
                 setPreview(null);
                 setError(error);
             });
-    }, [props.actionId, debouncedArgs]);
+    }, [props.actionId, debounced]);
 
     return {
         preview: preview,
         error: error,
-        debouncedArgs: debouncedArgs,
+        debouncedArgs: debounced.args,
     };
 }
 
@@ -147,7 +154,7 @@ export function PerformAction(props: {
     ignoreGameStop?: boolean;
     ignoreThrows?: boolean;
 }) {
-    const [phase, setPhase] = useState<{phase: ActionPhase, data?: any}>({
+    const [phase, setPhase] = useState<{ phase: ActionPhase, data?: any }>({
         phase: ActionPhase.initiatePhase,
     });
     const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
@@ -158,8 +165,7 @@ export function PerformAction(props: {
         };
     }, []);
 
-    let argsValid =
-        props.argsValid === undefined ? () => true : props.argsValid;
+    let argsValid = props.argsValid ?? (() => true);
 
     let changePhase = (phase: ActionPhase, data: any) => {
         setPhase({
@@ -179,8 +185,9 @@ export function PerformAction(props: {
                     onAbort={props.onBack}
                     changePhase={changePhase}
                     argsValid={argsValid}
-                    ignoreCost={props.ignoreCost}
                     ignoreGameStop={props.ignoreGameStop}
+                    ignoreCost={props.ignoreCost}
+                    ignoreThrows={props.ignoreThrows}
                 />
                 <div className="my-8 h-1 w-full" />
             </>
@@ -425,17 +432,19 @@ function ActionPreviewPhase(props: {
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
     argsValid: (args: any) => boolean;
-    ignoreCost?: boolean;
-    ignoreGameStop?: boolean;
+    ignoreGameStop?: boolean,
+    ignoreCost?: boolean,
+    ignoreThrows?: boolean,
 }) {
     const { preview, error, debouncedArgs } = useActionPreview({
         actionId: props.actionId,
         actionArgs: props.actionArgs,
         argsValid: props.argsValid,
-        ignoreCost: props.ignoreCost,
         ignoreGameStop: props.ignoreGameStop,
+        ignoreCost: props.ignoreCost,
+        ignoreThrows: props.ignoreThrows,
     });
-    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(undefined);
+    const [lastArgs, setLastArgs] = useState<{ actionId: string, args: any, ignoreCost?: boolean, ignoreGameStop?: boolean } | undefined>(undefined);
     const [submitting, setSubmitting] = useState(false);
     const [initiateResult, setInitiateResult] = useState<ActionResponse | undefined>(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
@@ -452,8 +461,9 @@ function ActionPreviewPhase(props: {
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
-    if (!_.isEqual(lastArgs, [props.actionId, props.actionArgs])) {
-        setLastArgs([props.actionId, props.actionArgs]);
+    const currentArgs = { actionId: props.actionId, args: props.actionArgs, ignoreCost: props.ignoreCost, ignoreGameStop: props.ignoreGameStop };
+    if (!_.isEqual(lastArgs, currentArgs)) {
+        setLastArgs(currentArgs);
         setInitiateResult(undefined);
     }
 
@@ -585,7 +595,7 @@ export function IgnoreActionDicePhase(props: {
         <>
             {header}
             <NeutralMessage className="my-0">
-                <CiviMarkdown>Házení kostkou se ignoruje</CiviMarkdown>
+                Ignoruje se házení kostkou...
             </NeutralMessage>
         </>
     );

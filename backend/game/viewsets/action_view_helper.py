@@ -228,7 +228,7 @@ class ActionViewHelper():
             action = scheduled.actionType.makeAction(state=state, entities=entities, args=scheduled.args)
             scheduledResult = action.commit()
 
-            b.add(f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}očekávaný výstup)")
+            b.add(f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}úspěch)")
             b.add(scheduledResult.message)
 
             for team in [team] if team is not None else scheduledResult.notifications:

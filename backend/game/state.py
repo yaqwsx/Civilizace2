@@ -405,7 +405,7 @@ class GameState(StateModel):
 
 def printResourceListForMarkdown(resources: CostDict, roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:
     message = MessageBuilder()
-    with message.startList("") as addLine:
+    with message.startList() as addLine:
         for resource, amount in resources.items():
             addLine(f"[[{resource.id}|{roundFunction(amount)}]]")
     return message.message

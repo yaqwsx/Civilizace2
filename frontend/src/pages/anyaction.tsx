@@ -367,8 +367,14 @@ function PerformAnyAction(props: {
     isNoInit: boolean,
 }) {
     const urlTeam = useTeamFromUrl();
-    const defaultArgs = Object.fromEntries(Object.entries(props.action.args).map(([name, argInfo]) => [name, argInfo.default]));
-    const [args, setArgs] = useState<Record<string, any>>(defaultArgs);
+    const [args, setArgs] = useState<Record<string, any>>({});
+    const [lastActionId, setLastActionId] = useState<string | undefined>(undefined);
+
+    if (lastActionId !== props.action.id) {
+        setLastActionId(props.action.id);
+        const defaultArgs = Object.fromEntries(Object.entries(props.action.args).map(([name, argInfo]) => [name, argInfo.default]));
+        setArgs(defaultArgs);
+    }
 
     if (urlTeam.error) {
         return (

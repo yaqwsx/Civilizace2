@@ -135,7 +135,7 @@ class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
         if reward.plundered is not None:
             self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
-        msgBuilder = MessageBuilder(message=f"Výroba [[{self.args.vyroba.id}]] dokončena")
+        msgBuilder = MessageBuilder(message=f"Výroba {self.args.vyroba.name} dokončena:")
         msgBuilder += self._warnings
         msgBuilder += self._info
         self._addNotification(self.args.team, msgBuilder.message)

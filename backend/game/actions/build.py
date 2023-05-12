@@ -76,13 +76,12 @@ class BuildCompletedAction(TeamActionBase, NoInitActionBase):
         if self.args.team not in tileState.unfinished:
             tileState.unfinished[self.args.team] = set()
         tileState.unfinished[self.args.team].add(self.args.build)
-        self._info += f"Budova {self.args.build.name} postavena na poli {self.args.tile.name}"
-        # TODO: Add notification
+        self._info += f"Budova [[{self.args.build.id}]] postavena na poli [[{self.args.tile.id}]]"
 
         if tileState.parcelCount <= len(tileState.buildings):
             self._warnings += f"Pole [[{self.args.tile.id}]] nemá místo pro další budovu. Pro kolaudaci je potřeba demolice jiné budovy."
 
-        msgBuilder = MessageBuilder(message=f"Stavba budovy [[{self.args.build.id}]] dokončena")
+        msgBuilder = MessageBuilder(message=f"Stavba budovy {self.args.build.name} dokončena:")
         msgBuilder += self._warnings
         msgBuilder += self._info
         self._addNotification(self.args.team, msgBuilder.message)

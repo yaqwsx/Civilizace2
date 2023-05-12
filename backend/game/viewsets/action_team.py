@@ -52,6 +52,9 @@ class ThrowsSerializer(serializers.Serializer):
     dots = serializers.IntegerField(min_value=0)
     ignore_throws = serializers.BooleanField(default=False)  # type: ignore
 
+class DrySerializer(InitiateSerializer):
+    ignore_throws = serializers.BooleanField(default=False)  # type: ignore
+
 class TeamActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
@@ -82,18 +85,27 @@ class TeamActionViewSet(viewsets.ViewSet):
                 t.save()
 
     @staticmethod
-    def _previewDryInteractionMessage(initiateInfo: str, dice: Tuple[Iterable[Die], int],
+    def _previewDiceThrow(dice: Optional[Tuple[Iterable[Die], int]]) -> str:
+        if dice is None:
+            return "Ignoruje se házení kostkou"
+        if dice[1] <= 0:
+            return "Akce nevyžaduje házení kostkou"
+
+        b = MessageBuilder(message=f"Je třeba hodit {dice[1]} na jedné z:")
+        with b.startList() as addDice:
+            for d in sorted(dice[0], key=lambda die: die.name):
+                addDice(d.name)
+        return b.message
+
+    @staticmethod
+    def _previewDryInteractionMessage(initiateInfo: str, dice: Optional[Tuple[Iterable[Die], int]],
             commitResult: ActionResult, stickers: Iterable[Sticker],
             team: Optional[TeamEntity], entities: Entities, state: GameState) -> str:
         b = MessageBuilder()
         b.add("## Předpoklady")
         b.add(initiateInfo)
-        if dice[1] > 0:
-            with b.startList(f"Je třeba hodit {dice[1]} na jedné z:") as addDice:
-                for d in sorted(dice[0], key=lambda die: die.name):
-                    addDice(d.name)
-        else:
-            b.add("Akce nevyžaduje házení kostkou")
+
+        b.add(TeamActionViewSet._previewDiceThrow(dice))
 
         b.add("## Efekty")
         b.add(commitResult.message)
@@ -108,9 +120,13 @@ class TeamActionViewSet(viewsets.ViewSet):
 
     @action(methods=["POST"], detail=False)
     def dry(self, request: Request) -> Response:
-        deserializer = InitiateSerializer(data=request.data)
+        deserializer = DrySerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
+
+        ignoreGameStop = request.user.is_superuser and data["ignore_game_stop"]
+        ignoreCost = request.user.is_superuser and data["ignore_cost"]
+        ignoreThrows = request.user.is_superuser and data["ignore_throws"]
 
         _, entities = DbEntities.objects.get_revision()
         dbState = DbState.objects.latest()
@@ -118,14 +134,14 @@ class TeamActionViewSet(viewsets.ViewSet):
         sourceState = dbState.toIr()
 
         try:
-            if not request.user.is_superuser or not data["ignore_game_stop"]:
+            if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
             if not isinstance(action, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
 
-            initiateInfo = action.applyInitiate(ignore_cost=data["ignore_cost"])
+            initiateInfo = action.applyInitiate(ignore_cost=ignoreCost)
             commitResult = action.commitSuccess()
 
             # Check if the game started
@@ -133,7 +149,8 @@ class TeamActionViewSet(viewsets.ViewSet):
 
             stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
 
-            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, action.diceRequirements(),
+            diceRequirements = action.diceRequirements() if not ignoreThrows else None
+            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, diceRequirements,
                     commitResult, stickers, team=action.args.team, entities=action.entities, state=action.state)
 
             return Response(data={
@@ -154,8 +171,11 @@ class TeamActionViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
 
+        ignoreGameStop = request.user.is_superuser and data["ignore_game_stop"]
+        ignoreCost = request.user.is_superuser and data["ignore_cost"]
+
         try:
-            if not request.user.is_superuser or not data["ignore_game_stop"]:
+            if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
@@ -171,8 +191,8 @@ class TeamActionViewSet(viewsets.ViewSet):
             if not isinstance(dryAction, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(dryAction, TeamInteractionActionBase)
 
-            initiateInfo = action.applyInitiate(ignore_cost=data["ignore_cost"])
-            dryAction.applyInitiate(ignore_cost=data["ignore_cost"])
+            initiateInfo = action.applyInitiate(ignore_cost=ignoreCost)
+            dryAction.applyInitiate(ignore_cost=ignoreCost)
             diceReq = action.diceRequirements()
 
             dbAction = DbAction.objects.create(
@@ -265,7 +285,9 @@ class TeamActionViewSet(viewsets.ViewSet):
             assert params["throws"] >= 0, "ThrowsSerializer does not allow negative throws"
             assert params["dots"] >= 0, "ThrowsSerializer does not allow negative dots"
 
-            if request.user.is_superuser and params['ignore_throws']:
+            ignoreThrows = request.user.is_superuser and params["ignore_throws"]
+
+            if ignoreThrows:
                 commitResult = action.commitSuccess()
             else:
                 commitResult = action.commitThrows(throws=params["throws"], dots=params["dots"])
