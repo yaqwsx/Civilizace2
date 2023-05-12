@@ -19,7 +19,7 @@ import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import AceEditor from "react-ace";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
-import { EntityBase, EntityResource, EntityTech, EntityVyroba, ServerActionType } from "../types";
+import { EntityBase, EntityResource, EntityTech, EntityVyroba, ServerActionType, Team } from "../types";
 import { useEntities } from "../elements/entities";
 
 const urlActionAtom = atomWithHash<string | undefined>(
@@ -119,13 +119,22 @@ function GetArgForm(props: {
                 />
             );
         case 'team':
-            return (p: ArgumentFormProps) => (
-                <TeamSelector
-                    allowNull={!props.serverInfo.required}
-                    active={p.value}
-                    onChange={(team) => p.onChange(team?.id)}
-                />
-            );
+            {
+                const { data, loading, error } = props.entities['team'];
+
+                if (error || loading || data === undefined) {
+                    const errorStr = `Could not load teams` + error ? `: ${error}` : '';
+                    return UnknownArgTypeForm(props.name, props.serverInfo, errorStr);
+                }
+
+                return (p: ArgumentFormProps) => (
+                    <TeamSelector
+                        allowNull={!props.serverInfo.required}
+                        active={data[p.value] as Team}
+                        onChange={(team) => p.onChange(team?.id)}
+                    />
+                );
+            }
         case 'maptileentity':
         case 'tech':
         case 'building':
