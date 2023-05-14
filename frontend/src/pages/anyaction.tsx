@@ -14,7 +14,7 @@ import {
 } from "../elements/team";
 import { useAtom } from "jotai";
 import { atomWithHash } from "jotai/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import AceEditor from "react-ace";
@@ -53,6 +53,15 @@ const urlIgnoreGameStopAtom = atomWithHash<boolean>(
 
 const urlIgnoreThrowsAtom = atomWithHash<boolean>(
     "ignthrows",
+    false,
+    {
+        serialize: (x) => (x ? '1' : ''),
+        deserialize: (x) => (x === '1'),
+    }
+);
+
+const urlJsonArgsAtom = atomWithHash<boolean>(
+    "json",
     false,
     {
         serialize: (x) => (x ? '1' : ''),
@@ -271,6 +280,7 @@ export function AnyAction() {
     const [ignoreCost, setIgnoreCost] = useAtom(urlIgnoreCostAtom);
     const [ignoreGameStop, setIgnoreGameStop] = useAtom(urlIgnoreGameStopAtom);
     const [ignoreThrows, setIgnoreThrows] = useAtom(urlIgnoreThrowsAtom);
+    const [jsonArgs, setJsonArgs] = useAtom(urlJsonArgsAtom);
     const [noInit, setNoInit] = useState(false);
 
     if (actionsError) {
@@ -360,6 +370,17 @@ export function AnyAction() {
                         </div>
                     </>
                 }
+                <div className="mx-10 field">
+                    <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                        Json Args:
+                    </label>
+                    <input
+                        className="checkboxinput"
+                        type="checkbox"
+                        checked={jsonArgs}
+                        onChange={(e) => setJsonArgs(e.target.checked)}
+                    />
+                </div>
             </div>
 
             <h2>Vyberte akci</h2>
@@ -390,6 +411,7 @@ export function AnyAction() {
                     ignoreThrows={noInit ? undefined : ignoreThrows}
                     ignoreGameStop={ignoreGameStop}
                     isNoInit={noInit}
+                    jsonArgs={jsonArgs}
                 />
             ) : null}
         </>
@@ -404,42 +426,32 @@ function PerformAnyAction(props: {
     ignoreGameStop?: boolean,
     ignoreThrows?: boolean,
     isNoInit: boolean,
+    jsonArgs?: boolean,
 }) {
     const urlTeam = useTeamFromUrl();
     const [args, setArgs] = useState<Record<string, any>>({});
-    const [argErrors, setArgErrors] = useState<Record<string, any>>({});
+    const [argErrors, setArgErrors] = useState<Record<string, string> | string>({});
     const [lastActionId, setLastActionId] = useState<string | undefined>(undefined);
 
-    if (lastActionId !== props.action.id) {
-        setLastActionId(props.action.id);
+    const setDefaultArgs = () => {
         const defaultArgs = Object.fromEntries(
             Object.entries(props.action.args)
-                .filter(([name]) => name !== 'team')
-                .map(([name, argInfo]) => [name, argInfo.default])
+                .map(([name, argInfo]) => [name, name === 'team' ? urlTeam.team?.id : argInfo.default])
         );
         setArgs(defaultArgs);
         setArgErrors(Object.fromEntries(
             Object.entries(props.action.args)
-                .filter(([name, argInfo]) => name !== 'team' && !argInfo.isValid(argInfo.default))
-                .map(([name, argInfo]) => [name, `${argInfo.default === undefined ? "Chybějící" : "Nevalidní"} argument`])
+                .filter(([name, argInfo]) => !argInfo.isValid(defaultArgs[name]))
+                .map(([name, argInfo]) => [name, (_.isNil(defaultArgs[name]) ? "Chybící" : "Nevalidní") + " argument"])
         ));
     }
 
-    const handleArgError = (name: string, error?: string) => {
-        argErrors[name] = error;
-        setArgErrors({ ...argErrors });
-    }
-    const handleArgChange = (name: string, value: any) => {
-        if (args[name] !== value) {
-            args[name] = value;
-            setArgs({ ...args });
-            if (props.action.args[name].isValid(value)) {
-                handleArgError(name, undefined);
-            } else {
-                handleArgError(name, `${value === undefined ? "Chybějící" : "Nevalidní"} argument`);
-            }
+    useEffect(() => {
+        if (props.action.id !== lastActionId) {
+            setLastActionId(props.action.id);
+            setDefaultArgs();
         }
-    }
+    }, [props.action.id]);
 
     if (urlTeam.error) {
         return (
@@ -453,48 +465,129 @@ function PerformAnyAction(props: {
         return <InlineSpinner />;
     }
 
+    const argsValid = (a: Record<string, any>) => {
+        return Object.entries(props.action.args).every(([name, argInfo]) => argInfo.isValid(a[name]));
+    }
+
+    const handleArgError = (name: string, error?: string) => {
+        console.assert(_.isObject(argErrors));
+        const newErrors = _.isObject(argErrors) ? Object.create(argErrors) : {};
+        if (error) {
+            newErrors[name] = error;
+        } else {
+            delete newErrors[name];
+        }
+        setArgErrors(newErrors);
+    }
+    const getError = (name: string, value: any) => {
+        const argInfo = props.action.args[name];
+        if (argInfo === undefined) {
+            return _.isNil(value) ? undefined : "Neočekávaný argument";
+        }
+        if (argInfo.isValid(value)) {
+            return undefined;
+        }
+        return _.isNil(value) ? "Chybící argument" : "Nevalidní argument";
+    }
+    const handleArgChange = (name: string, value?: any) => {
+        console.assert(_.isObject(args));
+        if (args[name] !== value) {
+            const newArgs = Object.create(args);
+            newArgs[name] = value;
+            setArgs(newArgs);
+            handleArgError(name, getError(name, value));
+        }
+    }
+    const handleTeamArgChange = (team?: Team) => {
+        handleArgChange('team', team?.id);
+        console.log("handle team change", team);
+        urlTeam.setTeam(team);
+    }
+    const handleAllArgsChange = (newArgs: any) => {
+        if (!_.isObject(newArgs)) {
+            setArgErrors("Arguments json has to be a dict");
+            return;
+        }
+
+        setArgs(newArgs);
+        const newArgErrors: Record<string, string> = {};
+        for (var [name, value] of Object.entries(newArgs)) {
+            const error = getError(name, value);
+            if (error) {
+                newArgErrors[name] = error;
+            }
+        }
+        for (var name in props.action.args) {
+            if ((newArgs as Record<string, any>)[name] === undefined) {
+                const error = getError(name, undefined);
+                if (error) {
+                    newArgErrors[name] = error;
+                }
+            }
+        }
+        setArgErrors(newArgErrors);
+    }
+
     const isTeamAction = props.action.args['team'] !== undefined;
     const team = isTeamAction ? urlTeam.team : undefined;
 
-    const extraPreview = <>
-        {
-            isTeamAction ?
-                <FormRow
-                    label="Argument 'team':"
-                    error={props.action.args['team'].isValid(team) ? null : `${team === undefined ? "Chybějící" : "Nevalidní"} argument`}
-                >
-                    <TeamSelector onChange={urlTeam.setTeam} activeId={urlTeam.team?.id} allowNull={true} />
-                </FormRow>
-                : null
+    let extraPreview: JSX.Element;
+    if (props.jsonArgs) {
+        extraPreview = (
+            <AllArgsForm
+                args={args}
+                argErrors={argErrors}
+                onChange={handleAllArgsChange}
+            />
+        );
+    } else {
+        console.assert(_.isObject(args));
+        console.assert(_.isObject(argErrors));
+        const argTeam = args['team'];
+        if (!_.isNil(argTeam) && argTeam !== urlTeam.team?.id) {
+            console.log("setting team to id:", argTeam);
+            handleTeamArgChange(urlTeam.allTeams?.find((t) => t.id === args['team']));
         }
-        {team ? <TeamRowIndicator team={team} /> : null}
-        {
-            Object.entries(props.action.args).map(([name, argInfo]) => {
-                if (name === "team")
-                    return;
-                return (
+        extraPreview = <>
+            {
+                isTeamAction ?
                     <FormRow
-                        key={name}
-                        label={`Argument '${name}':`}
-                        error={argErrors[name]}
+                        label="Argument 'team':"
+                        error={getError('team', urlTeam.team?.id)}
                     >
-                        {argInfo.form({
-                            value: args[name],
-                            onChange: (value: any) => handleArgChange(name, value),
-                            onError: (error: string) => handleArgError(name, error),
-                        })}
+                        <TeamSelector onChange={handleTeamArgChange} activeId={urlTeam.team?.id} allowNull={true} />
                     </FormRow>
-                );
-            })
-        }
-    </>;
+                    : null
+            }
+            {team ? <TeamRowIndicator team={team} /> : null}
+            {
+                Object.entries(props.action.args).map(([name, argInfo]) => {
+                    if (name === "team")
+                        return;
+                    return (
+                        <FormRow
+                            key={name}
+                            label={`Argument '${name}':`}
+                            error={(argErrors as Record<string, any>)[name]}
+                        >
+                            {argInfo.form({
+                                value: args[name],
+                                onChange: (value: any) => handleArgChange(name, value),
+                                onError: (error: string) => handleArgError(name, error),
+                            })}
+                        </FormRow>
+                    );
+                })
+            }
+        </>;
+    }
 
     if (props.isNoInit) {
         return <PerformNoInitAction
             actionId={props.action.id}
             actionName={props.action.id + (team ? ` pro tým ${team.name}` : '')}
-            actionArgs={{ ...args, team: team?.id }}
-            argsValid={(a: Record<string, any>) => Object.entries(props.action.args).every(([name, argInfo]) => argInfo.isValid(a[name]))}
+            actionArgs={args}
+            argsValid={argsValid}
             onBack={props.onReset}
             onFinish={props.onReset}
             ignoreGameStop={props.ignoreGameStop}
@@ -505,7 +598,7 @@ function PerformAnyAction(props: {
     return <PerformAction
         actionId={props.action.id}
         actionName={props.action.id + (team ? ` pro tým ${team.name}` : '')}
-        actionArgs={{ ...args, team: team?.id }}
+        actionArgs={args}
         argsValid={(a: Record<string, any>) => Object.entries(props.action.args).every(([name, argInfo]) => argInfo.isValid(a[name]))}
         onBack={props.onReset}
         onFinish={props.onReset}
@@ -516,20 +609,66 @@ function PerformAnyAction(props: {
     />;
 }
 
+function AllArgsForm(props: {
+    args: Record<string, any>,
+    argErrors: string | Record<string, string>,
+    onChange: (value: any) => void,
+}) {
+    const [parseError, setParseError] = useState<string | undefined>(undefined);
+
+    let jsonArgsError: JSX.Element | undefined;
+    if (_.isObject(props.argErrors)) {
+        jsonArgsError = <>
+            {
+                Object.entries(props.argErrors)
+                    .filter(([name, error]) => error)
+                    .map(([name, error]) => <p key={name}>{name}: {error}</p>)
+            }
+        </>;
+    } else {
+        jsonArgsError = <p>{props.argErrors}</p>;
+    }
+
+    return (
+        <FormRow
+            label={`All arguments:`}
+            error={
+                <>
+                    {jsonArgsError}
+                    {parseError ? <p className="mt-2">Parse Error</p> : null}
+                </>
+            }
+        >
+            <JsonForm
+                value={props.args}
+                onChange={(value) => {
+                    setParseError(undefined);
+                    props.onChange(value);
+                }}
+                onError={setParseError}
+            />
+        </FormRow>
+    );
+}
+
 function JsonForm(props: {
     value: any,
     onChange: (value: any) => void,
-    onError: (value: string) => void,
+    onError?: (value: string) => void,
     lines?: number,
 }) {
     const [lastValue, setLastValue] = useState<any>(undefined);
     const [argsStr, setArgsStr] = useState<string>("");
     const [editor, setEditor] = useState<Ace.Editor | undefined>(undefined);
 
-    if (props.value !== lastValue) {
-        setLastValue(props.value);
-        setArgsStr(JSON.stringify(props.value, undefined, 2));
-    }
+    const onError = props.onError ?? (() => { });
+
+    useEffect(() => {
+        if (!_.isEqual(props.value, lastValue)) {
+            setArgsStr(JSON.stringify(props.value, undefined, 2));
+            setLastValue(props.value);
+        }
+    }, [props.value]);
 
     return <AceEditor
         mode="json"
@@ -537,9 +676,11 @@ function JsonForm(props: {
         onChange={(value: string) => {
             setArgsStr(value);
             try {
-                props.onChange(JSON.parse(value));
+                const parsedValue = JSON.parse(value);
+                setLastValue(parsedValue);
+                props.onChange(parsedValue);
             } catch (e) {
-                props.onError(String(e));
+                onError(String(e));
             }
         }}
         name="argeditor"
