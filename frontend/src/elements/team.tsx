@@ -41,26 +41,25 @@ export function useTeamFromUrl() {
     const [teamId, setTeamId] = useTeamIdFromUrl();
     const { teams, loading, error } = useTeams();
 
-    let team = undefined;
+    let team: Team | undefined = undefined;
     if (!loading && !error && teams && teamId) {
-        for (const i in teams) {
-            if (teams[i].id === teamId) {
-                team = teams[i];
-                break;
-            }
-        }
+        team = teams.find((t) => t.id === teamId);
     }
     let combinedError = undefined;
-    if (error) combinedError = error;
-    else if (loading) new Error(`Could not load teams`);
-    else if (!team && teamId)
+    if (error) {
+        combinedError = error;
+    } else if (loading) {
+        combinedError = new Error(`Could not load teams`);
+    } else if (!team && teamId) {
         combinedError = new Error(`No such team ${teamId}`);
+    }
 
     return {
         team: team,
         setTeam: (t?: Team) => setTeamId(t?.id),
         loading: loading,
         error: combinedError,
+        allTeams: teams,
     };
 }
 

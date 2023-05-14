@@ -78,7 +78,7 @@ export interface ActionType {
     args: Record<string, ArgumentInfo>,
 }
 
-function UnknownArgTypeForm(name: string, serverInfo: { type: string, required: boolean, default?: any }, error?: string) {
+function UnknownArgTypeForm(serverInfo: { type: string, required: boolean, default?: any }, error?: string) {
     const printType = (type: any) => {
         return type.type + (type.subtypes ? `[${type.subtypes?.map(printType).join(',')}]` : '');
     };
@@ -140,7 +140,7 @@ function GetArgForm(props: ArgFormProps) {
 
                 if (error || loading || data === undefined) {
                     const errorStr = `Could not load entities` + error ? `: ${error}` : '';
-                    return UnknownArgTypeForm(props.name, props.serverInfo, errorStr);
+                    return UnknownArgTypeForm(props.serverInfo, errorStr);
                 }
 
                 return (p: ArgumentFormProps) => (
@@ -217,8 +217,8 @@ function GetArgForm(props: ArgFormProps) {
                 />
             );
         default:
-            console.log("Unknown arg type", props.serverInfo.type.toLowerCase(), "for arg", props.name, props.serverInfo);
-            return UnknownArgTypeForm(props.name, props.serverInfo);
+            console.log("Unknown arg type", props.serverInfo.type.toLowerCase(), props.serverInfo);
+            return UnknownArgTypeForm(props.serverInfo);
     }
 }
 
@@ -251,7 +251,7 @@ export function GetActionTypes(): { actions: ActionType[] | undefined, error: an
             args: Object.fromEntries(Object.entries(a.args).map(([name, serverInfo]) => {
                 const argInfo: ArgumentInfo = {
                     isValid: (value: any) => !(serverInfo.required && value === undefined),
-                    form: GetArgForm({ name, serverInfo, entities }),
+                    form: GetArgForm({ serverInfo, entities }),
                     default: serverInfo.default,
                 };
                 return [name, argInfo];
