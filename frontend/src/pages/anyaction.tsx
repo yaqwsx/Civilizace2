@@ -112,7 +112,22 @@ type ArgFormProps = {
 
 function GetArgForm(props: ArgFormProps) {
     switch (props.serverInfo.type.toLowerCase()) {
-        // case 'decimal':
+        case 'decimal':
+            return (p: ArgumentFormProps) => (
+                <input
+                    type="text"
+                    onChange={(e) => {
+                        if (/^\d*(\.\d*)?$/.test(e.target.value)) {
+                            p.onChange(e.target.value === '' ? undefined :
+                                e.target.value === '.' ? '0.' :
+                                    e.target.value);
+                        }
+                    }}
+                    value={p.value ?? ''}
+                    placeholder="Decimal"
+                    className="flex w-full flex-wrap"
+                />
+            );
         case 'int':
             return (p: ArgumentFormProps) => (
                 <SpinboxInput
@@ -222,6 +237,7 @@ function GetArgForm(props: ArgFormProps) {
                     type="text"
                     onChange={(e) => p.onChange(e.target.value)}
                     value={p.value ?? ''}
+                    placeholder="Text"
                     className="flex w-full flex-wrap"
                 />
             );
