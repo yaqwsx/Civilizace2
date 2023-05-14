@@ -123,22 +123,13 @@ function GetArgForm(props: {
                 />
             );
         case 'team':
-            {
-                const { data, loading, error } = props.entities['team'];
-
-                if (error || loading || data === undefined) {
-                    const errorStr = `Could not load teams` + error ? `: ${error}` : '';
-                    return UnknownArgTypeForm(props.name, props.serverInfo, errorStr);
-                }
-
-                return (p: ArgumentFormProps) => (
-                    <TeamSelector
-                        allowNull={!props.serverInfo.required}
-                        active={data[p.value] as Team}
-                        onChange={(team) => p.onChange(team?.id)}
-                    />
-                );
-            }
+            return (p: ArgumentFormProps) => (
+                <TeamSelector
+                    allowNull={!props.serverInfo.required}
+                    activeId={p.value}
+                    onChange={(team) => p.onChange(team?.id)}
+                />
+            );
         case 'maptileentity':
         case 'tech':
         case 'building':
@@ -471,7 +462,7 @@ function PerformAnyAction(props: {
                     label="Argument 'team':"
                     error={props.action.args['team'].isValid(team) ? null : `${team === undefined ? "Chybějící" : "Nevalidní"} argument`}
                 >
-                    <TeamSelector onChange={urlTeam.setTeam} active={urlTeam.team} allowNull={true} />
+                    <TeamSelector onChange={urlTeam.setTeam} activeId={urlTeam.team?.id} allowNull={true} />
                 </FormRow>
                 : null
         }

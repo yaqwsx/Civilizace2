@@ -77,7 +77,7 @@ export function MapAgenda() {
         <>
             <h1>Stanoviště s mapou</h1>
             <FormRow label="Vyber tým:">
-                <TeamSelector onChange={handleTeamChange} active={team} />
+                <TeamSelector onChange={handleTeamChange} activeId={team?.id} />
             </FormRow>
             {team ? (
                 <>
@@ -489,7 +489,7 @@ export function TradeAgenda(props: { team: Team }) {
                     <FormRow label="Příjemce:">
                         <TeamSelector
                             allowNull={false}
-                            active={recipient}
+                            activeId={recipient?.id}
                             onChange={setRecipient}
                             ignoredTeam={props.team}
                         />
@@ -719,7 +719,7 @@ function ArmyDeployForm(props: {
                         <FormRow label="Spřátelený tým:">
                             <TeamSelector
                                 allowNull
-                                active={friendlyTeam}
+                                activeId={friendlyTeam?.id}
                                 onChange={setFriendlyTeam}
                             />
                         </FormRow>

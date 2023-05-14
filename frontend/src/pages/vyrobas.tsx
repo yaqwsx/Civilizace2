@@ -85,7 +85,7 @@ export function Vyroba() {
                 {team ? ` pro tým ${team.name}` : null}
             </h1>
             <FormRow label="Vyber tým:">
-                <TeamSelector onChange={handleTeamChange} active={team} />
+                <TeamSelector onChange={handleTeamChange} activeId={team?.id} />
             </FormRow>
             <TeamRowIndicator team={team} />
             <FormRow label="Vyberte akci:">

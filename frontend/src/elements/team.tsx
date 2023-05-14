@@ -65,7 +65,7 @@ export function useTeamFromUrl() {
 }
 
 type TeamSelectorProps = {
-    active?: Team | null;
+    activeId?: string;
     onChange?: (selectedTeam?: Team) => void;
     onError?: (message: string) => void;
     allowNull?: boolean;
@@ -119,7 +119,7 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
                         "flex-auto",
                         {
                             "scale-110 border-4 border-black font-bold":
-                                !props?.active?.id,
+                                !props.activeId,
                         }
                     )}
                     style={{ width: "70px", height: "70px" }}
@@ -142,7 +142,7 @@ function TeamSelectorImpl(props: TeamSelectorImplProps) {
                     "flex-auto",
                     {
                         "border-4 border-black scale-110 font-bold":
-                            props?.active?.id === team.id,
+                            props.activeId === team.id,
                     }
                 );
                 return (
