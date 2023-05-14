@@ -83,12 +83,9 @@ function UnknownArgTypeForm(name: string, serverInfo: { type: string, required: 
         return type.type + (type.subtypes ? `[${type.subtypes?.map(printType).join(',')}]` : '');
     };
 
-    const typeStr = printType(serverInfo);
-    console.log("Unknown arg type", typeStr, { name, serverInfo });
-
     return (props: ArgumentFormProps) => (
         <>
-            <p>Expected type: {typeStr}{error ? ` (${error})` : ''}</p>
+            <p>Expected type: {printType(serverInfo)}{error ? ` (${error})` : ''}</p>
             <JsonForm
                 onChange={props.onChange}
                 onError={props.onError}
@@ -99,18 +96,21 @@ function UnknownArgTypeForm(name: string, serverInfo: { type: string, required: 
     );
 }
 
-function GetArgForm(props: {
-    name: string,
+type ArgFormProps = {
     serverInfo: { type: string, required: boolean, default?: any },
     entities: Record<string, { data?: Record<string, EntityBase>, loading: boolean, error: any }>,
-}) {
+}
+
+function GetArgForm(props: ArgFormProps) {
     switch (props.serverInfo.type.toLowerCase()) {
         // case 'decimal':
         case 'int':
             return (p: ArgumentFormProps) => (
                 <SpinboxInput
                     value={p.value}
-                    onChange={p.onChange}
+                    onChange={(value) => {
+                        p.onChange(value);
+                    }}
                 />
             );
         case 'bool':
@@ -146,7 +146,7 @@ function GetArgForm(props: {
                 return (p: ArgumentFormProps) => (
                     <select
                         className="select field"
-                        value={p.value}
+                        value={p.value ?? ''}
                         onChange={(e) => p.onChange(e.target.value || undefined)}
                     >
                         <option value=''>No value</option>
@@ -196,7 +196,7 @@ function GetArgForm(props: {
             return (p: ArgumentFormProps) => (
                 <select
                     className="select field"
-                    value={p.value}
+                    value={p.value ?? ''}
                     onChange={(e) => p.onChange(e.target.value ? Number(e.target.value) : undefined)}
                 >
                     <option value=''>No value</option>
@@ -211,12 +211,13 @@ function GetArgForm(props: {
             return (p: ArgumentFormProps) => (
                 <input
                     type="text"
-                    onChange={p.onChange}
-                    value={p.value}
+                    onChange={(e) => p.onChange(e.target.value)}
+                    value={p.value ?? ''}
                     className="flex w-full flex-wrap"
                 />
             );
         default:
+            console.log("Unknown arg type", props.serverInfo.type.toLowerCase(), "for arg", props.name, props.serverInfo);
             return UnknownArgTypeForm(props.name, props.serverInfo);
     }
 }
@@ -364,7 +365,7 @@ export function AnyAction() {
             <h2>Vyberte akci</h2>
             <FormRow label={`Vyber ${!noInit ? "Team Interaction" : "No Init"} akci:`} className="my-8">
                 <select
-                    value={String(action?.id)}
+                    value={String(action?.id ?? '')}
                     onChange={(event) => handleActionIdChange(event.target.value)}
                     className="select"
                 >

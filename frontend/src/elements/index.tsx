@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { Navigate } from "react-router-dom";
 import AceEditor from "react-ace";
+import _ from "lodash";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -158,7 +159,7 @@ export function SpinboxInput(props: SpinboxInputType) {
                 type="number"
                 disabled={props.disabled}
                 onChange={handleChange}
-                value={String(props.value)}
+                value={String(props.value ?? '')}
                 className="numberinput mx-3 flex-1"
             />
             <button className={buttonClassName} onClick={() => incValue(1)}>
@@ -200,8 +201,8 @@ export function LoadingOrError(props: {
                     <PrettyAxiosError error={props.error} />
                 ) : (
                     <>
-                    <p>{props.error.toString()}</p>
-                    <p>{(JSON.stringify(props.error?.response?.data) || new String()).substring(0, 400)}</p>
+                        <p>{props.error.toString()}</p>
+                        <p>{(JSON.stringify(props.error?.response?.data) || new String()).substring(0, 400)}</p>
                     </>
                 )}
             </ComponentError>
