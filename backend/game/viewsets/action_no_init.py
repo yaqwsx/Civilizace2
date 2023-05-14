@@ -17,7 +17,7 @@ from game.models import DbAction, DbEntities, DbState, GameTime, InteractionType
 from game.state import GameState
 from game.viewsets.action_view_helper import (ActionViewHelper,
                                               UnexpectedActionTypeError)
-from game.viewsets.permissions import IsOrg, IsSuperOrg
+from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer, Sticker
 
 
@@ -27,7 +27,7 @@ class NoInitActionSerializer(serializers.Serializer):
     ignore_game_stop = serializers.BooleanField(default=True)  # type: ignore
 
 class NoInitActionViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, IsOrg, IsSuperOrg)
+    permission_classes = (IsAuthenticated, IsOrg)
 
     @staticmethod
     def _previewDryCommitMessage(commitResult: ActionResult, stickers: Iterable[Sticker],
@@ -50,6 +50,8 @@ class NoInitActionViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
 
+        ignoreGameStop = request.user.is_superuser and data["ignore_game_stop"]
+
         _, entities = DbEntities.objects.get_revision()
         dbState = DbState.objects.latest()
         state = dbState.toIr()
@@ -58,8 +60,7 @@ class NoInitActionViewSet(viewsets.ViewSet):
         msgBuilder = MessageBuilder()
 
         try:
-            assert request.user.is_superuser, "Only superusers can run NoInit actions"
-            if not data["ignore_game_stop"]:
+            if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
         except ActionFailed as e:
             msgBuilder += str(e)
@@ -98,9 +99,10 @@ class NoInitActionViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
 
+        ignoreGameStop = request.user.is_superuser and data["ignore_game_stop"]
+
         try:
-            assert request.user.is_superuser, "Only superusers can run NoInit actions"
-            if not data["ignore_game_stop"]:
+            if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
