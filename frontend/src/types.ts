@@ -159,7 +159,6 @@ export interface ActionResponse {
 
 export interface ActionCommitResponse {
     requiredDots: number;
-    allowedDice: EntityBase[];
     throwCost: number;
     description: string;
     team: string;

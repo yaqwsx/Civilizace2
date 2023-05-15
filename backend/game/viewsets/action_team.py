@@ -265,12 +265,11 @@ class TeamActionViewSet(viewsets.ViewSet):
         if not isinstance(action, TeamInteractionActionBase):
             raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
 
-        reqDice, reqDots = action.diceRequirements()
+        pointsCost = action.pointsCost()
 
         if request.method == "GET":
             return Response({
                 "requiredDots": reqDots,
-                "allowedDice": list(map(serializeEntity, sorted(reqDice, key=lambda d: d.name))),
                 "throwCost": action.throwCost(),
                 "description": dbAction.description,
                 "team": action.args.team.id

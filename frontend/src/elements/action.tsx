@@ -705,12 +705,7 @@ export function ActionDicePhase(props: {
             <NeutralMessage className="my-0">
                 <CiviMarkdown>{props.message}</CiviMarkdown>
                 Je třeba naházet {action.requiredDots}. Cena hodu je{" "}
-                {action.throwCost} práce. Je možné házet pomocí:{" "}
-                <ul>
-                    {action?.allowedDice && action.allowedDice.map((x) => (
-                        <li key={x.id}>{x.name}</li>
-                    ))}
-                </ul>
+                {action.throwCost} práce.
             </NeutralMessage>
             <DiceThrowForm
                 teamId={action.team}
