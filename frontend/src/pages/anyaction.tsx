@@ -483,6 +483,13 @@ function PerformAnyAction(props: {
         }
     }, [props.action.id]);
 
+    const isTeamAction = props.action.args['team'] !== undefined;
+    useEffect(() => {
+        if (isTeamAction && urlTeam.team?.id !== args['team']) {
+            handleArgChange('team', urlTeam.team?.id);
+        }
+    }, [urlTeam.team?.id, props.action.id]);
+
     if (urlTeam.error) {
         return (
             <ComponentError>
@@ -516,9 +523,8 @@ function PerformAnyAction(props: {
         }
     }
     const handleTeamArgChange = (team?: Team) => {
-        handleArgChange('team', team?.id);
-        console.log("handle team change", team);
         urlTeam.setTeam(team);
+        handleArgChange('team', team?.id);
     }
     const handleAllArgsChange = (newArgs: any) => {
         if (!_.isObject(newArgs)) {
@@ -545,8 +551,7 @@ function PerformAnyAction(props: {
         setArgErrors(newArgErrors);
     }
 
-    const isTeamAction = props.action.args['team'] !== undefined;
-    const team = isTeamAction ? urlTeam.team : undefined;
+    const team = isTeamAction ? urlTeam.allTeams?.find((t) => t.id === args['team']) : undefined;
 
     let extraPreview: JSX.Element;
     if (props.jsonArgs) {
@@ -560,23 +565,21 @@ function PerformAnyAction(props: {
     } else {
         console.assert(_.isObject(args));
         console.assert(_.isObject(argErrors));
-        const argTeam = args['team'];
-        if (!_.isNil(argTeam) && argTeam !== urlTeam.team?.id) {
-            console.log("setting team to id:", argTeam);
-            handleTeamArgChange(urlTeam.allTeams?.find((t) => t.id === args['team']));
-        }
+
         extraPreview = <>
             {
                 isTeamAction ?
-                    <FormRow
-                        label="Argument 'team':"
-                        error={getError('team', urlTeam.team?.id)}
-                    >
-                        <TeamSelector onChange={handleTeamArgChange} activeId={urlTeam.team?.id} allowNull={true} />
-                    </FormRow>
+                    <>
+                        <FormRow
+                            label="Argument 'team':"
+                            error={getArgError({ value: team?.id, argInfo: props.action.args['team'] })}
+                        >
+                            <TeamSelector onChange={handleTeamArgChange} activeId={team?.id} allowNull={true} />
+                        </FormRow>
+                        <TeamRowIndicator team={team} />
+                    </>
                     : null
             }
-            {team ? <TeamRowIndicator team={team} /> : null}
             {
                 Object.entries(props.action.args).map(([name, argInfo]) => {
                     if (name === "team")
