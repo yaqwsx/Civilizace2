@@ -36,8 +36,8 @@ class IncreaseCounterAction(TeamInteractionActionBase):
         return {}
 
     @override
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        return [self.entities.dice["die-lesy"]], 20
+    def pointsCost(self) -> int:
+        return 20
 
     @override
     def throwCost(self) -> int:

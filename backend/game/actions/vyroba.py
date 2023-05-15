@@ -65,9 +65,8 @@ class VyrobaAction(TeamInteractionActionBase):
         return result
 
     @override
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        points = ceil(self.args.vyroba.points * (1 + self.args.count) / 2)
-        return (self.teamState.getUnlockingDice(self.args.vyroba), points)
+    def pointsCost(self) -> int:
+        return ceil(self.args.vyroba.points * (1 + self.args.count) / 2)
 
     def travelTime(self) -> int:
         return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))

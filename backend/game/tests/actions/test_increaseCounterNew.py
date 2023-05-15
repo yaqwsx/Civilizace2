@@ -15,7 +15,7 @@ def test_something():
     args = IncreaseCounterArgs(red=Decimal(5), team=teamState)
     action = makeAction(IncreaseCounterAction, state=state, entities=entities, args=args)
 
-    req = action.diceRequirements()
+    req = action.pointsCost()
     action.applyInitiate()
     action.applyCommit(1, 1000)
     assert action.requiresDelayedEffect() == 0

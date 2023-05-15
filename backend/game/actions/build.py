@@ -32,9 +32,9 @@ class BuildAction(TeamInteractionActionBase):
         return self.args.build.cost
 
     @override
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
+    def pointsCost(self) -> int:
         assert self.teamState
-        return (self.teamState.getUnlockingDice(self.args.build), self.args.build.points)
+        return self.args.build.points
 
     def travelTime(self) -> int:
         return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))

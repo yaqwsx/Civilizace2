@@ -29,9 +29,8 @@ def test_start():
         state=state, entities=entities, args=ResearchArgs(tech=tech, team=teamState))
 
     cost = action.cost()
-    dice, points = action.diceRequirements()
+    points = action.pointsCost()
     assert cost == tech.cost
-    assert set(dice) == set([entities.dice["die-lesy"]])
     assert points == 20
 
     action.applyCommit(1, 100)

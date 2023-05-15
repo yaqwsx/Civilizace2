@@ -29,13 +29,11 @@ class ResearchStartAction(TeamInteractionActionBase):
         return self.args.tech.cost
 
     @override
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        return (self.teamState.getUnlockingDice(self.args.tech), self.args.tech.points)
+    def pointsCost(self) -> int:
+        return self.args.tech.points
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensureStrong(any(True for _ in self.teamState.getUnlockingDice(self.args.tech)),
-                           f"Zkoumání technologie [[{self.args.tech.id}]] ještě není odemčeno")
         self._ensureStrong(self.args.tech not in self.teamState.techs,
                            f"Technologie [[{self.args.tech.id}]] je již vyzkoumána")
         self._ensureStrong(self.args.tech not in self.teamState.researching,

@@ -85,27 +85,22 @@ class TeamActionViewSet(viewsets.ViewSet):
                 t.save()
 
     @staticmethod
-    def _previewDiceThrow(dice: Optional[Tuple[Iterable[Die], int]]) -> str:
-        if dice is None:
-            return "Ignoruje se házení kostkou"
-        if dice[1] <= 0:
+    def _previewDiceThrow(pointsCost: Optional[int]) -> str:
+        if pointsCost is not None and pointsCost <= 0:
             return "Akce nevyžaduje házení kostkou"
-
-        b = MessageBuilder(message=f"Je třeba hodit {dice[1]} na jedné z:")
-        with b.startList() as addDice:
-            for d in sorted(dice[0], key=lambda die: die.name):
-                addDice(d.name)
-        return b.message
+        if pointsCost is None:
+            return "Ignoruje se házení kostkou"
+        return f"Je třeba hodit {pointsCost}"
 
     @staticmethod
-    def _previewDryInteractionMessage(initiateInfo: str, dice: Optional[Tuple[Iterable[Die], int]],
+    def _previewDryInteractionMessage(initiateInfo: str, pointsCost: Optional[int],
             commitResult: ActionResult, stickers: Iterable[Sticker],
             team: Optional[TeamEntity], entities: Entities, state: GameState) -> str:
         b = MessageBuilder()
         b.add("## Předpoklady")
         b.add(initiateInfo)
 
-        b.add(TeamActionViewSet._previewDiceThrow(dice))
+        b.add(TeamActionViewSet._previewDiceThrow(pointsCost))
 
         b.add("## Efekty")
         b.add(commitResult.message)
@@ -149,8 +144,8 @@ class TeamActionViewSet(viewsets.ViewSet):
 
             stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
 
-            diceRequirements = action.diceRequirements() if not ignoreThrows else None
-            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, diceRequirements,
+            pointsCost = action.pointsCost() if not ignoreThrows else None
+            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, pointsCost,
                     commitResult, stickers, team=action.args.team, entities=action.entities, state=action.state)
 
             return Response(data={
@@ -193,7 +188,7 @@ class TeamActionViewSet(viewsets.ViewSet):
 
             initiateInfo = action.applyInitiate(ignore_cost=ignoreCost)
             dryAction.applyInitiate(ignore_cost=ignoreCost)
-            diceReq = action.diceRequirements()
+            pointsCost = action.pointsCost()
 
             dbAction = DbAction.objects.create(
                     actionType=data["action"],
@@ -202,7 +197,7 @@ class TeamActionViewSet(viewsets.ViewSet):
             ActionViewHelper.dbStoreInteraction(dbAction, dbState,
                 InteractionType.initiate, request.user, state, action)
 
-            if diceReq[1] != 0:
+            if pointsCost != 0:
                 # Let's perform the commit on dryState as some validation
                 # happens in commit /o\
                 dryAction.commitSuccess()
@@ -269,7 +264,7 @@ class TeamActionViewSet(viewsets.ViewSet):
 
         if request.method == "GET":
             return Response({
-                "requiredDots": reqDots,
+                "requiredDots": pointsCost,
                 "throwCost": action.throwCost(),
                 "description": dbAction.description,
                 "team": action.args.team.id

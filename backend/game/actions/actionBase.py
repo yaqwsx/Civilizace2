@@ -276,12 +276,12 @@ class TeamInteractionActionBase(TeamActionBase):
     def cost(self) -> CostDict:
         return {}
 
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
+    def pointsCost(self) -> int:
         """
-        Řekne, kolik teček je třeba hodit na jedné z kostek.
+        Řekne, kolik teček je třeba hodit na kostce.
         Pokud vrátí 0, není třeba házet.
         """
-        return ((), 0)
+        return 0
 
     def throwCost(self) -> int:
         """
@@ -311,7 +311,7 @@ class TeamInteractionActionBase(TeamActionBase):
         successful or not.
         """
         tState = self.teamState
-        _, dotsRequired = self.diceRequirements()
+        pointsCost = self.pointsCost()
         workConsumed = throws * self.throwCost()
         workAvailable = tState.work
 
@@ -321,8 +321,8 @@ class TeamInteractionActionBase(TeamActionBase):
             self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " +
                                "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
-        if dotsRequired > dots:
-            self._warnings.add(f"Tým nenaházel dostatek (chtěno {dotsRequired}, naházeno {dots}). " +
+        if pointsCost > dots:
+            self._warnings.add(f"Tým nenaházel dostatek (chtěno {pointsCost}, naházeno {dots}). " +
                                "Akce neuspěla. Tým přišel o zaplacené zdroje.")
             return False
         return True

@@ -30,8 +30,8 @@ class BuildRoadAction(TeamInteractionActionBase):
         return self.state.world.roadCost
 
     @override
-    def diceRequirements(self) -> Tuple[Iterable[Die], int]:
-        return (self.entities.dice.values(), self.state.world.roadPoints)
+    def pointsCost(self) -> int:
+        return self.state.world.roadPointsCost
 
     def travelTime(self) -> int:
         return ceil(2 * self.state.map.getActualDistance(self.args.team, self.args.tile))

@@ -363,7 +363,7 @@ class WorldState(StateModel):
     buildDemolitionCost: Dict[Resource, Decimal] = {}
     combatRandomness: float = 0.5
     roadCost: Dict[Resource, int]
-    roadPoints: int = 10
+    roadPointsCost: int = 10
     armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]]
 
 
