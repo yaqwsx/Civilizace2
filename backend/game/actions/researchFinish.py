@@ -33,5 +33,3 @@ class ResearchFinishAction(TeamInteractionActionBase):
         self.teamState.techs.add(self.args.tech)
         self._info += f"Výzkum technologie [[{self.args.tech.id}]] byl dokončen."
         self._info += f"Vydejte týmu puntík na kostku"
-        dice = ", ".join(die.name for die in self.teamState.getUnlockingDice(self.args.tech))
-        self._info += f"Vydejte týmu jeden žeton objevu: {dice}"

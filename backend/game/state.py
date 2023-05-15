@@ -298,9 +298,6 @@ class TeamState(StateModel):
         assert tile is not None
         return tile
 
-    def getUnlockingDice(self, entity: EntityWithCost) -> Iterable[Die]:
-        return iter(die for entity, die in entity.unlockedBy if entity in self.techs)
-
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
         stickers.update(self.techs)

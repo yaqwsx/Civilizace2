@@ -95,27 +95,6 @@ class EntityWithCost(EntityBase):
     # duplicates: items in Tech.unlocks
     unlockedBy: List[Tuple[Tech, Die]] = []
 
-    # The default deduced equality is a strong-value based one. However, since
-    # there are loops in fields (via unlockedBy), the equality check never ends.
-    # Therefore, we have to break the loop - here we will just check that the
-    # unlockedBy are the same objects.
-    #
-    # The ultimate solution would to be to keep a set of already checked objects
-    # for equality, however, that requires changes to BaseModel which is out of
-    # our control.
-    #
-    # Equality based on ID is enough, thus this code is no longer needed
-    # def __eq__(self, other: Any) -> bool:
-    #     if not isinstance(other, EntityWithCost):
-    #         return False
-    #     return self.cost == other.cost and \
-    #            self.points == other.points and \
-    #            [(id(e), d) for e, d in self.unlockedBy] == [(id(e), d) for e, d in other.unlockedBy]
-
-    @property
-    def unlockingDice(self) -> Set[Die]:
-        return set(d for e, d in self.unlockedBy)
-
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]

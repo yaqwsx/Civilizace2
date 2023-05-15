@@ -258,7 +258,7 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
     featureText = ", ".join([f.name for f in e.requiredFeatures])
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
-    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(d.briefName for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
+    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
         for r, a in sortedCost(e.cost.items()):
@@ -287,7 +287,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
         b.addText(e.flavor, FONT_NORMAL)
 
     featureText = ", ".join([f.name for f in e.requiredFeatures])
-    b.addBulletLine("Kostka: ", f"{e.points}× " + ", ".join(d.briefName for d in e.unlockingDice), FONT_NORMAL, FONT_BOLD)
+    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
     b.skip(5)
