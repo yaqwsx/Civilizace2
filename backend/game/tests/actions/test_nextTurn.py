@@ -14,7 +14,7 @@ def test_turnCounter():
     state = createTestInitState()
     args = NextTurnArgs()
 
-    action = makeAction(NextTurnAction, state = state, entities = entities, args = args)
+    action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
 
     cost = action.cost()
     assert cost == {}
@@ -22,9 +22,10 @@ def test_turnCounter():
     assert state.world.turn == 1
 
     for i in range(20):
-        action = makeAction(NextTurnAction, state = state, entities = entities, args = args)
+        action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
         action.applyCommit()
-        assert state.world.turn == i+2
+        assert state.world.turn == i + 2
+
 
 def test_richnessIncrease():
     reimport(__name__)
@@ -32,7 +33,7 @@ def test_richnessIncrease():
     state = createTestInitState()
     args = NextTurnArgs()
 
-    action = makeAction(NextTurnAction, state = state, entities = entities, args = args)
+    action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
     for tile in state.map.tiles.values():
         assert tile.richnessTokens == tile.richness
         tile.richnessTokens = 0

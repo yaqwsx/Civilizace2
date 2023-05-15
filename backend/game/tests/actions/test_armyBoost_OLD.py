@@ -46,5 +46,3 @@
 #         # boost for second time
 #         action = ActionBoost(args=ActionBoostArgs(team=team, prestige=armyId.prestige, boost=2), entities=entities, state=state)
 #         action.commit()
-
-

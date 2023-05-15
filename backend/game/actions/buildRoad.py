@@ -3,9 +3,13 @@ from typing import Dict
 
 from typing_extensions import override
 
-from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
-                                     TeamActionBase, TeamInteractionActionBase,
-                                     TileActionArgs)
+from game.actions.actionBase import (
+    NoInitActionBase,
+    TeamActionArgs,
+    TeamActionBase,
+    TeamInteractionActionBase,
+    TileActionArgs,
+)
 from game.entities import Resource
 
 
@@ -34,18 +38,26 @@ class BuildRoadAction(TeamInteractionActionBase):
         return self.state.world.roadPointsCost
 
     def travelTime(self) -> int:
-        return ceil(2 * self.state.map.getActualDistance(self.args.team, self.args.tile))
+        return ceil(
+            2 * self.state.map.getActualDistance(self.args.team, self.args.tile)
+        )
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensureStrong(self.args.tile not in self.teamState.roadsTo,
-                           f"Na pole {self.args.tile.name} je už cesta postavena")
-        self._ensureStrong(self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
-                           f"Nelze postavit cestu, protože pole {self.args.tile.name} není v držení týmu.")
+        self._ensureStrong(
+            self.args.tile not in self.teamState.roadsTo,
+            f"Na pole {self.args.tile.name} je už cesta postavena",
+        )
+        self._ensureStrong(
+            self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+            f"Nelze postavit cestu, protože pole {self.args.tile.name} není v držení týmu.",
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:
-        scheduled = self._scheduleAction(BuildRoadCompletedAction, args=self.args, delay_s=self.travelTime())
+        scheduled = self._scheduleAction(
+            BuildRoadCompletedAction, args=self.args, delay_s=self.travelTime()
+        )
         self._info += f"Stavba cesty začala. Za {ceil(scheduled.delay_s / 60)} minut bude dokončena."
 
 

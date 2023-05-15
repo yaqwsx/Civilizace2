@@ -7,6 +7,7 @@ import pytest
 
 teamId = TEAM_BASIC
 
+
 def test_empty():
     entities = TEST_ENTITIES
     state = createTestInitState()
@@ -15,26 +16,40 @@ def test_empty():
 
     assert team.granary == {}, "Granary is not empty in initial state"
 
-    action = makeAction(GranaryAction,
-        state=state, entities=entities, args=GranaryArgs(team=teamId, productions=productions))
+    action = makeAction(
+        GranaryAction,
+        state=state,
+        entities=entities,
+        args=GranaryArgs(team=teamId, productions=productions),
+    )
 
     cost = action.cost()
     assert cost == {}
 
     action.applyCommit()
 
-    assert team.granary == {}, "Granary is not empty after adding an empty set of productions"
+    assert (
+        team.granary == {}
+    ), "Granary is not empty after adding an empty set of productions"
 
 
 def test_successBulk():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
-    productions = {entities["pro-maso"]: 2, entities["pro-dobytek"]:1, entities["pro-bobule"]: 5}
+    productions = {
+        entities["pro-maso"]: 2,
+        entities["pro-dobytek"]: 1,
+        entities["pro-bobule"]: 5,
+    }
     team.resources = productions.copy()
 
-    action = makeAction(GranaryAction,
-        state=state, entities=entities, args=GranaryArgs(team=teamId, productions=productions))
+    action = makeAction(
+        GranaryAction,
+        state=state,
+        entities=entities,
+        args=GranaryArgs(team=teamId, productions=productions),
+    )
 
     cost = action.cost()
     assert cost == productions
@@ -46,34 +61,47 @@ def test_successBulk():
     assert sum(team.resources.values()) == 0, "Team resources should have been emptied"
 
 
-
 def test_failInsufficient():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
-    productions = {entities["pro-maso"]: 2, entities["pro-dobytek"]:1, entities["pro-bobule"]: 5}
+    productions = {
+        entities["pro-maso"]: 2,
+        entities["pro-dobytek"]: 1,
+        entities["pro-bobule"]: 5,
+    }
     team.resources = productions.copy()
     productions[entities["pro-dobytek"]] = 3
 
-    action = makeAction(GranaryAction,
-        state=state, entities=entities, args=GranaryArgs(team=teamId, productions=productions))
+    action = makeAction(
+        GranaryAction,
+        state=state,
+        entities=entities,
+        args=GranaryArgs(team=teamId, productions=productions),
+    )
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyInitiate()
         action.applyCommit()
 
 
-
 def test_failWrong():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamId]
-    productions = {entities["pro-maso"]: 2, entities["mat-dobytek"]:1, entities["pro-bobule"]: 5}
+    productions = {
+        entities["pro-maso"]: 2,
+        entities["mat-dobytek"]: 1,
+        entities["pro-bobule"]: 5,
+    }
     team.resources = productions.copy()
 
-    action = makeAction(GranaryAction,
-        state=state, entities=entities, args=GranaryArgs(team=teamId, productions=productions))
+    action = makeAction(
+        GranaryAction,
+        state=state,
+        entities=entities,
+        args=GranaryArgs(team=teamId, productions=productions),
+    )
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()
-

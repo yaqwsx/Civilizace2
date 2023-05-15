@@ -29,8 +29,8 @@ class Command(BaseCommand):
                     "map": s.mapState.data,
                     "world": s.worldState.data,
                     "teamNum": s.teamStates.all().count(),
-                    "teams": {ts.team.id: ts.data for ts in s.teamStates.all()}
-                }
+                    "teams": {ts.team.id: ts.data for ts in s.teamStates.all()},
+                },
             }
             with open(outputdir / f"{name}.json", "w") as f:
                 json.dump(dump, f, indent=4)
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 "map": s.mapState.data,
                 "world": s.worldState.data,
                 "teamNum": s.teamStates.all().count(),
-                "teams": {ts.team.id: ts.data for ts in s.teamStates.all()}
+                "teams": {ts.team.id: ts.data for ts in s.teamStates.all()},
             }
             with open(outputdir / f"raw_{s.id}.json", "w") as f:
                 json.dump(dump, f, indent=4)

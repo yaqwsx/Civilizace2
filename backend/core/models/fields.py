@@ -12,10 +12,13 @@ from django.core import serializers
 class JSONField(DjangoJSONField):
     pass
 
+
 class ArrayField(DjangoArrayField):
     pass
 
+
 if 'sqlite' in settings.DATABASES['default']['ENGINE']:
+
     class JSONField(Field):
         def db_type(self, connection):
             return 'text'
@@ -41,7 +44,6 @@ if 'sqlite' in settings.DATABASES['default']['ENGINE']:
         def value_to_string(self, obj):
             return self.value_from_object(obj)
 
-
     class ArrayField(JSONField):
         def __init__(self, base_field, size=None, **kwargs):
             """Care for DjanroArrayField's kwargs."""
@@ -52,11 +54,14 @@ if 'sqlite' in settings.DATABASES['default']['ENGINE']:
         def deconstruct(self):
             """Need to create migrations properly."""
             name, path, args, kwargs = super().deconstruct()
-            kwargs.update({
-                'base_field': self.base_field.clone(),
-                'size': self.size,
-            })
+            kwargs.update(
+                {
+                    'base_field': self.base_field.clone(),
+                    'size': self.size,
+                }
+            )
             return name, path, args, kwargs
+
 
 class DbList(list):
     def __init__(self, model_type, populate_by=None):
@@ -86,6 +91,7 @@ class DbList(list):
             if isinstance(value, Model):
                 value = value.pk
             return field == value
+
         for item in self:
             if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
                 return item
@@ -98,10 +104,12 @@ class DbList(list):
             if isinstance(value, Model):
                 value = value.pk
             return field == value
+
         for item in self:
             if all([eq(getattr(item, arg), value) for arg, value in kwargs.items()]):
                 return True
         return False
+
 
 class ListField(Field):
     def __init__(self, model_type, model_manager=None, **kwargs):
@@ -115,13 +123,11 @@ class ListField(Field):
     def deconstruct(self):
         """Need to create migrations properly."""
         name, path, args, kwargs = super().deconstruct()
-        kwargs.update({
-            'model_type': self.model_type
-        })
+        kwargs.update({'model_type': self.model_type})
         return name, path, args, kwargs
 
     def db_type(self, connection):
-            return 'text'
+        return 'text'
 
     def from_db_value(self, value, expression, connection):
         if value is not None:
@@ -131,9 +137,12 @@ class ListField(Field):
     def to_python(self, value):
         def populate(pk):
             return self.get_model_manager().get(pk=pk)
+
         if value is not None:
-            items = [functools.partial(populate, obj.object.pk)
-                for obj in serializers.deserialize("json", value)]
+            items = [
+                functools.partial(populate, obj.object.pk)
+                for obj in serializers.deserialize("json", value)
+            ]
         else:
             items = []
         return DbList(self.model_type, items)
@@ -144,4 +153,3 @@ class ListField(Field):
                 model.save()
             return serializers.serialize("json", value)
         return None
-

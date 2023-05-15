@@ -22,6 +22,7 @@ class LoginViewSet(ModelViewSet, TokenObtainPairView):
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
+
 class RefreshViewSet(ViewSet, TokenRefreshView):
     permission_classes = (AllowAny,)
     http_method_names = ["post"]

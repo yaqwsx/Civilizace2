@@ -13,11 +13,22 @@ EntityId = str
 STARTER_ARMY_PRESTIGES = [15, 20, 25]
 BASE_ARMY_STRENGTH = 0
 MAP_SIZE = 32
-TILE_DISTANCES_RELATIVE = {0: Decimal(0),
-                           -9: Decimal(3), -3: Decimal(3), 2: Decimal(3), 7: Decimal(3), 9: Decimal(3),
-                           -2: Decimal(2), -1: Decimal(2), 1: Decimal(2), 5: Decimal(2), 6: Decimal(2)}
-TIME_PER_TILE_DISTANCE = Decimal(300) if os.environ.get(
-    "CIV_SPEED_RUN", None) != "1" else Decimal(30)
+TILE_DISTANCES_RELATIVE = {
+    0: Decimal(0),
+    -9: Decimal(3),
+    -3: Decimal(3),
+    2: Decimal(3),
+    7: Decimal(3),
+    9: Decimal(3),
+    -2: Decimal(2),
+    -1: Decimal(2),
+    1: Decimal(2),
+    5: Decimal(2),
+    6: Decimal(2),
+}
+TIME_PER_TILE_DISTANCE = (
+    Decimal(300) if os.environ.get("CIV_SPEED_RUN", None) != "1" else Decimal(30)
+)
 
 
 TECHNOLOGY_START = "tec-start"
@@ -61,6 +72,7 @@ class ResourceType(EntityBase):
     colorName: str
     colorHex: str = "0x000000"
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Resource(EntityBase):
     typ: Optional[ResourceType] = None
@@ -83,6 +95,7 @@ class Resource(EntityBase):
 class TileFeature(EntityBase):
     pass
 
+
 @dataclass(init=False, repr=False, eq=False)
 class NaturalResource(TileFeature):
     color: str
@@ -95,15 +108,18 @@ class EntityWithCost(EntityBase):
     # duplicates: items in Tech.unlocks
     unlockedBy: List[Tuple[Tech, Die]] = []
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
     requiredFeatures: List[TileFeature] = []
     flavor: str = ""
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Building(EntityWithCost, TileFeature):
     requiredFeatures: List[NaturalResource] = []
+
 
 @dataclass(init=False, repr=False, eq=False)
 class Tech(EntityWithCost):
@@ -133,6 +149,7 @@ class MapTileEntity(EntityBase):
     naturalResources: List[NaturalResource]
     richness: int
 
+
 @dataclass(init=False, repr=False, eq=False)
 class UserEntity(EntityBase):
     # We use it to populate database
@@ -152,6 +169,7 @@ class OrgRole(Enum):
     ORG = 0
     SUPER = 1
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Org(UserEntity):
     role: OrgRole
@@ -163,17 +181,18 @@ class GameInitState(BaseModel):
 
 
 # Common type of all available entities
-Entity = Union[Die,
-               ResourceType,
-               Resource,
-               NaturalResource,
-               Vyroba,
-               Building,
-               Tech,
-               MapTileEntity,
-               Team,
-               Org,
-               ]
+Entity = Union[
+    Die,
+    ResourceType,
+    Resource,
+    NaturalResource,
+    Vyroba,
+    Building,
+    Tech,
+    MapTileEntity,
+    Team,
+    Org,
+]
 
 Vyroba.update_forward_refs()
 
@@ -219,60 +238,51 @@ class Entities(frozendict[EntityId, Entity]):
         # TODO: remove
         return self.resources["mat-zbrane"]
 
-
     @property
     def all(self) -> frozendict[EntityId, Entity]:
         return self
 
     @cached_property
     def dice(self) -> frozendict[EntityId, Die]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Die)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Die)})
 
     @cached_property
     def resources(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Resource)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Resource)})
 
     @cached_property
     def not_tracked_resources(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.resources.items()
-                           if not v.isTracked})
+        return frozendict({k: v for k, v in self.resources.items() if not v.isTracked})
 
     @cached_property
     def productions(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.resources.items()
-                           if v.isProduction})
+        return frozendict({k: v for k, v in self.resources.items() if v.isProduction})
 
     @cached_property
     def vyrobas(self) -> frozendict[EntityId, Vyroba]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Vyroba)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Vyroba)})
 
     @cached_property
     def buildings(self) -> frozendict[EntityId, Building]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Building)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Building)})
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Tech)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Tech)})
 
     @cached_property
     def tiles(self) -> frozendict[EntityId, MapTileEntity]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, MapTileEntity)})
+        return frozendict(
+            {k: v for k, v in self.items() if isinstance(v, MapTileEntity)}
+        )
 
     @cached_property
     def teams(self) -> frozendict[EntityId, Team]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Team)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Team)})
 
     @cached_property
     def orgs(self) -> frozendict[EntityId, Org]:
-        return frozendict({k: v for k, v in self.items()
-                           if isinstance(v, Org)})
+        return frozendict({k: v for k, v in self.items() if isinstance(v, Org)})
 
     @staticmethod
     def _gameOnlyView(entity: Entity) -> Entity:

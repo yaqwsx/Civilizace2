@@ -3,8 +3,8 @@ from core.models.team import Team as DbTeam
 from game.models import DbEntities, StickerType
 
 
-
 from game.stickers import makeSticker
+
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
@@ -24,12 +24,9 @@ class Command(BaseCommand):
         stickerType = {
             "regular": StickerType.regular,
             "techsmall": StickerType.techSmall,
-            "techfirst": StickerType.techFirst
+            "techfirst": StickerType.techFirst,
         }[type.lower()]
 
         img = makeSticker(entities[entity], teamModel, stickerType)
         img.save(output)
         print(f"Height: {int(img.height / 180 * 25.4)}")
-
-
-

@@ -15,23 +15,33 @@ from game.entities import Entities
 from game.gameGlue import stateSerialize
 from game.models import DbAction, DbEntities, DbState, GameTime, InteractionType
 from game.state import GameState
-from game.viewsets.action_view_helper import (ActionViewHelper,
-                                              UnexpectedActionTypeError)
+from game.viewsets.action_view_helper import ActionViewHelper, UnexpectedActionTypeError
 from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer, Sticker
 
 
 class NoInitActionSerializer(serializers.Serializer):
-    action = serializers.ChoiceField(list(id for (id, action) in GAME_ACTIONS.items() if issubclass(action.action, NoInitActionBase)))
+    action = serializers.ChoiceField(
+        list(
+            id
+            for (id, action) in GAME_ACTIONS.items()
+            if issubclass(action.action, NoInitActionBase)
+        )
+    )
     args = serializers.JSONField()
     ignore_game_stop = serializers.BooleanField(default=True)  # type: ignore
+
 
 class NoInitActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
     @staticmethod
-    def _previewDryCommitMessage(commitResult: ActionResult, stickers: Iterable[Sticker],
-            entities: Entities, state: GameState) -> str:
+    def _previewDryCommitMessage(
+        commitResult: ActionResult,
+        stickers: Iterable[Sticker],
+        entities: Entities,
+        state: GameState,
+    ) -> str:
         b = MessageBuilder()
         b.add("## Efekty")
         b.add(commitResult.message)
@@ -40,7 +50,9 @@ class NoInitActionViewSet(viewsets.ViewSet):
                 addLine(f"samolepka {e.name} pro tým {t.name}")
 
         for scheduled in commitResult.scheduledActions:
-            b += ActionViewHelper._previewScheduledAction(scheduled, team=None, entities=entities, state=state)
+            b += ActionViewHelper._previewScheduledAction(
+                scheduled, team=None, entities=entities, state=state
+            )
 
         return b.message
 
@@ -66,26 +78,37 @@ class NoInitActionViewSet(viewsets.ViewSet):
             msgBuilder += str(e)
             msgBuilder += "Ignoruje se zastavení hry pro preview."
 
-
         try:
-            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
+            action = ActionViewHelper.constructAction(
+                data["action"], data["args"], entities, state
+            )
             if not isinstance(action, NoInitActionBase):
                 raise UnexpectedActionTypeError(action, NoInitActionBase)
 
             commitResult = action.commit()
 
             # Check if the game started
-            _ = GameTime.getNearestTime() if len(commitResult.scheduledActions) > 0 else None
+            _ = (
+                GameTime.getNearestTime()
+                if len(commitResult.scheduledActions) > 0
+                else None
+            )
 
-            stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
+            stickers = ActionViewHelper._computeStickersDiff(
+                orig=sourceState, new=action.state
+            )
 
-            message = NoInitActionViewSet._previewDryCommitMessage(commitResult, stickers, entities=action.entities, state=action.state)
+            message = NoInitActionViewSet._previewDryCommitMessage(
+                commitResult, stickers, entities=action.entities, state=action.state
+            )
 
-            return Response(data={
-                "success": True,
-                "expected": commitResult.expected,
-                "message": message,
-            })
+            return Response(
+                data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "message": message,
+                }
+            )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)
         except Exception as e:
@@ -110,34 +133,46 @@ class NoInitActionViewSet(viewsets.ViewSet):
             state = dbState.toIr()
             sourceState = dbState.toIr()
 
-            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
+            action = ActionViewHelper.constructAction(
+                data["action"], data["args"], entities, state
+            )
             if not isinstance(action, NoInitActionBase):
                 raise UnexpectedActionTypeError(action, NoInitActionBase)
 
             commitResult = action.commit()
 
             dbAction = DbAction.objects.create(
-                    actionType=data["action"],
-                    entitiesRevision=entityRevision,
-                    args=stateSerialize(action.args))
-            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
-                InteractionType.commit, request.user, state, action)
+                actionType=data["action"],
+                entitiesRevision=entityRevision,
+                args=stateSerialize(action.args),
+            )
+            ActionViewHelper.dbStoreInteraction(
+                dbAction, dbState, InteractionType.commit, request.user, state, action
+            )
 
-            stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
+            stickers = ActionViewHelper._computeStickersDiff(
+                orig=sourceState, new=action.state
+            )
             ActionViewHelper._markMapDiff(sourceState, state)
 
-            scheduled = [ActionViewHelper._dbScheduleAction(scheduledAction, source=dbAction, author=request.user)
-                         for scheduledAction in commitResult.scheduledActions]
+            scheduled = [
+                ActionViewHelper._dbScheduleAction(
+                    scheduledAction, source=dbAction, author=request.user
+                )
+                for scheduledAction in commitResult.scheduledActions
+            ]
 
             awardedStickers = ActionViewHelper._awardStickers(stickers)
             ActionViewHelper.addResultNotifications(commitResult)
 
-            return Response(data={
-                "success": True,
-                "expected": commitResult.expected,
-                "message": ActionViewHelper._commitMessage(commitResult, scheduled),
-                "stickers": DbStickerSerializer(awardedStickers, many=True).data,
-            })
+            return Response(
+                data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "message": ActionViewHelper._commitMessage(commitResult, scheduled),
+                    "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                }
+            )
 
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)

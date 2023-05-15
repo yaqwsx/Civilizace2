@@ -3,8 +3,6 @@ from core.models.team import Team
 from game.models import DbEntities, DbState, DbSticker, StickerType
 
 
-
-
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -21,7 +19,5 @@ class Command(BaseCommand):
                     team=Team.objects.get(pk=t.id),
                     entityId=sticker.id,
                     type=StickerType.regular,
-                    defaults={"entityRevision": revision})
-
-
-
+                    defaults={"entityRevision": revision},
+                )

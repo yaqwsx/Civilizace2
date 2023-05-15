@@ -14,17 +14,32 @@ from core.models.announcement import Announcement, AnnouncementType
 from core.models.team import Team
 from core.models.user import User
 from game.actions import GAME_ACTIONS
-from game.actions.actionBase import (ActionCommonBase, ActionResult,
-                                     NoInitActionBase, ScheduledAction,
-                                     TAction)
+from game.actions.actionBase import (
+    ActionCommonBase,
+    ActionResult,
+    NoInitActionBase,
+    ScheduledAction,
+    TAction,
+)
 from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import Entities, Entity
 from game.entities import Team as TeamEntity
 from game.entities import Tech
 from game.gameGlue import stateDeserialize, stateSerialize
-from game.models import (DbAction, DbEntities, DbInteraction, DbMapDiff,
-                         DbScheduledAction, DbState, DbSticker, DbTurn,
-                         DiffType, GameTime, InteractionType, StickerType)
+from game.models import (
+    DbAction,
+    DbEntities,
+    DbInteraction,
+    DbMapDiff,
+    DbScheduledAction,
+    DbState,
+    DbSticker,
+    DbTurn,
+    DiffType,
+    GameTime,
+    InteractionType,
+    StickerType,
+)
 from game.serializers import DbActionSerializer
 from game.state import GameState
 from game.viewsets.permissions import IsOrg
@@ -34,20 +49,27 @@ from game.viewsets.stickers import Sticker
 class UnexpectedStateError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = 'conflict'
+
     def __init__(self, detail: str):
         super().__init__(detail=f"Nečekaný stav: {detail}")
+
 
 class UnexpectedActionTypeError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = 'conflict'
+
     def __init__(self, actual: ActionCommonBase, expected: Type[ActionCommonBase]):
         assert not isinstance(actual, expected)
-        super().__init__(detail=f"Nečekaný typ akce: {type(actual).__name__} (očekávalo se {expected.__name__})")
+        super().__init__(
+            detail=f"Nečekaný typ akce: {type(actual).__name__} (očekávalo se {expected.__name__})"
+        )
 
 
-class ActionViewHelper():
+class ActionViewHelper:
     @staticmethod
-    def constructAction(actionType: str, args: Dict[str, Any], entities: Entities, state: GameState) -> ActionCommonBase:
+    def constructAction(
+        actionType: str, args: Dict[str, Any], entities: Entities, state: GameState
+    ) -> ActionCommonBase:
         Action = GAME_ACTIONS[actionType]
         try:
             argsObj = stateDeserialize(Action.argument, args, entities)
@@ -56,21 +78,33 @@ class ActionViewHelper():
         return Action.action.makeAction(state=state, entities=entities, args=argsObj)
 
     @staticmethod
-    def constructActionFromType(actionType: Type[TAction], args: Dict[str, Any], entities: Entities, state: GameState) -> TAction:
-        action = ActionViewHelper.constructAction(actionType.__name__, args, entities, state)
+    def constructActionFromType(
+        actionType: Type[TAction],
+        args: Dict[str, Any],
+        entities: Entities,
+        state: GameState,
+    ) -> TAction:
+        action = ActionViewHelper.constructAction(
+            actionType.__name__, args, entities, state
+        )
         assert isinstance(action, actionType)
         return action
 
     @staticmethod
-    def dbStoreInteraction(dbAction: DbAction, dbState: DbState,
-                           interactionType: InteractionType, user: Optional[User],
-                           state: GameState, action: ActionCommonBase):
+    def dbStoreInteraction(
+        dbAction: DbAction,
+        dbState: DbState,
+        interactionType: InteractionType,
+        user: Optional[User],
+        state: GameState,
+        action: ActionCommonBase,
+    ):
         interaction = DbInteraction.objects.create(
             phase=interactionType,
             action=dbAction,
             author=user,
             actionObject=stateSerialize(action),
-            trace=action.trace.message
+            trace=action.trace.message,
         )
         dbState.updateFromIr(state)
         dbState.interaction = interaction
@@ -91,7 +125,8 @@ class ActionViewHelper():
                     author=None,
                     appearDatetime=now,
                     type=AnnouncementType.game,
-                    content=message)
+                    content=message,
+                )
                 a.teams.add(team)
 
     @staticmethod
@@ -119,7 +154,8 @@ class ActionViewHelper():
                 DbMapDiff.objects.create(
                     type=DiffType.richness,
                     tile=old.entity.id,
-                    newRichness=new.richnessTokens)
+                    newRichness=new.richnessTokens,
+                )
 
         for old, new in zip_longest(prev.map.armies, post.map.armies):
             if old is None:
@@ -128,7 +164,7 @@ class ActionViewHelper():
                     tile=new.tile.id if new.tile is not None else None,
                     newLevel=new.level,
                     armyName=new.name,
-                    team=new.team.id
+                    team=new.team.id,
                 )
                 return
             if old.level != new.level:
@@ -136,7 +172,7 @@ class ActionViewHelper():
                     type=DiffType.armyLevel,
                     newLevel=new.level,
                     armyName=new.name,
-                    team=new.team.id
+                    team=new.team.id,
                 )
             if old.currentTile != new.currentTile:
                 DbMapDiff.objects.create(
@@ -145,7 +181,6 @@ class ActionViewHelper():
                     team=new.team.id,
                     tile=new.tile.id if new.currentTile is not None else None,
                 )
-
 
     @staticmethod
     @transaction.atomic
@@ -165,28 +200,34 @@ class ActionViewHelper():
             else:
                 stickerType = StickerType.regular
 
-            dbSticker = DbSticker.objects.create(team=dbTeam, entityId=sticker.entity.id,
-                    entityRevision=entRevision, type=stickerType)
+            dbSticker = DbSticker.objects.create(
+                team=dbTeam,
+                entityId=sticker.entity.id,
+                entityRevision=entRevision,
+                type=stickerType,
+            )
             awardedStickers.append(dbSticker)
         return awardedStickers
 
     @staticmethod
-    def _dbScheduleAction(scheduled: ScheduledAction, *, source: DbAction, author: Optional[User]) -> DbScheduledAction:
+    def _dbScheduleAction(
+        scheduled: ScheduledAction, *, source: DbAction, author: Optional[User]
+    ) -> DbScheduledAction:
         gameTime = GameTime.getNearestTime()
 
         dbAction = DbAction.objects.create(
-                actionType = scheduled.actionName,
-                entitiesRevision = source.entitiesRevision,
-                args = stateSerialize(scheduled.args),
-            )
+            actionType=scheduled.actionName,
+            entitiesRevision=source.entitiesRevision,
+            args=stateSerialize(scheduled.args),
+        )
         return DbScheduledAction.objects.create(
-                action = dbAction,
-                delay_s = scheduled.delay_s,
-                author = author,
-                created_from = source,
-                start_round = gameTime.round,
-                start_time_s = gameTime.time,
-            )
+            action=dbAction,
+            delay_s=scheduled.delay_s,
+            author=author,
+            created_from=source,
+            start_round=gameTime.round,
+            start_time_s=gameTime.time,
+        )
 
     @staticmethod
     @transaction.atomic
@@ -201,12 +242,15 @@ class ActionViewHelper():
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
-        action = ActionViewHelper.constructAction(dbAction.actionType, dbAction.args, entities, state)
+        action = ActionViewHelper.constructAction(
+            dbAction.actionType, dbAction.args, entities, state
+        )
         if not isinstance(action, NoInitActionBase):
             raise UnexpectedActionTypeError(action, NoInitActionBase)
         result = action.commit()
-        ActionViewHelper.dbStoreInteraction(dbAction, dbState, InteractionType.commit,
-                                None, action.state, action)
+        ActionViewHelper.dbStoreInteraction(
+            dbAction, dbState, InteractionType.commit, None, action.state, action
+        )
 
         scheduled.performed = True
         scheduled.save()
@@ -215,7 +259,12 @@ class ActionViewHelper():
         ActionViewHelper._markMapDiff(sourceState, state)
 
     @staticmethod
-    def _previewScheduledAction(scheduled: ScheduledAction, team: Optional[TeamEntity], entities: Entities, state: GameState) -> str:
+    def _previewScheduledAction(
+        scheduled: ScheduledAction,
+        team: Optional[TeamEntity],
+        entities: Entities,
+        state: GameState,
+    ) -> str:
         b = MessageBuilder()
         if scheduled.delay_s != 0:
             delayMsg = f"za {round(scheduled.delay_s / 60)} minut"
@@ -224,10 +273,14 @@ class ActionViewHelper():
         b.add(f"**Akce má odložený efekt, který se provede {delayMsg}**:")
 
         try:
-            action = scheduled.actionType.makeAction(state=state, entities=entities, args=scheduled.args)
+            action = scheduled.actionType.makeAction(
+                state=state, entities=entities, args=scheduled.args
+            )
             scheduledResult = action.commit()
 
-            b.add(f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}úspěch)")
+            b.add(
+                f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}úspěch)"
+            )
             b.add(scheduledResult.message)
 
             for team in [team] if team is not None else scheduledResult.notifications:
@@ -237,9 +290,13 @@ class ActionViewHelper():
                 for notification in scheduledResult.notifications[team]:
                     b += notification
 
-            with b.startList("### Odložená akce má další odložené efekty:") as previewScheduledEffect:
+            with b.startList(
+                "### Odložená akce má další odložené efekty:"
+            ) as previewScheduledEffect:
                 for scheduled in scheduledResult.scheduledActions:
-                    previewScheduledEffect(f"za {round(scheduled.delay_s / 60)} minut**")
+                    previewScheduledEffect(
+                        f"za {round(scheduled.delay_s / 60)} minut**"
+                    )
         except ActionFailed as e:
             b += "**Odložená akce by v tuto chvíli neuspěla**"
             b += f"{e}"
@@ -249,9 +306,10 @@ class ActionViewHelper():
         return b.message
 
     @staticmethod
-    def _commitMessage(commitResult: ActionResult,
-                       scheduled: List[DbScheduledAction],
-                       ) -> str:
+    def _commitMessage(
+        commitResult: ActionResult,
+        scheduled: List[DbScheduledAction],
+    ) -> str:
         b = MessageBuilder()
 
         b.add("## Efekty")
@@ -264,23 +322,26 @@ class ActionViewHelper():
                 gameTimeStr = f"v {targetGameTime}"
             else:
                 gameTimeStr = f"po konci nastavené hry"
-            b.add(f"""**Akce má odložený efekt za {round(action.delay_s / 60)} min ({gameTimeStr}).**""")
+            b.add(
+                f"""**Akce má odložený efekt za {round(action.delay_s / 60)} min ({gameTimeStr}).**"""
+            )
 
         return b.message
 
     @staticmethod
     def _actionFailedResponse(e: ActionFailed) -> Response:
-        return Response(data={
-            "success": False,
-            "message": f"Akci nelze zadat: \n\n{e}"
-        })
+        return Response(
+            data={"success": False, "message": f"Akci nelze zadat: \n\n{e}"}
+        )
 
     @staticmethod
     def _unexpectedErrorResponse(e: Exception, traceback: str) -> Response:
-        return Response(data={
-            "success": False,
-            "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{traceback}\n```"
-        })
+        return Response(
+            data={
+                "success": False,
+                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{traceback}\n```",
+            }
+        )
 
     @staticmethod
     def _ensureGameIsRunning(actionName: str) -> None:
@@ -289,10 +350,12 @@ class ActionViewHelper():
         except DbTurn.DoesNotExist:
             raise ActionFailed("Hra neběží. Není možné zadávat akce.") from None
 
+
 class ActionResultsSetPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'page_size'
     max_page_size = 1000
+
 
 class ActionLogViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated, IsOrg)

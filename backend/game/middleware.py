@@ -1,10 +1,17 @@
-
 import json
 from math import floor
 import sys
 from game.actions.nextTurn import NextTurnAction
 from game.gameGlue import stateSerialize
-from game.models import DbAction, DbEntities, DbScheduledAction, DbState, DbTurn, GameTime, InteractionType
+from game.models import (
+    DbAction,
+    DbEntities,
+    DbScheduledAction,
+    DbState,
+    DbTurn,
+    GameTime,
+    InteractionType,
+)
 from django.utils import timezone
 from django.db import transaction
 
@@ -20,8 +27,11 @@ def updateTurn():
     try:
         activeTurn = DbTurn.getActiveTurn()
         assert activeTurn.startedAt is not None
-        remaining = activeTurn.startedAt + \
-            timezone.timedelta(seconds=activeTurn.duration) - timezone.now()
+        remaining = (
+            activeTurn.startedAt
+            + timezone.timedelta(seconds=activeTurn.duration)
+            - timezone.now()
+        )
         secsRemaining = remaining.total_seconds()
         if secsRemaining > 0:
             return
@@ -36,9 +46,11 @@ def updateTurn():
         pass
 
     # Check if there is a turn to be activated:
-    candidate = DbTurn.objects \
-        .filter(enabled=True, startedAt__isnull=True) \
-        .order_by("id").first()
+    candidate = (
+        DbTurn.objects.filter(enabled=True, startedAt__isnull=True)
+        .order_by("id")
+        .first()
+    )
     if candidate is None:
         return
     prev = candidate.prev
@@ -55,15 +67,18 @@ def makeNextTurnAction():
     prevState = dbState.toIr()
 
     action = ActionViewHelper.constructActionFromType(
-        NextTurnAction, {}, entities, state)
+        NextTurnAction, {}, entities, state
+    )
     dbAction = DbAction.objects.create(
         actionType=NextTurnAction.__name__,
         entitiesRevision=entityRevision,
-        args=stateSerialize(action.args))
+        args=stateSerialize(action.args),
+    )
 
     action.commit()
-    ActionViewHelper.dbStoreInteraction(dbAction, dbState,
-                                     InteractionType.commit, user=None, state=state, action=action)
+    ActionViewHelper.dbStoreInteraction(
+        dbAction, dbState, InteractionType.commit, user=None, state=state, action=action
+    )
 
     ActionViewHelper._markMapDiff(prevState, state)
 
@@ -77,11 +92,15 @@ def updateScheduledActions():
     except DbTurn.DoesNotExist:
         return
 
-    pending = sorted(((targetTime, action)
-                      for action in DbScheduledAction.objects.filter(performed=False)
-                      if (targetTime := action.targetGameTime()) is not None
-                      if targetTime <= current),
-                     key=lambda x: x[0])
+    pending = sorted(
+        (
+            (targetTime, action)
+            for action in DbScheduledAction.objects.filter(performed=False)
+            if (targetTime := action.targetGameTime()) is not None
+            if targetTime <= current
+        ),
+        key=lambda x: x[0],
+    )
     for _, scheduled in pending:
         try:
             ActionViewHelper.performScheduledAction(scheduled)
@@ -93,6 +112,7 @@ def updateScheduledActions():
             sys.stderr.write(json.dumps(scheduled.action.args, indent=4))
             sys.stderr.write(f"Exception: {e}")
             import traceback
+
             tb = traceback.format_exc()
             sys.stderr.write(tb)
 
@@ -101,6 +121,7 @@ def turnUpdateMiddleware(get_response):
     def middleware(request):
         updateTurn()
         return get_response(request)
+
     return middleware
 
 
@@ -108,4 +129,5 @@ def scheduledActionsMiddleware(get_response):
     def middleware(request):
         updateScheduledActions()
         return get_response(request)
+
     return middleware

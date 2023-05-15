@@ -20,8 +20,10 @@ from game.entityParser import EntityParser, ErrorHandler
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState, MapState, TeamState, WorldState
 
+
 def print_time(time_s: int) -> str:
     return f"{time_s // 60:02}:{time_s % 60:02}"
+
 
 @functools.total_ordering
 class GameTime(NamedTuple):
@@ -45,12 +47,20 @@ class GameTime(NamedTuple):
 
     def __lt__(self, other: GameTime) -> bool:
         if not isinstance(other, GameTime):
-            raise TypeError(f"comparison not supported between instances of '{type(self).__name__}' and '{type(other).__name__}'")
-        return self.round_id < other.round_id or (self.round_id == other.round_id and self.time < other.time)
+            raise TypeError(
+                f"comparison not supported between instances of '{type(self).__name__}' and '{type(other).__name__}'"
+            )
+        return self.round_id < other.round_id or (
+            self.round_id == other.round_id and self.time < other.time
+        )
 
     @staticmethod
     def getNearestTime() -> GameTime:
-        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).order_by('id').last()
+        turn = (
+            DbTurn.objects.filter(enabled=True, startedAt__isnull=False)
+            .order_by('id')
+            .last()
+        )
         if turn is None:
             turn = DbTurn.objects.earliest('-enabled', 'id')
 
@@ -71,12 +81,12 @@ class DbTurn(models.Model):
     startedAt = models.DateTimeField(null=True)
     enabled = models.BooleanField(default=False)
     duration = models.IntegerField(
-        default=15*60, validators=[MinValueValidator(0)])  # In seconds
+        default=15 * 60, validators=[MinValueValidator(0)]
+    )  # In seconds
 
     @staticmethod
     def getActiveTurn() -> DbTurn:
-        turn = DbTurn.objects \
-            .filter(enabled=True, startedAt__isnull=False).latest('id')
+        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).latest('id')
         assert turn.startedAt is not None
         if timezone.now() > turn.startedAt + timezone.timedelta(seconds=turn.duration):
             # Turn already ended
@@ -103,9 +113,7 @@ class DbEntitiesManager(models.Manager):
     def get_queryset(self) -> QuerySet[DbEntities]:
         return super().get_queryset().defer("data")
 
-    def get_revision(self,
-                     revision: Optional[int] = None
-                     ) -> Tuple[int, Entities]:
+    def get_revision(self, revision: Optional[int] = None) -> Tuple[int, Entities]:
         if revision is None:
             revision = self.latest("id").id
             assert revision is not None
@@ -115,10 +123,12 @@ class DbEntitiesManager(models.Manager):
 
         def reportError(msg: str):
             raise RuntimeError(msg)
-        entities = EntityParser.parse(dbEntities.data,
-                                      err_handler=ErrorHandler(reporter=reportError, no_warn=True),
-                                      result_reporter=lambda x: None,
-                                      ).entities.gameOnlyEntities
+
+        entities = EntityParser.parse(
+            dbEntities.data,
+            err_handler=ErrorHandler(reporter=reportError, no_warn=True),
+            result_reporter=lambda x: None,
+        ).entities.gameOnlyEntities
         self.cache[revision] = entities
         return revision, entities
 
@@ -129,8 +139,10 @@ class DbEntities(models.Model):
     provides a method get_revision to get a particular revision in the form of
     Entities type. (cached)
     """
+
     class Meta:
         get_latest_by = "id"
+
     data = JSONField("data")
     objects = DbEntitiesManager()
 
@@ -141,6 +153,7 @@ class DbAction(models.Model):
     it is and what arguments does it use. The action itself is stored in the
     DbInteractionModel.
     """
+
     actionType = models.CharField("actionType", max_length=64, null=False)
     entitiesRevision = models.IntegerField()
     description = models.TextField(null=True)
@@ -153,12 +166,17 @@ class DbAction(models.Model):
         ActionTypeInfo = GAME_ACTIONS[self.actionType]
         return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
 
+
 class DbScheduledAction(models.Model):
-    action = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=False, related_name="scheduled")
+    action = models.ForeignKey(
+        DbAction, on_delete=models.CASCADE, null=False, related_name="scheduled"
+    )
 
     created = models.DateTimeField("Time of creating the action", auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    created_from = models.ForeignKey(DbAction, on_delete=models.CASCADE, null=True, related_name="subsequent")
+    created_from = models.ForeignKey(
+        DbAction, on_delete=models.CASCADE, null=True, related_name="subsequent"
+    )
 
     start_round = models.ForeignKey(DbTurn, on_delete=models.CASCADE)
     start_time_s = models.IntegerField(validators=[MinValueValidator(0)])
@@ -185,15 +203,15 @@ class DbScheduledAction(models.Model):
 class InteractionType(enum.Enum):
     initiate = 0
     commit = 1
-    revert = 2 # Reverted initiate
+    revert = 2  # Reverted initiate
 
 
 class DbInteraction(models.Model):
-    created = models.DateTimeField(
-        "Time of creating the action", auto_now_add=True)
+    created = models.DateTimeField("Time of creating the action", auto_now_add=True)
     phase: InteractionType = enum.EnumField(InteractionType)  # type: ignore
     action = models.ForeignKey(
-        DbAction, on_delete=models.CASCADE, null=False, related_name="interactions")
+        DbAction, on_delete=models.CASCADE, null=False, related_name="interactions"
+    )
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
@@ -201,8 +219,7 @@ class DbInteraction(models.Model):
 
     def getActionIr(self, entities: Entities, state: GameState) -> ActionCommonBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
-        action = stateDeserialize(
-            ActionTypeInfo.action, self.actionObject, entities)
+        action = stateDeserialize(ActionTypeInfo.action, self.actionObject, entities)
         action._generalArgs = self.action.getArgumentsIr(entities)
         action._state = state
         action._entities = entities
@@ -235,12 +252,11 @@ class DbStateManager(models.Manager):
     def createFromIr(self, ir: GameState) -> DbState:
         mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
         worldState = DbWorldState.objects.create(data=stateSerialize(ir.world))
-        state = self.create(worldState=worldState,
-                            mapState=mapState, interaction=None)
+        state = self.create(worldState=worldState, mapState=mapState, interaction=None)
         for t, ts in ir.teamStates.items():
             dbTs = DbTeamState.objects.create(
-                team=Team.objects.get(id=t.id),
-                data=stateSerialize(ts))
+                team=Team.objects.get(id=t.id), data=stateSerialize(ts)
+            )
             state.teamStates.add(dbTs)
         state.save()
         return state
@@ -250,13 +266,10 @@ class DbState(models.Model):
     class Meta:
         get_latest_by = "id"
 
-    mapState = models.ForeignKey(
-        DbMapState, on_delete=models.CASCADE, null=False)
-    worldState = models.ForeignKey(
-        DbWorldState, on_delete=models.CASCADE, null=False)
+    mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE, null=False)
+    worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE, null=False)
     teamStates = models.ManyToManyField(DbTeamState)
-    interaction = models.ForeignKey(
-        DbInteraction, on_delete=models.CASCADE, null=True)
+    interaction = models.ForeignKey(DbInteraction, on_delete=models.CASCADE, null=True)
 
     objects = DbStateManager()
 
@@ -272,7 +285,8 @@ class DbState(models.Model):
         g = GameState.construct(
             teamStates=teams,
             map=self.mapState.toIr(entities),
-            world=self.worldState.toIr(entities))
+            world=self.worldState.toIr(entities),
+        )
         g._setParent()
         return g
 
@@ -325,7 +339,9 @@ class DbState(models.Model):
     def entities(self) -> Entities:
         if self.interaction is None:
             return DbEntities.objects.get_revision()[1]
-        return DbEntities.objects.get_revision(self.interaction.action.entitiesRevision)[1]
+        return DbEntities.objects.get_revision(
+            self.interaction.action.entitiesRevision
+        )[1]
 
 
 class DbTaskManager(models.Manager):
@@ -355,7 +371,8 @@ class DbTask(models.Model):
 class DbTaskAssignment(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     task = models.ForeignKey(
-        DbTask, on_delete=models.CASCADE, related_name="assignments")
+        DbTask, on_delete=models.CASCADE, related_name="assignments"
+    )
     techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now_add=True)
     finishedAt = models.DateTimeField(null=True)
@@ -365,11 +382,10 @@ class DbTaskAssignment(models.Model):
 class DbTaskPreference(models.Model):
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=['task', 'techId'], name='unique_preference')
+            models.UniqueConstraint(fields=['task', 'techId'], name='unique_preference')
         ]
-    task = models.ForeignKey(
-        DbTask, on_delete=models.CASCADE, related_name="techs")
+
+    task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="techs")
     techId = models.CharField(max_length=32)
 
 
@@ -380,8 +396,7 @@ class StickerType(models.IntegerChoices):
 
 
 class DbSticker(models.Model):
-    team = models.ForeignKey(
-        Team, related_name="stickers", on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, related_name="stickers", on_delete=models.CASCADE)
     entityId = models.CharField(max_length=32)
     entityRevision = models.IntegerField()
     type = models.IntegerField(choices=StickerType.choices)
@@ -392,7 +407,9 @@ class DbSticker(models.Model):
 
     @property
     def ident(self) -> str:
-        return f"sticker_{self.team.id}_{self.entityId}_{self.entityRevision}_{self.type}"
+        return (
+            f"sticker_{self.team.id}_{self.entityId}_{self.entityRevision}_{self.type}"
+        )
 
     @cached_property
     def entity(self) -> Entity:
@@ -426,9 +443,11 @@ class Printer(models.Model):
 
     objects = PrinterManager()
 
+
 class DbTick(models.Model):
     name = models.CharField(max_length=32, primary_key=True)
     lastTick = models.DateTimeField(auto_now=True)
+
 
 class DiffType(models.IntegerChoices):
     richness = 0
@@ -445,4 +464,3 @@ class DbMapDiff(models.Model):
     newLevel = models.IntegerField(null=True)
     team = models.CharField(max_length=32, null=True)
     armyName = models.CharField(max_length=32, null=True)
-

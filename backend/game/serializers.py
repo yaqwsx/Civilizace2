@@ -3,18 +3,23 @@ from .models import DbTask, DbTaskPreference, DbTaskAssignment, DbAction, DbInte
 
 from core.serializers.fields import IdRelatedField
 
+
 class DbTaskAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = DbTaskAssignment
         fields = ["team", "techId", "assignedAt", "finishedAt"]
 
+
 class DbTaskSerializer(serializers.ModelSerializer):
-    techs = IdRelatedField(slug_field="techId",
-            many=True,
-            read_only=False,
-            queryset=DbTaskPreference.objects.all())
+    techs = IdRelatedField(
+        slug_field="techId",
+        many=True,
+        read_only=False,
+        queryset=DbTaskPreference.objects.all(),
+    )
     assignments = DbTaskAssignmentSerializer(many=True)
     occupiedCount = serializers.IntegerField()
+
     class Meta:
         model = DbTask
         fields = "__all__"
@@ -23,7 +28,11 @@ class DbTaskSerializer(serializers.ModelSerializer):
     @staticmethod
     def _withoutTechs(data):
         # occupiedCount shouldn't be here, but, meh, whatever
-        return {k: v for k, v in data.items() if k not in ["techs", "assignments", "occupiedCount"]}
+        return {
+            k: v
+            for k, v in data.items()
+            if k not in ["techs", "assignments", "occupiedCount"]
+        }
 
     def create(self, validated_data):
         task = DbTask.objects.create(**self._withoutTechs(validated_data))
@@ -32,14 +41,14 @@ class DbTaskSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
-        retval =  super().update(instance, self._withoutTechs(validated_data))
-        DbTaskPreference.objects \
-            .filter(task=retval) \
-            .exclude(techId__in=validated_data["techs"]) \
-            .delete()
+        retval = super().update(instance, self._withoutTechs(validated_data))
+        DbTaskPreference.objects.filter(task=retval).exclude(
+            techId__in=validated_data["techs"]
+        ).delete()
         for tech in validated_data["techs"]:
             DbTaskPreference.objects.get_or_create(task=retval, techId=tech)
         return retval
+
 
 class PlayerDbTaskSerializer(DbTaskSerializer):
     class Meta(DbTaskSerializer.Meta):
@@ -60,4 +69,3 @@ class DbActionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     interactions = DbInteractionSerializer(many=True, read_only=True)
-

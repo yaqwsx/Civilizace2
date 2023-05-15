@@ -1,7 +1,12 @@
 from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
-from game.actions.feed import FeedAction, FeedArgs, FeedRequirements, computeFeedRequirements
+from game.actions.feed import (
+    FeedAction,
+    FeedArgs,
+    FeedRequirements,
+    computeFeedRequirements,
+)
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
 import pytest
@@ -14,14 +19,13 @@ def test_feedRequirements_initial():
     state = createTestInitState()
 
     expected = FeedRequirements(
-        tokensRequired=5,
-        tokensPerCaste=1,
-        casteCount=3,
-        automated=[]
+        tokensRequired=5, tokensPerCaste=1, casteCount=3, automated=[]
     )
 
     actual = computeFeedRequirements(state, entities, teamState)
-    assert expected == actual, f"Feed requirements do not match expected values\n  exp={expected}\n  actual={actual}"
+    assert (
+        expected == actual
+    ), f"Feed requirements do not match expected values\n  exp={expected}\n  actual={actual}"
 
 
 def test_feedRequirements_some():
@@ -37,11 +41,13 @@ def test_feedRequirements_some():
         tokensRequired=8,
         tokensPerCaste=2,
         casteCount=3,
-        automated=[(entities["mat-maso"], 2), (entities["mat-bobule"], 1)]
+        automated=[(entities["mat-maso"], 2), (entities["mat-bobule"], 1)],
     )
 
     actual = computeFeedRequirements(state, entities, teamState)
-    assert expected == actual, f"Feed requirements do not match expected values\n  exp={expected}\n  act={actual}"
+    assert (
+        expected == actual
+    ), f"Feed requirements do not match expected values\n  exp={expected}\n  act={actual}"
 
 
 def test_feedRequirements_order():
@@ -51,19 +57,31 @@ def test_feedRequirements_order():
     teamState = state.teamStates[teamState]
 
     teamState.resources[entities.obyvatel] = 201
-    teamState.granary = {entities["pro-maso"]: 1, entities["pro-bobule"]: 3,
-                         entities["pro-kuze"]: 2, entities["pro-keramika"]: 2, entities["pro-cukr"]: 1}
+    teamState.granary = {
+        entities["pro-maso"]: 1,
+        entities["pro-bobule"]: 3,
+        entities["pro-kuze"]: 2,
+        entities["pro-keramika"]: 2,
+        entities["pro-cukr"]: 1,
+    }
 
     expected = FeedRequirements(
         tokensRequired=8,
         tokensPerCaste=2,
         casteCount=3,
-        automated=[(entities["mat-bobule"], 3), (entities["mat-cukr"], 1),
-                   (entities["mat-maso"], 1), (entities["mat-keramika"], 2), (entities["mat-kuze"], 2)]
+        automated=[
+            (entities["mat-bobule"], 3),
+            (entities["mat-cukr"], 1),
+            (entities["mat-maso"], 1),
+            (entities["mat-keramika"], 2),
+            (entities["mat-kuze"], 2),
+        ],
     )
 
     actual = computeFeedRequirements(state, entities, teamState)
-    assert expected.automated == actual.automated, f"Feed requirement order does not match expected value\n  exp={expected.automated}\n  act={actual.automated}"
+    assert (
+        expected.automated == actual.automated
+    ), f"Feed requirement order does not match expected value\n  exp={expected.automated}\n  act={actual.automated}"
 
 
 def test_simpleFeed():
@@ -74,8 +92,12 @@ def test_simpleFeed():
     assert state.teamStates[teamState].resources[entities.work] == 100
     assert state.teamStates[teamState].resources[entities.obyvatel] == 100
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
-        team=teamState, materials={entities["mat-bobule"]: 10}))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(team=teamState, materials={entities["mat-bobule"]: 10}),
+    )
 
     action.applyCommit()
 
@@ -92,8 +114,12 @@ def test_starve():
     assert state.teamStates[teamState].resources[entities.work] == 100
     assert state.teamStates[teamState].resources[entities.obyvatel] == 100
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
-        team=teamState, materials={entities["mat-bobule"]: 1}))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(team=teamState, materials={entities["mat-bobule"]: 1}),
+    )
 
     action.applyCommit()
 
@@ -112,12 +138,20 @@ def test_highlevelFood():
     assert state.teamStates[teamState].resources[entities.work] == 100
     assert state.teamStates[teamState].population == 100
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(team=teamState, materials={
-        entities.resources["mat-bobule"]: 100,
-        entities.resources["mat-cukr"]: 100,
-        entities.resources["mat-maso"]: 100,
-        entities.resources["mat-dobytek"]: 100
-    }))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(
+            team=teamState,
+            materials={
+                entities.resources["mat-bobule"]: 100,
+                entities.resources["mat-cukr"]: 100,
+                entities.resources["mat-maso"]: 100,
+                entities.resources["mat-dobytek"]: 100,
+            },
+        ),
+    )
 
     action.applyCommit()
 
@@ -136,19 +170,29 @@ def test_highlevelLuxury():
     state.teamStates[teamState].granary = {}
     state.teamStates[teamState].resources[entities.work] = Decimal(200)
     state.teamStates[teamState].resources[entities.obyvatel] = Decimal(400)
-    state.teamStates[teamState].resources[entities.resources["res-kultura"]] = Decimal(50)
+    state.teamStates[teamState].resources[entities.resources["res-kultura"]] = Decimal(
+        50
+    )
     state.teamStates[teamState].employees = 600
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(team=teamState, materials={
-        entities.resources["mat-bobule"]: 100,
-        entities.resources["mat-cukr"]: 100,
-        entities.resources["mat-maso"]: 100,
-        entities.resources["mat-dobytek"]: 100,
-        entities.resources["mat-kuze"]: 100,
-        entities.resources["mat-keramika"]: 100,
-        entities.resources["mat-sklo"]: 100,
-        entities.resources["mat-bylina"]: 100
-    }))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(
+            team=teamState,
+            materials={
+                entities.resources["mat-bobule"]: 100,
+                entities.resources["mat-cukr"]: 100,
+                entities.resources["mat-maso"]: 100,
+                entities.resources["mat-dobytek"]: 100,
+                entities.resources["mat-kuze"]: 100,
+                entities.resources["mat-keramika"]: 100,
+                entities.resources["mat-sklo"]: 100,
+                entities.resources["mat-bylina"]: 100,
+            },
+        ),
+    )
 
     action.applyCommit()
 
@@ -167,12 +211,20 @@ def test_repeatedFeed():
     assert state.teamStates[teamState].resources[entities.work] == 100
     assert state.teamStates[teamState].resources[entities.obyvatel] == 100
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
-        team=teamState, materials={entities.resources["mat-bobule"]: 10}))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(team=teamState, materials={entities.resources["mat-bobule"]: 10}),
+    )
     action.applyCommit()
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
-        team=teamState, materials={entities.resources["mat-bobule"]: 10}))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(team=teamState, materials={entities.resources["mat-bobule"]: 10}),
+    )
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()
@@ -189,21 +241,25 @@ def test_productions():
         entities.resources["res-obyvatel"]: 400,
         entities.resources["pro-bobule"]: 20,
         entities.resources["pro-kuze"]: 5,
-        entities.resources["pro-drevo"]: 3
+        entities.resources["pro-drevo"]: 3,
     }
     state.teamStates[teamState].storage = {
         entities.resources["mat-bobule"]: 8,
         entities.resources["mat-drevo"]: 3,
-        entities.resources["mat-cukr"]: 6
+        entities.resources["mat-cukr"]: 6,
     }
     state.teamStates[teamState].granary = {
         entities.resources["pro-bobule"]: 20,
         entities.resources["pro-kuze"]: 10,
-        entities.resources["pro-maso"]: 8
+        entities.resources["pro-maso"]: 8,
     }
 
-    action = makeAction(FeedAction, state=state, entities=entities, args=FeedArgs(
-        team=teamState, materials={entities.resources["mat-maso"]: 1}))
+    action = makeAction(
+        FeedAction,
+        state=state,
+        entities=entities,
+        args=FeedArgs(team=teamState, materials={entities.resources["mat-maso"]: 1}),
+    )
     action.applyCommit()
 
     assert state.teamStates[teamState].resources == {
@@ -212,17 +268,17 @@ def test_productions():
         entities.resources["res-obyvatel"]: 410 + 20 + 7,
         entities.resources["pro-bobule"]: 20,
         entities.resources["pro-kuze"]: 5,
-        entities.resources["pro-drevo"]: 3
+        entities.resources["pro-drevo"]: 3,
     }
 
     assert state.teamStates[teamState].storage == {
         entities.resources["mat-bobule"]: 10,
         entities.resources["mat-drevo"]: 6,
         entities.resources["mat-cukr"]: 6,
-        entities.resources["mat-kuze"]: 5
+        entities.resources["mat-kuze"]: 5,
     }
     assert state.teamStates[teamState].granary == {
         entities.resources["pro-bobule"]: 20,
         entities.resources["pro-kuze"]: 10,
-        entities.resources["pro-maso"]: 8
+        entities.resources["pro-maso"]: 8,
     }

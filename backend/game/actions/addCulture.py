@@ -2,8 +2,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
-                                     TeamActionBase)
+from game.actions.actionBase import NoInitActionBase, TeamActionArgs, TeamActionBase
 
 
 class AddCultureArgs(TeamActionArgs):
@@ -24,12 +23,13 @@ class AddCultureAction(TeamActionBase, NoInitActionBase):
 
     @override
     def _commitImpl(self) -> None:
-        self._ensureStrong(self.args.culture >= 0,
-                           "Nemůžu udělit zápornou kulturu")
+        self._ensureStrong(self.args.culture >= 0, "Nemůžu udělit zápornou kulturu")
 
         tState = self.teamState
         culture = self.entities.culture
-        tState.resources[culture] = tState.resources.get(
-            culture, Decimal(0)) + self.args.culture
+        tState.resources[culture] = (
+            tState.resources.get(culture, Decimal(0)) + self.args.culture
+        )
         self._info.add(
-            f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}.")
+            f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}."
+        )

@@ -4,10 +4,12 @@ from rest_framework import viewsets
 
 from rest_framework.exceptions import APIException
 
+
 class TaskUsedError(APIException):
     status_code = 403
     default_detail = "Úkol byl již přiřazen nějakému týmu. Takový úkol nelze smazat"
     default_code = "forbidden"
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     # permission_classes = (IsAuthenticated, IsOrg)
@@ -20,4 +22,3 @@ class TaskViewSet(viewsets.ModelViewSet):
         if DbTaskAssignment.objects.filter(task=t).exists():
             raise TaskUsedError()
         return super().destroy(request, pk, *args, **kwargs)
-

@@ -5,6 +5,7 @@ from django.db import models
 from django.forms.models import model_to_dict
 from copy import deepcopy
 
+
 class TrackedModel(models.Model):
     class Meta:
         abstract = True
@@ -34,19 +35,24 @@ class TrackedModel(models.Model):
 
     @property
     def _dict(self):
-        d = model_to_dict(self, fields=[field.name for field in
-                             self._meta.fields])
+        d = model_to_dict(self, fields=[field.name for field in self._meta.fields])
         # Rather hack for ListField
         for key, value in d.items():
             if isinstance(self._meta.get_field(key), JSONField):
                 continue
             if not isinstance(value, list):
                 continue
-            d[key] = list([
-                model_to_dict(model, fields=[field.name for field in model._meta.fields])
-                for model in value if isinstance(model, models.Model)
-            ])
+            d[key] = list(
+                [
+                    model_to_dict(
+                        model, fields=[field.name for field in model._meta.fields]
+                    )
+                    for model in value
+                    if isinstance(model, models.Model)
+                ]
+            )
         return d
+
 
 class ImmutableModel(TrackedModel):
     class Meta:
@@ -93,5 +99,3 @@ class ImmutableModel(TrackedModel):
             for field, value in relationToUpdate.items():
                 attr = getattr(self, field.name)
                 attr.set(value, clear=True)
-
-

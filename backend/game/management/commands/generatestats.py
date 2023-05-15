@@ -18,7 +18,7 @@ pio.templates["civilizace"] = go.layout.Template(
             'ticks': '',
             'title': {'standoff': 15},
             'zerolinecolor': 'black',
-            'zerolinewidth': 2
+            'zerolinewidth': 2,
         },
         "yaxis": {
             'automargin': True,
@@ -27,16 +27,18 @@ pio.templates["civilizace"] = go.layout.Template(
             'ticks': '',
             'title': {'standoff': 15},
             'zerolinecolor': 'black',
-            'zerolinewidth': 2
+            'zerolinewidth': 2,
         },
-    })
+    }
+)
 
 
 pio.templates.default = "none+civilizace"
 
-def isRoundEnd(prevState, state):
 
+def isRoundEnd(prevState, state):
     return prevState.world.turn != state.world.turn
+
 
 def teamStat(team, states):
     stat = []
@@ -48,23 +50,29 @@ def teamStat(team, states):
             prod = 0
             wprod = 0
             for resource, amount in tState.resources.items():
-                if resource.isProduction and resource.id not in ["res-obyvatel", "res-prace"]:
+                if resource.isProduction and resource.id not in [
+                    "res-obyvatel",
+                    "res-prace",
+                ]:
                     prod += amount
-            for resource, amount  in tState.granary.items():
+            for resource, amount in tState.granary.items():
                 if resource.isProduction:
                     prod += amount
                     wprod += resource.typ[1] * amount
             prodSum += prod
             weightedSum += wprod
-            stat.append({
-                "obyvatele": tState.obyvatels,
-                "populace": tState.population,
-                "techy": len(tState.techs),
-                "productions": prod,
-                "prodSum": prodSum,
-                "weightedSum": weightedSum
-            })
+            stat.append(
+                {
+                    "obyvatele": tState.obyvatels,
+                    "populace": tState.population,
+                    "techy": len(tState.techs),
+                    "productions": prod,
+                    "prodSum": prodSum,
+                    "weightedSum": weightedSum,
+                }
+            )
     return stat
+
 
 def plotTeamGraph(team, overview, outputdir):
     l = overview["stat"]
@@ -80,7 +88,8 @@ def plotTeamGraph(team, overview, outputdir):
         # marker_symbol=134,
         marker_size=mSize,
         line=dict(color='black', dash='solid', width=0.5),
-        legendgroup="1")
+        legendgroup="1",
+    )
     obyvatele = go.Scatter(
         x=turns,
         y=[x["obyvatele"] for x in l],
@@ -89,7 +98,8 @@ def plotTeamGraph(team, overview, outputdir):
         # marker_symbol=135,
         marker_size=mSize,
         line=dict(color='black', dash='solid'),
-        legendgroup="1")
+        legendgroup="1",
+    )
     techs = go.Scatter(
         x=turns,
         y=[x["techy"] for x in l],
@@ -97,7 +107,7 @@ def plotTeamGraph(team, overview, outputdir):
         name="Počet vyzkoumaných technologíí",
         marker_size=mSize,
         line=dict(color='black', dash='solid'),
-        legendgroup="2"
+        legendgroup="2",
     )
     prods = go.Scatter(
         x=turns,
@@ -107,7 +117,7 @@ def plotTeamGraph(team, overview, outputdir):
         # marker_symbol=134,
         marker_size=mSize,
         line=dict(color='black', dash='solid', width=0.5),
-        legendgroup="3"
+        legendgroup="3",
     )
     prodSum = go.Scatter(
         x=turns,
@@ -117,28 +127,26 @@ def plotTeamGraph(team, overview, outputdir):
         # marker_symbol=135,
         marker_size=mSize,
         line=dict(color='black', dash='solid'),
-        legendgroup="3"
+        legendgroup="3",
     )
 
-    fig = make_subplots(rows=3, cols=1,
+    fig = make_subplots(
+        rows=3,
+        cols=1,
         subplot_titles=(
             "Vývoj populace",
             "Počet vyzkoumaných technologií",
-            "Aktivní produkce (vlevo) a \nkumulativní počet vyprodukovaných materiálů (vpravo)"),
+            "Aktivní produkce (vlevo) a \nkumulativní počet vyprodukovaných materiálů (vpravo)",
+        ),
         horizontal_spacing=0.1,
         vertical_spacing=0.1,
-        specs=[[{}], [{}], [{"secondary_y": True}]])
+        specs=[[{}], [{}], [{"secondary_y": True}]],
+    )
 
     fig.update_layout(
         margin=dict(l=0, r=0, t=20, b=20),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        ),
-        legend_tracegroupgap = 180,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        legend_tracegroupgap=180,
     )
 
     fig.add_trace(populace, row=1, col=1)
@@ -151,15 +159,20 @@ def plotTeamGraph(team, overview, outputdir):
 
     for row in [1, 2, 3]:
         fig.update_xaxes(
-            tickmode='linear', tick0=0, dtick=1,
+            tickmode='linear',
+            tick0=0,
+            dtick=1,
             title_text="Kolo",
             range=[turns[0], turns[-1]],
-            row=row, col=1)
+            row=row,
+            col=1,
+        )
 
     # odir = Path("stats")
     # odir.mkdir(exist_ok=True, parents=True)
     with open(outputdir / (team.id + ".html"), "w") as f:
-        f.write(f"""
+        f.write(
+            f"""
         <html>
             <head>
             <head>
@@ -226,26 +239,34 @@ def plotTeamGraph(team, overview, outputdir):
                 <br>
 
                 <div class="graph">
-        """)
+        """
+        )
         f.write(fig.to_html(full_html=False, include_plotlyjs=True))
-        f.write(f"""
+        f.write(
+            f"""
                 </div>
             </div>
             </body>
-        """)
+        """
+        )
+
 
 def plotSummary(overview, outdir):
     pio.templates.default = "plotly"
-    fig = make_subplots(rows=6, cols=1,
+    fig = make_subplots(
+        rows=6,
+        cols=1,
         subplot_titles=(
             "Vývoj populace",
             "Procento nespecializovaných",
             "Počet vyzkoumaných technologií",
             "Aktivní produkce",
             "Kumulativní počet vyprodukovaných materiálů",
-            "Kumulativní počet vyprodukovaných materiálů vážený úrovní materiálu"),
+            "Kumulativní počet vyprodukovaných materiálů vážený úrovní materiálu",
+        ),
         horizontal_spacing=0.025,
-        vertical_spacing=0.025)
+        vertical_spacing=0.025,
+    )
 
     for t, o in overview.items():
         if t.id == "tym-protinozci":
@@ -259,21 +280,23 @@ def plotSummary(overview, outdir):
             mode='lines+markers',
             name=f'Populace {t.name}',
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="1",)
+            legendgroup="1",
+        )
         obyvatele = go.Scatter(
             x=turns,
             y=[int(x["obyvatele"] / x["populace"] * 100) for x in l],
             mode='lines+markers',
             name=f'Procento nespecializovaných {t.name}',
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="2")
+            legendgroup="2",
+        )
         techs = go.Scatter(
             x=turns,
             y=[x["techy"] for x in l],
             mode="lines+markers",
             name=f"Počet vyzkoumaných technologíí {t.name}",
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="3"
+            legendgroup="3",
         )
         prods = go.Scatter(
             x=turns,
@@ -281,7 +304,7 @@ def plotSummary(overview, outdir):
             mode="lines+markers",
             name=f"Aktivní produkce {t.name}",
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="4"
+            legendgroup="4",
         )
         prodSum = go.Scatter(
             x=turns,
@@ -289,7 +312,7 @@ def plotSummary(overview, outdir):
             mode="lines+markers",
             name=f"Vyprodukované materiály {t.name}",
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="5"
+            legendgroup="5",
         )
 
         wprodSum = go.Scatter(
@@ -298,7 +321,7 @@ def plotSummary(overview, outdir):
             mode="lines+markers",
             name=f"Vyprodukovaný potenciál materiálů {t.name}",
             line=dict(color=t.hexColor, dash='solid'),
-            legendgroup="6"
+            legendgroup="6",
         )
 
         fig.add_trace(populace, row=1, col=1)
@@ -311,26 +334,23 @@ def plotSummary(overview, outdir):
 
         fig.add_trace(wprodSum, row=6, col=1)
 
-
     fig.update_layout(
         margin=dict(l=0, r=0, t=20, b=20),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         legend_tracegroupgap=180,
         height=5000,
     )
 
     for row in range(6):
         fig.update_xaxes(
-            tickmode='linear', tick0=0, dtick=1,
+            tickmode='linear',
+            tick0=0,
+            dtick=1,
             title_text="Kolo",
             range=[turns[0], turns[-1]],
-            row=row + 1, col=1)
+            row=row + 1,
+            col=1,
+        )
 
     fig.write_html(outdir / "summary.html")
 
@@ -345,7 +365,6 @@ class Command(BaseCommand):
         outputDir = Path(output)
         outputDir.mkdir(exist_ok=True, parents=True)
 
-
         states = [s.toIr() for s in DbState.objects.all().order_by("id")]
         revision, entities = DbEntities.objects.get_revision()
 
@@ -359,7 +378,9 @@ class Command(BaseCommand):
                 stat = teamStat(team, states)
                 f.write("populace, obvyatele, techy, produkce, materialy\n")
                 for l in stat:
-                    f.write(f'{l["populace"]}, {l["obyvatele"]}, {l["techy"]}, {l["productions"]}, {l["prodSum"]}\n')
+                    f.write(
+                        f'{l["populace"]}, {l["obyvatele"]}, {l["techy"]}, {l["productions"]}, {l["prodSum"]}\n'
+                    )
                 overview[team]["stat"] = stat
 
         for action in DbAction.objects.all():

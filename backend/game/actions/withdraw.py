@@ -31,7 +31,10 @@ class WithdrawAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         for resource, amount in self.args.resources.items():
-            self._ensure(amount >= 0, f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]")
+            self._ensure(
+                amount >= 0,
+                f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]",
+            )
 
     @override
     def _commitSuccessImpl(self) -> None:

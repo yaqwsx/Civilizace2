@@ -8,6 +8,7 @@ from django.conf import settings
 
 from game.models import DbTask, DbTaskPreference
 
+
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -22,11 +23,15 @@ class Command(BaseCommand):
         for tLine in tasks[1:]:
             if len(tLine[0]) == 0:
                 continue
-            task, _ = DbTask.objects.update_or_create(id=tLine[0], defaults={
-                "name": tLine[1],
-                "capacity": int(tLine[2]),
-                "orgDescription": tLine[3],
-                "teamDescription": tLine[4]})
+            task, _ = DbTask.objects.update_or_create(
+                id=tLine[0],
+                defaults={
+                    "name": tLine[1],
+                    "capacity": int(tLine[2]),
+                    "orgDescription": tLine[3],
+                    "teamDescription": tLine[4],
+                },
+            )
             DbTaskPreference.objects.filter(task=tLine[0]).delete()
             for tech in tLine[5].split(","):
                 tech = re.sub(r"\(.*\)", "", tech)

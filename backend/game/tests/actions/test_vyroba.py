@@ -17,11 +17,11 @@ def test_initiate():
     originalResources = team.resources.copy()
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevo1Mat"],
-        count = 1,
-        tile = team.homeTile.entity,
-        plunder = False,
-        team = teamId
+        vyroba=entities["vyr-drevo1Mat"],
+        count=1,
+        tile=team.homeTile.entity,
+        plunder=False,
+        team=teamId,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
@@ -32,7 +32,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.count = 5
-    action =  makeAction(VyrobaAction, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -41,7 +41,7 @@ def test_initiate():
     assert team.resources[entities["res-prace"]] == 100
 
     args.vyroba = entities["vyr-drevo1Pro"]
-    action =  makeAction(VyrobaAction, state=state, entities=entities, args=args)
+    action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     result = action.applyInitiate()
     assert team.resources[entities["res-prace"]] == 50
@@ -61,18 +61,22 @@ def test_simple():
     originalResources = team.resources.copy()
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevo1Mat"],
-        count = 1,
-        tile = team.homeTile.entity,
-        plunder = False,
-        team = teamId
+        vyroba=entities["vyr-drevo1Mat"],
+        count=1,
+        tile=team.homeTile.entity,
+        plunder=False,
+        team=teamId,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
 
-    assert team.resources == {entities["res-prace"]:80, entities["res-obyvatel"]:100, entities["pro-drevo"]: 20}
+    assert team.resources == {
+        entities["res-prace"]: 80,
+        entities["res-obyvatel"]: 100,
+        entities["pro-drevo"]: 20,
+    }
     assert "Vydejte týmu" in commitResult.message
     assert "Tým obdržel" in commitResult.message
 
@@ -84,18 +88,22 @@ def test_production():
     team.resources[entities["pro-drevo"]] = 20
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevo1Pro"],
-        count = 1,
-        tile = team.homeTile.entity,
-        plunder = False,
-        team = teamId
+        vyroba=entities["vyr-drevo1Pro"],
+        count=1,
+        tile=team.homeTile.entity,
+        plunder=False,
+        team=teamId,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
     initResult = action.applyInitiate()
     commitResult = action.applyCommit(1, 5)
 
-    assert team.resources == {entities["res-prace"]:80, entities["res-obyvatel"]:98, entities["pro-drevo"]: 21}
+    assert team.resources == {
+        entities["res-prace"]: 80,
+        entities["res-obyvatel"]: 98,
+        entities["pro-drevo"]: 21,
+    }
     assert "Vydejte týmu" not in commitResult.message
     assert "Tým obdržel" in commitResult.message
 
@@ -107,11 +115,11 @@ def test_distance():
     team.resources[entities["pro-drevo"]] = 20
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevo1Mat"],
-        count = 1,
-        tile = entities["map-tile06"],
-        plunder = False,
-        team = teamId
+        vyroba=entities["vyr-drevo1Mat"],
+        count=1,
+        tile=entities["map-tile06"],
+        plunder=False,
+        team=teamId,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
     distance = action.requiresDelayedEffect()
@@ -127,11 +135,11 @@ def test_richnessMaterial():
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevoLes"],
-        count = 2,
-        tile = tile.entity,
-        plunder = False,
-        team = team.team
+        vyroba=entities["vyr-drevoLes"],
+        count=2,
+        tile=tile.entity,
+        plunder=False,
+        team=team.team,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
@@ -139,7 +147,11 @@ def test_richnessMaterial():
     commitResult = action.applyCommit(1, 20)
     delayedResult = action.applyDelayedReward()
 
-    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:100, entities["pro-drevo"]: 20}
+    assert team.resources == {
+        entities["res-prace"]: 70,
+        entities["res-obyvatel"]: 100,
+        entities["pro-drevo"]: 20,
+    }
     assert "+80%" in delayedResult.message
     assert "[[mat-drevo|3]]" in delayedResult.message
     assert tile.richnessTokens == 8
@@ -154,11 +166,11 @@ def test_richnessProduction():
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevoProdLes"],
-        count = 2,
-        tile = tile.entity,
-        plunder = False,
-        team = team.team
+        vyroba=entities["vyr-drevoProdLes"],
+        count=2,
+        tile=tile.entity,
+        plunder=False,
+        team=team.team,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
@@ -166,7 +178,11 @@ def test_richnessProduction():
     commitResult = action.applyCommit(1, 20)
     delayedResult = action.applyDelayedReward()
 
-    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:98, entities["pro-drevo"]: Decimal("23.6")}
+    assert team.resources == {
+        entities["res-prace"]: 70,
+        entities["res-obyvatel"]: 98,
+        entities["pro-drevo"]: Decimal("23.6"),
+    }
     assert "+80%" in delayedResult.message
     assert "[[pro-drevo|3.6]]" in delayedResult.message
     assert tile.richnessTokens == 8
@@ -181,11 +197,11 @@ def test_plunderMaterial():
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevoLes"],
-        count = 2,
-        tile = tile.entity,
-        plunder = True,
-        team = team.team
+        vyroba=entities["vyr-drevoLes"],
+        count=2,
+        tile=tile.entity,
+        plunder=True,
+        team=team.team,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
@@ -193,7 +209,11 @@ def test_plunderMaterial():
     commitResult = action.applyCommit(1, 20)
     delayedResult = action.applyDelayedReward()
 
-    assert team.resources == {entities["res-prace"]:70, entities["res-obyvatel"]:100, entities["pro-drevo"]: 20}
+    assert team.resources == {
+        entities["res-prace"]: 70,
+        entities["res-obyvatel"]: 100,
+        entities["pro-drevo"]: 20,
+    }
     assert "+80%" in delayedResult.message
     assert "[[mat-drevo|5]]" in delayedResult.message
     assert tile.richnessTokens == 6
@@ -208,11 +228,11 @@ def test_plunderProduction():
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevoProdLes"],
-        count = 4,
-        tile = tile.entity,
-        plunder = True,
-        team = team.team
+        vyroba=entities["vyr-drevoProdLes"],
+        count=4,
+        tile=tile.entity,
+        plunder=True,
+        team=team.team,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 
@@ -220,7 +240,11 @@ def test_plunderProduction():
     commitResult = action.applyCommit(1, 20)
     delayedResult = action.applyDelayedReward()
 
-    assert team.resources == {entities["res-prace"]:50, entities["res-obyvatel"]:96, entities["pro-drevo"]: Decimal("31.2")}
+    assert team.resources == {
+        entities["res-prace"]: 50,
+        entities["res-obyvatel"]: 96,
+        entities["pro-drevo"]: Decimal("31.2"),
+    }
     assert "+80%" in delayedResult.message
     assert "[[pro-drevo|11.2]]" in delayedResult.message
     assert tile.richnessTokens == 4
@@ -234,11 +258,11 @@ def test_featureMissing():
     team.resources[entities["pro-drevo"]] = 20
 
     args = VyrobaArgs(
-        vyroba = entities["vyr-drevoProdLes"],
-        count = 2,
-        tile = tile.entity,
-        plunder = False,
-        team = team.team
+        vyroba=entities["vyr-drevoProdLes"],
+        count=2,
+        tile=tile.entity,
+        plunder=False,
+        team=team.team,
     )
     action = makeAction(VyrobaAction, state=state, entities=entities, args=args)
 

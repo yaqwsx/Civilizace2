@@ -35,7 +35,9 @@ class TradeAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensure(self.args.receiver != self.args.team, "Nelze obchodovat sám se sebou")
+        self._ensure(
+            self.args.receiver != self.args.team, "Nelze obchodovat sám se sebou"
+        )
         self._ensure(len(self.args.resources) > 0, "Není vybráno co obchodovat")
 
         with self._errors.startList("Obchod nelze provést") as err:
@@ -47,14 +49,14 @@ class TradeAction(TeamInteractionActionBase):
                     continue
 
                 if amount < 0:
-                    err(
-                        f"Nelze obchodovat záporné množství {amount}×[[{resource.id}]]")
+                    err(f"Nelze obchodovat záporné množství {amount}×[[{resource.id}]]")
                     continue
 
                 available = teamState.resources.get(resource, Decimal(0))
                 if amount > available:
                     err(
-                        f"Tým {self.args.team.name} nemá dostatek [[{resource.id}]] (dostupné: {available}, požadováno: {amount})")
+                        f"Tým {self.args.team.name} nemá dostatek [[{resource.id}]] (dostupné: {available}, požadováno: {amount})"
+                    )
                     continue
 
     @override
@@ -77,5 +79,7 @@ class TradeAction(TeamInteractionActionBase):
 
         self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}:"
         self._info += printResourceListForMarkdown(self.args.resources)
-        self._addNotification(self.args.receiver,
-                              f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}")
+        self._addNotification(
+            self.args.receiver,
+            f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}",
+        )

@@ -11,26 +11,44 @@ from game.entityParser import ErrorHandler, EntityParser
 
 ENTITY_SETS = {
     "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",
-    "TEST": "1d-d_cCsee7IZd7ZRhnRGMpKaWbjCA6pl-fU-3yYpvKw"
+    "TEST": "1d-d_cCsee7IZd7ZRhnRGMpKaWbjCA6pl-fU-3yYpvKw",
 }
+
 
 def setFilename(name: str) -> str:
     return f"{name}.json"
+
 
 def pullEntityTable(id: str) -> dict[str, list[list[str]]]:
     sheets = getSheets(id)
     data = {sheet.title: sheet.get_all_values() for sheet in sheets.worksheets()}
     return data
 
-def checkAndSave(data: dict[str, list[list[str]]],
-                 fileName: str | PathLike[str],
-                 err_handler: ErrorHandler = ErrorHandler(),
-                 ):
+
+def checkAndSave(
+    data: dict[str, list[list[str]]],
+    fileName: str | PathLike[str],
+    err_handler: ErrorHandler = ErrorHandler(),
+):
     entities, _ = EntityParser.parse(data, err_handler=err_handler)
     assert err_handler.success()
 
     counter = Counter([x[:3] for x in entities.keys()])
-    for x in ["tymy", "orgove", "natuaral resources", "types of resources", "map tiles", "buildings", "resourses", "materials", "productions", "mge-generic materials", "pge-generic productions", "techs", "vyrobas"]:
+    for x in [
+        "tymy",
+        "orgove",
+        "natuaral resources",
+        "types of resources",
+        "map tiles",
+        "buildings",
+        "resourses",
+        "materials",
+        "productions",
+        "mge-generic materials",
+        "pge-generic productions",
+        "techs",
+        "vyrobas",
+    ]:
         print(f"    {x}: {counter[x[:3]]}")
     print(f"SUCCESS: Created {len(entities)} entities from {fileName}")
 
@@ -38,6 +56,7 @@ def checkAndSave(data: dict[str, list[list[str]]],
         json.dump(data, file)
 
     print("Data saved to file {}".format(fileName))
+
 
 def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
     try:
@@ -52,13 +71,19 @@ def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
 
 
 class Command(BaseCommand):
-
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser: ArgumentParser):
         # Optional argument
-        parser.add_argument('-s', '--set', type=str, choices=list(ENTITY_SETS), nargs='+', default=list(ENTITY_SETS))
+        parser.add_argument(
+            '-s',
+            '--set',
+            type=str,
+            choices=list(ENTITY_SETS),
+            nargs='+',
+            default=list(ENTITY_SETS),
+        )
         parser.add_argument('--no-warn', action='store_true')
         parser.add_argument('--max-errs', type=int, default=5)
 
@@ -67,7 +92,8 @@ class Command(BaseCommand):
 
         for entity_set in options["set"]:
             assert entity_set in ENTITY_SETS
-            trySave(entity_set,
-                    ENTITY_SETS[entity_set],
-                    ErrorHandler(max_errs=options["max_errs"], no_warn=options["no_warn"]),
-                    )
+            trySave(
+                entity_set,
+                ENTITY_SETS[entity_set],
+                ErrorHandler(max_errs=options["max_errs"], no_warn=options["no_warn"]),
+            )

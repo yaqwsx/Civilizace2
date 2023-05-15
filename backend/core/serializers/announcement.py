@@ -6,6 +6,7 @@ from core.models.user import User
 from core.serializers.fields import TextEnumField
 from core.serializers.user import UserSerializer
 
+
 class TeamIdSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = Team
@@ -17,6 +18,7 @@ class TeamIdSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         return get_object_or_404(Team, pk=data)
 
+
 class AnnouncementSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     teams = TeamIdSerializer(many=True)
@@ -26,7 +28,6 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = "__all__"
         read_only_fields = ["id", "read", "author"]
-
 
     @staticmethod
     def _withoutTeams(data):
@@ -41,7 +42,9 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             announcement.author = user
 
     def create(self, validated_data):
-        announcement: Announcement = Announcement.objects.create(**self._withoutTeams(validated_data))
+        announcement: Announcement = Announcement.objects.create(
+            **self._withoutTeams(validated_data)
+        )
         for t in validated_data["teams"]:
             announcement.teams.add(t)
         self._setAuthor(announcement)

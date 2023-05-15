@@ -34,10 +34,14 @@ class ResearchStartAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensureStrong(self.args.tech not in self.teamState.techs,
-                           f"Technologie [[{self.args.tech.id}]] je již vyzkoumána")
-        self._ensureStrong(self.args.tech not in self.teamState.researching,
-                           f"Výzkum technologie [[{self.args.tech.id}]] již probíhá")
+        self._ensureStrong(
+            self.args.tech not in self.teamState.techs,
+            f"Technologie [[{self.args.tech.id}]] je již vyzkoumána",
+        )
+        self._ensureStrong(
+            self.args.tech not in self.teamState.researching,
+            f"Výzkum technologie [[{self.args.tech.id}]] již probíhá",
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:

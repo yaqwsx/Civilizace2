@@ -27,40 +27,63 @@ class Command(BaseCommand):
             self.print_resource_usage(entities, entities.resources[material])
             return
         if material in entities:
-            raise RuntimeError(f'Entity exists but is a {type(entities[material])}, not {Resource}')
+            raise RuntimeError(
+                f'Entity exists but is a {type(entities[material])}, not {Resource}'
+            )
         else:
-            raise RuntimeError(f"Entity doesn't exist exists. Make sure to use full valid id")
+            raise RuntimeError(
+                f"Entity doesn't exist exists. Make sure to use full valid id"
+            )
 
     def entity_to_str(self, entity: EntityBase) -> str:
         return f"'{entity.name}'" if not self.show_id else f"'{entity.id}'"
 
     def prettyprint_cost(self, entity: EntityWithCost) -> str:
-        return f'{entity.points} points' + ''.join(f", {amount}x {self.entity_to_str(resource)}" for resource, amount in entity.cost.items())
+        return f'{entity.points} points' + ''.join(
+            f", {amount}x {self.entity_to_str(resource)}"
+            for resource, amount in entity.cost.items()
+        )
 
-    def print_entity_usage_in(self, entities: Iterable[EntityWithCost], resource: Resource) -> None:
+    def print_entity_usage_in(
+        self, entities: Iterable[EntityWithCost], resource: Resource
+    ) -> None:
         for entity in entities:
             if resource in entity.cost:
                 reward_str = ''
                 if isinstance(entity, Vyroba):
                     reward_res, reward_amount = entity.reward
-                    reward_str = f' => {reward_amount}x {self.entity_to_str(reward_res)}'
-                print(f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}")
-                print(f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in entity.unlockedBy)}")
+                    reward_str = (
+                        f' => {reward_amount}x {self.entity_to_str(reward_res)}'
+                    )
+                print(
+                    f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"
+                )
+                print(
+                    f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in entity.unlockedBy)}"
+                )
 
     def print_resource_usage(self, entities: Entities, material: Resource):
         if material.isProduction:
             assert material.produces is not None
-            raise RuntimeError(f"Resource is a production, use '{material.produces.id}' instead")
+            raise RuntimeError(
+                f"Resource is a production, use '{material.produces.id}' instead"
+            )
 
-        productions = [prod for prod in entities.productions.values() if prod.produces == material]
+        productions = [
+            prod for prod in entities.productions.values() if prod.produces == material
+        ]
 
         print()
         if len(productions) == 0:
             print(f"MATERIAL not produced by any PRODUCTION")
         elif len(productions) == 1:
-            print(f"MATERIAL produced by PRODUCTION {self.entity_to_str(productions[0])}")
+            print(
+                f"MATERIAL produced by PRODUCTION {self.entity_to_str(productions[0])}"
+            )
         else:
-            print(f"MATERIAL produced by PRODUCTIONS ({', '.join(map(self.entity_to_str, productions))})")
+            print(
+                f"MATERIAL produced by PRODUCTIONS ({', '.join(map(self.entity_to_str, productions))})"
+            )
 
         print()
         print("MATERIAL usage in TECH cost:")
@@ -83,19 +106,26 @@ class Command(BaseCommand):
             print(f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING cost:")
             self.print_entity_usage_in(entities.buildings.values(), prod)
 
-
         print()
         print("MATERIAL created by:")
         for vyroba in entities.vyrobas.values():
             reward_res, reward_amount = vyroba.reward
             if material == reward_res:
-                print(f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}")
-                print(f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}")
+                print(
+                    f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
+                )
+                print(
+                    f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}"
+                )
 
         for prod in productions:
             print(f"PRODUCTION {self.entity_to_str(prod)} created by:")
             for vyroba in entities.vyrobas.values():
                 reward_res, reward_amount = vyroba.reward
                 if prod == reward_res:
-                    print(f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}")
-                    print(f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}")
+                    print(
+                        f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
+                    )
+                    print(
+                        f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}"
+                    )

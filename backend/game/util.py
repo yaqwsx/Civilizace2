@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import Callable
 
+
 class FileCache:
     def __init__(self, cacheDirectory, suffix):
         self.cacheDirectory = Path(cacheDirectory).resolve()
         self.cacheDirectory.mkdir(exist_ok=True, parents=True)
         self.suffix = suffix
-
 
     def path(self, ident: str, renderer: Callable[[str], None]) -> Path:
         """

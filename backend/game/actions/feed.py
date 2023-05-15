@@ -14,30 +14,45 @@ class FeedRequirements(BaseModel):
     tokensRequired: int
     tokensPerCaste: int
     casteCount: int
-    automated: List[Tuple[Resource, Decimal]] # sorted in preferred display order
+    automated: List[Tuple[Resource, Decimal]]  # sorted in preferred display order
 
 
-def computeFeedRequirements(state: GameState, entities: Entities, team: Team) -> FeedRequirements:
+def computeFeedRequirements(
+    state: GameState, entities: Entities, team: Team
+) -> FeedRequirements:
     teamState: TeamState = state.teamStates[team]
     tokensRequired = ceil(teamState.population / 20)
-    foodPerCaste = ceil(tokensRequired / (2*state.world.casteCount))
+    foodPerCaste = ceil(tokensRequired / (2 * state.world.casteCount))
 
-    automated = [(production.produces, amount) for production, amount in teamState.granary.items() if production.produces is not None]
-    automatedCount = floor(sum(amount for production, amount in automated if production.typ == entities["typ-jidlo"]))
+    automated = [
+        (production.produces, amount)
+        for production, amount in teamState.granary.items()
+        if production.produces is not None
+    ]
+    automatedCount = floor(
+        sum(
+            amount
+            for production, amount in automated
+            if production.typ == entities["typ-jidlo"]
+        )
+    )
 
-    automated.sort(key=lambda x: -x[1]) # secondary order: amount
-    automated.sort(key=lambda x: x[0].typ != entities["typ-jidlo"]) # primary order: type
+    automated.sort(key=lambda x: -x[1])  # secondary order: amount
+    automated.sort(
+        key=lambda x: x[0].typ != entities["typ-jidlo"]
+    )  # primary order: type
 
     return FeedRequirements(
         tokensRequired=max(tokensRequired - automatedCount, 0),
         tokensPerCaste=foodPerCaste,
         casteCount=state.world.casteCount,
-        automated=automated
+        automated=automated,
     )
 
 
 class FeedArgs(TeamActionArgs):
     materials: Dict[Resource, int]
+
 
 class FeedAction(TeamInteractionActionBase):
     @property
@@ -55,20 +70,28 @@ class FeedAction(TeamInteractionActionBase):
     def cost(self) -> Dict[Resource, int]:
         return self.args.materials
 
-    def _addObyvatel(self, amount: int) -> None: # supports negative amounts
-        self.teamState.resources[self.entities.obyvatel] = self.teamState.resources.get(self.entities.obyvatel, Decimal(0)) + amount
+    def _addObyvatel(self, amount: int) -> None:  # supports negative amounts
+        self.teamState.resources[self.entities.obyvatel] = (
+            self.teamState.resources.get(self.entities.obyvatel, Decimal(0)) + amount
+        )
         if self.teamState.resources[self.entities.obyvatel] < 0:
             self.teamState.resources[self.entities.obyvatel] = Decimal(0)
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensureStrong(self.teamState.turn < self.state.world.turn, "V tomto kole už jste krmili.")
+        self._ensureStrong(
+            self.teamState.turn < self.state.world.turn, "V tomto kole už jste krmili."
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
-        paidFood = sum(amount for resource, amount in self.args.materials.items() if resource.typ == self.entities["typ-jidlo"])
+        paidFood = sum(
+            amount
+            for resource, amount in self.args.materials.items()
+            if resource.typ == self.entities["typ-jidlo"]
+        )
 
         newborns = 0
         if req.tokensRequired > paidFood:
@@ -98,13 +121,20 @@ class FeedAction(TeamInteractionActionBase):
 
         self._addObyvatel(newborns)
 
-        self._info += f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."
+        self._info += (
+            f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."
+        )
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
+        self.teamState.resources[self.entities.work] = (
+            self.teamState.resources.get(self.entities.work, Decimal(0)) // 2
+        )
 
-        self.teamState.resources[self.entities.work] = self.teamState.resources.get(self.entities.work, Decimal(0)) // 2
-
-        reward = {resource.produces: amount for resource, amount in self.teamState.resources.items() if resource.produces is not None}
+        reward = {
+            resource.produces: amount
+            for resource, amount in self.teamState.resources.items()
+            if resource.produces is not None
+        }
         self._receiveResources(reward)
 
         self.teamState.turn = self.state.world.turn

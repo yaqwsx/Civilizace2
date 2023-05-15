@@ -10,9 +10,11 @@ from game.entities import RESOURCE_VILLAGER, Resource
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
 # the player sacrificed to gods) and then it gains some blue counter
 
+
 class IncreaseCounterArgs(TeamActionArgs):
     red: Decimal
-    resource: Optional[Resource]=None
+    resource: Optional[Resource] = None
+
 
 class IncreaseCounterAction(TeamInteractionActionBase):
     # Tady si můžu dodefinovat libovolná pole. Ale měla by mít defaultní hodnotu
@@ -45,20 +47,28 @@ class IncreaseCounterAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensure(self.args.red < 10,
-            "Hráč nemůže zvýšit červené počitado o více než 10")
-        self._ensure(self.args.red > -10,
-            "Hráč nemůže snížit počitadlo o více než 10")
-        self._ensure(self.args.resource is None or self.args.resource.id != RESOURCE_VILLAGER,
-            f"Hráči nemohou obětovat lidi - chtěli jste obětovat 1× [[{RESOURCE_VILLAGER}]]")
+        self._ensure(
+            self.args.red < 10, "Hráč nemůže zvýšit červené počitado o více než 10"
+        )
+        self._ensure(self.args.red > -10, "Hráč nemůže snížit počitadlo o více než 10")
+        self._ensure(
+            self.args.resource is None or self.args.resource.id != RESOURCE_VILLAGER,
+            f"Hráči nemohou obětovat lidi - chtěli jste obětovat 1× [[{RESOURCE_VILLAGER}]]",
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:
         self.trace.add("Zahájen commit")
         self.teamState.redCounter += self.args.red
-        self._info.add(f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}")
-        self.trace.add(f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}")
+        self._info.add(
+            f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
+        )
+        self.trace.add(
+            f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
+        )
 
         if self.args.resource is not None:
             self.teamState.blueCounter += 1
-            self._info.add(f"Týmu bylo zvýšeno modré počítadlo na {self.teamState.blueCounter}")
+            self._info.add(
+                f"Týmu bylo zvýšeno modré počítadlo na {self.teamState.blueCounter}"
+            )

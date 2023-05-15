@@ -13,10 +13,21 @@ def test_buildRoad():
     team = entities["tym-zluti"]
     tile = state.map.tiles[28]
 
-    sendArmyTo(entities, state, state.map.armies[3], entities["map-tile28"], equipment=5, goal=ArmyGoal.Occupy)
+    sendArmyTo(
+        entities,
+        state,
+        state.map.armies[3],
+        entities["map-tile28"],
+        equipment=5,
+        goal=ArmyGoal.Occupy,
+    )
 
-    action = makeAction(BuildRoadAction,
-                        state=state, entities=entities, args=BuildRoadArgs(team=team, tile=tile.entity))
+    action = makeAction(
+        BuildRoadAction,
+        state=state,
+        entities=entities,
+        args=BuildRoadArgs(team=team, tile=tile.entity),
+    )
     action.applyCommit(1, 100)
 
     teamState = state.teamStates[team]
@@ -32,7 +43,11 @@ def test_unownedTile():
     team = entities["tym-zluti"]
     tile = state.map.tiles[28]
 
-    action = makeAction(BuildRoadAction,
-                        state=state, entities=entities, args=BuildRoadArgs(team=team, tile=tile.entity))
+    action = makeAction(
+        BuildRoadAction,
+        state=state,
+        entities=entities,
+        args=BuildRoadArgs(team=team, tile=tile.entity),
+    )
     with pytest.raises(ActionFailed) as einfo:
         result = action.applyCommit()

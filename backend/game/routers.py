@@ -31,6 +31,4 @@ routes.register(r'armies', ArmiesViewSet, basename="armies")
 routes.register(r'tick', TickViewSet, basename="tick")
 
 
-urlpatterns = [
-    *routes.urls
-]
+urlpatterns = [*routes.urls]

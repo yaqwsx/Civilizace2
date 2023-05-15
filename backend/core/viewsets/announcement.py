@@ -17,7 +17,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     ordering_fields = ["appearDatetime"]
     ordering = ["-appearDatetime"]
 
-
     @action(detail=True, methods=["POST"])
     def read(self, request: Request, pk) -> Response:
         announcement = get_object_or_404(Announcement, pk=pk)

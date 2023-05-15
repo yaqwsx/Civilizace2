@@ -20,12 +20,22 @@ from game.actions.researchStart import ResearchStartAction
 from game.entities import Entities
 from game.entities import Team as TeamEntity
 from game.gameGlue import stateSerialize
-from game.models import (DbAction, DbEntities, DbInteraction, DbState, DbTask,
-                         DbTaskAssignment, GameTime, InteractionType)
+from game.models import (
+    DbAction,
+    DbEntities,
+    DbInteraction,
+    DbState,
+    DbTask,
+    DbTaskAssignment,
+    GameTime,
+    InteractionType,
+)
 from game.state import GameState
-from game.viewsets.action_view_helper import (ActionViewHelper,
-                                              UnexpectedActionTypeError,
-                                              UnexpectedStateError)
+from game.viewsets.action_view_helper import (
+    ActionViewHelper,
+    UnexpectedActionTypeError,
+    UnexpectedStateError,
+)
 from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer, Sticker
 
@@ -42,18 +52,27 @@ def checkInitiatePhase(interaction: InteractionType) -> None:
 
 
 class InitiateSerializer(serializers.Serializer):
-    action = serializers.ChoiceField(list(id for (id, action) in GAME_ACTIONS.items() if issubclass(action.action, TeamInteractionActionBase)))
+    action = serializers.ChoiceField(
+        list(
+            id
+            for (id, action) in GAME_ACTIONS.items()
+            if issubclass(action.action, TeamInteractionActionBase)
+        )
+    )
     args = serializers.JSONField()
     ignore_cost = serializers.BooleanField(default=False)  # type: ignore
     ignore_game_stop = serializers.BooleanField(default=False)  # type: ignore
+
 
 class ThrowsSerializer(serializers.Serializer):
     throws = serializers.IntegerField(min_value=0)
     dots = serializers.IntegerField(min_value=0)
     ignore_throws = serializers.BooleanField(default=False)  # type: ignore
 
+
 class DrySerializer(InitiateSerializer):
     ignore_throws = serializers.BooleanField(default=False)  # type: ignore
+
 
 class TeamActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
@@ -80,7 +99,9 @@ class TeamActionViewSet(viewsets.ViewSet):
             )
             return
         if isinstance(action, ResearchFinishAction):
-            for t in DbTaskAssignment.objects.filter(team=team, techId=action.args.tech.id, finishedAt=None):
+            for t in DbTaskAssignment.objects.filter(
+                team=team, techId=action.args.tech.id, finishedAt=None
+            ):
                 t.finishedAt = timezone.now()
                 t.save()
 
@@ -93,9 +114,15 @@ class TeamActionViewSet(viewsets.ViewSet):
         return f"Je třeba hodit {pointsCost}"
 
     @staticmethod
-    def _previewDryInteractionMessage(initiateInfo: str, pointsCost: Optional[int],
-            commitResult: ActionResult, stickers: Iterable[Sticker],
-            team: Optional[TeamEntity], entities: Entities, state: GameState) -> str:
+    def _previewDryInteractionMessage(
+        initiateInfo: str,
+        pointsCost: Optional[int],
+        commitResult: ActionResult,
+        stickers: Iterable[Sticker],
+        team: Optional[TeamEntity],
+        entities: Entities,
+        state: GameState,
+    ) -> str:
         b = MessageBuilder()
         b.add("## Předpoklady")
         b.add(initiateInfo)
@@ -109,7 +136,9 @@ class TeamActionViewSet(viewsets.ViewSet):
                 addLine(f"samolepka {e.name} pro tým {t.name}")
 
         for scheduled in commitResult.scheduledActions:
-            b += ActionViewHelper._previewScheduledAction(scheduled, team=team, entities=entities, state=state)
+            b += ActionViewHelper._previewScheduledAction(
+                scheduled, team=team, entities=entities, state=state
+            )
 
         return b.message
 
@@ -132,7 +161,9 @@ class TeamActionViewSet(viewsets.ViewSet):
             if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
-            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
+            action = ActionViewHelper.constructAction(
+                data["action"], data["args"], entities, state
+            )
             if not isinstance(action, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
 
@@ -140,19 +171,34 @@ class TeamActionViewSet(viewsets.ViewSet):
             commitResult = action.commitSuccess()
 
             # Check if the game started
-            _ = GameTime.getNearestTime() if len(commitResult.scheduledActions) > 0 else None
+            _ = (
+                GameTime.getNearestTime()
+                if len(commitResult.scheduledActions) > 0
+                else None
+            )
 
-            stickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=action.state)
+            stickers = ActionViewHelper._computeStickersDiff(
+                orig=sourceState, new=action.state
+            )
 
             pointsCost = action.pointsCost() if not ignoreThrows else None
-            message = TeamActionViewSet._previewDryInteractionMessage(initiateInfo, pointsCost,
-                    commitResult, stickers, team=action.args.team, entities=action.entities, state=action.state)
+            message = TeamActionViewSet._previewDryInteractionMessage(
+                initiateInfo,
+                pointsCost,
+                commitResult,
+                stickers,
+                team=action.args.team,
+                entities=action.entities,
+                state=action.state,
+            )
 
-            return Response(data={
-                "success": True,
-                "expected": commitResult.expected,
-                "message": message,
-            })
+            return Response(
+                data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "message": message,
+                }
+            )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)
         except Exception as e:
@@ -179,8 +225,12 @@ class TeamActionViewSet(viewsets.ViewSet):
             sourceState = dbState.toIr()
             dryState = dbState.toIr()
 
-            action = ActionViewHelper.constructAction(data["action"], data["args"], entities, state)
-            dryAction = ActionViewHelper.constructAction(data["action"], data["args"], entities, dryState)
+            action = ActionViewHelper.constructAction(
+                data["action"], data["args"], entities, state
+            )
+            dryAction = ActionViewHelper.constructAction(
+                data["action"], data["args"], entities, dryState
+            )
             if not isinstance(action, TeamInteractionActionBase):
                 raise UnexpectedActionTypeError(action, TeamInteractionActionBase)
             if not isinstance(dryAction, TeamInteractionActionBase):
@@ -191,36 +241,47 @@ class TeamActionViewSet(viewsets.ViewSet):
             pointsCost = action.pointsCost()
 
             dbAction = DbAction.objects.create(
-                    actionType=data["action"],
-                    entitiesRevision=entityRevision,
-                    args=stateSerialize(action.args))
-            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
-                InteractionType.initiate, request.user, state, action)
+                actionType=data["action"],
+                entitiesRevision=entityRevision,
+                args=stateSerialize(action.args),
+            )
+            ActionViewHelper.dbStoreInteraction(
+                dbAction, dbState, InteractionType.initiate, request.user, state, action
+            )
 
             if pointsCost != 0:
                 # Let's perform the commit on dryState as some validation
                 # happens in commit /o\
                 dryAction.commitSuccess()
 
-                return Response(data={
-                    "success": True,
-                    "expected": True,
-                    "action": dbAction.id,
-                    "committed": False,
-                    "message": initiateInfo,
-                })
+                return Response(
+                    data={
+                        "success": True,
+                        "expected": True,
+                        "action": dbAction.id,
+                        "committed": False,
+                        "message": initiateInfo,
+                    }
+                )
 
             commitResult = action.commitThrows(throws=0, dots=0)
-            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
-                InteractionType.commit, request.user, state, action)
+            ActionViewHelper.dbStoreInteraction(
+                dbAction, dbState, InteractionType.commit, request.user, state, action
+            )
 
             TeamActionViewSet._handleExtraCommitSteps(action)
 
-            gainedStickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=state)
+            gainedStickers = ActionViewHelper._computeStickersDiff(
+                orig=sourceState, new=state
+            )
             ActionViewHelper._markMapDiff(sourceState, state)
 
-            scheduled = [ActionViewHelper._dbScheduleAction(scheduledAction, source=dbAction, author=request.user)
-                         for scheduledAction in commitResult.scheduledActions]
+            scheduled = [
+                ActionViewHelper._dbScheduleAction(
+                    scheduledAction, source=dbAction, author=request.user
+                )
+                for scheduledAction in commitResult.scheduledActions
+            ]
 
             awardedStickers = ActionViewHelper._awardStickers(gainedStickers)
             ActionViewHelper.addResultNotifications(commitResult)
@@ -228,14 +289,16 @@ class TeamActionViewSet(viewsets.ViewSet):
             msgBuilder = MessageBuilder(message=initiateInfo)
             msgBuilder += ActionViewHelper._commitMessage(commitResult, scheduled)
 
-            return Response(data={
-                "success": True,
-                "expected": commitResult.expected,
-                "action": dbAction.id,
-                "committed": True,
-                "message": msgBuilder.message,
-                "stickers": DbStickerSerializer(awardedStickers, many=True).data,
-            })
+            return Response(
+                data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "action": dbAction.id,
+                    "committed": True,
+                    "message": msgBuilder.message,
+                    "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                }
+            )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)
         except Exception as e:
@@ -263,12 +326,14 @@ class TeamActionViewSet(viewsets.ViewSet):
         pointsCost = action.pointsCost()
 
         if request.method == "GET":
-            return Response({
-                "requiredDots": pointsCost,
-                "throwCost": action.throwCost(),
-                "description": dbAction.description,
-                "team": action.args.team.id
-            })
+            return Response(
+                {
+                    "requiredDots": pointsCost,
+                    "throwCost": action.throwCost(),
+                    "description": dbAction.description,
+                    "team": action.args.team.id,
+                }
+            )
 
         # We want to allow finish action even when the game is not running
         # ActionViewHelper._ensureGameIsRunning(dbAction.actionType)
@@ -276,7 +341,9 @@ class TeamActionViewSet(viewsets.ViewSet):
             deserializer = ThrowsSerializer(data=request.data)
             deserializer.is_valid(raise_exception=True)
             params = deserializer.validated_data
-            assert params["throws"] >= 0, "ThrowsSerializer does not allow negative throws"
+            assert (
+                params["throws"] >= 0
+            ), "ThrowsSerializer does not allow negative throws"
             assert params["dots"] >= 0, "ThrowsSerializer does not allow negative dots"
 
             ignoreThrows = request.user.is_superuser and params["ignore_throws"]
@@ -284,27 +351,38 @@ class TeamActionViewSet(viewsets.ViewSet):
             if ignoreThrows:
                 commitResult = action.commitSuccess()
             else:
-                commitResult = action.commitThrows(throws=params["throws"], dots=params["dots"])
-            ActionViewHelper.dbStoreInteraction(dbAction, dbState,
-                InteractionType.commit,request.user, state, action)
+                commitResult = action.commitThrows(
+                    throws=params["throws"], dots=params["dots"]
+                )
+            ActionViewHelper.dbStoreInteraction(
+                dbAction, dbState, InteractionType.commit, request.user, state, action
+            )
 
             TeamActionViewSet._handleExtraCommitSteps(action)
 
-            gainedStickers = ActionViewHelper._computeStickersDiff(orig=sourceState, new=state)
+            gainedStickers = ActionViewHelper._computeStickersDiff(
+                orig=sourceState, new=state
+            )
             ActionViewHelper._markMapDiff(sourceState, state)
 
-            scheduled = [ActionViewHelper._dbScheduleAction(scheduledAction, source=dbAction, author=request.user)
-                         for scheduledAction in commitResult.scheduledActions]
+            scheduled = [
+                ActionViewHelper._dbScheduleAction(
+                    scheduledAction, source=dbAction, author=request.user
+                )
+                for scheduledAction in commitResult.scheduledActions
+            ]
 
             awardedStickers = ActionViewHelper._awardStickers(gainedStickers)
             ActionViewHelper.addResultNotifications(commitResult)
 
-            return Response(data={
-                "success": True,
-                "expected": commitResult.expected,
-                "message": ActionViewHelper._commitMessage(commitResult, scheduled),
-                "stickers": DbStickerSerializer(awardedStickers, many=True).data,
-            })
+            return Response(
+                data={
+                    "success": True,
+                    "expected": commitResult.expected,
+                    "message": ActionViewHelper._commitMessage(commitResult, scheduled),
+                    "stickers": DbStickerSerializer(awardedStickers, many=True).data,
+                }
+            )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)
         except Exception as e:
@@ -329,29 +407,31 @@ class TeamActionViewSet(viewsets.ViewSet):
 
         try:
             result = action.revertInitiate()
-            ActionViewHelper.dbStoreInteraction(dbAction, dbState, InteractionType.revert,
-                request.user, state, action)
-            return Response({
-                "success": True,
-                "message": f"## Akce zrušena\n\n{result}"
-            })
+            ActionViewHelper.dbStoreInteraction(
+                dbAction, dbState, InteractionType.revert, request.user, state, action
+            )
+            return Response(
+                {"success": True, "message": f"## Akce zrušena\n\n{result}"}
+            )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)
         except Exception as e:
             tb = traceback.format_exc()
             return ActionViewHelper._unexpectedErrorResponse(e, tb)
 
-
     @action(methods=["GET"], detail=False)
     @transaction.atomic()
     def unfinished(self, request: Request) -> Response:
-        unfinishedInteractions = DbInteraction.objects \
-            .filter(phase=InteractionType.initiate, author=request.user) \
-            .annotate(interaction_count=Count("action__interactions")) \
+        unfinishedInteractions = (
+            DbInteraction.objects.filter(
+                phase=InteractionType.initiate, author=request.user
+            )
+            .annotate(interaction_count=Count("action__interactions"))
             .filter(interaction_count=1)
-        unfinishedActions = DbAction.objects \
-            .filter(interactions__in=unfinishedInteractions).distinct()
-        return Response([{
-                "id": x.id,
-                "description": x.description
-            } for x in unfinishedActions])
+        )
+        unfinishedActions = DbAction.objects.filter(
+            interactions__in=unfinishedInteractions
+        ).distinct()
+        return Response(
+            [{"id": x.id, "description": x.description} for x in unfinishedActions]
+        )

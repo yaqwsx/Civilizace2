@@ -5,9 +5,13 @@ from typing import Dict, NamedTuple, Optional
 
 from typing_extensions import override
 
-from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
-                                     TeamActionBase, TeamInteractionActionBase,
-                                     TileActionArgs)
+from game.actions.actionBase import (
+    NoInitActionBase,
+    TeamActionArgs,
+    TeamActionBase,
+    TeamInteractionActionBase,
+    TileActionArgs,
+)
 from game.actions.common import MessageBuilder
 from game.entities import Resource, Vyroba
 from game.state import printResourceListForMarkdown
@@ -19,13 +23,16 @@ class VyrobaArgs(TeamActionArgs, TileActionArgs):
     plunder: bool
     genericsMapping: Dict[Resource, Resource] = {}
 
+
 class VyrobaReward(NamedTuple):
     reward: Dict[Resource, Decimal]
     bonus: Decimal
     plundered: Optional[int]
 
     def tracked(self) -> Dict[Resource, Decimal]:
-        return {reward: amount for reward, amount in self.reward.items() if reward.isTracked}
+        return {
+            reward: amount for reward, amount in self.reward.items() if reward.isTracked
+        }
 
 
 def computeVyrobaReward(args: VyrobaArgs, tileRichnessTokens: int) -> VyrobaReward:
@@ -73,16 +80,22 @@ class VyrobaAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        self._ensureStrong(self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
-                           f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.")
+        self._ensureStrong(
+            self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+            f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.",
+        )
         for feature in self.args.vyroba.requiredFeatures:
-            self._ensure(feature in self.args.tileState(self.state).features,
-                         f"Na poli {self.args.tile.name} chybí {feature.name}")
+            self._ensure(
+                feature in self.args.tileState(self.state).features,
+                f"Na poli {self.args.tile.name} chybí {feature.name}",
+            )
 
     @override
     def _commitSuccessImpl(self) -> None:
         if travelTime := self.travelTime() > 0:
-            scheduled = self._scheduleAction(VyrobaCompletedAction, self.args, travelTime)
+            scheduled = self._scheduleAction(
+                VyrobaCompletedAction, self.args, travelTime
+            )
             self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(scheduled.delay_s / 60)} minut"
         else:
             self._info += f"Zadání výroby bylo úspěšné"
@@ -97,7 +110,9 @@ class VyrobaAction(TeamInteractionActionBase):
             self._info += f"Dejte týmu materiály:\n\n{printResourceListForMarkdown(instantReward, floor)}"
 
             if len(tracked := reward.tracked()) > 0:
-                self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+                self._info += (
+                    f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+                )
             if reward.bonus != 0:
                 self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
             if reward.plundered is not None:
@@ -128,13 +143,17 @@ class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
         self._receiveResources(reward.reward)
 
         if len(tracked := reward.tracked()) > 0:
-            self._info += f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+            self._info += (
+                f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
+            )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
         if reward.plundered is not None:
             self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
-        msgBuilder = MessageBuilder(message=f"Výroba {self.args.vyroba.name} dokončena:")
+        msgBuilder = MessageBuilder(
+            message=f"Výroba {self.args.vyroba.name} dokončena:"
+        )
         msgBuilder += self._warnings
         msgBuilder += self._info
         self._addNotification(self.args.team, msgBuilder.message)

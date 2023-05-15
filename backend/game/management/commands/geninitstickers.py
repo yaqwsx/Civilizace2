@@ -4,8 +4,8 @@ from game.models import DbEntities, StickerType
 from pathlib import Path
 
 
-
 from game.stickers import makeSticker
+
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
@@ -19,13 +19,16 @@ class Command(BaseCommand):
         outputdir.mkdir(exist_ok=True, parents=True)
         _, entities = DbEntities.objects.get_revision()
 
-        stickers = ["vyr-drevoInit", "bui-centrum", "tec-start", "tec-plane", "tec-lesy", "tec-hory"]
+        stickers = [
+            "vyr-drevoInit",
+            "bui-centrum",
+            "tec-start",
+            "tec-plane",
+            "tec-lesy",
+            "tec-hory",
+        ]
 
         for team in Team.objects.all():
             for s in stickers:
                 img = makeSticker(entities[s], team, StickerType.regular)
                 img.save(str(outputdir / f"{team.id}_{s}.png"))
-
-
-
-

@@ -1,7 +1,10 @@
 from typing_extensions import override
 
-from game.actions.actionBase import (TeamActionArgs, TeamInteractionActionBase,
-                                     TileActionArgs)
+from game.actions.actionBase import (
+    TeamActionArgs,
+    TeamInteractionActionBase,
+    TileActionArgs,
+)
 
 
 class DiscoverTileArgs(TeamActionArgs, TileActionArgs):
@@ -23,8 +26,10 @@ class DiscoverTileAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         for tState in self.state.teamStates.values():
-            self._ensureStrong(self.args.tile not in tState.discoveredTiles,
-                               f"Dílek [[{self.args.tile.id}]] už byl objeven týmem {tState.team.name}.")
+            self._ensureStrong(
+                self.args.tile not in tState.discoveredTiles,
+                f"Dílek [[{self.args.tile.id}]] už byl objeven týmem {tState.team.name}.",
+            )
 
     @override
     def _commitSuccessImpl(self) -> None:

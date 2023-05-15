@@ -3,6 +3,7 @@ from rest_framework.response import Response
 
 from game.middleware import updateScheduledActions, updateTurn
 
+
 class TickViewSet(viewsets.ViewSet):
     def list(self, request):
         updateTurn()

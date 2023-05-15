@@ -22,17 +22,22 @@ class ArmyRetreatAction(TeamInteractionActionBase):
 
     @property
     def army(self) -> Army:
-        self._ensureStrong(self.args.armyIndex in range(0, len(self.state.map.armies)),
-                           f"Neznámá armáda (index: {self.args.armyIndex})")
+        self._ensureStrong(
+            self.args.armyIndex in range(0, len(self.state.map.armies)),
+            f"Neznámá armáda (index: {self.args.armyIndex})",
+        )
         return self.state.map.armies[self.args.armyIndex]
 
     @override
     def _initiateCheck(self) -> None:
         army = self.army
-        self._ensureStrong(army.team == self.args.team,
-                           f"Armáda nepatří týmu {self.args.team.name}")
-        self._ensureStrong(army.mode == ArmyMode.Occupying,
-                           f"Nelze stáhnout armádu, která nestojí na poli.")
+        self._ensureStrong(
+            army.team == self.args.team, f"Armáda nepatří týmu {self.args.team.name}"
+        )
+        self._ensureStrong(
+            army.mode == ArmyMode.Occupying,
+            f"Nelze stáhnout armádu, která nestojí na poli.",
+        )
         assert army.tile is not None
 
     @override

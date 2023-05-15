@@ -18,6 +18,4 @@ routes.register(r'announcements', AnnouncementViewSet, basename="announcements")
 
 routes.register(r'status', StatusViewSet, basename="status")
 
-urlpatterns = [
-    *routes.urls
-]
+urlpatterns = [*routes.urls]

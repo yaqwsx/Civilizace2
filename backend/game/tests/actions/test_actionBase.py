@@ -6,12 +6,17 @@ from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitS
 
 teamState = TEAM_BASIC
 
+
 def test_payResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = makeAction(ResearchStartAction,
-        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=teamState))
+    action = makeAction(
+        ResearchStartAction,
+        state=state,
+        entities=entities,
+        args=ResearchArgs(tech=entities["tec-a"], team=teamState),
+    )
 
     teamState = state.teamStates[teamState]
     teamState.resources = {
@@ -56,7 +61,12 @@ def test_payResources():
     assert teamState.population == 100
     assert teamState.employees == 10
 
-    result = action.payResources({entities["mat-bobule"]: 2, entities["mat-drevo"]: 2, })
+    result = action.payResources(
+        {
+            entities["mat-bobule"]: 2,
+            entities["mat-drevo"]: 2,
+        }
+    )
     assert result == {entities["mat-bobule"]: 2, entities["mat-drevo"]: 2}
     assert teamState.resources == {
         entities["res-prace"]: 90,
@@ -67,8 +77,14 @@ def test_payResources():
     }
     assert teamState.population == 100
 
-    result = action.payResources({entities["mat-bobule"]: 2, entities["pro-drevo"]: 2,
-                                     entities["res-obyvatel"]:5, entities["res-prace"]:20,})
+    result = action.payResources(
+        {
+            entities["mat-bobule"]: 2,
+            entities["pro-drevo"]: 2,
+            entities["res-obyvatel"]: 5,
+            entities["res-prace"]: 20,
+        }
+    )
     assert result == {entities["mat-bobule"]: 2}
     assert teamState.resources == {
         entities["res-prace"]: 70,
@@ -79,7 +95,6 @@ def test_payResources():
     }
     assert teamState.population == 100
     assert teamState.employees == 15
-
 
     with pytest.raises(ActionFailed) as einfo:
         action.payResources({entities["pro-bobule"]: 10})
@@ -94,8 +109,12 @@ def test_payResources():
 def test_receiveResources():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    action = makeAction(ResearchStartAction,
-        state=state, entities=entities, args=ResearchArgs(tech=entities["tec-a"], team=teamState))
+    action = makeAction(
+        ResearchStartAction,
+        state=state,
+        entities=entities,
+        args=ResearchArgs(tech=entities["tec-a"], team=teamState),
+    )
 
     teamState = state.teamStates[teamState]
 
@@ -107,22 +126,24 @@ def test_receiveResources():
     assert teamState.storage == {}
     assert withdraw == {}
 
-    withdraw = action.receiveResources({entities["mat-kuze"]:2}, instantWithdraw=True)
+    withdraw = action.receiveResources({entities["mat-kuze"]: 2}, instantWithdraw=True)
     assert teamState.resources == {}
     assert teamState.storage == {}
-    assert withdraw == {entities["mat-kuze"]:2}
+    assert withdraw == {entities["mat-kuze"]: 2}
 
-    withdraw = action.receiveResources({entities["mat-kuze"]:2})
+    withdraw = action.receiveResources({entities["mat-kuze"]: 2})
     assert teamState.resources == {}
-    assert teamState.storage == {entities["mat-kuze"]:2}
+    assert teamState.storage == {entities["mat-kuze"]: 2}
     assert withdraw == {}
 
-    withdraw = action.receiveResources({entities["pro-kuze"]:3})
-    assert teamState.resources == {entities["pro-kuze"]:3}
-    assert teamState.storage == {entities["mat-kuze"]:2}
+    withdraw = action.receiveResources({entities["pro-kuze"]: 3})
+    assert teamState.resources == {entities["pro-kuze"]: 3}
+    assert teamState.storage == {entities["mat-kuze"]: 2}
     assert withdraw == {}
 
-    withdraw = action.receiveResources({entities["pro-kuze"]:10, entities["mat-kuze"]: 10})
-    assert teamState.resources == {entities["pro-kuze"]:13}
-    assert teamState.storage == {entities["mat-kuze"]:10}
+    withdraw = action.receiveResources(
+        {entities["pro-kuze"]: 10, entities["mat-kuze"]: 10}
+    )
+    assert teamState.resources == {entities["pro-kuze"]: 13}
+    assert teamState.storage == {entities["mat-kuze"]: 10}
     assert withdraw == {}

@@ -4,6 +4,7 @@ from django.contrib.auth.models import update_last_login
 
 from .user import UserSerializer
 
+
 class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)

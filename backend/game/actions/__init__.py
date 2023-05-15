@@ -3,9 +3,14 @@ import inspect
 import pkgutil
 from typing import Dict, List, NamedTuple, Optional, Type
 
-from game.actions.actionBase import (ActionArgs, ActionCommonBase,
-                                     NoInitActionBase, TeamActionArgs,
-                                     TeamActionBase, TeamInteractionActionBase)
+from game.actions.actionBase import (
+    ActionArgs,
+    ActionCommonBase,
+    NoInitActionBase,
+    TeamActionArgs,
+    TeamActionBase,
+    TeamInteractionActionBase,
+)
 
 
 class GameAction(NamedTuple):
@@ -23,8 +28,10 @@ def checkGameAction(action: Type[ActionCommonBase], args: Type[ActionArgs]) -> N
 
     if issubclass(action, TeamActionBase):
         assert issubclass(args, TeamActionArgs)
-    assert not (issubclass(action, TeamInteractionActionBase)
-                and issubclass(action, NoInitActionBase))
+    assert not (
+        issubclass(action, TeamInteractionActionBase)
+        and issubclass(action, NoInitActionBase)
+    )
 
 
 def loadActions() -> Dict[str, GameAction]:
@@ -40,7 +47,13 @@ def loadActions() -> Dict[str, GameAction]:
             item = getattr(actionPkg, name)
             if not inspect.isclass(item):
                 continue
-            if item in (ActionCommonBase, NoInitActionBase, TeamActionBase, TeamInteractionActionBase, TeamActionArgs):
+            if item in (
+                ActionCommonBase,
+                NoInitActionBase,
+                TeamActionBase,
+                TeamInteractionActionBase,
+                TeamActionArgs,
+            ):
                 continue
             if issubclass(item, ActionCommonBase):
                 actions.append(item)
@@ -49,16 +62,17 @@ def loadActions() -> Dict[str, GameAction]:
                     args = item
                 elif not issubclass(args, item):
                     raise RuntimeError(
-                        f"Modul {pkg.name} obsahuje dvě implementace argumentů {args} a {item}")
+                        f"Modul {pkg.name} obsahuje dvě implementace argumentů {args} a {item}"
+                    )
         if len(actions) == 0:
-            raise RuntimeError(
-                f"Modul {pkg.name} neobsahuje implementaci akce")
+            raise RuntimeError(f"Modul {pkg.name} neobsahuje implementaci akce")
         if args is None:
-            raise RuntimeError(
-                f"Modul {pkg.name} neobsahuje implementaci argumentů")
+            raise RuntimeError(f"Modul {pkg.name} neobsahuje implementaci argumentů")
         for action in actions:
             checkGameAction(action, args)
-            assert actionId(action) not in gameActions, f"Multiple Actions with same name {actionId(action)}"
+            assert (
+                actionId(action) not in gameActions
+            ), f"Multiple Actions with same name {actionId(action)}"
             gameActions[actionId(action)] = GameAction(action, args)
     return gameActions
 

@@ -49,4 +49,3 @@
 #     with pytest.raises(ActionException) as einfo:
 #         action.commit()
 #     assert "zvýšit" in str(einfo.value)
-

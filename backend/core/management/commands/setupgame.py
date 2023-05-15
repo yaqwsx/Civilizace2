@@ -7,7 +7,18 @@ from frozendict import frozendict
 from game.entities import Entities, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import EntityParser
 from django.conf import settings
-from game.models import DbAction, DbEntities, DbInteraction, DbScheduledAction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState
+from game.models import (
+    DbAction,
+    DbEntities,
+    DbInteraction,
+    DbScheduledAction,
+    DbSticker,
+    DbTick,
+    DbTurn,
+    DbState,
+    DbTeamState,
+    DbMapState,
+)
 from core.models.announcement import Announcement
 from core.models import User, Team as DbTeam
 from game.state import GameState, WorldState
@@ -18,6 +29,7 @@ from game.viewsets.stickers import Sticker
 
 from .pullentities import setFilename
 
+
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
@@ -25,7 +37,13 @@ class Command(BaseCommand):
     help = "usage: create [entities|users|state]+"
 
     @staticmethod
-    def create_or_update_user(username: str, password: str, *, superuser: bool=False, team: Optional[DbTeam]=None) -> User:
+    def create_or_update_user(
+        username: str,
+        password: str,
+        *,
+        superuser: bool = False,
+        team: Optional[DbTeam] = None,
+    ) -> User:
         assert password is not None
         assert not superuser or team is None
         try:
@@ -37,12 +55,13 @@ class Command(BaseCommand):
             return user
         except User.DoesNotExist:
             if superuser:
-                return User.objects.create_superuser(username=username,
-                                                     password=password)
+                return User.objects.create_superuser(
+                    username=username, password=password
+                )
             else:
-                return User.objects.create_user(username=username,
-                                                password=password,
-                                                team=team)
+                return User.objects.create_user(
+                    username=username, password=password, team=team
+                )
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("set", type=str)
@@ -80,39 +99,55 @@ class Command(BaseCommand):
         for org in orgs.values():
             assert org.username is not None, f'Org {org} cannot have a blank username'
             assert org.password is not None, f'Org {org} cannot have a blank password'
-            self.create_or_update_user(username = org.username, password=org.password,
-                                          superuser=org.role == OrgRole.SUPER)
+            self.create_or_update_user(
+                username=org.username,
+                password=org.password,
+                superuser=org.role == OrgRole.SUPER,
+            )
 
     def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
         for team in teams.values():
-            teamModel = DbTeam.objects.create(id=team.id,
-                                                 name=team.name,
-                                                 color=team.color,
-                                                 visible=team.visible,
-                                                 )
+            teamModel = DbTeam.objects.create(
+                id=team.id,
+                name=team.name,
+                color=team.color,
+                visible=team.visible,
+            )
             for i in range(4):
-                assert team.username is not None, f'Team {team} cannot have a blank username'
-                assert team.password is not None, f'Team {team} cannot have a blank password'
-                self.create_or_update_user(username=f"{team.id[4:]}{i+1}",
-                    password=team.password, superuser=False, team=teamModel)
+                assert (
+                    team.username is not None
+                ), f'Team {team} cannot have a blank username'
+                assert (
+                    team.password is not None
+                ), f'Team {team} cannot have a blank password'
+                self.create_or_update_user(
+                    username=f"{team.id[4:]}{i+1}",
+                    password=team.password,
+                    superuser=False,
+                    team=teamModel,
+                )
 
     def createEntities(self, entityFilename: str | os.PathLike[str]) -> None:
         with open(entityFilename) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)
 
-    def createInitialState(self, entities: Entities, initWorldState: WorldState) -> None:
+    def createInitialState(
+        self, entities: Entities, initWorldState: WorldState
+    ) -> None:
         irState = GameState.createInitial(entities, initWorldState)
         state = DbState.objects.createFromIr(irState)
-        stickers = {t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()}
+        stickers = {
+            t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()
+        }
         res = set()
         for t, sSet in stickers.items():
             for e in sSet:
                 res.add(Sticker(t, e))
         ActionViewHelper._awardStickers(res)
 
-
     def createRounds(self) -> None:
         for i in range(200):
-            DbTurn.objects.create(duration=15 * 60 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 60)
-
+            DbTurn.objects.create(
+                duration=15 * 60 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 60
+            )

@@ -1,5 +1,6 @@
 if __name__ == "__main__":
     import django
+
     django.setup()
 
 import contextlib
@@ -18,15 +19,18 @@ from game.entities import Building, Entity, Tech, Vyroba
 from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
-FONT_NORMAL = ImageFont.truetype(os.path.join(
-    settings.DATA_PATH, "fonts", "Roboto-Regular.ttf"), 20)
-FONT_BOLD = ImageFont.truetype(os.path.join(
-    settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 20)
-FONT_HEADER = ImageFont.truetype(os.path.join(
-    settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 30)
+FONT_NORMAL = ImageFont.truetype(
+    os.path.join(settings.DATA_PATH, "fonts", "Roboto-Regular.ttf"), 20
+)
+FONT_BOLD = ImageFont.truetype(
+    os.path.join(settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 20
+)
+FONT_HEADER = ImageFont.truetype(
+    os.path.join(settings.DATA_PATH, "fonts", "Roboto-Bold.ttf"), 30
+)
 
 
-def makeQrCode(content: str, pixelSize: int=3, borderQrPx: int=4) -> Image.Image:
+def makeQrCode(content: str, pixelSize: int = 3, borderQrPx: int = 4) -> Image.Image:
     qr = qrcode.QRCode(
         error_correction=qrcode.ERROR_CORRECT_H,
         box_size=pixelSize,
@@ -39,7 +43,7 @@ def makeQrCode(content: str, pixelSize: int=3, borderQrPx: int=4) -> Image.Image
 
 
 class StickerBuilder:
-    def __init__(self, width, xMargin: int=5, yMargin: int=20):
+    def __init__(self, width, xMargin: int = 5, yMargin: int = 20):
         self.img = Image.new("RGB", (width, 10 * width), color=(255, 255, 255))
         self.xMargin = xMargin
         self.yMargin = yMargin
@@ -53,13 +57,15 @@ class StickerBuilder:
         lines = []
         last = 0
         for i in range(1, len(words) + 1):
-            l = " ".join(words[last: i])
-            box = self.drawInt.textbbox(xy=(self.xMargin + self.offset, 0), text=l, font=font)
+            l = " ".join(words[last:i])
+            box = self.drawInt.textbbox(
+                xy=(self.xMargin + self.offset, 0), text=l, font=font
+            )
             if box[2] > self.img.width - self.xMargin:
                 # If we cannot fit a single word on a line, just overflow it
                 if last == i - 1:
                     i += 1
-                lines.append(" ".join(words[last: i - 1]))
+                lines.append(" ".join(words[last : i - 1]))
                 last = i - 1
         lines.append(" ".join(words[last:]))
         return lines
@@ -77,16 +83,19 @@ class StickerBuilder:
                 font=font,
                 anchor="la",
                 align="left",
-                fill=(0,0,0))
+                fill=(0, 0, 0),
+            )
             self.yPosition = box[3]
 
-    def addBulletLine(self, bullet, text, font, bulletFont=None) -> int: # bullet offset
+    def addBulletLine(
+        self, bullet, text, font, bulletFont=None
+    ) -> int:  # bullet offset
         if bulletFont is None:
             bulletFont = font
         bulletBox = self.drawInt.textbbox(
             xy=(self.xMargin + self.offset, self.yPosition),
             text=bullet,
-            font=bulletFont
+            font=bulletFont,
         )
         # Draw bullet:
         self.drawInt.text(
@@ -95,7 +104,8 @@ class StickerBuilder:
             font=bulletFont,
             anchor="la",
             align="left",
-            fill=(0,0,0))
+            fill=(0, 0, 0),
+        )
         with self.withOffset(bulletBox[2] - self.xMargin):
             self.addText(text, font)
         return bulletBox[2]
@@ -107,15 +117,21 @@ class StickerBuilder:
         try:
             yield None
         finally:
-           self.offset = oldOffset
+            self.offset = oldOffset
 
     def skip(self, offset: int) -> None:
         self.yPosition += offset
 
-    def hline(self, width: int=4, margin: int=0) -> None:
-        self.drawInt.line([(self.xMargin + margin, self.yPosition),
-                           (self.img.width - self.xMargin - margin, self.yPosition)],
-                           fill=(0, 0, 0), width=width, joint="curve")
+    def hline(self, width: int = 4, margin: int = 0) -> None:
+        self.drawInt.line(
+            [
+                (self.xMargin + margin, self.yPosition),
+                (self.img.width - self.xMargin - margin, self.yPosition),
+            ],
+            fill=(0, 0, 0),
+            width=width,
+            joint="curve",
+        )
         self.yPosition += width
 
     def addIcon(self, iconfile) -> None:
@@ -128,7 +144,7 @@ class StickerBuilder:
             self.img.paste(newImg, (xOffset, self.yPosition))
             self.yPosition += icon.height
 
-    def getImage(self, height: Optional[int]=None) -> Image.Image:
+    def getImage(self, height: Optional[int] = None) -> Image.Image:
         if height is None:
             bbox = ImageOps.invert(self.img).getbbox()
             assert bbox is not None, "Image is empty"
@@ -136,7 +152,8 @@ class StickerBuilder:
         return self.img.crop((0, 0, self.img.width, height))
 
     def getTextSize(self, text, font):
-        return self.drawInt.textbbox(xy=(0, 0),text=text, font=font)
+        return self.drawInt.textbbox(xy=(0, 0), text=text, font=font)
+
 
 def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image.Image:
     if isinstance(e, Tech):
@@ -147,19 +164,25 @@ def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image.Image:
         return makeBuildingSticker(e, t, stype)
     assert False, f"There is no recipe for making {type(e)} stickers"
 
+
 def underline(string):
     s = ""
     for x in string:
         s = f"{s}{x}\u0332"
     return s
 
+
 def mm2Pt(mm: float) -> int:
     return int(mm / 25.4 * 180)
+
 
 def getDefaultStickerBuilder() -> StickerBuilder:
     return StickerBuilder(mm2Pt(80), int((mm2Pt(80) - mm2Pt(53)) // 2))
 
-def makeStickerHeader(e: Entity, t: Optional[Team], builder: StickerBuilder, first: bool=False) -> None:
+
+def makeStickerHeader(
+    e: Entity, t: Optional[Team], builder: StickerBuilder, first: bool = False
+) -> None:
     builder.hline(3, 0)
     builder.skip(5)
 
@@ -184,9 +207,11 @@ def makeStickerHeader(e: Entity, t: Optional[Team], builder: StickerBuilder, fir
     builder.hline(3, 0)
     builder.skip(5)
 
+
 def makeStickerFooter(e: Entity, builder: StickerBuilder) -> None:
     builder.skip(40)
     builder.hline(3, 0)
+
 
 def sortedCost(items):
     def keyFn(item):
@@ -197,7 +222,9 @@ def sortedCost(items):
         if r.typ is not None and r.typ[0].id == "typ-obchod":
             idx = 1
         return (idx, r.name)
+
     return sorted(items, key=keyFn)
+
 
 def resourceName(resource):
     n = resource.name.replace(" ", " ")
@@ -205,6 +232,7 @@ def resourceName(resource):
     if resource.id.startswith("pro-") or resource.id.startswith("pge-"):
         return underline(n)
     return n
+
 
 def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
     b = getDefaultStickerBuilder()
@@ -238,7 +266,9 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
         b.addText("Odemyká směry bádání:", FONT_BOLD)
         with b.withOffset(10):
             for t in uTechs:
-                costText = ", ".join([f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost.items())])
+                costText = ", ".join(
+                    [f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost.items())]
+                )
                 diceText = f"Kostka: {t.points}× {', '.join(d.briefName for d in e.allowedDie(t))}"
                 b.addText(f"• {t.name}: ", FONT_BOLD)
                 with b.withOffset(b.offset + bulletWidth):
@@ -247,6 +277,7 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
 
     makeStickerFooter(e, b)
     return b.getImage(mm2Pt(95))
+
 
 def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image:
     assert stype == StickerType.regular
@@ -276,6 +307,7 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
 
     return b.getImage()
 
+
 def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     assert stype == StickerType.regular
 
@@ -296,8 +328,12 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
             b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
     rRes = e.reward[0]
-    b.addBulletLine("Výstup: ", f"{e.reward[1]}× {resourceName(rRes)}", FONT_NORMAL,
-        bulletFont=FONT_BOLD)
+    b.addBulletLine(
+        "Výstup: ",
+        f"{e.reward[1]}× {resourceName(rRes)}",
+        FONT_NORMAL,
+        bulletFont=FONT_BOLD,
+    )
 
     icon = rRes.icon
     if icon is not None:
@@ -310,20 +346,30 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     makeStickerFooter(e, b)
     return b.getImage()
 
+
 STICKER_CACHE = FileCache(settings.CACHE / "stickers", ".png")
+
 
 def getStickerFile(stickerModel: DbSticker) -> Path:
     _, entities = DbEntities.objects.get_revision(stickerModel.entityRevision)
+
     def render(path):
-        s = makeSticker(entities[stickerModel.entityId], stickerModel.team, stickerModel.stickerType)
+        s = makeSticker(
+            entities[stickerModel.entityId], stickerModel.team, stickerModel.stickerType
+        )
         s.save(path)
+
     return STICKER_CACHE.path(stickerModel.ident, render)
+
 
 if __name__ == "__main__":
     from game.tests.actions.common import TEST_ENTITIES
+
     team_zeleni = Team.objects.model(id="tea-zeleni", name="Zelení", color="green")
 
-    vyroba = makeSticker(TEST_ENTITIES["vyr-drevo1Pro"], team_zeleni, StickerType.regular)
+    vyroba = makeSticker(
+        TEST_ENTITIES["vyr-drevo1Pro"], team_zeleni, StickerType.regular
+    )
     # vyroba.show()
     tech = makeSticker(TEST_ENTITIES["tec-start"], team_zeleni, StickerType.regular)
     tech.show()

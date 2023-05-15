@@ -4,6 +4,7 @@ from game.gameGlue import stateSerialize, stateDeserialize
 from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 import json
 
+
 def test_stateEq():
     x = createTestInitState()
     y = createTestInitState()
@@ -28,8 +29,6 @@ def test_serialize():
     z._setParent()
     assert x == z
     assert z.map._parent == z.teamStates[TEST_ENTITIES.teams["tym-zeleni"]]._parent
-
-
 
 
 def test_homeTiles():

@@ -26,7 +26,16 @@ class NextTurnAction(NoInitActionBase):
         self.state.world.turn += 1
         self._info += f"Začalo kolo {self.state.world.turn}"
 
-        tiles = [y for x, y in self.state.map.tiles.items() if x % 5 == self.state.world.turn % 5]
+        tiles = [
+            y
+            for x, y in self.state.map.tiles.items()
+            if x % 5 == self.state.world.turn % 5
+        ]
 
         for tile in tiles:
-            tile.richnessTokens = ceil(min(tile.richnessTokens + (tile.entity.richness / 2), tile.entity.richness))
+            tile.richnessTokens = ceil(
+                min(
+                    tile.richnessTokens + (tile.entity.richness / 2),
+                    tile.entity.richness,
+                )
+            )

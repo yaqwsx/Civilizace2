@@ -166,21 +166,22 @@ class MapState(StateModel):
         home = self.getHomeOfTeam(team)
         assert home != None, "Team {} has no home tile".format(team.id)
         relIndex = tile.index - home.index
-        relIndexOffset = relIndex + self.size/2
-        return round((relIndexOffset % self.size) - self.size/2)
+        relIndexOffset = relIndex + self.size / 2
+        return round((relIndexOffset % self.size) - self.size / 2)
 
     def getRawDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
-        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(
-            tile, team.id)
+        assert (
+            relativeIndex in TILE_DISTANCES_RELATIVE
+        ), "Tile {} is unreachable for {}".format(tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
     def getActualDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
-        assert relativeIndex in TILE_DISTANCES_RELATIVE, "Tile {} is unreachable for {}".format(
-            tile, team.id)
-        distance = TILE_DISTANCES_RELATIVE[relativeIndex] * \
-            TIME_PER_TILE_DISTANCE
+        assert (
+            relativeIndex in TILE_DISTANCES_RELATIVE
+        ), "Tile {} is unreachable for {}".format(tile, team.id)
+        distance = TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
         home = self.getHomeOfTeam(team)
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8)  # Tiles are around the map
@@ -194,7 +195,7 @@ class MapState(StateModel):
 
     def getReachableTiles(self, team: Team) -> List[MapTile]:
         index = self.getHomeOfTeam(team).index
-        indexes = [(index+i) % self.size for i in TILE_DISTANCES_RELATIVE]
+        indexes = [(index + i) % self.size for i in TILE_DISTANCES_RELATIVE]
         return [self.tiles[i] for i in indexes]
 
     def getTeamArmies(self, team: Team) -> List[Army]:
@@ -245,17 +246,24 @@ class MapState(StateModel):
     def createInitial(cls, entities: Entities) -> MapState:
         armies = []
         teams = entities.teams.values()
-        armies.extend(Army(team=team, index=i, name="A", level=3)
-                      for i, team in enumerate(teams))
-        armies.extend(Army(team=team, index=i+8, name="B", level=2)
-                      for i, team in enumerate(teams))
-        armies.extend(Army(team=team, index=i+16, name="C", level=1)
-                      for i, team in enumerate(teams))
+        armies.extend(
+            Army(team=team, index=i, name="A", level=3) for i, team in enumerate(teams)
+        )
+        armies.extend(
+            Army(team=team, index=i + 8, name="B", level=2)
+            for i, team in enumerate(teams)
+        )
+        armies.extend(
+            Army(team=team, index=i + 16, name="C", level=1)
+            for i, team in enumerate(teams)
+        )
 
         return MapState(
-            tiles={tile.index: MapTile(
-                entity=tile, richnessTokens=tile.richness) for tile in entities.tiles.values()},
-            armies=armies
+            tiles={
+                tile.index: MapTile(entity=tile, richnessTokens=tile.richness)
+                for tile in entities.tiles.values()
+            },
+            armies=armies,
         )
 
 
@@ -344,8 +352,7 @@ class TeamState(StateModel):
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),
             },
-            storage={
-            }
+            storage={},
         )
 
 
@@ -375,10 +382,12 @@ class GameState(StateModel):
     @classmethod
     def createInitial(cls, entities: Entities, initWorldState: WorldState) -> GameState:
         return GameState(
-            teamStates={team: TeamState.createInitial(team, entities)
-                            for team in entities.teams.values()},
+            teamStates={
+                team: TeamState.createInitial(team, entities)
+                for team in entities.teams.values()
+            },
             map=MapState.createInitial(entities),
-            world=initWorldState
+            world=initWorldState,
         )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -390,12 +399,20 @@ class GameState(StateModel):
             assert all(amount >= 0 for amount in team.resources.values())
             assert all(amount >= 0 for amount in team.granary.values())
             assert all(amount >= 0 for amount in team.storage.values())
-            team.resources = {res: amount for res, amount in team.resources.items() if amount > 0}
-            team.granary = {res: amount for res, amount in team.granary.items() if amount > 0}
-            team.storage = {res: amount for res, amount in team.storage.items() if amount > 0}
+            team.resources = {
+                res: amount for res, amount in team.resources.items() if amount > 0
+            }
+            team.granary = {
+                res: amount for res, amount in team.granary.items() if amount > 0
+            }
+            team.storage = {
+                res: amount for res, amount in team.storage.items() if amount > 0
+            }
 
 
-def printResourceListForMarkdown(resources: CostDict, roundFunction: Callable[[Decimal], Any]=lambda x: x) -> str:
+def printResourceListForMarkdown(
+    resources: CostDict, roundFunction: Callable[[Decimal], Any] = lambda x: x
+) -> str:
     message = MessageBuilder()
     with message.startList() as addLine:
         for resource, amount in resources.items():

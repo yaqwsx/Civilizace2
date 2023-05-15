@@ -9,16 +9,17 @@ from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
 
 from game.actions.common import ActionFailed, MessageBuilder
-from game.entities import (CostDict, Entities, MapTileEntity, Resource, Team)
-from game.state import (GameState, MapTile, TeamState,
-                        printResourceListForMarkdown)
+from game.entities import CostDict, Entities, MapTileEntity, Resource, Team
+from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
 
 class ActionArgs(BaseModel):
     pass
 
+
 class TeamActionArgs(ActionArgs):
     team: Team
+
 
 class TileActionArgs(ActionArgs):
     tile: MapTileEntity
@@ -31,15 +32,16 @@ class TileActionArgs(ActionArgs):
 
 TAction = TypeVar("TAction", bound="ActionCommonBase")
 
+
 class ActionCommonBase(BaseModel, metaclass=ABCMeta):
     # Anything that is specified as PrivateAttr is not persistent. I know that
     # you like to have a lot of objects passed implicitly between the function,
     # instead of explicitly, so this is how you can do it.
-    _state: GameState = PrivateAttr()        # We don't store state
-    _entities: Entities = PrivateAttr()      # Nor entities
-    _generalArgs: ActionArgs = PrivateAttr() # Nor args
+    _state: GameState = PrivateAttr()  # We don't store state
+    _entities: Entities = PrivateAttr()  # Nor entities
+    _generalArgs: ActionArgs = PrivateAttr()  # Nor args
     _trace: MessageBuilder = PrivateAttr(default=MessageBuilder())
-                                             # Nor traces. They always empty
+    # Nor traces. They always empty
 
     # This is mostly used such that user code logs messages
     # and wrappers inspect them.
@@ -66,9 +68,10 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
     # Factory
 
     @classmethod
-    def makeAction(cls: Type[TAction], state: GameState, entities: Entities, args: ActionArgs) -> TAction:
-        """The type of `args` has to match the `TAction`
-        """
+    def makeAction(
+        cls: Type[TAction], state: GameState, entities: Entities, args: ActionArgs
+    ) -> TAction:
+        """The type of `args` has to match the `TAction`"""
         action = cls()
         action._state = state
         action._entities = entities
@@ -100,10 +103,9 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
             self._notifications[team] = []
         self._notifications[team].append(message)
 
-    def _scheduleAction(self,
-                        actionType: Type[NoInitActionBase],
-                        args: ActionArgs,
-                        delay_s: int) -> ScheduledAction:
+    def _scheduleAction(
+        self, actionType: Type[NoInitActionBase], args: ActionArgs, delay_s: int
+    ) -> ScheduledAction:
         action = ScheduledAction(actionType, args=args, delay_s=delay_s)
         self._scheduled_actions.append(action)
         return action
@@ -147,12 +149,12 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
             message=msgBuilder.message,
             notifications=self._notifications,
             scheduledActions=self._scheduled_actions,
-            )
+        )
 
 
 class TeamActionBase(ActionCommonBase):
-    """Represents action which has Args subtype of `TeamActionArgs`.
-    """
+    """Represents action which has Args subtype of `TeamActionArgs`."""
+
     @property
     @abstractmethod
     @override
@@ -167,7 +169,13 @@ class TeamActionBase(ActionCommonBase):
 
     # Private API
 
-    def _receiveResources(self, resources: CostDict, *, instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
+    def _receiveResources(
+        self,
+        resources: CostDict,
+        *,
+        instantWithdraw: bool = False,
+        excludeWork: bool = False,
+    ) -> Dict[Resource, Decimal]:
         team = self.teamState
         storage: Dict[Resource, Decimal] = {}
         for resource, amount in resources.items():
@@ -175,7 +183,9 @@ class TeamActionBase(ActionCommonBase):
                 continue
             if excludeWork and resource.id == "res-obyvatel":
                 value, denom = amount.as_integer_ratio()
-                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                assert (
+                    denom == 1
+                ), "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
                 team.addEmployees(-value)
             if resource.isTracked:
                 if resource not in team.resources:
@@ -197,6 +207,7 @@ class TeamInteractionActionBase(TeamActionBase):
     """Represents `TeamActionBase` which is a team interaction
     (has initiate phase).
     """
+
     # The following fields are persistent
 
     paid: Dict[Resource, Decimal] = {}
@@ -315,14 +326,20 @@ class TeamInteractionActionBase(TeamActionBase):
         workAvailable = tState.work
 
         tState.resources[self.entities.work] = max(
-            Decimal(0), tState.resources.get(self.entities.work, Decimal(0)) - workConsumed)
+            Decimal(0),
+            tState.resources.get(self.entities.work, Decimal(0)) - workConsumed,
+        )
         if workConsumed > workAvailable:
-            self._warnings.add("Tým neměl dostatek práce (házel na jiném stanovišti?). " +
-                               "Akce neuspěla. Tým přišel o zaplacené zdroje.")
+            self._warnings.add(
+                "Tým neměl dostatek práce (házel na jiném stanovišti?). "
+                + "Akce neuspěla. Tým přišel o zaplacené zdroje."
+            )
             return False
         if pointsCost > dots:
-            self._warnings.add(f"Tým nenaházel dostatek (chtěno {pointsCost}, naházeno {dots}). " +
-                               "Akce neuspěla. Tým přišel o zaplacené zdroje.")
+            self._warnings.add(
+                f"Tým nenaházel dostatek (chtěno {pointsCost}, naházeno {dots}). "
+                + "Akce neuspěla. Tým přišel o zaplacené zdroje."
+            )
             return False
         return True
 
@@ -332,7 +349,9 @@ class TeamInteractionActionBase(TeamActionBase):
         missing = {}
         for resource, amount in resources.items():
             if amount < 0:
-                raise RuntimeError(f"Pay amount cannot be negative ({amount}× {resource.name})")
+                raise RuntimeError(
+                    f"Pay amount cannot be negative ({amount}× {resource.name})"
+                )
             if amount == 0:
                 continue
 
@@ -341,7 +360,9 @@ class TeamInteractionActionBase(TeamActionBase):
 
             if resource == self.entities.obyvatel:
                 value, denom = amount.as_integer_ratio()
-                assert denom == 1, "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
+                assert (
+                    denom == 1
+                ), "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
                 teamState.addEmployees(value)
             if resource not in teamState.resources:
                 teamState.resources[resource] = Decimal(0)
@@ -352,8 +373,10 @@ class TeamInteractionActionBase(TeamActionBase):
             if teamState.resources[resource] == 0:
                 del teamState.resources[resource]
 
-        self._ensureStrong(len(missing) == 0,
-                           f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}")
+        self._ensureStrong(
+            len(missing) == 0,
+            f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}",
+        )
 
         # TODO check if multiple runs of commit can happen (would result in multiplicating input cost)
         for resource, amount in resources.items():
@@ -363,10 +386,13 @@ class TeamInteractionActionBase(TeamActionBase):
 
         return tokens
 
-    def _revertPaidResources(self, *, instantWithdraw: bool = False, excludeWork: bool = False) -> Dict[Resource, Decimal]:
-        """Gives back `self.paid` resources and empties them.
-        """
-        result = self._receiveResources(self.paid, instantWithdraw=instantWithdraw, excludeWork=excludeWork)
+    def _revertPaidResources(
+        self, *, instantWithdraw: bool = False, excludeWork: bool = False
+    ) -> Dict[Resource, Decimal]:
+        """Gives back `self.paid` resources and empties them."""
+        result = self._receiveResources(
+            self.paid, instantWithdraw=instantWithdraw, excludeWork=excludeWork
+        )
         self.paid = {}
         return result
 

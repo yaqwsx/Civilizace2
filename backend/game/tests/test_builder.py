@@ -1,5 +1,6 @@
 from game.actions.common import MessageBuilder
 
+
 def test_simple():
     m = MessageBuilder()
 
@@ -8,10 +9,12 @@ def test_simple():
 
     assert m.message == "Hello!\n\nWorld!"
 
+
 def test_list1():
     m = MessageBuilder()
     m.addList(["a", "b"])
     m.message == "- a\n- b"
+
 
 def test_list2():
     m1 = MessageBuilder()
@@ -25,4 +28,3 @@ def test_list2():
         report("a")
         report("b")
     assert m2.message == "Hello!\n\n- a\n- b"
-

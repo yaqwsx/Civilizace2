@@ -28,9 +28,11 @@ from game.viewsets.stickers import DbStickerSerializer
 
 TeamId = str  # intentionally left weak
 
+
 class ChangeTaskSerializer(serializers.Serializer):
     tech = serializers.CharField()
     newTask = serializers.CharField(allow_blank=True, allow_null=True)
+
 
 class EntityViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
@@ -68,8 +70,9 @@ class EntityViewSet(viewsets.ViewSet):
         assert isinstance(subset, frozendict)
         return Response({e.id: serializeEntity(e) for e in subset.values()})
 
+
 class TeamViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def validateAccess(self, user: User, teamId: TeamId) -> None:
         if not user.isOrg:
@@ -115,7 +118,9 @@ class TeamViewSet(viewsets.ViewSet):
             "tile": a.tile.id if a.tile is not None else None,
             "mode": str(a.mode).split(".")[1],
             "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
-            "reachableTiles": [t.id for t in reachableTiles] if reachableTiles is not None else None
+            "reachableTiles": [t.id for t in reachableTiles]
+            if reachableTiles is not None
+            else None,
         }
 
     @action(detail=True)
@@ -124,8 +129,13 @@ class TeamViewSet(viewsets.ViewSet):
         resources = self.getTeamState(pk).resources
 
         assert all(amount >= 0 for amount in resources.values())
-        return Response({res.id: serializeEntity(res, {"available": resources[res]})
-                         for res in resources.keys() if resources[res] > 0})
+        return Response(
+            {
+                res.id: serializeEntity(res, {"available": resources[res]})
+                for res in resources.keys()
+                if resources[res] > 0
+            }
+        )
 
     @action(detail=True)
     def vyrobas(self, request: Request, pk: TeamId) -> Response:
@@ -144,9 +154,12 @@ class TeamViewSet(viewsets.ViewSet):
             return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]
 
         vList.sort(key=lambda x: x.id)
-        return Response({v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
-                            for v in vList})
-
+        return Response(
+            {
+                v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
+                for v in vList
+            }
+        )
 
     @action(detail=True)
     def buildings(self, request: Request, pk: TeamId) -> Response:
@@ -156,7 +169,6 @@ class TeamViewSet(viewsets.ViewSet):
         bList = list(teamState.buildings)
         bList.sort(key=lambda x: x.name)
         return Response({b.id: serializeEntity(b) for b in bList})
-
 
     @action(detail=True)
     def techs(self, request: Request, pk: TeamId) -> Response:
@@ -173,13 +185,14 @@ class TeamViewSet(viewsets.ViewSet):
 
         def tech_extra_fields(tech):
             if tech in state.techs:
-                return { "status": "owned" }
+                return {"status": "owned"}
             if tech in state.researching:
                 try:
-                    assignment = DbTaskAssignment.objects\
-                        .get(team=team, techId=tech.id, finishedAt=None)
+                    assignment = DbTaskAssignment.objects.get(
+                        team=team, techId=tech.id, finishedAt=None
+                    )
                 except DbTaskAssignment.DoesNotExist:
-                    return { "status": "researching" }
+                    return {"status": "researching"}
                 task = assignment.task
                 return {
                     "status": "researching",
@@ -190,11 +203,16 @@ class TeamViewSet(viewsets.ViewSet):
                         "orgDescription": task.orgDescription,
                         "capacity": task.capacity,
                         "occupiedCount": task.occupiedCount,
-                    }
+                    },
                 }
-            return { "status": "available" }
+            return {"status": "available"}
 
-        return Response({tech.id: serializeEntity(tech, tech_extra_fields(tech)) for tech in teamTechs})
+        return Response(
+            {
+                tech.id: serializeEntity(tech, tech_extra_fields(tech))
+                for tech in teamTechs
+            }
+        )
 
     @action(detail=True)
     def tasks(self, request: Request, pk: TeamId) -> Response:
@@ -214,9 +232,7 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         state = self.getTeamState(pk)
 
-        return Response({
-            "work": state.work
-        })
+        return Response({"work": state.work})
 
     @action(detail=True, methods=["POST"])
     def changetask(self, request: Request, pk: TeamId) -> Response:
@@ -229,8 +245,9 @@ class TeamViewSet(viewsets.ViewSet):
         assert isinstance(data, dict)
 
         try:
-            assignment = DbTaskAssignment.objects\
-                            .get(team=team, techId=data["tech"], finishedAt=None)
+            assignment = DbTaskAssignment.objects.get(
+                team=team, techId=data["tech"], finishedAt=None
+            )
             assignment.finishedAt = timezone.now()
             assignment.abandoned = True
             assignment.save()
@@ -241,7 +258,8 @@ class TeamViewSet(viewsets.ViewSet):
             DbTaskAssignment.objects.create(
                 team=team,
                 task=get_object_or_404(DbTask.objects.all(), pk=data["newTask"]),
-                techId=data["tech"])
+                techId=data["tech"],
+            )
         return Response({})
 
     @action(detail=True)
@@ -256,62 +274,75 @@ class TeamViewSet(viewsets.ViewSet):
 
         feedRequirements = computeFeedRequirements(state, entities, entities[pk])
 
-        return Response({
-            "population": {
-                "nospec": teamState.resources[entities["res-obyvatel"]],
-                "all": teamState.population
-            },
-            "work": teamState.work,
-            "culture": teamState.culture,
-            "worldTurn": state.world.turn,
-            "teamTurn": teamState.turn,
-            "researchingTechs": [serializeEntity(x) for x in teamState.researching],
-            "productions": [
-                (r.id, a) for r, a in teamState.resources.items()
+        return Response(
+            {
+                "population": {
+                    "nospec": teamState.resources[entities["res-obyvatel"]],
+                    "all": teamState.population,
+                },
+                "work": teamState.work,
+                "culture": teamState.culture,
+                "worldTurn": state.world.turn,
+                "teamTurn": teamState.turn,
+                "researchingTechs": [serializeEntity(x) for x in teamState.researching],
+                "productions": [
+                    (r.id, a)
+                    for r, a in teamState.resources.items()
                     if r.isProduction and r.id != "res-obyvatel"
-            ],
-            "storage": [
-                (r.id, a) for r, a in teamState.storage.items()
-            ],
-            "granary": [
-                (r.id, a) for r, a in teamState.granary.items() if r.typ[0].id == "typ-jidlo"
-            ] + [
-                (r.id, a) for r, a in teamState.granary.items() if r.typ[0].id == "typ-luxus"
-            ],
-            "feeding": {
-                "casteCount": feedRequirements.casteCount,
-                "tokensPerCaste": feedRequirements.tokensPerCaste,
-                "tokensRequired": feedRequirements.tokensRequired,
-            },
-            "announcements": [
-                {
-                    "id": announcement.id,
-                    "type": announcement.typeString(),
-                    "content": announcement.content,
-                    "read": False,
-                    "appearDatetime": announcement.appearDatetime
-                } for announcement in self.unreadAnnouncements(request.user, team)
-            ],
-            "armies": [
-                self.serializeArmy(army, None) for army in state.map.getTeamArmies(entities[pk])
-            ],
-            "techs": list(x.id for x in teamState.techs),
-        })
+                ],
+                "storage": [(r.id, a) for r, a in teamState.storage.items()],
+                "granary": [
+                    (r.id, a)
+                    for r, a in teamState.granary.items()
+                    if r.typ[0].id == "typ-jidlo"
+                ]
+                + [
+                    (r.id, a)
+                    for r, a in teamState.granary.items()
+                    if r.typ[0].id == "typ-luxus"
+                ],
+                "feeding": {
+                    "casteCount": feedRequirements.casteCount,
+                    "tokensPerCaste": feedRequirements.tokensPerCaste,
+                    "tokensRequired": feedRequirements.tokensRequired,
+                },
+                "announcements": [
+                    {
+                        "id": announcement.id,
+                        "type": announcement.typeString(),
+                        "content": announcement.content,
+                        "read": False,
+                        "appearDatetime": announcement.appearDatetime,
+                    }
+                    for announcement in self.unreadAnnouncements(request.user, team)
+                ],
+                "armies": [
+                    self.serializeArmy(army, None)
+                    for army in state.map.getTeamArmies(entities[pk])
+                ],
+                "techs": list(x.id for x in teamState.techs),
+            }
+        )
 
     @action(detail=True)
     def announcements(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(DbTeam.objects.all(), pk=pk)
-        return Response([
-            {
-                "id": announcement.id,
-                "type": announcement.typeString(),
-                "content": announcement.content,
-                "read": request.user in announcement.read.all(),
-                "appearDatetime": announcement.appearDatetime,
-                "readBy": set([x.team.name for x in announcement.read.all()]) if request.user.isOrg else None
-            } for announcement in Announcement.objects.getTeam(team)
-        ])
+        return Response(
+            [
+                {
+                    "id": announcement.id,
+                    "type": announcement.typeString(),
+                    "content": announcement.content,
+                    "read": request.user in announcement.read.all(),
+                    "appearDatetime": announcement.appearDatetime,
+                    "readBy": set([x.team.name for x in announcement.read.all()])
+                    if request.user.isOrg
+                    else None,
+                }
+                for announcement in Announcement.objects.getTeam(team)
+            ]
+        )
 
     @action(detail=True)
     def armies(self, request: Request, pk: TeamId) -> Response:
@@ -321,8 +352,12 @@ class TeamViewSet(viewsets.ViewSet):
         team = entities.teams[pk]
         reachableTiles = state.map.getReachableTiles(team)
 
-        return Response({a.index: self.serializeArmy(a, reachableTiles)
-                            for a in state.map.getTeamArmies(team)})
+        return Response(
+            {
+                a.index: self.serializeArmy(a, reachableTiles)
+                for a in state.map.getTeamArmies(team)
+            }
+        )
 
     @action(detail=True)
     def stickers(self, request: Request, pk: TeamId) -> Response:
@@ -336,7 +371,9 @@ class TeamViewSet(viewsets.ViewSet):
         storage = self.getTeamState(pk).storage
 
         assert all(amount >= 0 for amount in storage.values())
-        return Response({res.id: amount for res, amount in storage.items() if amount > 0})
+        return Response(
+            {res.id: amount for res, amount in storage.items() if amount > 0}
+        )
 
     @action(detail=True)
     def feeding(self, request: Request, pk: TeamId) -> Response:
@@ -344,7 +381,9 @@ class TeamViewSet(viewsets.ViewSet):
         teamState, entities = self.getTeamStateAndEntities(pk)
         state = teamState.parent
 
-        return Response(stateSerialize(computeFeedRequirements(state, entities, entities.teams[pk])))
+        return Response(
+            stateSerialize(computeFeedRequirements(state, entities, entities.teams[pk]))
+        )
 
     @action(detail=True)
     def tiles(self, request: Request, pk: TeamId) -> Response:
@@ -354,9 +393,14 @@ class TeamViewSet(viewsets.ViewSet):
         teamE = entities.teams[pk]
         reachableTiles = state.map.getReachableTiles(teamE)
 
-        return Response({tile.entity.id: {
-            "entity": serializeEntity(tile.entity),
-            "unfinished": [x.id for x in tile.unfinished.get(teamE, ())],
-            "buildings": [x.id for x in tile.buildings],
-            "richness": tile.richness
-        } for tile in reachableTiles})
+        return Response(
+            {
+                tile.entity.id: {
+                    "entity": serializeEntity(tile.entity),
+                    "unfinished": [x.id for x in tile.unfinished.get(teamE, ())],
+                    "buildings": [x.id for x in tile.buildings],
+                    "richness": tile.richness,
+                }
+                for tile in reachableTiles
+            }
+        )

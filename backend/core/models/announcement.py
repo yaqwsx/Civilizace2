@@ -8,40 +8,57 @@ from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
+
 class AnnouncementType(models.IntegerChoices):
     normal = 1
     important = 2
     game = 3
 
+
 class AnnouncementManager(models.Manager):
     def getUnread(self, user: User) -> QuerySet[Announcement]:
-        return self.getTeam(user.team) \
-            .filter(~models.Exists(
-                ReadEvent.objects.filter(user=user, announcement=models.OuterRef("pk"))))
+        return self.getTeam(user.team).filter(
+            ~models.Exists(
+                ReadEvent.objects.filter(user=user, announcement=models.OuterRef("pk"))
+            )
+        )
 
     def getTeamUnread(self, team: Team) -> QuerySet[Announcement]:
-        return self.getTeam(team) \
-            .filter(~models.Exists(
-                ReadEvent.objects.filter(announcement=models.OuterRef("pk"), user__team=team)
-            ))
+        return self.getTeam(team).filter(
+            ~models.Exists(
+                ReadEvent.objects.filter(
+                    announcement=models.OuterRef("pk"), user__team=team
+                )
+            )
+        )
 
     def getTeam(self, team: Optional[Team]) -> QuerySet[Announcement]:
         return self.getVisible().filter(teams=team).prefetch_related("readevent_set")
 
     def getVisible(self) -> QuerySet[Announcement]:
-        return self.get_queryset() \
-            .filter(appearDatetime__lte=timezone.now()) \
+        return (
+            self.get_queryset()
+            .filter(appearDatetime__lte=timezone.now())
             .order_by("-appearDatetime")
+        )
 
     def getPublic(self) -> QuerySet[Announcement]:
         tCount = Team.objects.filter(visible=True).count()
-        return self.get_queryset() \
-            .annotate(teams_count=Count("teams")).filter(teams_count__gte=tCount)
+        return (
+            self.get_queryset()
+            .annotate(teams_count=Count("teams"))
+            .filter(teams_count__gte=tCount)
+        )
+
 
 class Announcement(models.Model):
-    author = models.ForeignKey(User, on_delete=models.PROTECT, related_name="announcementsFrom", null=True)
+    author = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="announcementsFrom", null=True
+    )
     appearDatetime = models.DateTimeField("Time of appearance the message")
-    type = models.IntegerField(choices=AnnouncementType.choices, default=AnnouncementType.normal)
+    type = models.IntegerField(
+        choices=AnnouncementType.choices, default=AnnouncementType.normal
+    )
     content = models.TextField("Message content")
     teams = models.ManyToManyField(Team)
     read = models.ManyToManyField(User, through="ReadEvent")
@@ -49,11 +66,7 @@ class Announcement(models.Model):
     objects = AnnouncementManager()
 
     def typeString(self):
-        return {
-            1: "normal",
-            2: "important",
-            3: "game"
-        }[self.type]
+        return {1: "normal", 2: "important", 3: "game"}[self.type]
 
     def allowedTeams(self):
         return self.teamStatuses.filter(visible=True)
@@ -63,9 +76,13 @@ class Announcement(models.Model):
 
     def seenByTeamAt(self, team: Team) -> Optional[datetime]:
         try:
-            event = ReadEvent.objects \
-                .filter(announcement=self, user__team=team, readAt__isnull=False) \
-                .order_by("readAt").first()
+            event = (
+                ReadEvent.objects.filter(
+                    announcement=self, user__team=team, readAt__isnull=False
+                )
+                .order_by("readAt")
+                .first()
+            )
             return event.readAt if event is not None else None
         except ReadEvent.DoesNotExist:
             return None

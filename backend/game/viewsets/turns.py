@@ -9,17 +9,18 @@ from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
 
-
 class TurnImmutableError(APIException):
     status_code = 403
     default_detail = "Kolo již nelze editovat"
     default_code = "forbidden"
 
+
 class DbTurnSerializer(serializers.ModelSerializer):
     class Meta:
-        model=DbTurn
+        model = DbTurn
         fields = "__all__"
         read_only_fields = ["id", "startedAt"]
+
 
 class TurnsViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)

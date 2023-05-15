@@ -12,28 +12,34 @@ from django.http import FileResponse
 
 from game.stickers import getStickerFile
 
+
 class Sticker(NamedTuple):
     team: TeamEntity
     entity: Entity
+
 
 class NoSuchPrinter(APIException):
     status_code = 400
     default_detail = "Taková tiskárna neexistuje"
     default_code = "bad_request"
 
+
 class PrinterError(APIException):
     status_code = 400
     default_detail = "Tiskárna vrátila neočekávanou odpověď"
     default_code = "unexpected_response"
 
+
 class DbStickerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DbSticker
         fields = "__all__"
-        editable=False
+        editable = False
+
 
 class PrintSerializer(serializers.Serializer):
     printerId = serializers.IntegerField()
+
 
 class StickerViewSet(viewsets.ViewSet):
     def _getSticker(self, user, pk):
@@ -67,9 +73,7 @@ class StickerViewSet(viewsets.ViewSet):
 
         try:
             printerUrl = f"http://{printer.address}:{printer.port}/print"
-            r = requests.post(printerUrl, files={
-                "image": imageFileStream
-            })
+            r = requests.post(printerUrl, files={"image": imageFileStream})
             if r.status_code != 200:
                 raise PrinterError(r.text)
         except Exception as e:
@@ -95,5 +99,6 @@ class StickerViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["GET"])
     def image(self, request: Request, pk) -> FileResponse:
         sticker = self._getSticker(request.user, pk)
-        return FileResponse(open(getStickerFile(sticker), "rb"), filename=f"sticker_{sticker.id}.png")
-
+        return FileResponse(
+            open(getStickerFile(sticker), "rb"), filename=f"sticker_{sticker.id}.png"
+        )

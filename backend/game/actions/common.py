@@ -26,6 +26,7 @@ class MessageBuilder(BaseModel):
     The goal is to simplify building markdown messages and not thinking about
     the whitespace. Adding to this creates new paragraph automatically.
     """
+
     message: str = ""
 
     def __iadd__(self, other: Any) -> MessageBuilder:
@@ -42,7 +43,9 @@ class MessageBuilder(BaseModel):
         self.message += message
 
     @contextlib.contextmanager
-    def startList(self, header: str = "") -> Generator[Callable[[str], None], None, None]:
+    def startList(
+        self, header: str = ""
+    ) -> Generator[Callable[[str], None], None, None]:
         lines = []
         try:
             yield lambda x: lines.append(x)
@@ -55,7 +58,9 @@ class MessageBuilder(BaseModel):
     def addList(self, items: List[str]) -> None:
         self.add("\n".join(["- " + x for x in items]))
 
-    def addEntityDict(self, header: str, items: Dict[Entity, Union[int, float, Decimal]]):
+    def addEntityDict(
+        self, header: str, items: Dict[Entity, Union[int, float, Decimal]]
+    ):
         with self.startList(header) as addLine:
             for entity, amount in items.items():
                 addLine(f"[[{entity.id}|{amount}]]")

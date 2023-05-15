@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'core',
-    'game'
+    'game',
 ]
 
 MIDDLEWARE = [
@@ -87,9 +87,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    )
+    'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
 }
 
 
@@ -102,11 +100,11 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'OPTIONS': {
             'timeout': 20,
-        }
+        },
     }
 }
 
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # Password validation
@@ -152,7 +150,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
 ]
 CORS_ALLOW_HEADERS = ["Accept", "Accept-Language", "Authorization", "Content-Type"]
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE"]

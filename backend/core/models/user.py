@@ -1,13 +1,19 @@
 from __future__ import annotations
 from typing import Optional
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 
 from core.models.team import Team
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username: str, password: str, team: Optional[Team]=None) -> User:
+    def create_user(
+        self, username: str, password: str, team: Optional[Team] = None
+    ) -> User:
         assert isinstance(username, str)
         assert isinstance(password, str)
 
@@ -29,11 +35,11 @@ class UserManager(BaseUserManager):
         return user
 
 
-
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(db_index=True, max_length=255, unique=True)
-    team: Optional[Team] = models.ForeignKey("core.team", on_delete=models.PROTECT,
-                             default=None, null=True)  # type: ignore
+    team: Optional[Team] = models.ForeignKey(
+        "core.team", on_delete=models.PROTECT, default=None, null=True
+    )  # type: ignore
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []

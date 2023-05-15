@@ -9,7 +9,6 @@ from django.conf import settings
 from game.models import DbEntities
 
 
-
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)

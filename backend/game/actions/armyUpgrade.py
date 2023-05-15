@@ -37,12 +37,15 @@ class ArmyUpgradeAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         army = self.army
-        self._ensureStrong(army.team == self.args.team,
-                           f"Armáda nepatří týmu {self.args.team.name}")
-        self._ensureStrong(army.mode == ArmyMode.Idle,
-                           "Nelze vylepši armádu, která není doma.")
         self._ensureStrong(
-            army.level < 3, f"Armáda má už level {army.level}, není možné ji povyýšit")
+            army.team == self.args.team, f"Armáda nepatří týmu {self.args.team.name}"
+        )
+        self._ensureStrong(
+            army.mode == ArmyMode.Idle, "Nelze vylepši armádu, která není doma."
+        )
+        self._ensureStrong(
+            army.level < 3, f"Armáda má už level {army.level}, není možné ji povyýšit"
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:

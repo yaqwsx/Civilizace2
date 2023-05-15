@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -17,12 +16,45 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('username', models.CharField(db_index=True, max_length=255, unique=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
+                (
+                    'last_login',
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name='last login'
+                    ),
+                ),
+                (
+                    'is_superuser',
+                    models.BooleanField(
+                        default=False,
+                        help_text='Designates that this user has all permissions without explicitly assigning them.',
+                        verbose_name='superuser status',
+                    ),
+                ),
+                (
+                    'username',
+                    models.CharField(db_index=True, max_length=255, unique=True),
+                ),
+                (
+                    'groups',
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+                        related_name='user_set',
+                        related_query_name='user',
+                        to='auth.group',
+                        verbose_name='groups',
+                    ),
+                ),
             ],
             options={
                 'abstract': False,
@@ -31,17 +63,45 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Announcement',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('appearDatetime', models.DateTimeField(verbose_name='Time of appearance the message')),
-                ('type', models.IntegerField(choices=[(1, 'Normal'), (2, 'Important'), (3, 'Game')], default=1)),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'appearDatetime',
+                    models.DateTimeField(verbose_name='Time of appearance the message'),
+                ),
+                (
+                    'type',
+                    models.IntegerField(
+                        choices=[(1, 'Normal'), (2, 'Important'), (3, 'Game')],
+                        default=1,
+                    ),
+                ),
                 ('content', models.TextField(verbose_name='Message content')),
-                ('author', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='announcementsFrom', to=settings.AUTH_USER_MODEL)),
+                (
+                    'author',
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name='announcementsFrom',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
             name='Team',
             fields=[
-                ('id', models.CharField(max_length=32, primary_key=True, serialize=False)),
+                (
+                    'id',
+                    models.CharField(max_length=32, primary_key=True, serialize=False),
+                ),
                 ('name', models.CharField(max_length=100, verbose_name='Name')),
                 ('color', models.CharField(max_length=20, verbose_name='Color')),
                 ('visible', models.BooleanField(default=True)),
@@ -50,16 +110,38 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ReadEvent',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('readAt', models.DateTimeField(auto_now=True)),
-                ('announcement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.announcement')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'announcement',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='core.announcement',
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
             model_name='announcement',
             name='read',
-            field=models.ManyToManyField(through='core.ReadEvent', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(
+                through='core.ReadEvent', to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
             model_name='announcement',
@@ -69,11 +151,23 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='team',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.PROTECT, to='core.team'),
+            field=models.ForeignKey(
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                to='core.team',
+            ),
         ),
         migrations.AddField(
             model_name='user',
             name='user_permissions',
-            field=models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions'),
+            field=models.ManyToManyField(
+                blank=True,
+                help_text='Specific permissions for this user.',
+                related_name='user_set',
+                related_query_name='user',
+                to='auth.permission',
+                verbose_name='user permissions',
+            ),
         ),
     ]
