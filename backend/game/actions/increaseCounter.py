@@ -4,7 +4,7 @@ from typing import Dict, Iterable, Optional, Tuple
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Die, Resource
+from game.entities import RESOURCE_VILLAGER, Die, Resource
 
 # This action is a demonstration of action implementation. Basically you can say
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,
@@ -49,11 +49,11 @@ class IncreaseCounterAction(TeamInteractionActionBase):
             "Hráč nemůže zvýšit červené počitado o více než 10")
         self._ensure(self.args.red > -10,
             "Hráč nemůže snížit počitadlo o více než 10")
-        self._ensure(self.args.resource is None or self.args.resource.id != "mat-clovek",
-            "Hráči nemohou obětovat lidi - chtěli jste obětovat 1× [[mat-clovek]]")
+        self._ensure(self.args.resource is None or self.args.resource.id != RESOURCE_VILLAGER,
+            f"Hráči nemohou obětovat lidi - chtěli jste obětovat 1× [[{RESOURCE_VILLAGER}]]")
 
     @override
-    def _commitSuccessImpl(self) -> bool:
+    def _commitSuccessImpl(self) -> None:
         self.trace.add("Zahájen commit")
         self.teamState.redCounter += self.args.red
         self._info.add(f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}")
@@ -62,5 +62,3 @@ class IncreaseCounterAction(TeamInteractionActionBase):
         if self.args.resource is not None:
             self.teamState.blueCounter += 1
             self._info.add(f"Týmu bylo zvýšeno modré počítadlo na {self.teamState.blueCounter}")
-
-        return True # Result was expected
