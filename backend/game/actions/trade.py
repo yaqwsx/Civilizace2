@@ -35,6 +35,8 @@ class TradeAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        self._ensure(self.args.receiver != self.args.team, "Nelze obchodovat sám se sebou")
+
         with self._errors.startList("Obchod nelze provést") as err:
             teamState = self.teamState
             nontradable = self.getNontradable()
