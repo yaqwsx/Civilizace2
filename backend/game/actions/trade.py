@@ -36,6 +36,7 @@ class TradeAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         self._ensure(self.args.receiver != self.args.team, "Nelze obchodovat sám se sebou")
+        self._ensure(len(self.args.resources) > 0, "Není vybráno co obchodovat")
 
         with self._errors.startList("Obchod nelze provést") as err:
             teamState = self.teamState
@@ -74,6 +75,7 @@ class TradeAction(TeamInteractionActionBase):
             assert amount >= 0
             assert teamState.resources[resource] >= 0
 
-        self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}: {printResourceListForMarkdown(self.args.resources)}"
+        self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}:"
+        self._info += printResourceListForMarkdown(self.args.resources)
         self._addNotification(self.args.receiver,
                               f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}")
