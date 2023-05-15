@@ -332,8 +332,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             onChange={(e) => setTile(e.target.value)}
                         >
                             <option value="">
-                                        Pole nevybráno
-                                    </option>
+                                Pole nevybráno
+                            </option>
                             {sortedTiles
                                 // .filter((t) =>
                                 //     vyroba.allowedTiles.includes(t.entity)
@@ -394,10 +394,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                     className="field select w-full bg-blue-300"
                                     value={value}
                                     onChange={(e) => {
-                                        let newV = e.target.value;
-                                        let newC =
-                                            Object.create(concretization);
-                                        newC[resource.id] = newV;
+                                        const newV = e.target.value;
+                                        const newC = produce(concretization, (orig) => { orig[resource.id] = newV; });
                                         setConcretization(newC);
                                         console.log("Y", resource.id, newC);
                                     }}
@@ -422,9 +420,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                         return (
                             <FormRow
                                 key={resource.id}
-                                label={`Je třeba ${amount * rAmount}× ${
-                                    resource.name
-                                } a realizuje se jako: `}
+                                label={`Je třeba ${amount * rAmount}× ${resource.name} a realizuje se jako: `}
                                 error={error}
                             >
                                 {input}

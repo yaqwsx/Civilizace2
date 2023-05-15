@@ -23,6 +23,7 @@ import { EntityBase, EntityResource, EntityTech, EntityVyroba, ServerActionType,
 import { useEntities } from "../elements/entities";
 import _ from "lodash";
 import { Ace } from "ace-builds";
+import produce from "immer";
 
 const urlActionAtom = atomWithHash<string | undefined>(
     "action",
@@ -487,13 +488,12 @@ function PerformAnyAction(props: {
 
     const handleArgError = (name: string, error?: string) => {
         console.assert(_.isObject(argErrors));
-        const newErrors = _.isObject(argErrors) ? Object.create(argErrors) : {};
-        if (error) {
-            newErrors[name] = error;
-        } else {
-            delete newErrors[name];
-        }
-        setArgErrors(newErrors);
+        setArgErrors(produce(_.isObject(argErrors) ? argErrors : {},
+            (orig) => {
+                if (error) { orig[name] = error; }
+                else { delete orig[name]; }
+            }
+        ));
     }
     const getError = (name: string, value: any) => {
         const argInfo = props.action.args[name];
@@ -508,9 +508,7 @@ function PerformAnyAction(props: {
     const handleArgChange = (name: string, value?: any) => {
         console.assert(_.isObject(args));
         if (args[name] !== value) {
-            const newArgs = Object.create(args);
-            newArgs[name] = value;
-            setArgs(newArgs);
+            setArgs(produce(args, (orig) => { orig[name] = value; }));
             handleArgError(name, getError(name, value));
         }
     }
