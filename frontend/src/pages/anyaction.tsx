@@ -435,6 +435,19 @@ export function AnyAction() {
     );
 }
 
+function getArgError(props: {
+    value?: any,
+    argInfo: ArgumentInfo | undefined,
+}) {
+    if (props.argInfo === undefined) {
+        return _.isNil(props.value) ? undefined : "Neočekávaný argument";
+    }
+    if (props.argInfo.isValid(props.value)) {
+        return undefined;
+    }
+    return _.isNil(props.value) ? "Chybící argument" : "Nevalidní argument";
+}
+
 
 function PerformAnyAction(props: {
     action: ActionType,
@@ -495,21 +508,11 @@ function PerformAnyAction(props: {
             }
         ));
     }
-    const getError = (name: string, value: any) => {
-        const argInfo = props.action.args[name];
-        if (argInfo === undefined) {
-            return _.isNil(value) ? undefined : "Neočekávaný argument";
-        }
-        if (argInfo.isValid(value)) {
-            return undefined;
-        }
-        return _.isNil(value) ? "Chybící argument" : "Nevalidní argument";
-    }
     const handleArgChange = (name: string, value?: any) => {
         console.assert(_.isObject(args));
         if (args[name] !== value) {
             setArgs(produce(args, (orig) => { orig[name] = value; }));
-            handleArgError(name, getError(name, value));
+            handleArgError(name, getArgError({ value, argInfo: props.action.args[name] }));
         }
     }
     const handleTeamArgChange = (team?: Team) => {
@@ -526,14 +529,14 @@ function PerformAnyAction(props: {
         setArgs(newArgs);
         const newArgErrors: Record<string, string> = {};
         for (var [name, value] of Object.entries(newArgs)) {
-            const error = getError(name, value);
+            const error = getArgError({ value, argInfo: props.action.args[name] });
             if (error) {
                 newArgErrors[name] = error;
             }
         }
         for (var name in props.action.args) {
             if ((newArgs as Record<string, any>)[name] === undefined) {
-                const error = getError(name, undefined);
+                const error = getArgError({ argInfo: props.action.args[name] });
                 if (error) {
                     newArgErrors[name] = error;
                 }
@@ -679,7 +682,7 @@ function JsonForm(props: {
 
     useEffect(() => {
         if (!_.isEqual(props.value, lastValue)) {
-            setArgsStr(JSON.stringify(props.value, undefined, 2));
+            setArgsStr(JSON.stringify(props.value, (k, v) => _.isUndefined(v) ? null : v, 2));
             setLastValue(props.value);
         }
     }, [props.value]);
