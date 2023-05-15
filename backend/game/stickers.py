@@ -3,7 +3,6 @@ if __name__ == "__main__":
     django.setup()
 
 import contextlib
-import math
 import os
 from pathlib import Path
 from collections.abc import Generator
@@ -16,7 +15,7 @@ from backend.settings import ICON_PATH
 from core.models.team import Team
 
 from game.entities import Building, Entity, Tech, Vyroba
-from game.models import DbEntities, DbSticker, InteractionType, StickerType
+from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
 FONT_NORMAL = ImageFont.truetype(os.path.join(

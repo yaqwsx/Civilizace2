@@ -1,10 +1,7 @@
 from argparse import ArgumentParser
-from collections import Counter
-from pathlib import Path
 import json
 from django.core.management import BaseCommand
 
-from core.gsheets import getSheets
 from core.management.commands.pullentities import setFilename
 from game.entityParser import EntityParser
 from django.conf import settings

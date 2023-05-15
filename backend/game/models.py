@@ -2,7 +2,6 @@ from __future__ import annotations
 import functools
 import math
 
-import string
 from functools import cached_property
 from typing import Dict, NamedTuple, Optional, Tuple
 
@@ -12,7 +11,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
-from django.utils.crypto import get_random_string
 from django_enumfield import enum
 
 from game.actions import GAME_ACTIONS

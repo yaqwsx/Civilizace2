@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
-from typing import Any, Optional, TypeVar
+from typing import Optional
 from django.db import models
 from core.models.user import User
 from core.models.team import Team

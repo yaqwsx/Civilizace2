@@ -1,7 +1,6 @@
 import json
 from django.core.management import BaseCommand
-from core.models.team import Team
-from game.models import DbEntities, DbState, StickerType
+from game.models import DbState
 from pathlib import Path
 
 

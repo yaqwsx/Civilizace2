@@ -1,10 +1,10 @@
 from decimal import Decimal
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Optional
 
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import RESOURCE_VILLAGER, Die, Resource
+from game.entities import RESOURCE_VILLAGER, Resource
 
 # This action is a demonstration of action implementation. Basically you can say
 # how much to increase the red Counter. Optionally we can pass an entity (e.g.,

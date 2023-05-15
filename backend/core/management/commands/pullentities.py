@@ -7,7 +7,7 @@ from django.core.management import BaseCommand
 from core.gsheets import getSheets
 from django.conf import settings
 
-from game.entityParser import ErrorHandler, EntityParser, ParserError
+from game.entityParser import ErrorHandler, EntityParser
 
 ENTITY_SETS = {
     "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",

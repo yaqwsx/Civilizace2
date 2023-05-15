@@ -17,7 +17,7 @@ from game.actions.actionBase import makeAction
 from game.actions.armyRetreat import ArmyRetreatAction, ArmyRetreatArgs
 from game.actions.common import ActionFailed
 from game.entities import Entities, MapTileEntity
-from game.state import Army, ArmyGoal, ArmyMode, GameState, MapTile, StateModel
+from game.state import Army, ArmyGoal, ArmyMode, GameState
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
 

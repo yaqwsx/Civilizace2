@@ -2,9 +2,7 @@ from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.increaseCounter import IncreaseCounterAction, IncreaseCounterArgs
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
-from game.state import GameState
 
-import pytest
 
 teamState = TEAM_ADVANCED
 entities = TEST_ENTITIES

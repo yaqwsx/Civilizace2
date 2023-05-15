@@ -1,7 +1,6 @@
 # See https://medium.com/@philamersune/using-postgresql-jsonfield-in-sqlite-95ad4ad2e5f1
 
 import json
-import types
 import functools
 
 from django.conf import settings

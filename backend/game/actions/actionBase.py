@@ -3,14 +3,13 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Any, Dict, Iterable, List, NamedTuple, Tuple, Type, TypeVar
+from typing import Dict, List, NamedTuple, Type, TypeVar
 
 from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
 
 from game.actions.common import ActionFailed, MessageBuilder
-from game.entities import (CostDict, Die, Entities, MapTileEntity, Resource,
-                           Team)
+from game.entities import (CostDict, Entities, MapTileEntity, Resource, Team)
 from game.state import (GameState, MapTile, TeamState,
                         printResourceListForMarkdown)
 

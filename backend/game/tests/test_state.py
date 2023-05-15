@@ -1,8 +1,7 @@
-import pytest
 from core.management.commands.addarmies import addArmies
 from game.state import GameState
 from game.gameGlue import stateSerialize, stateDeserialize
-from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 import json
 
 def test_stateEq():

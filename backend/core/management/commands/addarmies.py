@@ -1,21 +1,8 @@
 from argparse import ArgumentParser
-from ctypes import ArgumentError
 from game.state import Army, GameState
-from collections import Counter
-from decimal import Decimal
-from pathlib import Path
-import json
-import sys
-from typing import Dict
 from django.core.management import BaseCommand
 
-from core.gsheets import getSheets
-from core.management.commands.pullentities import setFilename
-from game.entities import Resource
-from game.entityParser import EntityParser, loadEntities
-from django.conf import settings
 
-from game.models import DbEntities
 
 
 armyNames = ["A", "B", "C", "D", "E", "F", "G"]

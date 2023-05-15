@@ -1,8 +1,6 @@
 from game.models import DbTask, DbTaskAssignment
-from game.viewsets.permissions import IsOrg
 from ..serializers import DbTaskSerializer
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.exceptions import APIException
 

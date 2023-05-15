@@ -1,4 +1,3 @@
-from typing import Set
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.trade import TradeAction, TradeArgs

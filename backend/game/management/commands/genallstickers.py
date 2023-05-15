@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 
-from game.stickers import makeSticker, underline
+from game.stickers import makeSticker
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):

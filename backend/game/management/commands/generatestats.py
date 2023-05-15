@@ -1,8 +1,6 @@
-import json
 from django.core.management import BaseCommand
 
 from pathlib import Path
-import os
 
 import plotly.graph_objects as go
 import plotly.io as pio

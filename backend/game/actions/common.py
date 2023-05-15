@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import contextlib
 from decimal import Decimal
-from typing import Any, Callable, Dict, Generator, List, Set, Union
+from typing import Any, Callable, Dict, Generator, List, Union
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel
 
-from game.entities import Die, Entity, Resource
+from game.entities import Entity
 
 
 class ActionFailed(Exception):

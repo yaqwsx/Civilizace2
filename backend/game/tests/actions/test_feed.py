@@ -2,7 +2,7 @@ from decimal import Decimal
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.feed import FeedAction, FeedArgs, FeedRequirements, computeFeedRequirements
-from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
+from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
 import pytest
 

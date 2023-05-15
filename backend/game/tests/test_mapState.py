@@ -1,5 +1,5 @@
 from game.tests.actions.common import createTestInitState
-from testing import PYTEST_COLLECT, reimport
+from testing import reimport
 
 from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 

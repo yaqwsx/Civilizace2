@@ -1,4 +1,3 @@
-import math
 from collections import defaultdict
 from itertools import zip_longest
 from typing import Any, Dict, List, Optional, Set, Type

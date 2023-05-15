@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from typing import Optional
 from django.core.management import BaseCommand
 from frozendict import frozendict
-from game.entities import Entities, Entity, EntityId, Org, OrgRole, Team as TeamEntity
+from game.entities import Entities, EntityId, Org, OrgRole, Team as TeamEntity
 from game.entityParser import EntityParser
 from django.conf import settings
 from game.models import DbAction, DbEntities, DbInteraction, DbScheduledAction, DbSticker, DbTick, DbTurn, DbState, DbTeamState, DbMapState

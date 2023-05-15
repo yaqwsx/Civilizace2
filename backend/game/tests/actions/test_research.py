@@ -1,10 +1,8 @@
-from typing import Set
 from game.actions.actionBase import makeAction
 from game.actions.common import ActionFailed
 from game.actions.researchFinish import ResearchFinishAction
 from game.actions.researchStart import ResearchArgs, ResearchStartAction
-from game.entities import Die
-from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
+from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
 import pytest
 

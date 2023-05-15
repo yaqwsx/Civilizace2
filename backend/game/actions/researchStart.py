@@ -1,10 +1,10 @@
 from decimal import Decimal
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Optional
 
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Die, Resource, Tech
+from game.entities import Resource, Tech
 
 
 class ResearchArgs(TeamActionArgs):

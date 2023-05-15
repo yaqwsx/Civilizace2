@@ -3,13 +3,13 @@ import decimal
 import enum
 import json
 import typing
-from typing import Dict, Any, Callable, Optional, Tuple, Type, TypeVar, Union
+from typing import Dict, Any, Optional, Type, TypeVar
 from pydantic import BaseModel
 from pydantic.fields import SHAPE_SINGLETON, MAPPING_LIKE_SHAPES, SHAPE_LIST, SHAPE_SET, ModelField
 from game.actions.actionBase import ActionArgs
 
-from game.entities import EntityBase, Entity, Entities
-from game.state import MapTile, StateModel
+from game.entities import EntityBase, Entities
+from game.state import StateModel
 
 TModel = TypeVar('TModel', bound=BaseModel)
 

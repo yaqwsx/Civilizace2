@@ -3,7 +3,7 @@ from game.actions.actionBase import makeAction
 from game.actions.buildRoad import BuildRoadAction, BuildRoadArgs
 from game.actions.common import ActionFailed
 from game.state import ArmyGoal
-from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 from game.tests.actions.test_armyDeploy import sendArmyTo
 
 

@@ -1,17 +1,13 @@
-import io
 from typing import NamedTuple
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 import requests
 from game.entities import Entity, Team as TeamEntity
-from game.models import DbEntities, DbSticker, Printer
-from ipware import get_client_ip
+from game.models import DbSticker, Printer
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework.permissions import IsAuthenticated
 from django.http import FileResponse
 
 from game.stickers import getStickerFile

@@ -2,7 +2,7 @@ import pytest
 from game.actions.build import BuildAction, BuildArgs
 from game.actions.buildFinish import BuildFinishAction, BuildFinishArgs
 from game.actions.common import ActionFailed
-from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 
 
 def test_homeStart():

@@ -1,11 +1,9 @@
 from django.core.management import BaseCommand
 from core.models.team import Team
 from game.models import DbEntities, DbState, DbSticker, StickerType
-from pathlib import Path
 
 
 
-from game.stickers import makeSticker, underline
 
 class Command(BaseCommand):
     def __init__(self, *args, **kwargs):

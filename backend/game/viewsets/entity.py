@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple, Dict
+from typing import Any, List, Tuple, Dict
 from django.shortcuts import get_object_or_404
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -13,19 +13,18 @@ from rest_framework.exceptions import PermissionDenied
 from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
-from game.entities import Entities, Entity, EntityId, Tech, Resource, Vyroba, MapTileEntity
+from game.entities import Entities, Entity, EntityId, Tech, Vyroba
 from game.gameGlue import serializeEntity, stateSerialize
 
 from rest_framework import serializers
 
 from game.models import DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
-from game.state import GameState, TeamState, MapTile, Army
+from game.state import TeamState, MapTile, Army
 
 from core.models import User, Team as DbTeam
 from game.viewsets.stickers import DbStickerSerializer
 
-from .permissions import IsOrg
 
 TeamId = str  # intentionally left weak
 

@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from decimal import Decimal
 from typing import Iterable, Optional
 from django.core.management import BaseCommand
 

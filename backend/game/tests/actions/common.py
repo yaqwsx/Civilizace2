@@ -10,7 +10,7 @@ TEAM_BASIC = TEST_ENTITIES.teams["tym-cerveni"] # the team that is in the initia
 
 # TODO: move to Google Sheets
 def createTestInitState(entities: Entities=TEST_ENTITIES):
-    from game.state import Army, ArmyMode, GameState
+    from game.state import GameState
 
     state = GameState.createInitial(entities)
     state.world.combatRandomness = 0

@@ -4,8 +4,6 @@ from testing import PYTEST_COLLECT, reimport
 
 if not PYTEST_COLLECT:
     from game.actions.nextTurn import NextTurnAction, NextTurnArgs
-    from game.entities import Entities
-    from game.state import GameState
     from game.tests.actions.common import TEST_ENTITIES
 
 

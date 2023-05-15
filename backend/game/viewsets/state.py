@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 from game.gameGlue import stateSerialize
 from game.models import DbState
-from game.state import GameState
 from game.viewsets.permissions import IsOrg
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response

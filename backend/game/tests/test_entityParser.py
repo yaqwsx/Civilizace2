@@ -1,4 +1,4 @@
-from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED, createTestInitState
+from game.tests.actions.common import TEST_ENTITIES
 
 def test_homeTiles():
     entities = TEST_ENTITIES

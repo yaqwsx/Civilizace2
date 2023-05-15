@@ -8,7 +8,6 @@ from rest_framework.request import Request
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 
-from game.viewsets.permissions import IsOrg
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer

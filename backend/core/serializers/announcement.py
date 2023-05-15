@@ -3,9 +3,8 @@ from rest_framework import serializers
 from core.models.announcement import Announcement, AnnouncementType
 from core.models.team import Team
 from core.models.user import User
-from core.serializers.fields import IdRelatedField, TextEnumField
+from core.serializers.fields import TextEnumField
 from core.serializers.user import UserSerializer
-from django.contrib.auth.models import AnonymousUser
 
 class TeamIdSerializer(serializers.ModelSerializer):
     class Meta(object):

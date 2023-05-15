@@ -4,7 +4,7 @@ import typing
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from game.actions import GAME_ACTIONS, GameAction, actionId
-from game.actions.actionBase import ActionCommonBase, NoInitActionBase, TeamActionBase, TeamInteractionActionBase
+from game.actions.actionBase import ActionCommonBase, NoInitActionBase, TeamInteractionActionBase
 from game.viewsets.permissions import IsOrg
 from rest_framework import viewsets
 from rest_framework.response import Response

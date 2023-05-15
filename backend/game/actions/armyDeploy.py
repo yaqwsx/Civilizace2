@@ -8,7 +8,7 @@ from game.actions.actionBase import (NoInitActionBase, ScheduledAction,
                                      TeamActionArgs, TeamActionBase,
                                      TeamInteractionActionBase, TileActionArgs)
 from game.actions.common import ActionFailed
-from game.entities import Resource, Team, TEntity
+from game.entities import Resource, Team
 from game.state import Army, ArmyGoal, ArmyMode
 
 

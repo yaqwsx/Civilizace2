@@ -11,7 +11,7 @@ from os import PathLike
 import pydantic
 from pydantic import BaseModel, ValidationError
 import typing
-from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, NamedTuple, Optional, Protocol, Set, Tuple, Type, TypeVar, TypedDict, Union
+from typing import Any, Callable, Dict, ForwardRef, Iterable, List, Literal, NamedTuple, Optional, Set, Tuple, Type, TypeVar, Union
 
 from . import entities
 from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS

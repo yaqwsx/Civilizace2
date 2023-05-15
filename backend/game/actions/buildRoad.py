@@ -1,12 +1,12 @@
 from math import ceil
-from typing import Dict, Iterable, Tuple
+from typing import Dict
 
 from typing_extensions import override
 
 from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
                                      TeamActionBase, TeamInteractionActionBase,
                                      TileActionArgs)
-from game.entities import Die, Resource
+from game.entities import Resource
 
 
 class BuildRoadArgs(TeamActionArgs, TileActionArgs):

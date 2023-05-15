@@ -1,7 +1,7 @@
 from collections import defaultdict
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, Iterable, NamedTuple, Optional, Tuple
+from typing import Dict, NamedTuple, Optional
 
 from typing_extensions import override
 
@@ -9,7 +9,7 @@ from game.actions.actionBase import (NoInitActionBase, TeamActionArgs,
                                      TeamActionBase, TeamInteractionActionBase,
                                      TileActionArgs)
 from game.actions.common import MessageBuilder
-from game.entities import Die, Resource, Vyroba
+from game.entities import Resource, Vyroba
 from game.state import printResourceListForMarkdown
 
 
