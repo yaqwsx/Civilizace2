@@ -242,10 +242,128 @@ function GetArgForm(props: ArgFormProps) {
                     className="flex w-full flex-wrap"
                 />
             );
+        case 'dict':
+            {
+                const [keyType, valueType]: { type: string }[] = (props.serverInfo as any).subtypes;
+
+                const keyInfo = GetArgInfo({
+                    serverInfo: { ...keyType, required: true },
+                    entities: props.entities,
+                });
+                const valueInfo = GetArgInfo({
+                    serverInfo: { ...valueType, required: true },
+                    entities: props.entities,
+                });
+
+                return (p: ArgumentFormProps) => (
+                    <DictArgForm
+                        value={p.value}
+                        keyInfo={keyInfo}
+                        valueInfo={valueInfo}
+                        onChange={p.onChange}
+                    />
+                );
+            }
         default:
             console.log("Unknown arg type", props.serverInfo.type.toLowerCase(), props.serverInfo);
             return UnknownArgTypeForm(props.serverInfo);
     }
+}
+
+function GetArgInfo(props: ArgFormProps): ArgumentInfo {
+    return {
+        isValid: (value: any) => !(props.serverInfo.required && _.isNil(value)),
+        form: GetArgForm(props),
+        default: props.serverInfo.default,
+    };
+}
+
+function DictArgForm(props: {
+    keyInfo: ArgumentInfo,
+    valueInfo: ArgumentInfo,
+    value: any,
+    onChange: (value: any) => void,
+}) {
+    const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+    const [newKeyValue, setNewKeyValue] = useState<any>(props.keyInfo.default);
+    const [newKeyError, setNewKeyError] = useState<string | undefined>();
+
+    const valueDict = props.value ?? {};
+    console.assert(_.isObject(valueDict));
+    if (!_.isObject(valueDict)) {
+        props.onChange(undefined);
+    }
+
+    const updateArgError = (key: string, error?: string) => {
+        setErrors(produce(errors, (orig) => {
+            if (error) { orig[key] = error; }
+            else { delete orig[key]; }
+        }));
+    }
+
+    const addNewKey = (key: any) => updateKeyValue(key, props.valueInfo.default);
+    const updateKeyValue = (key: any, value: any) => {
+        console.assert(_.isString(key), "Key has to be string", typeof key, key);
+        props.onChange(produce(valueDict, (orig: any) => { orig[key] = value; }));
+        updateArgError(key, getArgError({ value, argInfo: props.valueInfo }));
+    }
+    const removeKey = (key: any) => {
+        props.onChange(produce(valueDict, (orig: any) => { delete orig[key]; }))
+    }
+
+    return (
+        <div className="w-full">
+            {
+                Object.entries(valueDict)
+                    .map(([name, value]) => (
+                        <FormRow
+                            key={name}
+                            label={`${name}:`}
+                            error={errors[name] ?? ''}
+                            className="mb-1 md:mb-1 flex md:items-center"
+                        >
+                            <div className="field flex flex-wrap md:w-3/4">
+                                {props.valueInfo.form({
+                                    value: valueDict[name],
+                                    onChange: (newValue) => updateKeyValue(name, newValue),
+                                    onError: (error) => { updateArgError(name, error) },
+                                })}
+                            </div>
+                            <Button
+                                label="-"
+                                onClick={() => { removeKey(name); }}
+                                className="m-1 bg-red-700 hover:bg-red-800"
+                            />
+                        </FormRow>
+                    ))
+            }
+            <FormRow
+                label="New Key:"
+                error={newKeyError ?? ''}
+                className="mb-1 md:mb-0 md:flex md:items-center"
+            >
+                <div className="field flex flex-wrap md:w-3/4">
+                    {props.keyInfo.form({
+                        value: newKeyValue,
+                        onChange: (value) => {
+                            setNewKeyValue(value);
+                            setNewKeyError('');
+                        },
+                        onError: setNewKeyError,
+                    })}
+                </div>
+                <Button
+                    label="+"
+                    disabled={_.isNil(newKeyValue) || _.hasIn(valueDict, newKeyValue)}
+                    onClick={() => {
+                        addNewKey(newKeyValue);
+                        setNewKeyValue(props.keyInfo.default);
+                    }}
+                    className="m-1 bg-green-700 hover:bg-green-800"
+                />
+            </FormRow>
+        </div>
+    );
 }
 
 function LoadEntitiesByType(): Record<string, { data?: Record<string, EntityBase>, loading: boolean, error: any }> {
@@ -275,12 +393,7 @@ export function GetActionTypes(): { actions: ActionType[] | undefined, error: an
         return {
             ...a,
             args: Object.fromEntries(Object.entries(a.args).map(([name, serverInfo]) => {
-                const argInfo: ArgumentInfo = {
-                    isValid: (value: any) => !(serverInfo.required && value === undefined),
-                    form: GetArgForm({ serverInfo, entities }),
-                    default: serverInfo.default,
-                };
-                return [name, argInfo];
+                return [name, GetArgInfo({ serverInfo, entities })];
             }))
         };
     });
