@@ -106,7 +106,7 @@ class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal] = {}
     points: int
     # duplicates: items in Tech.unlocks
-    unlockedBy: List[Tuple[Tech, Die]] = []
+    unlockedBy: List[Tech] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -123,23 +123,20 @@ class Building(EntityWithCost, TileFeature):
 
 @dataclass(init=False, repr=False, eq=False)
 class Tech(EntityWithCost):
-    unlocks: List[Tuple[EntityWithCost, Die]] = []
+    unlocks: List[EntityWithCost] = []
     flavor: str = ""
 
     @property
     def unlocksVyrobas(self) -> Set[Vyroba]:
-        return set(x for x, _ in self.unlocks if isinstance(x, Vyroba))
+        return set(e for e in self.unlocks if isinstance(e, Vyroba))
 
     @property
     def unlocksTechs(self) -> Set[Tech]:
-        return set(x for x, _ in self.unlocks if isinstance(x, Tech))
+        return set(e for e in self.unlocks if isinstance(e, Tech))
 
     @property
     def unlocksBuilding(self) -> Set[Building]:
-        return set(x for x, _ in self.unlocks if isinstance(x, Building))
-
-    def allowedDie(self, target: Entity) -> Set[Die]:
-        return set(d for e, d in self.unlocks if e == target)
+        return set(e for e in self.unlocks if isinstance(e, Building))
 
 
 @dataclass(init=False, repr=False, eq=False)

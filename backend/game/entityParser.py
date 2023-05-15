@@ -777,7 +777,7 @@ def add_tech_unlocks(
     unlocks_tech = unlock_args.get("unlocks-tech")
     if unlocks_tech is not None:
         tech.unlocks += parseField(
-            List[Tuple[Tech, Die]],
+            List[Tech],
             unlocks_tech,
             entities=entities,
             err_handler=err_handler,
@@ -786,7 +786,7 @@ def add_tech_unlocks(
     unlocks_other = unlock_args.get("unlocks-other")
     if unlocks_other is not None:
         tech.unlocks += parseField(
-            List[Tuple[EntityWithCost, Die]],
+            List[EntityWithCost],
             unlocks_other,
             entities=entities,
             err_handler=err_handler,
@@ -864,14 +864,14 @@ def with_productions(
 def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
     for entity in entities.values():
         if isinstance(entity, EntityWithCost):
-            for tech, die in entity.unlockedBy:
-                tech.unlocks.append((entity, die))
+            for tech in entity.unlockedBy:
+                tech.unlocks.append(entity)
             entity.unlockedBy.clear()
 
     for tech in entities.values():
         if isinstance(tech, Tech):
-            for entity, die in tech.unlocks:
-                entity.unlockedBy.append((tech, die))
+            for entity in tech.unlocks:
+                entity.unlockedBy.append(tech)
 
 
 def checkGuaranteedIds(
@@ -913,7 +913,7 @@ def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
                 continue
             if entity in visited_entities:
                 continue
-            if any(tech in visited_entities for tech, _ in entity.unlockedBy):
+            if any(tech in visited_entities for tech in entity.unlockedBy):
                 visited_entities.add(entity)
                 changed = True
     unreachable = [

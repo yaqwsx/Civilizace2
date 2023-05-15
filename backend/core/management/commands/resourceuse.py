@@ -59,7 +59,7 @@ class Command(BaseCommand):
                     f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"
                 )
                 print(
-                    f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in entity.unlockedBy)}"
+                    f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in entity.unlockedBy)}"
                 )
 
     def print_resource_usage(self, entities: Entities, material: Resource):
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                     f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                 )
                 print(
-                    f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}"
+                    f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
                 )
 
         for prod in productions:
@@ -127,5 +127,5 @@ class Command(BaseCommand):
                         f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                     )
                     print(
-                        f"    Unlocked by: {', '.join('/'.join(map(self.entity_to_str, unlockedBy)) for unlockedBy in vyroba.unlockedBy)}"
+                        f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
                     )

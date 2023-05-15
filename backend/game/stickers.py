@@ -269,7 +269,7 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
                 costText = ", ".join(
                     [f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost.items())]
                 )
-                diceText = f"Kostka: {t.points}× {', '.join(d.briefName for d in e.allowedDie(t))}"
+                diceText = f"Kostka: {t.points}"
                 b.addText(f"• {t.name}: ", FONT_BOLD)
                 with b.withOffset(b.offset + bulletWidth):
                     b.addText(diceText, FONT_NORMAL)

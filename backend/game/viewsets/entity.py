@@ -181,7 +181,7 @@ class TeamViewSet(viewsets.ViewSet):
         teamTechs.update(state.techs)
         teamTechs.update(state.researching)
         for t in state.techs:
-            teamTechs.update([x for x, _ in t.unlocks if isinstance(x, Tech)])
+            teamTechs.update([e for e in t.unlocks if isinstance(e, Tech)])
 
         def tech_extra_fields(tech):
             if tech in state.techs:
