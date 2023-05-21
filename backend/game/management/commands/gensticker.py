@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from core.models.team import Team as DbTeam
+from core.models.team import Team
 from game.models import DbEntities, StickerType
 
 
@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, entity, type, team, output, *args, **kwargs):
         _, entities = DbEntities.objects.get_revision()
 
-        teamModel = DbTeam.objects.get(pk=team)
+        teamModel = Team.objects.get(pk=team)
 
         stickerType = {
             "regular": StickerType.regular,

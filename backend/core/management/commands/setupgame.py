@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from typing import Optional
 from django.core.management import BaseCommand
 from frozendict import frozendict
-from game.entities import Entities, EntityId, Org, OrgRole, Team as TeamEntity
+from game.entities import Entities, EntityId, OrgEntity, OrgRole, TeamEntity
 from game.entityParser import EntityParser
 from django.conf import settings
 from game.models import (
@@ -20,7 +20,7 @@ from game.models import (
     DbMapState,
 )
 from core.models.announcement import Announcement
-from core.models import User, Team as DbTeam
+from core.models import User, Team
 from game.state import GameState, WorldState
 from django.db import transaction
 
@@ -42,7 +42,7 @@ class Command(BaseCommand):
         password: str,
         *,
         superuser: bool = False,
-        team: Optional[DbTeam] = None,
+        team: Optional[Team] = None,
     ) -> User:
         assert password is not None
         assert not superuser or team is None
@@ -93,9 +93,9 @@ class Command(BaseCommand):
 
         Announcement.objects.all().delete()
         User.objects.all().delete()
-        DbTeam.objects.all().delete()
+        Team.objects.all().delete()
 
-    def createOrgs(self, orgs: frozendict[EntityId, Org]) -> None:
+    def createOrgs(self, orgs: frozendict[EntityId, OrgEntity]) -> None:
         for org in orgs.values():
             assert org.username is not None, f'Org {org} cannot have a blank username'
             assert org.password is not None, f'Org {org} cannot have a blank password'
@@ -107,7 +107,7 @@ class Command(BaseCommand):
 
     def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
         for team in teams.values():
-            teamModel = DbTeam.objects.create(
+            teamModel = Team.objects.create(
                 id=team.id,
                 name=team.name,
                 color=team.color,

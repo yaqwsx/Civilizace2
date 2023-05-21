@@ -1,7 +1,7 @@
 from typing import NamedTuple
 from django.shortcuts import get_object_or_404
 import requests
-from game.entities import Entity, Team as TeamEntity
+from game.entities import Entity, TeamEntity
 from game.models import DbSticker, Printer
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action

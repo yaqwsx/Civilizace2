@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Entities, Resource, Team
+from game.entities import Entities, Resource, TeamEntity
 from game.state import GameState, TeamState
 
 
@@ -18,7 +18,7 @@ class FeedRequirements(BaseModel):
 
 
 def computeFeedRequirements(
-    state: GameState, entities: Entities, team: Team
+    state: GameState, entities: Entities, team: TeamEntity
 ) -> FeedRequirements:
     teamState: TeamState = state.teamStates[team]
     tokensRequired = ceil(teamState.population / 20)

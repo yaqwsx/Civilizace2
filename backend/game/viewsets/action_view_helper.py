@@ -23,7 +23,7 @@ from game.actions.actionBase import (
 )
 from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import Entities, Entity
-from game.entities import Team as TeamEntity
+from game.entities import TeamEntity
 from game.entities import Tech
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (

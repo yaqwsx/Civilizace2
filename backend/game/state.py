@@ -46,7 +46,7 @@ class ArmyGoal(enum.Enum):
 
 
 class Army(StateModel):
-    team: Team  # duplicates: items in Team.armies
+    team: TeamEntity  # duplicates: items in TeamEntity.armies
     index: int
     name: str
     level: int
@@ -91,7 +91,7 @@ class Army(StateModel):
 
 class MapTile(StateModel):  # Game state element
     entity: MapTileEntity
-    unfinished: Dict[Team, Set[Building]] = {}
+    unfinished: Dict[TeamEntity, Set[Building]] = {}
     buildings: Set[Building] = set()
     richnessTokens: int
 
@@ -159,24 +159,24 @@ class MapState(StateModel):
             return None
         return tiles[0]
 
-    def getHomeOfTeam(self, team: Team) -> MapTile:
+    def getHomeOfTeam(self, team: TeamEntity) -> MapTile:
         return self.parent.teamStates[team].homeTile
 
-    def _getRelativeIndex(self, team: Team, tile: MapTileEntity) -> int:
+    def _getRelativeIndex(self, team: TeamEntity, tile: MapTileEntity) -> int:
         home = self.getHomeOfTeam(team)
         assert home != None, "Team {} has no home tile".format(team.id)
         relIndex = tile.index - home.index
         relIndexOffset = relIndex + self.size / 2
         return round((relIndexOffset % self.size) - self.size / 2)
 
-    def getRawDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
+    def getRawDistance(self, team: TeamEntity, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert (
             relativeIndex in TILE_DISTANCES_RELATIVE
         ), "Tile {} is unreachable for {}".format(tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
-    def getActualDistance(self, team: Team, tile: MapTileEntity) -> Decimal:
+    def getActualDistance(self, team: TeamEntity, tile: MapTileEntity) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert (
             relativeIndex in TILE_DISTANCES_RELATIVE
@@ -193,12 +193,12 @@ class MapState(StateModel):
             multiplier -= Decimal(0.5)
         return distance * multiplier
 
-    def getReachableTiles(self, team: Team) -> List[MapTile]:
+    def getReachableTiles(self, team: TeamEntity) -> List[MapTile]:
         index = self.getHomeOfTeam(team).index
         indexes = [(index + i) % self.size for i in TILE_DISTANCES_RELATIVE]
         return [self.tiles[i] for i in indexes]
 
-    def getTeamArmies(self, team: Team) -> List[Army]:
+    def getTeamArmies(self, team: TeamEntity) -> List[Army]:
         return [army for army in self.armies if army.team == team]
 
     def getOccupyingArmy(self, tile: MapTileEntity) -> Optional[Army]:
@@ -207,7 +207,7 @@ class MapState(StateModel):
                 return army
         return None
 
-    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[Team]:
+    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[TeamEntity]:
         for army in self.armies:
             if army.tile == tile and army.mode == ArmyMode.Occupying:
                 return army.team
@@ -268,7 +268,7 @@ class MapState(StateModel):
 
 
 class TeamState(StateModel):
-    team: Team
+    team: TeamEntity
     redCounter: Decimal = Decimal(0)
     blueCounter: Decimal = Decimal(0)
     employees: Decimal = Decimal(0)
@@ -342,7 +342,7 @@ class TeamState(StateModel):
         return self.resources.get(adHocEntitiy("res-kultura"), Decimal(0))
 
     @classmethod
-    def createInitial(cls, team: Team, entities: Entities) -> TeamState:
+    def createInitial(cls, team: TeamEntity, entities: Entities) -> TeamState:
         return TeamState(
             team=team,
             techs=set([entities.techs[TECHNOLOGY_START]]),
@@ -365,7 +365,7 @@ class WorldState(StateModel):
 
 
 class GameState(StateModel):
-    teamStates: Dict[Team, TeamState]
+    teamStates: Dict[TeamEntity, TeamState]
     map: MapState
     world: WorldState
 

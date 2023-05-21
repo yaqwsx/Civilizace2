@@ -44,10 +44,10 @@ from .entities import (
     Die,
     MapTileEntity,
     NaturalResource,
-    Org,
+    OrgEntity,
     Resource,
     ResourceType,
-    Team,
+    TeamEntity,
     Tech,
     Vyroba,
 )
@@ -720,7 +720,7 @@ def updateEntityArgs(
             return
         args['id'] = tileIdFromName(args['name'])
 
-    if issubclass(cls, Team):
+    if issubclass(cls, TeamEntity):
         if "homeTile" in args:
             err_handler.error(f"Don't use 'homeTile', use 'homeTileName' instead")
         if "homeTileName" not in args:
@@ -1145,7 +1145,7 @@ class EntityParser:
         with err_handler.add_context('teams'):
             add_entities(
                 parseSheet(
-                    Team,
+                    TeamEntity,
                     data["teams"],
                     allowed_prefixes=["tym"],
                     entities=entities_map,
@@ -1155,7 +1155,7 @@ class EntityParser:
         with err_handler.add_context('orgs'):
             add_entities(
                 parseSheet(
-                    Org,
+                    OrgEntity,
                     data["orgs"],
                     allowed_prefixes=["org"],
                     entities=entities_map,

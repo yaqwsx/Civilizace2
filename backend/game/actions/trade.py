@@ -4,12 +4,12 @@ from typing import Dict, List
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Resource, Team
+from game.entities import Resource, TeamEntity
 from game.state import printResourceListForMarkdown
 
 
 class TradeArgs(TeamActionArgs):
-    receiver: Team
+    receiver: TeamEntity
     resources: Dict[Resource, Decimal]
 
 

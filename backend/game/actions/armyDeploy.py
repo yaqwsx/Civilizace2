@@ -13,7 +13,7 @@ from game.actions.actionBase import (
     TileActionArgs,
 )
 from game.actions.common import ActionFailed
-from game.entities import Resource, Team
+from game.entities import Resource, TeamEntity
 from game.state import Army, ArmyGoal, ArmyMode
 
 
@@ -22,7 +22,7 @@ class ArmyDeployArgs(TeamActionArgs, TileActionArgs):
     goal: ArmyGoal
     equipment: int
     # Support mode allows chosing a team to support; should be defaulted to the team currently occupying target tile
-    friendlyTeam: Optional[Team]
+    friendlyTeam: Optional[TeamEntity]
 
 
 class ArmyDeployAction(TeamInteractionActionBase):

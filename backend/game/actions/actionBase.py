@@ -9,7 +9,7 @@ from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
 
 from game.actions.common import ActionFailed, MessageBuilder
-from game.entities import CostDict, Entities, MapTileEntity, Resource, Team
+from game.entities import CostDict, Entities, MapTileEntity, Resource, TeamEntity
 from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
 
@@ -18,7 +18,7 @@ class ActionArgs(BaseModel):
 
 
 class TeamActionArgs(ActionArgs):
-    team: Team
+    team: TeamEntity
 
 
 class TileActionArgs(ActionArgs):
@@ -48,7 +48,7 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
     _errors: MessageBuilder = PrivateAttr(MessageBuilder())
     _warnings: MessageBuilder = PrivateAttr(MessageBuilder())
     _info: MessageBuilder = PrivateAttr(MessageBuilder())
-    _notifications: Dict[Team, List[str]] = PrivateAttr({})
+    _notifications: Dict[TeamEntity, List[str]] = PrivateAttr({})
     _scheduled_actions: List[ScheduledAction] = PrivateAttr([])
 
     # Private (and thus non-store args) have to start with underscore. Let's
@@ -98,7 +98,7 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
         self._info = MessageBuilder()
         self._notifications = {}
 
-    def _addNotification(self, team: Team, message: str) -> None:
+    def _addNotification(self, team: TeamEntity, message: str) -> None:
         if team not in self._notifications:
             self._notifications[team] = []
         self._notifications[team].append(message)
@@ -425,5 +425,5 @@ class ScheduledAction(NamedTuple):
 class ActionResult(BaseModel):
     expected: bool  # Was the result expected or unexpected
     message: str
-    notifications: Dict[Team, List[str]]
+    notifications: Dict[TeamEntity, List[str]]
     scheduledActions: List[ScheduledAction]

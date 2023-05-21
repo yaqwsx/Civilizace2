@@ -22,7 +22,7 @@ from game.models import DbEntities, DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import TeamState, MapTile, Army
 
-from core.models import User, Team as DbTeam
+from core.models import User, Team
 from game.viewsets.stickers import DbStickerSerializer
 
 
@@ -90,7 +90,7 @@ class TeamViewSet(viewsets.ViewSet):
         team = entities.teams[teamId]
         return state.teamStates[team], entities
 
-    def unreadAnnouncements(self, user: User, team: DbTeam) -> QuerySet[Announcement]:
+    def unreadAnnouncements(self, user: User, team: Team) -> QuerySet[Announcement]:
         if user.isOrg:
             return Announcement.objects.getTeamUnread(team)
         return Announcement.objects.getUnread(user)
@@ -98,12 +98,12 @@ class TeamViewSet(viewsets.ViewSet):
     def list(self, request):
         if not request.user.isOrg:
             raise PermissionDenied("Nedovolený přístup")
-        return Response(TeamSerializer(DbTeam.objects.all(), many=True).data)
+        return Response(TeamSerializer(Team.objects.all(), many=True).data)
 
     def retrieve(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
 
-        t = get_object_or_404(DbTeam.objects.filter(visible=True), pk=pk)
+        t = get_object_or_404(Team.objects.filter(visible=True), pk=pk)
         return Response(TeamSerializer(t).data)
 
     @staticmethod
@@ -173,7 +173,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def techs(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        team = get_object_or_404(Team.objects.all(), pk=pk)
 
         state = self.getTeamState(pk)
 
@@ -217,7 +217,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def tasks(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        team = get_object_or_404(Team.objects.all(), pk=pk)
         if request.user.isOrg:
             taskSet = DbTask.objects.all()
             serializer = DbTaskSerializer
@@ -237,7 +237,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["POST"])
     def changetask(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        team = get_object_or_404(Team.objects.all(), pk=pk)
 
         deserializer = ChangeTaskSerializer(data=request.data)
         deserializer.is_valid(raise_exception=True)
@@ -265,7 +265,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def dashboard(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        team = get_object_or_404(Team.objects.all(), pk=pk)
 
         dbState = DbState.objects.latest("id")
         state = dbState.toIr()
@@ -327,7 +327,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def announcements(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(DbTeam.objects.all(), pk=pk)
+        team = get_object_or_404(Team.objects.all(), pk=pk)
         return Response(
             [
                 {

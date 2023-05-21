@@ -18,7 +18,7 @@ from game.actions.common import ActionFailed, MessageBuilder
 from game.actions.researchFinish import ResearchFinishAction
 from game.actions.researchStart import ResearchStartAction
 from game.entities import Entities
-from game.entities import Team as TeamEntity
+from game.entities import TeamEntity
 from game.gameGlue import stateSerialize
 from game.models import (
     DbAction,

@@ -155,7 +155,7 @@ class UserEntity(EntityBase):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Team(UserEntity):
+class TeamEntity(UserEntity):
     color: str
     visible: bool
     homeTile: MapTileEntity
@@ -168,7 +168,7 @@ class OrgRole(Enum):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class Org(UserEntity):
+class OrgEntity(UserEntity):
     role: OrgRole
 
 
@@ -187,8 +187,8 @@ Entity = Union[
     Building,
     Tech,
     MapTileEntity,
-    Team,
-    Org,
+    TeamEntity,
+    OrgEntity,
 ]
 
 Vyroba.update_forward_refs()
@@ -274,12 +274,12 @@ class Entities(frozendict[EntityId, Entity]):
         )
 
     @cached_property
-    def teams(self) -> frozendict[EntityId, Team]:
-        return frozendict({k: v for k, v in self.items() if isinstance(v, Team)})
+    def teams(self) -> frozendict[EntityId, TeamEntity]:
+        return frozendict({k: v for k, v in self.items() if isinstance(v, TeamEntity)})
 
     @cached_property
-    def orgs(self) -> frozendict[EntityId, Org]:
-        return frozendict({k: v for k, v in self.items() if isinstance(v, Org)})
+    def orgs(self) -> frozendict[EntityId, OrgEntity]:
+        return frozendict({k: v for k, v in self.items() if isinstance(v, OrgEntity)})
 
     @staticmethod
     def _gameOnlyView(entity: Entity) -> Entity:
