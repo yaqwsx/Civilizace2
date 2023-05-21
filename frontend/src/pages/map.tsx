@@ -31,16 +31,15 @@ export function MapMenu() {
 }
 
 enum MapActiontype {
-    none = 0,
-    building = 1,
-    finishBuilding = 2,
-    buildRoad = 3,
-    feeding = 4,
-    automateFeeding = 5,
-    army = 6,
-    trade = 7,
-    discoverTile = 8,
-    addCulture = 9
+    none,
+    building,
+    buildRoad,
+    feeding,
+    automateFeeding,
+    army,
+    trade,
+    discoverTile,
+    addCulture,
 }
 
 const urlMapActionAtom = atomWithHash<MapActiontype>(
@@ -105,13 +104,6 @@ export function MapAgenda() {
                             onClick={() => setAction(MapActiontype.building)}
                         />
                         <Button
-                            label="Dokončit stavění"
-                            className="m-2 flex-1"
-                            onClick={() =>
-                                setAction(MapActiontype.finishBuilding)
-                            }
-                        />
-                        <Button
                             label="Postavit cestu"
                             className="m-2 flex-1"
                             onClick={() => setAction(MapActiontype.buildRoad)}
@@ -143,9 +135,6 @@ export function MapAgenda() {
                     ) : null}
                     {action == MapActiontype.building ? (
                         <BuildingAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.finishBuilding ? (
-                        <BuildingFinishAgenda team={team} />
                     ) : null}
                     {action == MapActiontype.buildRoad ? (
                         <BuildRoadAgenda team={team} />
@@ -230,10 +219,6 @@ export function BuildingAgenda(props: { team: Team }) {
     const [action, setAction] = useAtom(urlMapActionAtom);
     const [building, setBuilding] = useState<any>(undefined);
     const [tile, setTile] = useState<any>(undefined);
-    const [useArmy, setUseArmy] = useState(false);
-    const [army, setArmy] = useState<any>(undefined);
-    const [armyGoal, setArmyGoal] = useState<any>(undefined);
-    const [equipment, setEquipment] = useState<any>(0);
 
     if (!availableBuildings || error) {
         return (
@@ -253,13 +238,10 @@ export function BuildingAgenda(props: { team: Team }) {
                 actionName={`Stavba budovy týmu ${props.team.name}`}
                 actionArgs={{
                     team: props.team.id,
-                    build: building?.id,
                     tile: tile?.entity.id,
-                    armyIndex: useArmy ? army.index : undefined,
-                    goal: useArmy ? armyGoal : undefined,
-                    equipment: useArmy ? equipment : undefined,
+                    building: building?.id,
                 }}
-                argsValid={(a: any) => (a?.build && a?.tile) || false}
+                argsValid={(a: any) => (a?.building && a?.tile) || false}
                 onBack={() => {}}
                 onFinish={() => {
                     setAction(MapActiontype.none);
@@ -286,116 +268,10 @@ export function BuildingAgenda(props: { team: Team }) {
                                 onChange={setTile}
                             />
                         </FormRow>
-
-                        {/* <h2>Armádní posila</h2>
-                        <FormRow label="Přejete si poslat armádu?">
-                            <input
-                                className="checkboxinput"
-                                type="checkbox"
-                                checked={useArmy}
-                                onChange={(e) => setUseArmy(e.target.checked)}
-                            />
-                        </FormRow>
-                        {useArmy && (
-                            <>
-                                <FormRow label="Vyberte armádu:">
-                                    <ArmySelectBox
-                                        team={props.team}
-                                        value={army}
-                                        onChange={setArmy}
-                                    />
-                                </FormRow>
-                                <FormRow label="Mód:">
-                                    <ArmyGoalSelect
-                                        value={armyGoal}
-                                        onChange={setArmyGoal}
-                                    />
-                                </FormRow>
-                                <FormRow label="Jakou bude mít výzbroj?">
-                                    <SpinboxInput
-                                        value={equipment}
-                                        onChange={(value: number) => {
-                                            if (value < 0) return;
-                                            setEquipment(value);
-                                        }}
-                                    />
-                                </FormRow>
-                            </>
-                        )} */}
                     </>
                 }
             />
         </>
-    );
-}
-
-export function BuildingFinishAgenda(props: { team: Team }) {
-    const { data: availableBuildings, error: aError } = useSWR<any>(
-        `game/teams/${props.team.id}/buildings`,
-        fetcher
-    );
-    const [action, setAction] = useAtom(urlMapActionAtom);
-    const [building, setBuilding] = useState<any>(undefined);
-    const [tile, setTile] = useState<any>(undefined);
-    const [demolish, setDemolish] = useState<any>(undefined);
-
-    if (!availableBuildings || aError) {
-        return (
-            <LoadingOrError
-                loading={!availableBuildings && !aError}
-                error={aError}
-                message="Něco se pokazilo"
-            />
-        );
-    }
-
-    return (
-        <PerformAction
-            actionId="BuildFinishAction"
-            actionName={`Kolaudace budovy týmu ${props.team.name}`}
-            actionArgs={{
-                team: props.team.id,
-                build: building?.id,
-                tile: tile?.entity.id,
-                demolish: demolish?.id,
-            }}
-            argsValid={(a: any) => (a?.build && a?.tile) || false}
-            onBack={() => {}}
-            onFinish={() => {
-                setAction(MapActiontype.none);
-            }}
-            extraPreview={
-                <>
-                    <h1>Kolaudace budovy pro {props.team.name}</h1>
-                    <FormRow
-                        label="Vyberte budovu"
-                        error={!building ? "Je třeba vybrat budovu" : null}
-                    >
-                        <BuildingSelect
-                            value={building}
-                            onChange={setBuilding}
-                            allowed={availableBuildings}
-                        />
-                    </FormRow>
-                    <FormRow
-                        label="Vyberte políčko"
-                        error={!tile ? "Je třeba vybrat pole" : null}
-                    >
-                        <TeamTileSelect
-                            team={props.team}
-                            value={tile}
-                            onChange={setTile}
-                        />
-                    </FormRow>
-                    <FormRow label="Vyberte budovu ke zbourání (volitelné)">
-                        <BuildingSelect
-                            value={demolish}
-                            onChange={setDemolish}
-                        />
-                    </FormRow>
-                </>
-            }
-        />
     );
 }
 

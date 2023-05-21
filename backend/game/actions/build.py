@@ -16,7 +16,7 @@ from game.entities import Building, Resource
 
 
 class BuildArgs(TeamActionArgs, TileActionArgs):
-    build: Building
+    building: Building
 
 
 class BuildAction(TeamInteractionActionBase):
@@ -29,16 +29,16 @@ class BuildAction(TeamInteractionActionBase):
     @property
     @override
     def description(self) -> str:
-        return f"Stavba budovy {self.args.build.name} na poli {self.args.tile.name} ({self.args.team.name})"
+        return f"Stavba budovy {self.args.building.name} na poli {self.args.tile.name} ({self.args.team.name})"
 
     @override
     def cost(self) -> Dict[Resource, Decimal]:
-        return self.args.build.cost
+        return self.args.building.cost
 
     @override
     def pointsCost(self) -> int:
         assert self.teamState
-        return self.args.build.points
+        return self.args.building.points
 
     def travelTime(self) -> int:
         return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))
@@ -52,10 +52,10 @@ class BuildAction(TeamInteractionActionBase):
             f"Nelze postavit budovu, protože pole {self.args.tile.name} není v držení týmu.",
         )
         self._ensureStrong(
-            self.args.build not in tileState.buildings,
-            f"Budova {self.args.build.name} je už na poli {self.args.tile.name} postavena",
+            self.args.building not in tileState.buildings,
+            f"Budova {self.args.building.name} je už na poli {self.args.tile.name} postavena",
         )
-        for feature in self.args.build.requiredFeatures:
+        for feature in self.args.building.requiredFeatures:
             self._ensure(
                 feature in self.args.tileState(self.state).features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",
@@ -79,24 +79,23 @@ class BuildCompletedAction(TeamActionBase, NoInitActionBase):
     @property
     @override
     def description(self) -> str:
-        return f"Dokončení stavby budovy {self.args.build.name} na poli {self.args.tile.name} ({self.args.team.name})"
+        return f"Dokončení stavby budovy {self.args.building.name} na poli {self.args.tile.name} ({self.args.team.name})"
 
     @override
     def _commitImpl(self) -> None:
         tileState = self.args.tileState(self.state)
 
-        if self.args.team not in tileState.unfinished:
-            tileState.unfinished[self.args.team] = set()
-        tileState.unfinished[self.args.team].add(self.args.build)
-        self._info += (
-            f"Budova [[{self.args.build.id}]] postavena na poli [[{self.args.tile.id}]]"
-        )
-
-        if tileState.parcelCount <= len(tileState.buildings):
-            self._warnings += f"Pole [[{self.args.tile.id}]] nemá místo pro další budovu. Pro kolaudaci je potřeba demolice jiné budovy."
+        if self.state.map.getOccupyingTeam(self.args.tile) != self.args.team:
+            self._warnings += f"Pole [[{self.args.tile.id}]] není v držení týmu [[{self.args.team.id}]] pro stavbu budovy [[{self.args.building.id}]]."
+        elif self.args.building in tileState.buildings:
+            # TODO: Check if this condition should stay (else add notification to the current team)
+            self._warnings += f"Budova [[{self.args.building.id}]] na poli [[{self.args.tile.id}]] už existuje."
+        else:
+            tileState.buildings.add(self.args.building)
+            self._info += f"Budova [[{self.args.building.id}]] postavena na poli [[{self.args.tile.id}]]"
 
         msgBuilder = MessageBuilder(
-            message=f"Stavba budovy {self.args.build.name} dokončena:"
+            message=f"Stavba budovy {self.args.building.name} dokončena:"
         )
         msgBuilder += self._warnings
         msgBuilder += self._info

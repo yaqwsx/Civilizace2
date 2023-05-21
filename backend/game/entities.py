@@ -142,7 +142,6 @@ class Tech(EntityWithCost):
 @dataclass(init=False, repr=False, eq=False)
 class MapTileEntity(EntityBase):
     index: int
-    parcelCount: int
     naturalResources: List[NaturalResource]
     richness: int
 

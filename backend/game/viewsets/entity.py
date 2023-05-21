@@ -397,7 +397,6 @@ class TeamViewSet(viewsets.ViewSet):
             {
                 tile.entity.id: {
                     "entity": serializeEntity(tile.entity),
-                    "unfinished": [x.id for x in tile.unfinished.get(teamE, ())],
                     "buildings": [x.id for x in tile.buildings],
                     "richness": tile.richness,
                 }

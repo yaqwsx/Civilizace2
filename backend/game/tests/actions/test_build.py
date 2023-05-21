@@ -15,11 +15,11 @@ def test_homeStart():
     action = BuildAction.makeAction(
         state=state,
         entities=entities,
-        args=BuildArgs(build=building, team=team, tile=tile.entity),
+        args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     action.applyCommit(1, 100)
 
-    assert tile.unfinished.get(team) == set([building])
+    assert tile.buildings == set([building])
 
 
 def test_homeFinish():
@@ -32,25 +32,11 @@ def test_homeFinish():
     action = BuildAction.makeAction(
         state=state,
         entities=entities,
-        args=BuildArgs(build=building, team=team, tile=tile.entity),
+        args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     action.applyCommit(1, 100)
 
-    assert tile.unfinished.get(team) == set([building])
-
-    action = makeAction(
-        BuildFinishAction,
-        state=state,
-        entities=entities,
-        args=BuildFinishArgs(build=building, team=team, tile=tile.entity),
-    )
-    action.applyCommit()
-
-    assert tile.unfinished.get(team) == set()
     assert tile.buildings == set([building])
-
-    result = action.applyCommit()
-    assert not result.expected
 
 
 def test_failStartExisting():
@@ -63,7 +49,7 @@ def test_failStartExisting():
     start = BuildAction.makeAction(
         state=state,
         entities=entities,
-        args=BuildArgs(build=building, team=team, tile=tile.entity),
+        args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     start.applyCommit(1, 100)
 
@@ -71,7 +57,7 @@ def test_failStartExisting():
         BuildFinishAction,
         state=state,
         entities=entities,
-        args=BuildFinishArgs(build=building, team=team, tile=tile.entity),
+        args=BuildFinishArgs(building=building, team=team, tile=tile.entity),
     )
     finish.applyCommit()
 
@@ -89,7 +75,7 @@ def test_buildOnOccupied():
     action = BuildAction.makeAction(
         state=state,
         entities=entities,
-        args=BuildArgs(build=building, team=team, tile=tile.entity),
+        args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     with pytest.raises(ActionFailed) as einfo:
         action.applyCommit()

@@ -91,7 +91,6 @@ class Army(StateModel):
 
 class MapTile(StateModel):  # Game state element
     entity: MapTileEntity
-    unfinished: Dict[TeamEntity, Set[Building]] = {}
     buildings: Set[Building] = set()
     richnessTokens: int
 
@@ -107,10 +106,6 @@ class MapTile(StateModel):  # Game state element
     @property
     def index(self) -> int:
         return self.entity.index
-
-    @property
-    def parcelCount(self) -> int:
-        return self.entity.parcelCount
 
     @property
     def richness(self) -> int:
@@ -357,7 +352,6 @@ class TeamState(StateModel):
 class WorldState(StateModel):
     turn: int = 0
     casteCount: int = 3
-    buildDemolitionCost: Dict[Resource, Decimal] = {}
     combatRandomness: float = 0.5
     roadCost: Dict[Resource, int]
     roadPointsCost: int = 10
