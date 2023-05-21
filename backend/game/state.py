@@ -269,8 +269,8 @@ class MapState(StateModel):
 
 class TeamState(StateModel):
     team: Team
-    redCounter: Decimal
-    blueCounter: Decimal
+    redCounter: Decimal = Decimal(0)
+    blueCounter: Decimal = Decimal(0)
     employees: Decimal = Decimal(0)
 
     turn: int = 0
@@ -345,8 +345,6 @@ class TeamState(StateModel):
     def createInitial(cls, team: Team, entities: Entities) -> TeamState:
         return TeamState(
             team=team,
-            redCounter=Decimal(0),
-            blueCounter=Decimal(0),
             techs=set([entities.techs[TECHNOLOGY_START]]),
             resources={
                 entities.obyvatel: Decimal(100),
