@@ -21,7 +21,6 @@ class VyrobaArgs(TeamActionArgs, TileActionArgs):
     vyroba: Vyroba
     count: int
     plunder: bool
-    genericsMapping: Dict[Resource, Resource] = {}
 
 
 class VyrobaReward(NamedTuple):
@@ -66,8 +65,6 @@ class VyrobaAction(TeamInteractionActionBase):
     def cost(self) -> Dict[Resource, Decimal]:
         result: Dict[Resource, Decimal] = defaultdict(Decimal)
         for resource, cost in self.args.vyroba.cost.items():
-            if resource in self.args.genericsMapping:
-                resource = self.args.genericsMapping[resource]
             result[resource] += cost * self.args.count
         return result
 

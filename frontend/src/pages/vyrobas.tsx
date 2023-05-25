@@ -207,31 +207,6 @@ function isProduction(e: EntityResource) {
     return e.id.startsWith("pro-") || e.id.startsWith("pge-");
 }
 
-function isConcretization(what: EntityResource, generic: EntityResource) {
-    if (!what || !generic || !what.typ || !generic.typ) return false;
-
-    return (
-        what?.typ?.id == generic?.typ?.id &&
-        what?.typ?.level >= generic?.typ?.level &&
-        isProduction(what) == isProduction(generic)
-    );
-}
-
-function computeConcretization(entities?: Record<string, EntityResource>) {
-    if (!entities) return {};
-    let generic = Object.values(entities).filter(isGeneric);
-    let mapping: Record<string, EntityResource[]> = Object.fromEntries(
-        generic.map((g) => [g.id, []])
-    );
-    Object.values(entities).forEach((e) => {
-        if (isGeneric(e)) return;
-        generic.forEach((g) => {
-            if (isConcretization(e, g)) mapping[g.id].push(e);
-        });
-    });
-    return mapping;
-}
-
 type PerformVyrobaProps = {
     vyroba: TeamEntityVyroba;
     resources: Record<string, TeamEntityResource>;
@@ -241,13 +216,9 @@ type PerformVyrobaProps = {
 function PerformVyroba(props: PerformVyrobaProps) {
     const { data: entities, error: eError } = useEntities<EntityResource>();
     const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
-    const mapping = useMemo(() => computeConcretization(entities), [entities]);
 
     const [amount, setAmount] = useState<number>(1);
     const [tile, setTile] = useState<string | undefined>(undefined);
-    const [concretization, setConcretization] = useState<
-        Record<string, string>
-    >({});
     const [plunder, setPlunder] = useState(false);
 
     const vyroba = props.vyroba;
@@ -309,7 +280,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                 count: amount,
                 tile: tile,
                 plunder: plunder,
-                genericsMapping: concretization,
             }}
             argsValid={(a) => a.tile}
             onFinish={() => props.onReset()}
@@ -357,73 +327,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                         {amount}× {vyroba.name} → {amount * vyroba.reward[1]}×{" "}
                         <EntityTag id={vyroba.reward[0]} />
                     </h2>
-                    {cost.map(([resource, rAmount]) => {
-                        let available = _.get(
-                            props.resources,
-                            resource.id,
-                            undefined
-                        )?.available;
-                        let error = undefined;
-                        if (available !== undefined && available < rAmount)
-                            error = "Nedostatek zdroje";
-                        let input = (
-                            <select className="field select w-full">
-                                <option>
-                                    {resource.name}{" "}
-                                    {available && `(${available}×)`}
-                                </option>
-                            </select>
-                        );
-                        if (isProduction(resource) && isGeneric(resource)) {
-                            let options = mapping[resource.id];
-                            let value = _.get(concretization, resource.id, "");
-
-                            let available = _.get(
-                                props.resources,
-                                value,
-                                undefined
-                            )?.available;
-                            if (available !== undefined && available < rAmount)
-                                error = "Nedostatek zdroje";
-
-                            input = (
-                                <select
-                                    className="field select w-full bg-blue-300"
-                                    value={value}
-                                    onChange={(e) => {
-                                        const newV = e.target.value;
-                                        const newC = produce(concretization, (orig) => { orig[resource.id] = newV; });
-                                        setConcretization(newC);
-                                        console.log("Y", resource.id, newC);
-                                    }}
-                                >
-                                    <option>Vyberte konkretizaci</option>
-                                    {options.map((o) => {
-                                        let available = _.get(
-                                            props.resources,
-                                            o.id,
-                                            undefined
-                                        )?.available;
-                                        return (
-                                            <option key={o.id} value={o.id}>
-                                                {o.name}{" "}
-                                                {available && `(${available}×)`}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            );
-                        }
-                        return (
-                            <FormRow
-                                key={resource.id}
-                                label={`Je třeba ${amount * rAmount}× ${resource.name} a realizuje se jako: `}
-                                error={error}
-                            >
-                                {input}
-                            </FormRow>
-                        );
-                    })}
                 </>
             }
         />
