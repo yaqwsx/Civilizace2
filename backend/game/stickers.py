@@ -285,7 +285,7 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, t, b)
 
-    featureText = ", ".join([f.name for f in e.requiredFeatures])
+    featureText = ", ".join([f.name for f in e.requiredTileFeatures])
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
@@ -317,7 +317,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     if len(e.flavor) > 0:
         b.addText(e.flavor, FONT_NORMAL)
 
-    featureText = ", ".join([f.name for f in e.requiredFeatures])
+    featureText = ", ".join([f.name for f in e.requiredTileFeatures])
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)

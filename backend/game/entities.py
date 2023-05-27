@@ -112,13 +112,13 @@ class EntityWithCost(EntityBase):
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
-    requiredFeatures: List[TileFeature] = []
+    requiredTileFeatures: List[TileFeature] = []
     flavor: str = ""
 
 
 @dataclass(init=False, repr=False, eq=False)
 class Building(EntityWithCost, TileFeature):
-    requiredFeatures: List[NaturalResource] = []
+    requiredTileFeatures: List[NaturalResource] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -190,7 +190,7 @@ Entity = Union[
     OrgEntity,
 ]
 
-Vyroba.update_forward_refs()
+Tech.update_forward_refs()
 
 TEntity = TypeVar('TEntity', bound=Entity)
 CostDict = Union[Dict[Resource, Decimal], Dict[Resource, int]]

@@ -148,7 +148,7 @@ class TeamViewSet(viewsets.ViewSet):
 
         def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
             tileFeatures = set(tile.buildings).union(tile.entity.naturalResources)
-            return all(f in tileFeatures for f in vyroba.requiredFeatures)
+            return all(f in tileFeatures for f in vyroba.requiredTileFeatures)
 
         def allowed_tiles(vyroba: Vyroba) -> List[EntityId]:
             return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]

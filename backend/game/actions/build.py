@@ -55,7 +55,7 @@ class BuildAction(TeamInteractionActionBase):
             self.args.building not in tileState.buildings,
             f"Budova {self.args.building.name} je už na poli {self.args.tile.name} postavena",
         )
-        for feature in self.args.building.requiredFeatures:
+        for feature in self.args.building.requiredTileFeatures:
             self._ensure(
                 feature in self.args.tileState(self.state).features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",

@@ -81,7 +81,7 @@ class VyrobaAction(TeamInteractionActionBase):
             self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
             f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.",
         )
-        for feature in self.args.vyroba.requiredFeatures:
+        for feature in self.args.vyroba.requiredTileFeatures:
             self._ensure(
                 feature in self.args.tileState(self.state).features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",
