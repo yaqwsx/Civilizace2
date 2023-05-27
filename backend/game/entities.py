@@ -57,10 +57,6 @@ class EntityBase(BaseModel):
         return "{}({})".format(self.id, self.name)
 
 
-def adHocEntitiy(id) -> EntityBase:
-    return EntityBase(id=id, name="")
-
-
 @dataclass(init=False, repr=False, eq=False)
 class Die(EntityBase):
     briefName: str
@@ -191,9 +187,6 @@ Entity = Union[
 ]
 
 Tech.update_forward_refs()
-
-TEntity = TypeVar('TEntity', bound=Entity)
-CostDict = Union[Dict[Resource, Decimal], Dict[Resource, int]]
 
 
 GUARANTEED_IDS = {

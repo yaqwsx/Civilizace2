@@ -3,13 +3,13 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Dict, List, NamedTuple, Type, TypeVar
+from typing import Dict, List, Mapping, NamedTuple, Type, TypeVar, Union
 
 from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
 
 from game.actions.common import ActionFailed, MessageBuilder
-from game.entities import CostDict, Entities, MapTileEntity, Resource, TeamEntity
+from game.entities import Entities, MapTileEntity, Resource, TeamEntity
 from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
 
 
@@ -171,7 +171,7 @@ class TeamActionBase(ActionCommonBase):
 
     def _receiveResources(
         self,
-        resources: CostDict,
+        resources: Mapping[Resource, Union[Decimal, int]],
         *,
         instantWithdraw: bool = False,
         excludeWork: bool = False,
@@ -283,7 +283,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     # Methods to be implemented/overriden by concrete actions
 
-    def cost(self) -> CostDict:
+    def cost(self) -> Union[Dict[Resource, Decimal], Dict[Resource, int]]:
         return {}
 
     def pointsCost(self) -> int:
@@ -343,7 +343,9 @@ class TeamInteractionActionBase(TeamActionBase):
             return False
         return True
 
-    def _payResources(self, resources: CostDict) -> Dict[Resource, Decimal]:
+    def _payResources(
+        self, resources: Mapping[Resource, Union[Decimal, int]]
+    ) -> Dict[Resource, Decimal]:
         teamState = self.teamState
         tokens = {}
         missing = {}

@@ -1,5 +1,11 @@
+from decimal import Decimal
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Dict, Mapping, Optional, TypeVar, Union, overload
+from entities import EntityBase, EntityId, Entity, Resource
+
+T = TypeVar("T")
+U = TypeVar("U")
+TEntity = TypeVar("TEntity", bound=Entity)
 
 
 class FileCache:
@@ -25,3 +31,22 @@ class FileCache:
 
     def _cacheFile(self, ident):
         return self.cacheDirectory / f"{ident}.{self.suffix}"
+
+
+@overload
+def get_by_entity_id(entity_id: EntityId, mapping: Mapping[TEntity, T]) -> Optional[T]:
+    ...
+
+
+@overload
+def get_by_entity_id(
+    entity_id: EntityId, mapping: Mapping[TEntity, T], default: U
+) -> Union[T, U]:
+    ...
+
+
+def get_by_entity_id(
+    entity_id: EntityId, mapping: Mapping[TEntity, T], default: U = None
+) -> Union[T, Optional[U]]:
+    entity: TEntity = EntityBase(id=entity_id, name="")  # type: ignore used only for eq
+    return mapping.get(entity, default)

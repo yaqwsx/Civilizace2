@@ -1,12 +1,13 @@
 from __future__ import annotations
 import enum
 from pydantic import BaseModel, PrivateAttr
-from typing import Any, Callable, List, Dict, Optional, Type, TypeVar, Set
+from typing import Any, Callable, List, Dict, Mapping, Optional, Type, TypeVar, Set
 from decimal import Decimal
 from game.actions.common import MessageBuilder
 from game.entities import *
+from game.util import get_by_entity_id
 
-TModel = TypeVar('TModel', bound='BaseModel')
+TModel = TypeVar("TModel", bound="BaseModel")
 
 
 class StateModel(BaseModel):
@@ -322,11 +323,11 @@ class TeamState(StateModel):
 
     @property
     def work(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-prace"), Decimal(0))
+        return get_by_entity_id(RESOURCE_WORK, self.resources, Decimal(0))
 
     @property
     def obyvatels(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-obyvatel"), Decimal(0))
+        return get_by_entity_id(RESOURCE_VILLAGER, self.resources, Decimal(0))
 
     @property
     def population(self) -> Decimal:
@@ -334,7 +335,7 @@ class TeamState(StateModel):
 
     @property
     def culture(self) -> Decimal:
-        return self.resources.get(adHocEntitiy("res-kultura"), Decimal(0))
+        return get_by_entity_id(RESOURCE_CULTURE, self.resources, Decimal(0))
 
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:
@@ -411,10 +412,11 @@ class GameState(StateModel):
 
 
 def printResourceListForMarkdown(
-    resources: CostDict, roundFunction: Callable[[Decimal], Any] = lambda x: x
+    resources: Mapping[Resource, Union[Decimal, int]],
+    roundFunction: Callable[[Decimal], Any] = lambda x: x,
 ) -> str:
     message = MessageBuilder()
     with message.startList() as addLine:
         for resource, amount in resources.items():
-            addLine(f"[[{resource.id}|{roundFunction(amount)}]]")
+            addLine(f"[[{resource.id}|{roundFunction(Decimal(amount))}]]")
     return message.message
