@@ -2,6 +2,7 @@ import os
 import json
 from argparse import ArgumentParser
 from typing import Optional
+from typing_extensions import override
 from django.core.management import BaseCommand
 from frozendict import frozendict
 from game.entities import Entities, EntityId, OrgEntity, OrgRole, TeamEntity
@@ -63,23 +64,26 @@ class Command(BaseCommand):
                     username=username, password=password, team=team
                 )
 
+    @override
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("set", type=str)
 
+    @override
     def handle(self, set: str, *args, **options) -> None:
         targetFile = settings.ENTITY_PATH / setFilename(set)
-        data = EntityParser.load(targetFile)
+        entities = EntityParser.load(targetFile)
 
         with transaction.atomic():
-            self.clearGame()
+            self.clear_game()
 
-            self.createOrgs(data.entities.orgs)
-            self.createTeams(data.entities.teams)
-            self.createEntities(targetFile)
-            self.createInitialState(data.entities, data.init_world_state)
-            self.createRounds()
+            self.create_orgs(entities.orgs)
+            self.create_teams(entities.teams)
+            self.create_entities(targetFile)
+            self.create_initial_state(entities)
+            self.create_rounds()
 
-    def clearGame(self) -> None:
+    @staticmethod
+    def clear_game() -> None:
         DbTick.objects.all().delete()
         DbSticker.objects.all().delete()
         DbScheduledAction.objects.all().delete()
@@ -95,17 +99,19 @@ class Command(BaseCommand):
         User.objects.all().delete()
         Team.objects.all().delete()
 
-    def createOrgs(self, orgs: frozendict[EntityId, OrgEntity]) -> None:
+    @staticmethod
+    def create_orgs(orgs: frozendict[EntityId, OrgEntity]) -> None:
         for org in orgs.values():
             assert org.username is not None, f'Org {org} cannot have a blank username'
             assert org.password is not None, f'Org {org} cannot have a blank password'
-            self.create_or_update_user(
+            Command.create_or_update_user(
                 username=org.username,
                 password=org.password,
                 superuser=org.role == OrgRole.SUPER,
             )
 
-    def createTeams(self, teams: frozendict[EntityId, TeamEntity]) -> None:
+    @staticmethod
+    def create_teams(teams: frozendict[EntityId, TeamEntity]) -> None:
         for team in teams.values():
             teamModel = Team.objects.create(
                 id=team.id,
@@ -120,23 +126,23 @@ class Command(BaseCommand):
                 assert (
                     team.password is not None
                 ), f'Team {team} cannot have a blank password'
-                self.create_or_update_user(
+                Command.create_or_update_user(
                     username=f"{team.id[4:]}{i+1}",
                     password=team.password,
                     superuser=False,
                     team=teamModel,
                 )
 
-    def createEntities(self, entityFilename: str | os.PathLike[str]) -> None:
+    @staticmethod
+    def create_entities(entityFilename: str | os.PathLike[str]) -> None:
         with open(entityFilename) as f:
             data = json.load(f)
         DbEntities.objects.create(data=data)
 
-    def createInitialState(
-        self, entities: Entities, initWorldState: WorldState
-    ) -> None:
-        irState = GameState.createInitial(entities, initWorldState)
-        state = DbState.objects.createFromIr(irState)
+    @staticmethod
+    def create_initial_state(entities: Entities) -> None:
+        irState = GameState.create_initial(entities)
+        DbState.objects.createFromIr(irState)
         stickers = {
             t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()
         }
@@ -146,7 +152,8 @@ class Command(BaseCommand):
                 res.add(Sticker(t, e))
         ActionViewHelper._awardStickers(res)
 
-    def createRounds(self) -> None:
+    @staticmethod
+    def create_rounds() -> None:
         for i in range(200):
             DbTurn.objects.create(
                 duration=15 * 60 if os.environ.get("CIV_SPEED_RUN", None) != "1" else 60

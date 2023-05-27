@@ -30,7 +30,7 @@ def checkAndSave(
     fileName: str | PathLike[str],
     err_handler: ErrorHandler = ErrorHandler(),
 ):
-    entities, _ = EntityParser.parse(data, err_handler=err_handler)
+    entities = EntityParser.parse(data, err_handler=err_handler)
     assert err_handler.success()
 
     counter = Counter([x[:3] for x in entities.keys()])

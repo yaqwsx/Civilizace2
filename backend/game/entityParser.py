@@ -981,42 +981,6 @@ def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> No
 
 
 class EntityParser:
-    class Result(NamedTuple):
-        entities: Entities
-        init_world_state: WorldState
-
-    @staticmethod
-    def parse_init_world_state(
-        data: ReadOnlyDict[str, List[Dict[str, str]]],
-        entities: Entities,
-        *,
-        err_handler: ErrorHandler = ErrorHandler(),
-        result_reporter: Optional[Callable[[str], None]] = None,
-    ) -> WorldState:
-        assert len(err_handler.error_msgs) == 0
-
-        if result_reporter is None:
-            result_reporter = err_handler.reporter
-
-        with err_handler.add_context('initWorldState'):
-            states = data['initWorldState']
-            if len(states) == 0:
-                err_handler.error(f'No init world state')
-                raise ParserError('No init world state')
-            if len(states) != 1:
-                err_handler.error(
-                    f'Wrong number of init world states, expected 1, got {len(states)}'
-                )
-            state_args = states[0]
-
-            world_state = parseModel(
-                WorldState, state_args, entities=entities, err_handler=err_handler
-            )
-
-        err_handler.check_success('Init World State', result_reporter=result_reporter)
-        assert err_handler.success()
-        return world_state
-
     @staticmethod
     def parse_entities(
         data: ReadOnlyDict[str, List[Dict[str, str]]],
@@ -1194,7 +1158,7 @@ class EntityParser:
         *,
         err_handler: ErrorHandler = ErrorHandler(),
         result_reporter: Optional[Callable[[str], None]] = None,
-    ) -> EntityParser.Result:
+    ) -> Entities:
         assert len(err_handler.error_msgs) == 0
         assert len(err_handler.warn_msgs) == 0
 
@@ -1205,14 +1169,9 @@ class EntityParser:
             }
         )
 
-        entities = EntityParser.parse_entities(
+        return EntityParser.parse_entities(
             data, err_handler=err_handler, result_reporter=result_reporter
         )
-        init_world_state = EntityParser.parse_init_world_state(
-            data, entities, err_handler=err_handler, result_reporter=result_reporter
-        )
-        assert err_handler.success()
-        return EntityParser.Result(entities, init_world_state)
 
     @staticmethod
     def load_gs_data(filename: str | PathLike[str]) -> Dict[str, List[List[str]]]:
@@ -1232,6 +1191,6 @@ class EntityParser:
     @staticmethod
     def load(
         filename: str | PathLike[str], *, err_handler=ErrorHandler()
-    ) -> EntityParser.Result:
+    ) -> Entities:
         data = EntityParser.load_gs_data(filename)
         return EntityParser.parse(data, err_handler=err_handler)

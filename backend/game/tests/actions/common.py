@@ -18,7 +18,7 @@ TEAM_BASIC = TEST_ENTITIES.teams[
 def createTestInitState(entities: Entities = TEST_ENTITIES):
     from game.state import GameState
 
-    state = GameState.createInitial(entities)
+    state = GameState.create_initial(entities)
     state.world.combatRandomness = 0
 
     team = TEAM_ADVANCED

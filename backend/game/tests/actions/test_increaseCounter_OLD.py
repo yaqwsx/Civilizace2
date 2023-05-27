@@ -42,7 +42,7 @@
 
 
 # def test_tooMany():
-#     state = GameState.createInitial(TEST_ENTITIES)
+#     state = GameState.create_initial(TEST_ENTITIES)
 #     args = IncreaseCounterArgs(red=Decimal(12), team=team)
 #     action = IncreaseCounterAction(state=state, entities=entities, args=args)
 

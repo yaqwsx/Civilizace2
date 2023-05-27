@@ -237,8 +237,8 @@ class MapState(StateModel):
         army.tile = tile.entity
         army.goal = None
 
-    @classmethod
-    def createInitial(cls, entities: Entities) -> MapState:
+    @staticmethod
+    def create_initial(entities: Entities) -> MapState:
         armies = []
         teams = entities.teams.values()
         armies.extend(
@@ -336,8 +336,8 @@ class TeamState(StateModel):
     def culture(self) -> Decimal:
         return self.resources.get(adHocEntitiy("res-kultura"), Decimal(0))
 
-    @classmethod
-    def createInitial(cls, team: TeamEntity, entities: Entities) -> TeamState:
+    @staticmethod
+    def create_initial(team: TeamEntity, entities: Entities) -> TeamState:
         return TeamState(
             team=team,
             techs=set([entities.techs[TECHNOLOGY_START]]),
@@ -355,7 +355,18 @@ class WorldState(StateModel):
     combatRandomness: float = 0.5
     roadCost: Dict[Resource, int]
     roadPointsCost: int = 10
-    armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]]
+    armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]] = {}  # TODO remove
+
+    @staticmethod
+    def create_initial(entities: Entities) -> WorldState:
+        return WorldState(
+            roadCost={
+                entities.work: 50,
+                entities.resources["mge-stavivo"]: 10,
+                entities.resources["mge-nastroj"]: 10,
+            },
+            roadPointsCost=10,
+        )
 
 
 class GameState(StateModel):
@@ -368,18 +379,15 @@ class GameState(StateModel):
             t._setParent(self)
         self.map._setParent(self)
 
-    def getArmy(self, id) -> Army:
-        return self.teamStates[id.team].armies.get(id) if id != None else None
-
-    @classmethod
-    def createInitial(cls, entities: Entities, initWorldState: WorldState) -> GameState:
+    @staticmethod
+    def create_initial(entities: Entities) -> GameState:
         return GameState(
             teamStates={
-                team: TeamState.createInitial(team, entities)
+                team: TeamState.create_initial(team, entities)
                 for team in entities.teams.values()
             },
-            map=MapState.createInitial(entities),
-            world=initWorldState,
+            map=MapState.create_initial(entities),
+            world=WorldState.create_initial(entities),
         )
 
     def __init__(self, *args, **kwargs) -> None:

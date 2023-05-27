@@ -21,7 +21,7 @@ class Command(BaseCommand):
         self.show_id = id
         set = 'GAME' if set is None else set
         targetFile = settings.ENTITY_PATH / setFilename(set)
-        entities = EntityParser.load(targetFile).entities
+        entities = EntityParser.load(targetFile)
 
         if material in entities.resources:
             self.print_resource_usage(entities, entities.resources[material])

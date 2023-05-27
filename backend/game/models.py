@@ -124,13 +124,13 @@ class DbEntitiesManager(models.Manager):
         def reportError(msg: str):
             raise RuntimeError(msg)
 
-        entities = EntityParser.parse(
+        gameOnlyEntities = EntityParser.parse(
             dbEntities.data,
             err_handler=ErrorHandler(reporter=reportError, no_warn=True),
             result_reporter=lambda x: None,
-        ).entities.gameOnlyEntities
-        self.cache[revision] = entities
-        return revision, entities
+        ).gameOnlyEntities
+        self.cache[revision] = gameOnlyEntities
+        return revision, gameOnlyEntities
 
 
 class DbEntities(models.Model):
