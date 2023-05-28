@@ -107,6 +107,13 @@ class Command(BaseCommand):
             self.print_entity_usage_in(entities.buildings.values(), prod)
 
         print()
+        print("MATERIAL usage in BUILDING UPGRADE cost:")
+        self.print_entity_usage_in(entities.building_upgrades.values(), material)
+        for prod in productions:
+            print(f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING UPGRADE cost:")
+            self.print_entity_usage_in(entities.building_upgrades.values(), prod)
+
+        print()
         print("MATERIAL created by:")
         for vyroba in entities.vyrobas.values():
             reward_res, reward_amount = vyroba.reward

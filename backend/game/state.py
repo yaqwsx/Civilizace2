@@ -93,6 +93,7 @@ class Army(StateModel):
 class MapTile(StateModel):  # Game state element
     entity: MapTileEntity
     buildings: Set[Building] = set()
+    building_upgrades: Set[BuildingUpgrade] = set()
     richnessTokens: int
 
     @property
@@ -114,8 +115,11 @@ class MapTile(StateModel):  # Game state element
 
     @property
     def features(self) -> List[TileFeature]:
-        buildings: List[TileFeature] = list(self.buildings)
-        return self.entity.naturalResources + buildings
+        return (
+            self.entity.naturalResources
+            + list[TileFeature](self.buildings)
+            + list(self.building_upgrades)
+        )
 
     @property
     def id(self) -> EntityId:

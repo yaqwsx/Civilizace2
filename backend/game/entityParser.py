@@ -41,6 +41,7 @@ from .entities import (
 )
 from .entities import (
     Building,
+    BuildingUpgrade,
     Die,
     MapTileEntity,
     NaturalResource,
@@ -860,6 +861,9 @@ def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
     for entity in entities.values():
         if isinstance(entity, EntityWithCost):
             for tech in entity.unlockedBy:
+                assert (
+                    entity not in tech.unlocks
+                ), f"Duplicate info about {tech.id} unlocking {entity.id}"
                 tech.unlocks.append(entity)
             entity.unlockedBy.clear()
 
@@ -867,6 +871,18 @@ def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
         if isinstance(tech, Tech):
             for entity in tech.unlocks:
                 entity.unlockedBy.append(tech)
+
+
+def synchronizeUpgrades(entities: Dict[str, Entity]) -> None:
+    for building in entities.values():
+        if isinstance(building, Building):
+            assert (
+                len(building.upgrades) == 0
+            ), f"Specify building for upgrade in the upgrade, not building {building.id}"
+
+    for upgrade in entities.values():
+        if isinstance(upgrade, BuildingUpgrade):
+            upgrade.building.upgrades.append(upgrade)
 
 
 def checkGuaranteedIds(
@@ -911,10 +927,12 @@ def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
             if any(tech in visited_entities for tech in entity.unlockedBy):
                 visited_entities.add(entity)
                 changed = True
+    # Building upgrades are always reachable from their building
     unreachable = [
         entity.id
         for entity in entities.values()
         if isinstance(entity, EntityWithCost)
+        if not isinstance(entity, BuildingUpgrade)
         if entity not in visited_entities
     ]
     if len(unreachable) > 0:
@@ -1090,6 +1108,16 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
+        with err_handler.add_context("buildingUpgrades"):
+            add_entities(
+                parseSheet(
+                    BuildingUpgrade,
+                    data["buildingUpgrades"],
+                    allowed_prefixes=["bup"],
+                    entities=entities_map,
+                    err_handler=err_handler,
+                )
+            )
         with err_handler.add_context("vyrobas"):
             add_entities(
                 parseSheet(
@@ -1135,6 +1163,7 @@ class EntityParser:
         add_hardcoded_values(entities_map, err_handler=err_handler)
 
         synchronizeUnlocks(entities_map)
+        synchronizeUpgrades(entities_map)
 
         entities = Entities(entities_map.values())
         with err_handler.add_context("final checks"):

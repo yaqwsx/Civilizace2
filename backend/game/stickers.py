@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from backend.settings import ICON_PATH
 from core.models.team import Team
 
-from game.entities import Building, Entity, Tech, Vyroba
+from game.entities import Building, BuildingUpgrade, Entity, Tech, Vyroba
 from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
@@ -162,6 +162,8 @@ def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image.Image:
         return makeVyrobaSticker(e, t, stype)
     if isinstance(e, Building):
         return makeBuildingSticker(e, t, stype)
+    if isinstance(e, BuildingUpgrade):
+        return makeBuildingUpgradeSticker(e, t, stype)
     assert False, f"There is no recipe for making {type(e)} stickers"
 
 
@@ -288,6 +290,33 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
     featureText = ", ".join([f.name for f in e.requiredTileFeatures])
     if len(featureText) > 0:
         b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
+    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
+    b.addText("Cena:", FONT_BOLD)
+    with b.withOffset(10):
+        for r, a in sortedCost(e.cost.items()):
+            b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
+
+    icon = e.icon
+    if icon is not None:
+        icon = os.path.splitext(icon)[0] + "-lg.png"
+        b.skip(10)
+        try:
+            b.addIcon(icon)
+        except Exception:
+            pass
+
+    makeStickerFooter(e, b)
+
+    return b.getImage()
+
+
+def makeBuildingUpgradeSticker(e: BuildingUpgrade, t: Team, stype: StickerType) -> Image.Image:
+    assert stype == StickerType.regular
+
+    b = getDefaultStickerBuilder()
+    makeStickerHeader(e, t, b)
+
+    b.addBulletLine("Budova: ", f"{e.building.name}", FONT_NORMAL, FONT_BOLD)
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):

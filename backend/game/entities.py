@@ -101,20 +101,8 @@ class NaturalResource(TileFeature):
 class EntityWithCost(EntityBase):
     cost: Dict[Resource, Decimal] = {}
     points: int
-    # duplicates: items in Tech.unlocks
+    # duplicates: Tech.unlocks
     unlockedBy: List[Tech] = []
-
-
-@dataclass(init=False, repr=False, eq=False)
-class Vyroba(EntityWithCost):
-    reward: Tuple[Resource, Decimal]
-    requiredTileFeatures: List[TileFeature] = []
-    flavor: str = ""
-
-
-@dataclass(init=False, repr=False, eq=False)
-class Building(EntityWithCost, TileFeature):
-    requiredTileFeatures: List[NaturalResource] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -133,6 +121,25 @@ class Tech(EntityWithCost):
     @property
     def unlocksBuilding(self) -> Set[Building]:
         return set(e for e in self.unlocks if isinstance(e, Building))
+
+
+@dataclass(init=False, repr=False, eq=False)
+class Vyroba(EntityWithCost):
+    reward: Tuple[Resource, Decimal]
+    requiredTileFeatures: List[TileFeature] = []
+    flavor: str = ""
+
+
+@dataclass(init=False, repr=False, eq=False)
+class Building(EntityWithCost, TileFeature):
+    requiredTileFeatures: List[NaturalResource] = []
+    # duplicates: BuildingUpgrade.building
+    upgrades: List[BuildingUpgrade] = []
+
+
+@dataclass(init=False, repr=False, eq=False)
+class BuildingUpgrade(EntityWithCost, TileFeature):
+    building: Building
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -180,13 +187,15 @@ Entity = Union[
     NaturalResource,
     Vyroba,
     Building,
+    BuildingUpgrade,
     Tech,
     MapTileEntity,
     TeamEntity,
     OrgEntity,
 ]
 
-Tech.update_forward_refs()
+EntityWithCost.update_forward_refs()
+Building.update_forward_refs()
 
 
 GUARANTEED_IDS = {
@@ -254,6 +263,10 @@ class Entities(frozendict[EntityId, Entity]):
     @cached_property
     def buildings(self) -> frozendict[EntityId, Building]:
         return frozendict({k: v for k, v in self.items() if isinstance(v, Building)})
+
+    @cached_property
+    def building_upgrades(self) -> frozendict[EntityId, BuildingUpgrade]:
+        return frozendict({k: v for k, v in self.items() if isinstance(v, BuildingUpgrade)})
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:

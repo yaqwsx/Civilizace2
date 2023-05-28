@@ -1,5 +1,6 @@
 from django.core.management import BaseCommand
 from core.models.team import Team
+from game.entities import Building, BuildingUpgrade, Vyroba
 from game.models import DbEntities, StickerType
 from pathlib import Path
 
@@ -12,12 +13,28 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser):
-        parser.add_argument("outputdir", type=str)
+        try:
+            _, entities = DbEntities.objects.get_revision()
+        except DbEntities.DoesNotExist:
+            raise RuntimeError("Entities not loaded, try reseting the game")
 
-    def handle(self, outputdir, *args, **kwargs):
+        parser.add_argument("outputdir", type=str)
+        parser.add_argument(
+            "-t",
+            "--team",
+            choices=[t.id for t in entities.teams.values()],
+            default=entities.teams.value(0).id,
+        )
+
+    def handle(self, outputdir, team, *args, **kwargs):
         outputdir = Path(outputdir)
         outputdir.mkdir(exist_ok=True, parents=True)
-        _, entities = DbEntities.objects.get_revision()
+        try:
+            _, entities = DbEntities.objects.get_revision()
+        except DbEntities.DoesNotExist:
+            raise RuntimeError("Entities not loaded, try reseting the game")
+
+        dbTeam = Team.objects.get(id=team)
 
         for t in entities.techs.values():
             for stickerType in [
@@ -25,11 +42,9 @@ class Command(BaseCommand):
                 StickerType.techSmall,
                 StickerType.techFirst,
             ]:
-                img = makeSticker(t, Team.objects.get(pk="tym-zeleni"), stickerType)
+                img = makeSticker(t, dbTeam, stickerType)
                 img.save(str(outputdir / f"{t.id}-{stickerType}.png"))
-        for v in entities.vyrobas.values():
-            img = makeSticker(v, Team.objects.get(pk="tym-zeleni"), StickerType.regular)
-            img.save(str(outputdir / f"{v.id}.png"))
-        for b in entities.buildings.values():
-            img = makeSticker(b, Team.objects.get(pk="tym-zeleni"), StickerType.regular)
-            img.save(str(outputdir / f"{b.id}.png"))
+        for e in entities.values():
+            if isinstance(e, (Vyroba, Building, BuildingUpgrade)):
+                img = makeSticker(e, dbTeam, StickerType.regular)
+                img.save(str(outputdir / f"{e.id}.png"))
