@@ -119,7 +119,7 @@ class Tech(EntityWithCost):
         return set(e for e in self.unlocks if isinstance(e, Tech))
 
     @property
-    def unlocksBuilding(self) -> Set[Building]:
+    def unlocksBuildings(self) -> Set[Building]:
         return set(e for e in self.unlocks if isinstance(e, Building))
 
 

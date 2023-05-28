@@ -322,7 +322,7 @@ class TeamState(StateModel):
     def buildings(self) -> set[Building]:
         buildings = set()
         for t in self.techs:
-            buildings.update(t.unlocksBuilding)
+            buildings.update(t.unlocksBuildings)
         return buildings
 
     @property
