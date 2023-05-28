@@ -17,11 +17,11 @@ class ArrayField(DjangoArrayField):
     pass
 
 
-if 'sqlite' in settings.DATABASES['default']['ENGINE']:
+if "sqlite" in settings.DATABASES["default"]["ENGINE"]:
 
     class JSONField(Field):
         def db_type(self, connection):
-            return 'text'
+            return "text"
 
         def from_db_value(self, value, expression, connection):
             if value is not None:
@@ -56,8 +56,8 @@ if 'sqlite' in settings.DATABASES['default']['ENGINE']:
             name, path, args, kwargs = super().deconstruct()
             kwargs.update(
                 {
-                    'base_field': self.base_field.clone(),
-                    'size': self.size,
+                    "base_field": self.base_field.clone(),
+                    "size": self.size,
                 }
             )
             return name, path, args, kwargs
@@ -123,11 +123,11 @@ class ListField(Field):
     def deconstruct(self):
         """Need to create migrations properly."""
         name, path, args, kwargs = super().deconstruct()
-        kwargs.update({'model_type': self.model_type})
+        kwargs.update({"model_type": self.model_type})
         return name, path, args, kwargs
 
     def db_type(self, connection):
-        return 'text'
+        return "text"
 
     def from_db_value(self, value, expression, connection):
         if value is not None:

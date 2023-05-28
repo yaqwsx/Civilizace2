@@ -13,13 +13,13 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser: ArgumentParser):
-        parser.add_argument("material", type=str, help='Resource id to show usage for')
-        parser.add_argument("--set", "-s", type=str, default=None, help='Entities set')
-        parser.add_argument("--id", action="store_true", help='Show entity ids')
+        parser.add_argument("material", type=str, help="Resource id to show usage for")
+        parser.add_argument("--set", "-s", type=str, default=None, help="Entities set")
+        parser.add_argument("--id", action="store_true", help="Show entity ids")
 
     def handle(self, material: str, set: Optional[str], id: bool, *args, **kwargs):
         self.show_id = id
-        set = 'GAME' if set is None else set
+        set = "GAME" if set is None else set
         targetFile = settings.ENTITY_PATH / setFilename(set)
         entities = EntityParser.load(targetFile)
 
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             return
         if material in entities:
             raise RuntimeError(
-                f'Entity exists but is a {type(entities[material])}, not {Resource}'
+                f"Entity exists but is a {type(entities[material])}, not {Resource}"
             )
         else:
             raise RuntimeError(
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         return f"'{entity.name}'" if not self.show_id else f"'{entity.id}'"
 
     def prettyprint_cost(self, entity: EntityWithCost) -> str:
-        return f'{entity.points} points' + ''.join(
+        return f"{entity.points} points" + "".join(
             f", {amount}x {self.entity_to_str(resource)}"
             for resource, amount in entity.cost.items()
         )
@@ -49,11 +49,11 @@ class Command(BaseCommand):
     ) -> None:
         for entity in entities:
             if resource in entity.cost:
-                reward_str = ''
+                reward_str = ""
                 if isinstance(entity, Vyroba):
                     reward_res, reward_amount = entity.reward
                     reward_str = (
-                        f' => {reward_amount}x {self.entity_to_str(reward_res)}'
+                        f" => {reward_amount}x {self.entity_to_str(reward_res)}"
                     )
                 print(
                     f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"

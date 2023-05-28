@@ -77,15 +77,15 @@ class Command(BaseCommand):
     def add_arguments(self, parser: ArgumentParser):
         # Optional argument
         parser.add_argument(
-            '-s',
-            '--set',
+            "-s",
+            "--set",
             type=str,
             choices=list(ENTITY_SETS),
-            nargs='+',
+            nargs="+",
             default=list(ENTITY_SETS),
         )
-        parser.add_argument('--no-warn', action='store_true')
-        parser.add_argument('--max-errs', type=int, default=5)
+        parser.add_argument("--no-warn", action="store_true")
+        parser.add_argument("--max-errs", type=int, default=5)
 
     def handle(self, *args, **options):
         settings.ENTITY_PATH.mkdir(parents=True, exist_ok=True)

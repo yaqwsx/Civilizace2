@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         "core.team", on_delete=models.PROTECT, default=None, null=True
     )  # type: ignore
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
 
     objects = UserManager()

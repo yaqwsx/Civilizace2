@@ -24,17 +24,17 @@ class ActionViewSet(viewsets.ViewSet):
         if isinstance(outer_type, type):
             if issubclass(outer_type, Enum):
                 return {
-                    'type': 'Enum',
-                    'values': {
+                    "type": "Enum",
+                    "values": {
                         name: value.value
                         for name, value in outer_type._member_map_.items()
                     },
                 }
-            return {'type': outer_type.__name__}
+            return {"type": outer_type.__name__}
         if typing.get_origin(outer_type) is not None:
             return {
-                'type': typing.get_origin(outer_type).__name__,
-                'subtypes': [
+                "type": typing.get_origin(outer_type).__name__,
+                "subtypes": [
                     ActionViewSet.typeInfo(subtype)
                     for subtype in typing.get_args(outer_type)
                 ],
@@ -44,9 +44,9 @@ class ActionViewSet(viewsets.ViewSet):
     @staticmethod
     def fieldInfo(field: ModelField) -> Dict[str, Any]:
         info = ActionViewSet.typeInfo(field.outer_type_)
-        info['required'] = bool(field.required)
+        info["required"] = bool(field.required)
         if not field.required:
-            info['default'] = field.get_default()
+            info["default"] = field.get_default()
         return info
 
     @staticmethod
@@ -61,9 +61,9 @@ class ActionViewSet(viewsets.ViewSet):
         }
 
         return {
-            'id': actionId(action.action),
-            'has_init': issubclass(action.action, TeamInteractionActionBase),
-            'args': args,
+            "id": actionId(action.action),
+            "has_init": issubclass(action.action, TeamInteractionActionBase),
+            "args": args,
         }
 
     def list(self, request: Request):

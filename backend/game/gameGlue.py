@@ -17,7 +17,7 @@ from game.actions.actionBase import ActionArgs
 from game.entities import EntityBase, Entities
 from game.state import StateModel
 
-TModel = TypeVar('TModel', bound=BaseModel)
+TModel = TypeVar("TModel", bound=BaseModel)
 
 
 def _stateSerialize(what: Any) -> Any:
@@ -40,11 +40,11 @@ def _stateSerialize(what: Any) -> Any:
     if isinstance(what, dict):
         return {_stateSerialize(k): _stateSerialize(v) for k, v in what.items()}
     if isinstance(what, float):  # TODO: check float type
-        print('Unexpected float type during serialization')
+        print("Unexpected float type during serialization")
         return what
     assert isinstance(
         what, str | int | type(None)
-    ), f'Unexpected type {type(what)} during serialization'
+    ), f"Unexpected type {type(what)} during serialization"
     return what
 
 
@@ -143,7 +143,7 @@ def _stateDeserializeSingleton(
         return None
     if typing.get_origin(expectedType) is not None:
         return _stateDeserializeGeneric(data, expectedType, entities)
-    assert isinstance(expectedType, type), 'expectedType has to be type or generic type'
+    assert isinstance(expectedType, type), "expectedType has to be type or generic type"
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
         assert isinstance(
             data, dict

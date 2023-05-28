@@ -58,11 +58,11 @@ class GameTime(NamedTuple):
     def getNearestTime() -> GameTime:
         turn = (
             DbTurn.objects.filter(enabled=True, startedAt__isnull=False)
-            .order_by('id')
+            .order_by("id")
             .last()
         )
         if turn is None:
-            turn = DbTurn.objects.earliest('-enabled', 'id')
+            turn = DbTurn.objects.earliest("-enabled", "id")
 
         if turn.startedAt is None:
             return GameTime(turn, 0)
@@ -86,7 +86,7 @@ class DbTurn(models.Model):
 
     @staticmethod
     def getActiveTurn() -> DbTurn:
-        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).latest('id')
+        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).latest("id")
         assert turn.startedAt is not None
         if timezone.now() > turn.startedAt + timezone.timedelta(seconds=turn.duration):
             # Turn already ended
@@ -382,7 +382,7 @@ class DbTaskAssignment(models.Model):
 class DbTaskPreference(models.Model):
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['task', 'techId'], name='unique_preference')
+            models.UniqueConstraint(fields=["task", "techId"], name="unique_preference")
         ]
 
     task = models.ForeignKey(DbTask, on_delete=models.CASCADE, related_name="techs")

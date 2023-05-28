@@ -102,8 +102,8 @@ class Command(BaseCommand):
     @staticmethod
     def create_orgs(orgs: frozendict[EntityId, OrgEntity]) -> None:
         for org in orgs.values():
-            assert org.username is not None, f'Org {org} cannot have a blank username'
-            assert org.password is not None, f'Org {org} cannot have a blank password'
+            assert org.username is not None, f"Org {org} cannot have a blank username"
+            assert org.password is not None, f"Org {org} cannot have a blank password"
             Command.create_or_update_user(
                 username=org.username,
                 password=org.password,
@@ -122,10 +122,10 @@ class Command(BaseCommand):
             for i in range(4):
                 assert (
                     team.username is not None
-                ), f'Team {team} cannot have a blank username'
+                ), f"Team {team} cannot have a blank username"
                 assert (
                     team.password is not None
-                ), f'Team {team} cannot have a blank password'
+                ), f"Team {team} cannot have a blank password"
                 Command.create_or_update_user(
                     username=f"{team.id[4:]}{i+1}",
                     password=team.password,

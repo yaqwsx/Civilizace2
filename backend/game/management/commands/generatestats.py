@@ -12,22 +12,22 @@ from game.models import DbAction, DbEntities, DbState, DbSticker, StickerType
 pio.templates["civilizace"] = go.layout.Template(
     layout={
         "xaxis": {
-            'automargin': True,
-            'gridcolor': 'black',
-            'linecolor': 'black',
-            'ticks': '',
-            'title': {'standoff': 15},
-            'zerolinecolor': 'black',
-            'zerolinewidth': 2,
+            "automargin": True,
+            "gridcolor": "black",
+            "linecolor": "black",
+            "ticks": "",
+            "title": {"standoff": 15},
+            "zerolinecolor": "black",
+            "zerolinewidth": 2,
         },
         "yaxis": {
-            'automargin': True,
-            'gridcolor': 'black',
-            'linecolor': 'black',
-            'ticks': '',
-            'title': {'standoff': 15},
-            'zerolinecolor': 'black',
-            'zerolinewidth': 2,
+            "automargin": True,
+            "gridcolor": "black",
+            "linecolor": "black",
+            "ticks": "",
+            "title": {"standoff": 15},
+            "zerolinecolor": "black",
+            "zerolinewidth": 2,
         },
     }
 )
@@ -83,21 +83,21 @@ def plotTeamGraph(team, overview, outputdir):
     populace = go.Scatter(
         x=turns,
         y=[x["populace"] for x in l],
-        mode='lines+markers',
-        name='Populace',
+        mode="lines+markers",
+        name="Populace",
         # marker_symbol=134,
         marker_size=mSize,
-        line=dict(color='black', dash='solid', width=0.5),
+        line=dict(color="black", dash="solid", width=0.5),
         legendgroup="1",
     )
     obyvatele = go.Scatter(
         x=turns,
         y=[x["obyvatele"] for x in l],
-        mode='lines+markers',
-        name='Obyvatele',
+        mode="lines+markers",
+        name="Obyvatele",
         # marker_symbol=135,
         marker_size=mSize,
-        line=dict(color='black', dash='solid'),
+        line=dict(color="black", dash="solid"),
         legendgroup="1",
     )
     techs = go.Scatter(
@@ -106,7 +106,7 @@ def plotTeamGraph(team, overview, outputdir):
         mode="lines+markers",
         name="Počet vyzkoumaných technologíí",
         marker_size=mSize,
-        line=dict(color='black', dash='solid'),
+        line=dict(color="black", dash="solid"),
         legendgroup="2",
     )
     prods = go.Scatter(
@@ -116,7 +116,7 @@ def plotTeamGraph(team, overview, outputdir):
         name="Aktivní produkce",
         # marker_symbol=134,
         marker_size=mSize,
-        line=dict(color='black', dash='solid', width=0.5),
+        line=dict(color="black", dash="solid", width=0.5),
         legendgroup="3",
     )
     prodSum = go.Scatter(
@@ -126,7 +126,7 @@ def plotTeamGraph(team, overview, outputdir):
         name="Vyprodukované materiály",
         # marker_symbol=135,
         marker_size=mSize,
-        line=dict(color='black', dash='solid'),
+        line=dict(color="black", dash="solid"),
         legendgroup="3",
     )
 
@@ -159,7 +159,7 @@ def plotTeamGraph(team, overview, outputdir):
 
     for row in [1, 2, 3]:
         fig.update_xaxes(
-            tickmode='linear',
+            tickmode="linear",
             tick0=0,
             dtick=1,
             title_text="Kolo",
@@ -277,17 +277,17 @@ def plotSummary(overview, outdir):
         populace = go.Scatter(
             x=turns,
             y=[x["populace"] for x in l],
-            mode='lines+markers',
-            name=f'Populace {t.name}',
-            line=dict(color=t.hexColor, dash='solid'),
+            mode="lines+markers",
+            name=f"Populace {t.name}",
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="1",
         )
         obyvatele = go.Scatter(
             x=turns,
             y=[int(x["obyvatele"] / x["populace"] * 100) for x in l],
-            mode='lines+markers',
-            name=f'Procento nespecializovaných {t.name}',
-            line=dict(color=t.hexColor, dash='solid'),
+            mode="lines+markers",
+            name=f"Procento nespecializovaných {t.name}",
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="2",
         )
         techs = go.Scatter(
@@ -295,7 +295,7 @@ def plotSummary(overview, outdir):
             y=[x["techy"] for x in l],
             mode="lines+markers",
             name=f"Počet vyzkoumaných technologíí {t.name}",
-            line=dict(color=t.hexColor, dash='solid'),
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="3",
         )
         prods = go.Scatter(
@@ -303,7 +303,7 @@ def plotSummary(overview, outdir):
             y=[x["productions"] for x in l],
             mode="lines+markers",
             name=f"Aktivní produkce {t.name}",
-            line=dict(color=t.hexColor, dash='solid'),
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="4",
         )
         prodSum = go.Scatter(
@@ -311,7 +311,7 @@ def plotSummary(overview, outdir):
             y=[x["prodSum"] for x in l],
             mode="lines+markers",
             name=f"Vyprodukované materiály {t.name}",
-            line=dict(color=t.hexColor, dash='solid'),
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="5",
         )
 
@@ -320,7 +320,7 @@ def plotSummary(overview, outdir):
             y=[x["weightedSum"] for x in l],
             mode="lines+markers",
             name=f"Vyprodukovaný potenciál materiálů {t.name}",
-            line=dict(color=t.hexColor, dash='solid'),
+            line=dict(color=t.hexColor, dash="solid"),
             legendgroup="6",
         )
 
@@ -343,7 +343,7 @@ def plotSummary(overview, outdir):
 
     for row in range(6):
         fig.update_xaxes(
-            tickmode='linear',
+            tickmode="linear",
             tick0=0,
             dtick=1,
             title_text="Kolo",

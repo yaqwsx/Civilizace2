@@ -85,9 +85,9 @@ def str_to_bool(value: str) -> bool:
     'val' is anything else.
     """
     value = value.lower()
-    if value in ('y', 'yes', 't', 'true', 'on', '1'):
+    if value in ("y", "yes", "t", "true", "on", "1"):
         return True
-    elif value in ('n', 'no', 'f', 'false', 'off', '0'):
+    elif value in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
         raise ValueError(f"Invalid boolean value '{value}'")
@@ -129,16 +129,16 @@ class ErrorHandler:
     def check_success(
         self, name: str, result_reporter: Callable[[str], None] = print
     ) -> None:
-        msgs = [('error', len(self.error_msgs)), ('warn', len(self.warn_msgs))]
+        msgs = [("error", len(self.error_msgs)), ("warn", len(self.warn_msgs))]
         msgs = [(msg_type, count) for msg_type, count in msgs if count > 0]
 
         summary_msg = f"Parsing {name} {'SUCCESS' if self.success() else 'FAILED'}"
         if len(msgs) > 0:
-            msgs_summary = ', '.join(
+            msgs_summary = ", ".join(
                 f"{count} {msg_type}{'' if count == 1 else 's'}"
                 for msg_type, count in msgs
             )
-            summary_msg += f': {msgs_summary}'
+            summary_msg += f": {msgs_summary}"
 
         result_reporter(summary_msg)
         if not self.success():
@@ -150,7 +150,7 @@ class ErrorHandler:
     def check_max_errs_reached(self) -> None:
         if self.errors_full():
             raise ParserError(
-                f'Parsing FAILED: Stopping parsing, encountered max number of errors (max={self.max_errs})'
+                f"Parsing FAILED: Stopping parsing, encountered max number of errors (max={self.max_errs})"
             )
 
     @property
@@ -190,17 +190,17 @@ class ErrorHandler:
         summary_str = f"Total {len(errors)} validation errors for {model_name}"
         self.error(summary_str, ignore_max_errs=True)
         for err in errors:
-            arg_name = ' -> '.join(str(e) for e in err['loc'])
-            err_msg = err['msg']
-            err_type = err['type']
-            err_ctx = ''.join(f'; {k}={v}' for k, v in err.get('ctx', {}).items())
+            arg_name = " -> ".join(str(e) for e in err["loc"])
+            err_msg = err["msg"]
+            err_type = err["type"]
+            err_ctx = "".join(f"; {k}={v}" for k, v in err.get("ctx", {}).items())
             self.error(
                 f"  Validation error for {model_name}, arg '{arg_name}': {err_msg} ({err_type}{err_ctx})",
                 ignore_max_errs=True,
             )
         self.check_max_errs_reached()
         raise ParserError(
-            f'Parsing FAILED: Encountered validation error, so far encountered {len(self.error_msgs)} errors'
+            f"Parsing FAILED: Encountered validation error, so far encountered {len(self.error_msgs)} errors"
         )
 
 
@@ -208,8 +208,8 @@ class Delims:
     def __init__(
         self,
         *,
-        list_delims: List[str] = [',', ';'],
-        tuple_delims: List[str] = [':', '/'],
+        list_delims: List[str] = [",", ";"],
+        tuple_delims: List[str] = [":", "/"],
     ):
         assert all(delim != "" for delim in list_delims)
         assert all(delim != "" for delim in tuple_delims)
@@ -668,7 +668,7 @@ def updateEntityArgs(
     cls: Type[TEntity], args: Dict[str, str], *, err_handler: ErrorHandler
 ) -> None:
     for name in list(args):
-        if name.startswith('!'):
+        if name.startswith("!"):
             args.pop(name)
 
     if issubclass(cls, EntityWithCost):
@@ -687,7 +687,7 @@ def updateEntityArgs(
             )
         args["cost"] = f"{RESOURCE_WORK}:{cost_work},{cost_other}"
 
-        if "points" in args and 'cost-points' in args:
+        if "points" in args and "cost-points" in args:
             err_handler.error(f"Don't use both 'points' and 'cost-points', choose one")
         if "points" not in args:
             if "cost-points" in args:
@@ -700,7 +700,7 @@ def updateEntityArgs(
     if issubclass(cls, Vyroba):
         assert issubclass(cls, EntityWithCost)
         cost_villager = args.pop("cost-villager", None)
-        if RESOURCE_VILLAGER in args['cost']:
+        if RESOURCE_VILLAGER in args["cost"]:
             err_handler.error(
                 f"Don't use '{RESOURCE_VILLAGER}' explicitly, use 'cost-villager' instead"
             )
@@ -708,7 +708,7 @@ def updateEntityArgs(
             args["cost"] = f"{RESOURCE_VILLAGER}:{cost_villager},{args['cost']}"
 
     def tileIdFromName(name: str) -> EntityId:
-        return f'map-tile-{name}'
+        return f"map-tile-{name}"
 
     if issubclass(cls, MapTileEntity):
         if "id" in args:
@@ -718,7 +718,7 @@ def updateEntityArgs(
         if "name" not in args:
             err_handler.error(f"Expected required value for 'name' {tuple(args)}")
             return
-        args['id'] = tileIdFromName(args['name'])
+        args["id"] = tileIdFromName(args["name"])
 
     if issubclass(cls, TeamEntity):
         if "homeTile" in args:
@@ -728,8 +728,8 @@ def updateEntityArgs(
                 f"Expected required value for 'homeTileName' {tuple(args)}"
             )
             return
-        homeTileName = args.pop('homeTileName')
-        args['homeTile'] = tileIdFromName(homeTileName)
+        homeTileName = args.pop("homeTileName")
+        args["homeTile"] = tileIdFromName(homeTileName)
 
 
 def parseSheet(
@@ -834,8 +834,8 @@ def createProduction(
 
     icon = None
     if resource.icon is not None:
-        mat_icon_suff = 'a.svg'
-        pro_icon_suff = 'b.svg'
+        mat_icon_suff = "a.svg"
+        pro_icon_suff = "b.svg"
         if not resource.icon.endswith(mat_icon_suff):
             err_handler.error(
                 f"Resource material icon has to end with '{mat_icon_suff}'"
@@ -1002,7 +1002,7 @@ class EntityParser:
                     continue
                 entities_map[e.id] = e
 
-        with err_handler.add_context('dice'):
+        with err_handler.add_context("dice"):
             add_entities(
                 parseSheet(
                     Die,
@@ -1012,7 +1012,7 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
-        with err_handler.add_context('resourceTypes'):
+        with err_handler.add_context("resourceTypes"):
             add_entities(
                 parseSheet(
                     ResourceType,
@@ -1022,10 +1022,10 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
-        with err_handler.add_context('resources'):
+        with err_handler.add_context("resources"):
             res_args = [
-                {name: args[name] for name in args if name != 'productionName'}
-                for args in data['resources']
+                {name: args[name] for name in args if name != "productionName"}
+                for args in data["resources"]
             ]
             resources = parseSheet(
                 Resource,
@@ -1035,17 +1035,17 @@ class EntityParser:
                 err_handler=err_handler,
             )
             res_prod_names = {
-                args['id']: args['productionName']
+                args["id"]: args["productionName"]
                 for args in data["resources"]
-                if 'productionName' in args
+                if "productionName" in args
             }
             add_entities(
                 with_productions(resources, res_prod_names, err_handler=err_handler)
             )
 
-        with err_handler.add_context('techs'):
+        with err_handler.add_context("techs"):
             tech_unlock_args = {
-                args['id']: {
+                args["id"]: {
                     name: args[name] for name in args if name.startswith("unlocks")
                 }
                 for args in data["techs"]
@@ -1064,7 +1064,7 @@ class EntityParser:
                 )
             )
 
-        with err_handler.add_context('naturalResources'):
+        with err_handler.add_context("naturalResources"):
             add_entities(
                 parseSheet(
                     NaturalResource,
@@ -1074,7 +1074,7 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
-        with err_handler.add_context('tiles'):
+        with err_handler.add_context("tiles"):
             add_entities(
                 parseSheet(
                     MapTileEntity,
@@ -1085,7 +1085,7 @@ class EntityParser:
                 )
             )
 
-        with err_handler.add_context('buildings'):
+        with err_handler.add_context("buildings"):
             add_entities(
                 parseSheet(
                     Building,
@@ -1095,7 +1095,7 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
-        with err_handler.add_context('vyrobas'):
+        with err_handler.add_context("vyrobas"):
             add_entities(
                 parseSheet(
                     Vyroba,
@@ -1106,7 +1106,7 @@ class EntityParser:
                 )
             )
 
-        with err_handler.add_context('teams'):
+        with err_handler.add_context("teams"):
             add_entities(
                 parseSheet(
                     TeamEntity,
@@ -1116,7 +1116,7 @@ class EntityParser:
                     err_handler=err_handler,
                 )
             )
-        with err_handler.add_context('orgs'):
+        with err_handler.add_context("orgs"):
             add_entities(
                 parseSheet(
                     OrgEntity,
@@ -1127,7 +1127,7 @@ class EntityParser:
                 )
             )
 
-        with err_handler.add_context('tech unlocks'):
+        with err_handler.add_context("tech unlocks"):
             for tech_id, unlock_args in tech_unlock_args.items():
                 assert tech_id in entities_map
                 tech = entities_map[tech_id]
@@ -1142,13 +1142,13 @@ class EntityParser:
         synchronizeUnlocks(entities_map)
 
         entities = Entities(entities_map.values())
-        with err_handler.add_context('final checks'):
+        with err_handler.add_context("final checks"):
             check_teams_have_different_home_tiles(entities, err_handler=err_handler)
             checkUnreachableByTech(entities, err_handler=err_handler)
             checkMap(entities, err_handler=err_handler)
             checkUsersHaveLogins(entities, err_handler=err_handler)
 
-        err_handler.check_success('Entities', result_reporter=result_reporter)
+        err_handler.check_success("Entities", result_reporter=result_reporter)
         assert err_handler.success()
         return entities
 
@@ -1189,8 +1189,6 @@ class EntityParser:
         return data
 
     @staticmethod
-    def load(
-        filename: str | PathLike[str], *, err_handler=ErrorHandler()
-    ) -> Entities:
+    def load(filename: str | PathLike[str], *, err_handler=ErrorHandler()) -> Entities:
         data = EntityParser.load_gs_data(filename)
         return EntityParser.parse(data, err_handler=err_handler)

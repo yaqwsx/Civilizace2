@@ -48,7 +48,7 @@ from game.viewsets.stickers import Sticker
 
 class UnexpectedStateError(APIException):
     status_code = status.HTTP_409_CONFLICT
-    default_code = 'conflict'
+    default_code = "conflict"
 
     def __init__(self, detail: str):
         super().__init__(detail=f"Nečekaný stav: {detail}")
@@ -56,7 +56,7 @@ class UnexpectedStateError(APIException):
 
 class UnexpectedActionTypeError(APIException):
     status_code = status.HTTP_409_CONFLICT
-    default_code = 'conflict'
+    default_code = "conflict"
 
     def __init__(self, actual: ActionCommonBase, expected: Type[ActionCommonBase]):
         assert not isinstance(actual, expected)
@@ -353,7 +353,7 @@ class ActionViewHelper:
 
 class ActionResultsSetPagination(PageNumberPagination):
     page_size = 100
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 1000
 
 

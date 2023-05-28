@@ -28,7 +28,7 @@ class TradeAction(TeamInteractionActionBase):
     @override
     def cost(self) -> Dict[Resource, Decimal]:
         amount = sum(self.args.resources.values(), Decimal(0))
-        return {self.entities.resources['mge-obchod']: amount}
+        return {self.entities.resources["mge-obchod"]: amount}
 
     def getNontradable(self) -> List[Resource]:
         return [self.entities.work, self.entities.obyvatel, self.entities.culture]
