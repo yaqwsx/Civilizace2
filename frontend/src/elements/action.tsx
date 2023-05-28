@@ -209,7 +209,7 @@ export function PerformAction(props: {
         } else {
             return (
                 <>
-                    <IgnoreActionDicePhase
+                    <ActionDicePhase
                         actionNumber={phase.data.action}
                         message={phase.data.message}
                         actionName={props.actionName}
