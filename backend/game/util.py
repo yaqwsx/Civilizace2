@@ -1,7 +1,8 @@
 from decimal import Decimal
 from pathlib import Path
 from typing import Callable, Dict, Mapping, Optional, TypeVar, Union, overload
-from entities import EntityBase, EntityId, Entity, Resource
+
+from game.entities import EntityBase, EntityId, Entity, Resource
 
 T = TypeVar("T")
 U = TypeVar("U")

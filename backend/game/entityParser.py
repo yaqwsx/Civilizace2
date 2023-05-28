@@ -36,7 +36,6 @@ from .entities import (
     Entity,
     EntityBase,
     EntityWithCost,
-    TEntity,
     UserEntity,
 )
 from .entities import (
@@ -52,6 +51,7 @@ from .entities import (
     Vyroba,
 )
 from .state import WorldState
+from .util import TEntity
 
 T = TypeVar("T")
 U = TypeVar("U")
