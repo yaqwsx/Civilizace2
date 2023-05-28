@@ -1,8 +1,8 @@
-from decimal import Decimal
+from collections import Counter
 from pathlib import Path
-from typing import Callable, Dict, Mapping, Optional, TypeVar, Union, overload
+from typing import Any, Callable, Iterable, Mapping, Optional, TypeVar, Union, overload
 
-from game.entities import EntityBase, EntityId, Entity, Resource
+from game.entities import EntityBase, EntityId, Entity
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -32,6 +32,10 @@ class FileCache:
 
     def _cacheFile(self, ident):
         return self.cacheDirectory / f"{ident}.{self.suffix}"
+
+
+def unique(values: Iterable[Any]) -> bool:
+    return all(count <= 1 for count in Counter(values).values())
 
 
 @overload

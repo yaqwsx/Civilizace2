@@ -19,6 +19,7 @@ from typing import (
     Iterable,
     List,
     Literal,
+    Mapping,
     NamedTuple,
     Optional,
     Set,
@@ -51,15 +52,10 @@ from .entities import (
     Vyroba,
 )
 from .state import WorldState
-from .util import TEntity
+from .util import TEntity, unique
 
-T = TypeVar("T")
-U = TypeVar("U")
 
 TModel = TypeVar("TModel", bound=BaseModel)
-
-ReadOnlyDict = Dict[T, U] | frozendict[T, U]
-ReadOnlyEntityDict = ReadOnlyDict[EntityId, Entity]
 
 # Aliases duplicate the strings that they appear in
 # Notes:
@@ -70,7 +66,7 @@ ReadOnlyEntityDict = ReadOnlyDict[EntityId, Entity]
 # - They duplicate in the OUTER-MOST iterable (NOT in the inner-most)
 #     - (Implementation reason - it's not needed to be otherwise)
 #     - If e.g. Map[_, Set[<Aliasable>]] is required, this will have to be implemented
-ALIASES: List[Tuple[str, Callable[[ReadOnlyEntityDict], List[str]]]] = [
+ALIASES: List[Tuple[str, Callable[[Mapping[EntityId, Entity]], List[str]]]] = [
     (
         "die-any",
         lambda entities: [e.id for e in entities.values() if isinstance(e, Die)],
@@ -91,10 +87,6 @@ def str_to_bool(value: str) -> bool:
         return False
     else:
         raise ValueError(f"Invalid boolean value '{value}'")
-
-
-def unique(iter: Iterable[Any]) -> bool:
-    return all(count <= 1 for count in Counter(iter).values())
 
 
 class ParserError(Exception):
@@ -306,7 +298,10 @@ def fully_resolve_alias(
 
 
 def fully_resolve_aliases(
-    values: Iterable[str], *, entities: ReadOnlyEntityDict, err_handler: ErrorHandler
+    values: Iterable[str],
+    *,
+    entities: Mapping[EntityId, Entity],
+    err_handler: ErrorHandler,
 ) -> Iterable[str]:
     for alias, repl_values in ALIASES:
         assert len(alias) > 0
@@ -327,7 +322,7 @@ def splitIterableField(
     *,
     delim: str,
     allowed: Callable[[str], bool] = lambda s: s != "",
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Iterable[str]:
     assert delim != ""
@@ -363,11 +358,11 @@ def parseEnum(cls: Type[Enum], arg: str) -> Enum:
 
 
 def parseTupleField(
-    tArgs: Tuple[Type, ...],
+    tArgs: Tuple[Type[Any], ...],
     arg: str,
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Tuple[Any, ...]:
     assert len(tArgs) > 0
@@ -394,7 +389,7 @@ def parseListField(
     arg: str,
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> List[Any]:
     delim = delims.next_list_delim()
@@ -415,7 +410,7 @@ def parseDictField(
     arg: str,
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Dict[Any, Any]:
     delim = delims.next_list_delim()
@@ -447,7 +442,7 @@ def parseUnionAndOptionalField(
     arg: str,
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Any:
     if len(tArgs) == 2 and type(None) in tArgs:  # Optional
@@ -465,7 +460,7 @@ def parseGenericField(
     arg: str,
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Any:
     origin = typing.get_origin(cls)
@@ -502,7 +497,7 @@ def parseField(
     arg: str,
     *,
     delims: Delims = Delims(),
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Any:
     assert isinstance(arg, str)
@@ -541,11 +536,11 @@ def parseField(
 
 
 def parseFieldArgs(
-    argTypes: ReadOnlyDict[str, Tuple[Type, bool]],
-    args: ReadOnlyDict[str, str],
+    argTypes: Mapping[str, Tuple[Type, bool]],
+    args: Mapping[str, str],
     *,
     delims: Delims,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Dict[str, Any]:
     unknown_fields = tuple(name for name in args if name not in argTypes)
@@ -600,9 +595,9 @@ def get_field_type(field: pydantic.fields.ModelField) -> Type:
 
 def parseModel(
     cls: Type[TModel],
-    args: ReadOnlyDict[str, str],
+    args: Mapping[str, str],
     *,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     delims: Delims = Delims(),
     err_handler: ErrorHandler,
 ) -> TModel:
@@ -641,7 +636,7 @@ def parseEntity(
     args: Dict[str, str],
     *,
     allowed_prefixes: List[str],
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     delims: Delims = Delims(),
     err_handler: ErrorHandler,
 ) -> TEntity:
@@ -737,7 +732,7 @@ def parseSheet(
     data: List[Dict[str, str]],
     *,
     allowed_prefixes: List[str],
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Iterable[TEntity]:
     return iter(
@@ -756,7 +751,7 @@ def add_tech_unlocks(
     tech: Tech,
     unlock_args: Dict[str, str],
     *,
-    entities: ReadOnlyEntityDict,
+    entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> None:
     assert all(name.startswith("unlocks") for name in unlock_args)
@@ -848,7 +843,7 @@ def createProduction(
 
 def with_productions(
     resources: Iterable[Resource],
-    res_prod_names: ReadOnlyDict[EntityId, str],
+    res_prod_names: Mapping[EntityId, str],
     *,
     err_handler: ErrorHandler,
 ) -> Iterable[Resource]:
@@ -875,7 +870,7 @@ def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
 
 
 def checkGuaranteedIds(
-    entities: ReadOnlyEntityDict, *, err_handler: ErrorHandler
+    entities: Mapping[EntityId, Entity], *, err_handler: ErrorHandler
 ) -> None:
     for id in GUARANTEED_IDS:
         if id not in entities:
@@ -983,7 +978,7 @@ def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> No
 class EntityParser:
     @staticmethod
     def parse_entities(
-        data: ReadOnlyDict[str, List[Dict[str, str]]],
+        data: Mapping[str, List[Dict[str, str]]],
         *,
         err_handler: ErrorHandler = ErrorHandler(),
         result_reporter: Optional[Callable[[str], None]] = None,
