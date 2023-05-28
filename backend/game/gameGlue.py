@@ -3,7 +3,7 @@ import decimal
 import enum
 import json
 import typing
-from typing import Dict, Any, Optional, Type, TypeVar
+from typing import Dict, Any, Iterable, Mapping, Optional, Type, TypeVar
 from pydantic import BaseModel
 from pydantic.fields import (
     SHAPE_SINGLETON,
@@ -16,11 +16,41 @@ from game.actions.actionBase import ActionArgs
 
 from game.entities import EntityBase, Entities
 from game.state import StateModel
+from game.util import unique
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
-def _stateSerialize(what: Any) -> Any:
+class UnexpectedValueType(Exception):
+    def __init__(
+        self,
+        value: Any,
+        expectedType: Type,
+        allowedTypes: Iterable[Type],
+        *args,
+        **kwargs,
+    ):
+        super().__init__(
+            f"Unexpected value type '{type(value)}' for {expectedType} (allowed types: {', '.join(allowedTypes)})",
+            *args,
+            **kwargs,
+        )
+        self.value = value
+        self.expectedType = expectedType
+        self.allowedTypes = allowedTypes
+
+
+def stateSerialize(model: BaseModel) -> Dict[str, Any]:
+    """
+    Turn the model into a dictionary representation
+    """
+    return {
+        field.name: _serialize_any(getattr(model, field.name))
+        for field in model.__fields__.values()
+    }
+
+
+def _serialize_any(what: Any):
     if isinstance(what, EntityBase):
         return what.id
     if isinstance(what, StateModel) or isinstance(what, ActionArgs):
@@ -30,32 +60,19 @@ def _stateSerialize(what: Any) -> Any:
     if isinstance(what, Decimal):
         return str(what)
     if isinstance(what, list):
-        return [_stateSerialize(x) for x in what]
+        return [_serialize_any(x) for x in what]
     if isinstance(what, set):
-        items = [_stateSerialize(x) for x in what]
+        items = [_serialize_any(x) for x in what]
         items.sort()
         return items
     if isinstance(what, tuple):
-        return tuple(_stateSerialize(x) for x in what)
+        return tuple(_serialize_any(x) for x in what)
     if isinstance(what, dict):
-        return {_stateSerialize(k): _stateSerialize(v) for k, v in what.items()}
-    if isinstance(what, float):  # TODO: check float type
-        print("Unexpected float type during serialization")
-        return what
+        return {_serialize_any(k): _serialize_any(v) for k, v in what.items()}
     assert isinstance(
         what, str | int | type(None)
     ), f"Unexpected type {type(what)} during serialization"
     return what
-
-
-def stateSerialize(model: BaseModel) -> Dict[str, Any]:
-    """
-    Turn the model into a dictionary representation
-    """
-    return {
-        field.name: _stateSerialize(getattr(model, field.name))
-        for field in model.__fields__.values()
-    }
 
 
 def stateDeserialize(
@@ -67,124 +84,123 @@ def stateDeserialize(
     source: Dict[str, Any] = {}
     for field in cls.__fields__.values():
         if field.name in data:
-            source[field.name] = _stateDeserialize(data[field.name], field, entities)
+            source[field.name] = _deserialize_any(data[field.name], field, entities)
         elif field.required:
             raise RuntimeError(f"Field {field.name} required, but not provided")
     # TODO: check impact of `cls.validate(source)` on performance (would be the prefered way)
     return cls.construct(**source)
 
 
-def _stateDeserialize(data: Any, field: ModelField, entities: Entities) -> Any:
-    required = field.required == True
+def _deserialize_any(data: Any, field: ModelField, entities: Entities) -> Any:
+    if not field.required and data is None:
+        return None
     if field.shape == SHAPE_SINGLETON:
-        return _stateDeserializeSingleton(data, field.type_, required, entities)
+        return _deserialize_singleton(data, field.type_, entities)
     if field.shape in MAPPING_LIKE_SHAPES:
         assert field.key_field is not None
-        assert isinstance(
-            data, dict
-        ), f"Expected {dict}, but got {type(data)} (field: {field})"
+
+        if not isinstance(data, dict):
+            raise UnexpectedValueType(data, field.outer_type_, [dict], field=field)
         return {
-            _stateDeserialize(k, field.key_field, entities): _stateDeserializeSingleton(
-                v, field.type_, required, entities
+            _deserialize_any(k, field.key_field, entities): _deserialize_singleton(
+                v, field.type_, entities
             )
             for k, v in data.items()
         }
     if field.shape == SHAPE_LIST:
-        assert isinstance(
-            data, list
-        ), f"Expected {list}, but got {type(data)} (field: {field})"
-        return [
-            _stateDeserializeSingleton(x, field.type_, required, entities) for x in data
-        ]
+        if not isinstance(data, list):
+            raise UnexpectedValueType(data, field.outer_type_, [list], field=field)
+        return [_deserialize_singleton(x, field.type_, entities) for x in data]
     if field.shape == SHAPE_SET:
-        # TODO: check if list in following condition is ok
-        assert isinstance(
-            data, set | list
-        ), f"Expected {set}, but got {type(data)} (field: {field})"
-        return set(
-            _stateDeserializeSingleton(x, field.type_, required, entities) for x in data
-        )
-    raise NotImplementedError(f"Shape type {field.shape} not implemented")
+        if not isinstance(data, (set, list)):
+            raise UnexpectedValueType(data, field.outer_type_, [set, list], field=field)
+        if not isinstance(data, set) and not unique(data):
+            raise RuntimeError(
+                f"Expected set for {field.outer_type_}, but got list with duplicate elements ({', '.join(data)})"
+            )
+        return set(_deserialize_singleton(x, field.type_, entities) for x in data)
+    assert (
+        False
+    ), f"Deserializing shape type {field.shape} not implemented (field={field})"
 
 
-def _stateDeserializeGeneric(data: Any, generic: Type, entities: Entities) -> Any:
+def _deserialize_generic(data: Any, generic: Type, entities: Entities) -> Any:
     origin = typing.get_origin(generic)
     assert origin is not None
     if issubclass(origin, set):
-        assert isinstance(data, set)
-        (type_args,) = generic.__args__
-        return set(
-            [
-                _stateDeserializeSingleton(x, generic.__args__[0], True, entities)
-                for x in data
-            ]
-        )
+        if not isinstance(data, (set, list)):
+            raise UnexpectedValueType(data, generic, [set, list])
+        if not isinstance(data, set) and not unique(data):
+            raise RuntimeError(
+                f"Expected set for {generic}, but got list with duplicate elements ({', '.join(data)})"
+            )
+        (type_arg,) = typing.get_args(generic)
+        return set(_deserialize_singleton(x, type_arg, entities) for x in data)
     if issubclass(origin, list):
-        assert isinstance(data, list)
-        return [
-            _stateDeserializeSingleton(x, generic.__args__[0], True, entities)
-            for x in data
-        ]
+        if not isinstance(data, list):
+            raise UnexpectedValueType(data, generic, [list])
+        (type_arg,) = typing.get_args(generic)
+        return [_deserialize_singleton(x, type_arg, entities) for x in data]
     if issubclass(origin, dict):
-        assert isinstance(data, dict)
+        if not isinstance(data, dict):
+            raise UnexpectedValueType(data, generic, [dict])
+        (key_arg, value_arg) = typing.get_args(generic)
         return {
-            _stateDeserializeSingleton(
-                k, generic.__args__[0], True, entities
-            ): _stateDeserializeSingleton(v, generic.__args__[1], True, entities)
+            _deserialize_singleton(k, key_arg, entities): _deserialize_singleton(
+                v, value_arg, entities
+            )
             for k, v in data.items()
         }
-    assert False
+    assert False, f"Deserializing generic type {generic} not implemented"
 
 
-def _stateDeserializeSingleton(
-    data: Optional[Any], expectedType: Type, required: bool, entities: Entities
+def _deserialize_singleton(
+    data: Optional[Any], expectedType: Type, entities: Entities
 ) -> Any:
-    if not required and data is None:
-        return None
     if typing.get_origin(expectedType) is not None:
-        return _stateDeserializeGeneric(data, expectedType, entities)
+        return _deserialize_generic(data, expectedType, entities)
     assert isinstance(expectedType, type), "expectedType has to be type or generic type"
     if issubclass(expectedType, StateModel) or issubclass(expectedType, ActionArgs):
-        assert isinstance(
-            data, dict
-        ), f"Expected dict for {expectedType}, but got {type(data)}"
-        assert all(isinstance(name, str) for name in data)
+        if not isinstance(data, dict):
+            raise UnexpectedValueType(data, expectedType, [dict])
+        if not all(isinstance(name, str) for name in data):
+            raise RuntimeError("Unexpected type of field name")
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):
-        assert isinstance(
-            data, str
-        ), f"Expected str for {expectedType}, but got {type(data)}"
+        if not isinstance(data, str):
+            raise UnexpectedValueType(data, expectedType, [str])
         if data in entities:
             entity = entities[data]
         else:
             raise RuntimeError(f"Could not find entity with id '{data}'")
         if not isinstance(entity, expectedType):
-            raise RuntimeError(f"Entity {entity} is not {expectedType.__name__}")
+            raise RuntimeError(f"Entity {entity} is not {expectedType}")
         return entity
     if issubclass(expectedType, enum.Enum):
-        assert isinstance(
-            data, str | int
-        ), f"Expected str or int for Enum {expectedType}, but got {type(data)}"
+        if not isinstance(data, (str, int)):
+            raise UnexpectedValueType(data, expectedType, [str, int])
         if isinstance(data, str):
             return expectedType._member_map_[data]
         return expectedType(data)
     if issubclass(expectedType, bool):
-        assert not isinstance(data, str), "Don't construct bool from str"
-        assert isinstance(
-            data, int
-        ), f"Expected int for {expectedType}, but got {type(data)}"
+        if isinstance(data, str):
+            raise RuntimeError("Type bool can't be deserialized from str")
+        if not isinstance(data, int):
+            raise UnexpectedValueType(data, expectedType, [int])
         return expectedType(data)
-    # TODO: check if float is ok
+    assert not issubclass(expectedType, float), "Don't use float, use Decimal instead"
     assert issubclass(
-        expectedType, int | float | Decimal | str
+        expectedType, (int, Decimal, str)
     ), f"Unexpected type {expectedType}"
-    assert isinstance(data, str | int | float), f"Data of unexpected type {type(data)}"
+
+    if not isinstance(data, (str, int)):
+        raise UnexpectedValueType(data, expectedType, [str, int])
     return expectedType(data)
 
 
 def serializeEntity(
-    entity: EntityBase, extraFields: Dict[str, Any] = {}
-) -> Dict[str, Any]:
+    entity: EntityBase, extraFields: dict[str, Any] = {}
+) -> dict[str, Any]:
     """
     Args:
     - a serialization function that takes field name and field value and returns
@@ -195,19 +211,17 @@ def serializeEntity(
     Returns:
         a dictionary that represents the serialized entity
     """
-    result = {}
+    result: dict[str, Any] = {}
     for field, value in entity:
-        sValue = _entityFieldSerializer(field, value)
-        if sValue is not None:
-            assert field not in result
-            result[field] = sValue
+        if field not in ["role", "password", "visible"]:
+            result[field] = _shallow_entity(value)
     fields_count = len(result)
     result.update(extraFields)
     assert len(result) == fields_count + len(extraFields)
     return result
 
 
-def _shallowEntity(e: Any) -> Any:
+def _shallow_entity(e: Any) -> Any:
     """
     Given an entity, or a tuple of entities, make them shalow - represent them
     only by ID
@@ -215,27 +229,12 @@ def _shallowEntity(e: Any) -> Any:
     if isinstance(e, EntityBase):
         return e.id
     if isinstance(e, tuple):
-        return tuple(map(_shallowEntity, e))
+        return tuple(map(_shallow_entity, e))
     if isinstance(e, list):
-        return list(map(_shallowEntity, e))
+        return list(map(_shallow_entity, e))
     if isinstance(e, set):
-        return set(map(_shallowEntity, e))
+        return set(map(_shallow_entity, e))
     if isinstance(e, dict):
-        return {_shallowEntity(k): _shallowEntity(v) for k, v in e.items()}
+        return {_shallow_entity(k): _shallow_entity(v) for k, v in e.items()}
     assert isinstance(e, str | int | Decimal | type(None))
     return e
-
-
-def _entityFieldSerializer(field: str, value: Any) -> Optional[Any]:
-    if field in ["role", "password", "visible"]:
-        return None
-    return _shallowEntity(value)
-
-
-class EntityEncoder(json.JSONEncoder):
-    def default(self, obj: Any) -> Any:
-        if isinstance(obj, BaseModel):
-            return obj.dict()
-        if isinstance(obj, decimal.Decimal):
-            return float(obj)
-        return json.JSONEncoder.default(self, obj)

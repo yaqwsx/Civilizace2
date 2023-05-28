@@ -357,7 +357,7 @@ class TeamState(StateModel):
 class WorldState(StateModel):
     turn: int = 0
     casteCount: int = 3
-    combatRandomness: float = 0.5
+    combatRandomness: Decimal = Decimal("0.5")
     roadCost: Dict[Resource, int]
     roadPointsCost: int = 10
     armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]] = {}  # TODO remove
