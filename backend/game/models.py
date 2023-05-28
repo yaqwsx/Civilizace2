@@ -78,6 +78,7 @@ class DbTurn(models.Model):
     class Meta:
         get_latest_by = "id"
 
+    id = models.AutoField(primary_key=True)
     startedAt = models.DateTimeField(null=True)
     enabled = models.BooleanField(default=False)
     duration = models.IntegerField(
@@ -154,6 +155,7 @@ class DbAction(models.Model):
     DbInteractionModel.
     """
 
+    id = models.AutoField(primary_key=True)
     actionType = models.CharField("actionType", max_length=64, null=False)
     entitiesRevision = models.IntegerField()
     description = models.TextField(null=True)
@@ -235,6 +237,7 @@ class DbTeamState(models.Model):
 
 
 class DbMapState(models.Model):
+    id = models.AutoField(primary_key=True)
     data = JSONField("data")
 
     def toIr(self, entities) -> MapState:
@@ -242,6 +245,7 @@ class DbMapState(models.Model):
 
 
 class DbWorldState(models.Model):
+    id = models.AutoField(primary_key=True)
     data = JSONField("data")
 
     def toIr(self, entities) -> WorldState:
@@ -413,11 +417,7 @@ class DbSticker(models.Model):
 
     @cached_property
     def entity(self) -> Entity:
-        return DbEntities.objects.get_revision(self.entityRevision)[self.entityId]
-
-    @property
-    def stickerPaperRequired(self) -> bool:
-        return self.entityId.startswith("tec-")
+        return DbEntities.objects.get_revision(self.entityRevision)[1][self.entityId]
 
     @property
     def stickerType(self) -> StickerType:

@@ -107,7 +107,8 @@ def updateScheduledActions():
         except Exception as e:
             sys.stderr.write("*** SCHEDULED ACTION FAILED***\n")
             sys.stderr.write(f"Action ID: {scheduled.action.id}\n")
-            sys.stderr.write(f"Source Action ID: {scheduled.created_from.id}\n")
+            if scheduled.created_from is not None:
+                sys.stderr.write(f"Source Action ID: {scheduled.created_from.id}\n")
             sys.stderr.write(f"Action Type: {scheduled.action.actionType}\n")
             sys.stderr.write(json.dumps(scheduled.action.args, indent=4))
             sys.stderr.write(f"Exception: {e}")
