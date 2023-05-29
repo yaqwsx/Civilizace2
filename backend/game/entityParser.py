@@ -1,16 +1,14 @@
 from __future__ import annotations
+
+import decimal
+import json
+import typing
 from collections import Counter, deque
 from contextlib import contextmanager
-import decimal
 from decimal import Decimal
 from enum import Enum
-from frozendict import frozendict
 from itertools import zip_longest
-import json
 from os import PathLike
-import pydantic
-from pydantic import BaseModel, ValidationError
-import typing
 from typing import (
     Any,
     Callable,
@@ -20,7 +18,6 @@ from typing import (
     List,
     Literal,
     Mapping,
-    NamedTuple,
     Optional,
     Set,
     Tuple,
@@ -29,32 +26,36 @@ from typing import (
     Union,
 )
 
+import pydantic
+from frozendict import frozendict
+from pydantic import BaseModel, ValidationError
+
 from . import entities
-from .entities import RESOURCE_VILLAGER, RESOURCE_WORK, TECHNOLOGY_START, GUARANTEED_IDS
 from .entities import (
-    EntityId,
-    Entities,
-    Entity,
-    EntityBase,
-    EntityWithCost,
-    UserEntity,
-)
-from .entities import (
+    GUARANTEED_IDS,
+    RESOURCE_VILLAGER,
+    RESOURCE_WORK,
+    TECHNOLOGY_START,
     Building,
     BuildingUpgrade,
     Die,
+    Entities,
+    Entity,
+    EntityBase,
+    EntityId,
+    EntityWithCost,
     MapTileEntity,
     NaturalResource,
     OrgEntity,
     Resource,
     ResourceType,
+    TeamAttribute,
     TeamEntity,
     Tech,
+    UserEntity,
     Vyroba,
 )
-from .state import WorldState
 from .util import TEntity, unique
-
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -87,7 +88,7 @@ def str_to_bool(value: str) -> bool:
     elif value in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
-        raise ValueError(f"Invalid boolean value '{value}'")
+        raise ValueError(f"Invalid boolean value {value!r}")
 
 
 class ParserError(Exception):
@@ -163,7 +164,7 @@ class ErrorHandler:
         old_context = self.context_list.pop()
         assert (
             old_context == expected_context
-        ), f"Expected context '{expected_context}' but got '{old_context}' {self.context_str}"
+        ), f"Expected context {expected_context!r} but got {old_context!r} {self.context_str}"
 
     def warn(self, warn_str: str) -> None:
         self.warn_msgs.append(warn_str)
@@ -188,7 +189,7 @@ class ErrorHandler:
             err_type = err["type"]
             err_ctx = "".join(f"; {k}={v}" for k, v in err.get("ctx", {}).items())
             self.error(
-                f"  Validation error for {model_name}, arg '{arg_name}': {err_msg} ({err_type}{err_ctx})",
+                f"  Validation error for {model_name}, arg {arg_name!r}: {err_msg} ({err_type}{err_ctx})",
                 ignore_max_errs=True,
             )
         self.check_max_errs_reached()
@@ -282,7 +283,7 @@ def fully_resolve_alias(
     repl_values = replacing_values()
     if len(repl_values) == 0:
         err_handler.warn(
-            f"Alias {alias} has no replacing values when resolving {tuple(to_be_resolved)}"
+            f"Alias {alias!r} has no replacing values when resolving {tuple(to_be_resolved)}"
         )
     resolved = []
     while len(to_be_resolved) > 0:
@@ -308,7 +309,7 @@ def fully_resolve_aliases(
         assert len(alias) > 0
         assert (
             alias not in entities
-        ), f"Alias '{alias}' cannot be an Entity (type {type(entities[alias])})"
+        ), f"Alias {alias!r} cannot be an Entity (type {type(entities[alias])!r})"
         values = fully_resolve_alias(
             values,
             alias=alias,
@@ -331,7 +332,7 @@ def splitIterableField(
     if not allowed(result[-1]):
         result.pop()
     if not all(map(allowed, result)):
-        err_handler.error(f"Value '{arg}' not allowed as iterable with delim '{delim}'")
+        err_handler.error(f"Value {arg!r} not allowed as iterable with delim {delim!r}")
     return fully_resolve_aliases(result, entities=entities, err_handler=err_handler)
 
 
@@ -341,7 +342,7 @@ def parseConstantFromDict(values: Dict[str, Any], arg: str) -> Any:
     if arg_casefold in values:
         return values[arg_casefold]
     raise ValueError(
-        f"'{arg_casefold}' (from '{arg}') has to be one of {tuple(values)}"
+        f"{arg_casefold!r} (from {arg!r}) has to be one of {tuple(values)}"
     )
 
 
@@ -368,14 +369,14 @@ def parseTupleField(
 ) -> Tuple[Any, ...]:
     assert len(tArgs) > 0
     delim = delims.next_tuple_delim()
-    assert delim, f"No available delim to parse tuple of {tArgs} from '{arg}'"
+    assert delim, f"No available delim to parse tuple of {tArgs} from {arg!r}"
     next_delims = delims.without_tuple_delim()
     splitArg = list(
         splitIterableField(arg, delim=delim, entities=entities, err_handler=err_handler)
     )
     if len(splitArg) != len(tArgs):
         err_handler.error(
-            f"Wrong number of parts in '{arg}' for '{tArgs}' (with delim '{delim}')"
+            f"Wrong number of parts in {arg!r} for {tArgs!r} (with delim {delim!r})"
         )
     return tuple(
         parseField(
@@ -386,7 +387,7 @@ def parseTupleField(
 
 
 def parseListField(
-    tArg: Type,
+    tArg: Type[Any],
     arg: str,
     *,
     delims: Delims,
@@ -394,7 +395,7 @@ def parseListField(
     err_handler: ErrorHandler,
 ) -> List[Any]:
     delim = delims.next_list_delim()
-    assert delim, f"No available delim to parse list of {tArg} from '{arg}'"
+    assert delim, f"No available delim to parse list of {tArg!r} from {arg!r}"
     next_delims = delims.without_list_delim()
     return [
         parseField(
@@ -417,7 +418,7 @@ def parseDictField(
     delim = delims.next_list_delim()
     assert (
         delim and delims.next_tuple_delim()
-    ), f"Not enough available delims to parse dict of {tArgs} from '{arg}'"
+    ), f"Not enough available delims to parse dict of {tArgs!r} from {arg!r}"
     next_delims = delims.without_list_delim()
     pairValues = [
         parseTupleField(
@@ -433,7 +434,7 @@ def parseDictField(
     ]
     if not unique(name for name, _ in pairValues):
         err_handler.error(
-            f"Multiple keys in '{arg}' not allowed for dict of {tArgs} with delims '{delim}' and '{next_delims.next_tuple_delim()}'"
+            f"Multiple keys in {arg!r} not allowed for dict of {tArgs!r} with delims {delim!r} and {next_delims.next_tuple_delim()!r}"
         )
     return dict(pairValues)
 
@@ -453,11 +454,11 @@ def parseUnionAndOptionalField(
         )
     if str in tArgs:
         return arg
-    raise NotImplementedError(f"Parsing Union of {tArgs} is not implemented")
+    raise NotImplementedError(f"Parsing Union of {tArgs!r} is not implemented")
 
 
 def parseGenericField(
-    cls: Type,
+    cls: Type[Any],
     arg: str,
     *,
     delims: Delims,
@@ -490,7 +491,9 @@ def parseGenericField(
             tArgs, arg, delims=delims, entities=entities, err_handler=err_handler
         )
 
-    raise NotImplementedError(f"Parsing {cls} (of type {type(cls)}) is not implemented")
+    raise NotImplementedError(
+        f"Parsing {cls!r} (of type {type(cls)!r}) is not implemented"
+    )
 
 
 def parseField(
@@ -510,7 +513,7 @@ def parseField(
         try:
             return Decimal(arg)
         except decimal.InvalidOperation:
-            raise ValueError(f"invalid literal for Decimal: '{arg}'")
+            raise ValueError(f"invalid literal for Decimal: {arg!r}")
     if cls == bool:
         return str_to_bool(arg)
     if typing.get_origin(cls) is not None:
@@ -520,20 +523,20 @@ def parseField(
 
     if not isinstance(cls, type):
         raise NotImplementedError(
-            f"Parsing '{cls}' of type '{type(cls)}' is not implemented"
+            f"Parsing {cls!r} of type {type(cls)!r} is not implemented"
         )
     if issubclass(cls, Enum):
         return parseEnum(cls, arg)
     if issubclass(cls, EntityBase):
         entity = entities.get(arg)
         if entity is None:
-            raise ParserError(f"Entity '{arg}' is not parsed yet")
+            raise ParserError(f"Entity {arg!r} is not parsed yet")
         if not isinstance(entity, cls):
             raise ParserError(
-                f"Entity '{arg}' is not '{cls}', instead is '{type(entity)}'"
+                f"Entity {arg!r} is not {cls!r}, instead is {type(entity)!r}"
             )
         return entity
-    raise NotImplementedError(f"Parsing {cls} is not implemented")
+    raise NotImplementedError(f"Parsing {cls!r} is not implemented")
 
 
 def parseFieldArgs(
@@ -547,7 +550,7 @@ def parseFieldArgs(
     unknown_fields = tuple(name for name in args if name not in argTypes)
     if len(unknown_fields) > 0:
         err_handler.warn(
-            f"There are unknown fields: {unknown_fields} (expected one of {list(argTypes)})"
+            f"There are unknown fields: {unknown_fields} (expected one of {list(argTypes.keys())})"
         )
 
     parsed_args: Dict[str, Any] = {}
@@ -557,7 +560,7 @@ def parseFieldArgs(
         if arg is None and required:
             needed_args = tuple(arg for arg in argTypes if argTypes[arg][1])
             err_handler.error(
-                f"Field '{name}' is required, need {needed_args}, got {tuple(args)}"
+                f"Field {name!r} is required, need {needed_args}, got {tuple(args)}"
             )
         if arg is not None:
             try:
@@ -585,13 +588,13 @@ def get_field_type(field: pydantic.fields.ModelField) -> Type:
             outer_type = eval(outer_type.__forward_code__, entities.__dict__)
             assert is_type(
                 outer_type
-            ), f"Could not resolve field type of '{outer_type}' (from {field})"
+            ), f"Could not resolve field type of {outer_type!r} (from {field})"
             return outer_type
         except KeyError:
             assert (
                 False
-            ), f"Could not resolve forward ref of type '{outer_type}' (from {field})"
-    assert False, f"Could not resolve field type of '{outer_type}' (from {field})"
+            ), f"Could not resolve forward ref of type {outer_type!r} (from {field})"
+    assert False, f"Could not resolve field type of {outer_type} (from {field})"
 
 
 def parseModel(
@@ -605,7 +608,7 @@ def parseModel(
     unknown_fields = tuple(name for name in args if name not in cls.__fields__)
     if len(unknown_fields) > 0:
         err_handler.warn(
-            f"There are unknown fields for {cls}: {unknown_fields} (expected one of {list(cls.__fields__)})"
+            f"There are unknown fields for {cls!r}: {unknown_fields} (expected one of {list(cls.__fields__)})"
         )
 
     arg_types = {
@@ -628,7 +631,7 @@ def parseModel(
     except (ParserError, ValueError) as e:
         reason = e.reason if isinstance(e, ParserError) else str(e)
         raise ParserError(
-            f"{reason} (parsing model {cls} with id: {args.get('id')})"
+            f"{reason} (parsing model {cls!r} with id: {args.get('id')!r})"
         ) from e
 
 
@@ -643,20 +646,18 @@ def parseEntity(
 ) -> TEntity:
     assert len(allowed_prefixes) > 0
     old_err_count = len(err_handler.error_msgs)
-    with err_handler.add_context(f"entity(id='{args.get('id', None)}')"):
+    with err_handler.add_context(f"entity(id={args.get('id', None)!r})"):
         updateEntityArgs(cls, args, err_handler=err_handler)
         entity = parseModel(
             cls, args, entities=entities, delims=delims, err_handler=err_handler
         )
         if all(not entity.id.startswith(prefix) for prefix in allowed_prefixes):
             err_handler.error(
-                f"Id '{entity.id}' does not start with any of {allowed_prefixes}"
+                f"Id {entity.id!r} does not start with any of {allowed_prefixes}"
             )
 
     if (err_count := len(err_handler.error_msgs) - old_err_count) > 0:
-        err_handler.error(
-            f"New {err_count} errors while parsing entity '{entity.id} ({entity.name})'"
-        )
+        err_handler.error(f"New {err_count} errors while parsing entity {entity!r}")
     return entity
 
 
@@ -670,7 +671,7 @@ def updateEntityArgs(
     if issubclass(cls, EntityWithCost):
         if "cost" in args:
             err_handler.error(
-                f"Don't use 'cost', use 'cost-work' and 'cost-other' instead"
+                "Don't use 'cost', use 'cost-work' and 'cost-other' instead"
             )
         if "cost-work" not in args:
             err_handler.error(f"Expected 'cost-work' in {tuple(args)}")
@@ -679,12 +680,12 @@ def updateEntityArgs(
         cost_other = args.pop("cost-other", "")
         if RESOURCE_WORK in cost_other:
             err_handler.error(
-                f"Don't use '{RESOURCE_WORK}' explicitly, use 'cost-work' instead"
+                f"Don't use {RESOURCE_WORK!r} explicitly, use 'cost-work' instead"
             )
         args["cost"] = f"{RESOURCE_WORK}:{cost_work},{cost_other}"
 
         if "points" in args and "cost-points" in args:
-            err_handler.error(f"Don't use both 'points' and 'cost-points', choose one")
+            err_handler.error("Don't use both 'points' and 'cost-points', choose one")
         if "points" not in args:
             if "cost-points" in args:
                 args["points"] = args.pop("cost-points")
@@ -698,7 +699,7 @@ def updateEntityArgs(
         cost_villager = args.pop("cost-villager", None)
         if RESOURCE_VILLAGER in args["cost"]:
             err_handler.error(
-                f"Don't use '{RESOURCE_VILLAGER}' explicitly, use 'cost-villager' instead"
+                f"Don't use {RESOURCE_VILLAGER!r} explicitly, use 'cost-villager' instead"
             )
         if cost_villager is not None:
             args["cost"] = f"{RESOURCE_VILLAGER}:{cost_villager},{args['cost']}"
@@ -709,7 +710,7 @@ def updateEntityArgs(
     if issubclass(cls, MapTileEntity):
         if "id" in args:
             err_handler.error(
-                f"Don't use 'id', id is computed automatically from 'index'"
+                "Don't use 'id', id is computed automatically from 'index'"
             )
         if "name" not in args:
             err_handler.error(f"Expected required value for 'name' {tuple(args)}")
@@ -718,7 +719,7 @@ def updateEntityArgs(
 
     if issubclass(cls, TeamEntity):
         if "homeTile" in args:
-            err_handler.error(f"Don't use 'homeTile', use 'homeTileName' instead")
+            err_handler.error("Don't use 'homeTile', use 'homeTileName' instead")
         if "homeTileName" not in args:
             err_handler.error(
                 f"Expected required value for 'homeTileName' {tuple(args)}"
@@ -758,14 +759,14 @@ def add_tech_unlocks(
     assert all(name.startswith("unlocks") for name in unlock_args)
     if "unlocks" in unlock_args:
         raise RuntimeError(
-            f"Don't use 'unlocks', use 'unlocks-tech' and 'unlocks-other' instead"
+            "Don't use 'unlocks', use 'unlocks-tech' and 'unlocks-other' instead"
         )
     unknown_headers = tuple(
         name for name in unlock_args if name not in ("unlocks-tech", "unlocks-other")
     )
     if len(unknown_headers) > 0:
         raise RuntimeError(
-            f"Unknown header values '{unknown_headers}', use 'unlocks-tech' and 'unlocks-other'"
+            f"Unknown header values {unknown_headers!r}, use 'unlocks-tech' and 'unlocks-other'"
         )
 
     assert len(tech.unlocks) == 0
@@ -809,7 +810,7 @@ def production_prefix(
     if resource_id.startswith("res"):
         return None
 
-    err_handler.error(f"Resource has invalid id '{resource_id}'")
+    err_handler.error(f"Resource has invalid id {resource_id!r}")
     return None
 
 
@@ -824,7 +825,7 @@ def createProduction(
 
     if prod_name is None:
         err_handler.error(
-            f"Resource material has to have a productionName ('{resource.id}')"
+            f"Resource material has to have a productionName ({resource.id!r})"
         )
         prod_name = "MISSING PROD NAME"
 
@@ -834,7 +835,7 @@ def createProduction(
         pro_icon_suff = "b.svg"
         if not resource.icon.endswith(mat_icon_suff):
             err_handler.error(
-                f"Resource material icon has to end with '{mat_icon_suff}'"
+                f"Resource material icon has to end with {mat_icon_suff!r}"
             )
             resource.icon = "UNKNOWN_ICON_a.svg"
         icon = resource.icon[: -len(mat_icon_suff)] + pro_icon_suff
@@ -863,7 +864,7 @@ def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
             for tech in entity.unlockedBy:
                 assert (
                     entity not in tech.unlocks
-                ), f"Duplicate info about {tech.id} unlocking {entity.id}"
+                ), f"Duplicate info about {tech.id!r} unlocking {entity.id!r}"
                 tech.unlocks.append(entity)
             entity.unlockedBy.clear()
 
@@ -878,7 +879,7 @@ def synchronizeUpgrades(entities: Dict[str, Entity]) -> None:
         if isinstance(building, Building):
             assert (
                 len(building.upgrades) == 0
-            ), f"Specify building for upgrade in the upgrade, not building {building.id}"
+            ), f"Specify building for upgrade in the upgrade, not building {building.id!r}"
 
     for upgrade in entities.values():
         if isinstance(upgrade, BuildingUpgrade):
@@ -890,10 +891,10 @@ def checkGuaranteedIds(
 ) -> None:
     for id in GUARANTEED_IDS:
         if id not in entities:
-            err_handler.error(f"Missing guaranteed entity id '{id}'")
+            err_handler.error(f"Missing guaranteed entity id {id!r}")
         elif not isinstance(entities[id], GUARANTEED_IDS[id]):
             err_handler.error(
-                f"Guaranteed entity '{id}' has wrong type, expected '{GUARANTEED_IDS[id]}' but got '{type(entities[id])}'"
+                f"Guaranteed entity {id!r} has wrong type, expected {GUARANTEED_IDS[id]!r} but got {type(entities[id])!r}"
             )
 
 
@@ -905,12 +906,10 @@ def checkEntitiesHaveUnlockedBy(
             continue
         if entity.id == TECHNOLOGY_START:
             if len(entity.unlockedBy) > 0:
-                err_handler.warn(
-                    f"{entity.id} ({entity.name}) has unlocking edge, but is START"
-                )
+                err_handler.warn(f"{entity!r} has unlocking edge, but is START")
             continue
         if len(entity.unlockedBy) == 0:
-            err_handler.warn(f"{entity.id} ({entity.name}) doesn't have unlocking edge")
+            err_handler.warn(f"{entity!r} doesn't have unlocking edge")
 
 
 # TODO: check - and probably change
@@ -943,15 +942,13 @@ def check_teams_have_different_home_tiles(
     entities: Entities, *, err_handler: ErrorHandler
 ) -> None:
     if not unique(team.homeTile for team in entities.teams.values()):
-        err_handler.error(f"There are multiple teams with the same home tile")
+        err_handler.error("There are multiple teams with the same home tile")
 
 
 def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
     if len(entities.tiles) != 4 * len(entities.teams):
         err_handler.error(
-            f"World size is wrong: \
-            There are {len(entities.tiles)} tiles \
-            and {len(entities.teams)} teams (expecting 4 tiles per team)"
+            f"World size is wrong: There are {len(entities.tiles)} tiles and {len(entities.teams)} teams (expecting 4 tiles per team)"
         )
 
     expected_index_range = range(len(entities.tiles))
@@ -988,9 +985,9 @@ def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> No
         if not isinstance(user, UserEntity):
             continue
         if user.username is None or user.username == "":
-            err_handler.error(f"User '{user}' cannot have blank username")
+            err_handler.error(f"User {user!r} cannot have blank username")
         if user.password is None or user.password == "":
-            err_handler.error(f"User '{user}' cannot have blank password")
+            err_handler.error(f"User {user!r} cannot have blank password")
 
 
 class EntityParser:
@@ -1011,7 +1008,7 @@ class EntityParser:
         def add_entities(new_entities: Iterable[Entity]) -> None:
             for e in new_entities:
                 if e.id in entities_map:
-                    err_handler.error(f"Entity '{e.id}' is already in entities")
+                    err_handler.error(f"Entity {e!r} is already in entities")
                     continue
                 entities_map[e.id] = e
 
