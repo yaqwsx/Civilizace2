@@ -256,7 +256,14 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
     uBuildings = e.unlocksBuildings
     if len(uBuildings) > 0:
         bText = ", ".join([v.name for v in uBuildings])
-        b.addText(f"Je možné stavět: ", FONT_BOLD)
+        b.addText(f"Umožňuje stavět: ", FONT_BOLD)
+        b.addText(bText, FONT_NORMAL)
+        b.skip(10)
+
+    uAttributes = e.unlocksTeamAttributes
+    if len(uAttributes) > 0:
+        bText = ", ".join([v.name for v in uAttributes])
+        b.addText(f"Umožňuje získat vlastnosti: ", FONT_BOLD)
         b.addText(bText, FONT_NORMAL)
         b.skip(10)
 

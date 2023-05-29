@@ -122,11 +122,20 @@ class Tech(EntityWithCost):
     def unlocksBuildings(self) -> Set[Building]:
         return set(e for e in self.unlocks if isinstance(e, Building))
 
+    @property
+    def unlocksTeamAttributes(self) -> Set[TeamAttribute]:
+        return set(e for e in self.unlocks if isinstance(e, TeamAttribute))
+
 
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
     requiredTileFeatures: List[TileFeature] = []
+    flavor: str = ""
+
+
+@dataclass(init=False, repr=False, eq=False)
+class TeamAttribute(EntityWithCost):
     flavor: str = ""
 
 

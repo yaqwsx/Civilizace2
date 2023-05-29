@@ -95,7 +95,7 @@ class TeamViewSet(viewsets.ViewSet):
             return Announcement.objects.getTeamUnread(team)
         return Announcement.objects.getUnread(user)
 
-    def list(self, request):
+    def list(self, request: Request):
         if not request.user.isOrg:
             raise PermissionDenied("Nedovolený přístup")
         return Response(TeamSerializer(Team.objects.all(), many=True).data)
@@ -143,32 +143,38 @@ class TeamViewSet(viewsets.ViewSet):
         teamState, entities = self.getTeamStateAndEntities(pk)
         state = teamState.parent
 
-        vList = list(teamState.vyrobas)
         teamReachableTiles = state.map.getReachableTiles(entities.teams[pk])
 
         def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
-            tileFeatures = set(tile.buildings).union(tile.entity.naturalResources)
-            return all(f in tileFeatures for f in vyroba.requiredTileFeatures)
+            return set(tile.features).issuperset(vyroba.requiredTileFeatures)
 
         def allowed_tiles(vyroba: Vyroba) -> List[EntityId]:
             return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]
 
-        vList.sort(key=lambda x: x.id)
         return Response(
             {
                 v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
-                for v in vList
+                for v in teamState.vyrobas
             }
         )
 
     @action(detail=True)
     def buildings(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState, entities = self.getTeamStateAndEntities(pk)
+        teamState = self.getTeamState(pk)
+        return Response({b.id: serializeEntity(b) for b in teamState.buildings})
 
-        bList = list(teamState.buildings)
-        bList.sort(key=lambda x: x.name)
-        return Response({b.id: serializeEntity(b) for b in bList})
+    @action(detail=True)
+    def attributes(self, request: Request, pk: TeamId) -> Response:
+        self.validateAccess(request.user, pk)
+        teamState = self.getTeamState(pk)
+
+        return Response(
+            {
+                a.id: serializeEntity(a, {"owned": a in teamState.attributes})
+                for a in teamState.unlocked_attributes
+            }
+        )
 
     @action(detail=True)
     def techs(self, request: Request, pk: TeamId) -> Response:
@@ -177,11 +183,10 @@ class TeamViewSet(viewsets.ViewSet):
 
         state = self.getTeamState(pk)
 
-        teamTechs = set()
-        teamTechs.update(state.techs)
+        teamTechs = set(state.techs)
         teamTechs.update(state.researching)
         for t in state.techs:
-            teamTechs.update([e for e in t.unlocks if isinstance(e, Tech)])
+            teamTechs.update(t.unlocksTechs)
 
         def tech_extra_fields(tech):
             if tech in state.techs:

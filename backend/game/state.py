@@ -271,19 +271,21 @@ class TeamState(StateModel):
     team: TeamEntity
     redCounter: Decimal = Decimal(0)
     blueCounter: Decimal = Decimal(0)
-    employees: Decimal = Decimal(0)
 
     turn: int = 0
     throwCost: int = 10
 
     techs: Set[Tech]
     researching: Set[Tech] = set()
+    attributes: Set[TeamAttribute] = set()
+
     roadsTo: Set[MapTileEntity] = set()
 
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
     granary: Dict[Resource, Decimal] = {}
     storageCapacity: Decimal = Decimal(10)
+    employees: Decimal = Decimal(0)
 
     discoveredTiles: Set[MapTileEntity] = set()
 
@@ -324,6 +326,14 @@ class TeamState(StateModel):
         for t in self.techs:
             buildings.update(t.unlocksBuildings)
         return buildings
+
+    @property
+    def unlocked_attributes(self) -> set[TeamAttribute]:
+        attributes = set()
+        for tech in self.techs:
+            attributes.update(tech.unlocksTeamAttributes)
+        return attributes
+
 
     @property
     def work(self) -> Decimal:

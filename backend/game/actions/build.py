@@ -37,7 +37,6 @@ class BuildAction(TeamInteractionActionBase):
 
     @override
     def pointsCost(self) -> int:
-        assert self.teamState
         return self.args.building.points
 
     def travelTime(self) -> int:
