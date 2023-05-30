@@ -7,21 +7,21 @@ from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.entities import Resource, TeamAttribute
 
 
-class UnlockTeamAttributeArgs(TeamActionArgs):
+class AcquireTeamAttributeArgs(TeamActionArgs):
     attribute: TeamAttribute
 
 
-class UnlockTeamAttributeAction(TeamInteractionActionBase):
+class AcquireTeamAttributeAction(TeamInteractionActionBase):
     @property
     @override
-    def args(self) -> UnlockTeamAttributeArgs:
-        assert isinstance(self._generalArgs, UnlockTeamAttributeArgs)
+    def args(self) -> AcquireTeamAttributeArgs:
+        assert isinstance(self._generalArgs, AcquireTeamAttributeArgs)
         return self._generalArgs
 
     @property
     @override
     def description(self) -> str:
-        return f"Přidání týmové vlastnosti {self.args.attribute} týmu {self.args.team.name}"
+        return f"Získání týmové vlastnosti {self.args.attribute} týmem {self.args.team.name}"
 
     @override
     def cost(self) -> Dict[Resource, Decimal]:
