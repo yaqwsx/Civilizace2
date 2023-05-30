@@ -13,7 +13,7 @@ import {
     useTeams,
 } from "../elements/team";
 import { useAtom } from "jotai";
-import { atomWithHash } from "jotai/utils";
+import { RESET, atomWithHash } from "jotai/utils";
 import { useEffect, useState } from "react";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
@@ -25,50 +25,12 @@ import _ from "lodash";
 import { Ace } from "ace-builds";
 import produce from "immer";
 
-const urlActionAtom = atomWithHash<string | undefined>(
-    "action",
-    undefined,
-    {
-        serialize: (x) => (x ?? ""),
-        deserialize: (x) => (x || undefined),
-    }
-);
+const urlActionAtom = atomWithHash<string | null>("action", null);
 
-const urlIgnoreCostAtom = atomWithHash<boolean>(
-    "igncost",
-    false,
-    {
-        serialize: (x) => (x ? '1' : ''),
-        deserialize: (x) => (x === '1'),
-    }
-);
-
-const urlIgnoreGameStopAtom = atomWithHash<boolean>(
-    "igngamestop",
-    false,
-    {
-        serialize: (x) => (x ? '1' : ''),
-        deserialize: (x) => (x === '1'),
-    }
-);
-
-const urlIgnoreThrowsAtom = atomWithHash<boolean>(
-    "ignthrows",
-    false,
-    {
-        serialize: (x) => (x ? '1' : ''),
-        deserialize: (x) => (x === '1'),
-    }
-);
-
-const urlJsonArgsAtom = atomWithHash<boolean>(
-    "json",
-    false,
-    {
-        serialize: (x) => (x ? '1' : ''),
-        deserialize: (x) => (x === '1'),
-    }
-);
+const urlIgnoreCostAtom = atomWithHash<boolean>("igncost", false);
+const urlIgnoreGameStopAtom = atomWithHash<boolean>("igngamestop", false);
+const urlIgnoreThrowsAtom = atomWithHash<boolean>("ignthrows", false);
+const urlJsonArgsAtom = atomWithHash<boolean>("json", false);
 
 type ArgumentFormProps = {
     value: any,
@@ -431,7 +393,7 @@ export function AnyAction() {
     }
 
     const handleActionIdChange = (value?: string) => {
-        setActionId(value);
+        setActionId(value ?? RESET);
     }
 
     const handleNoInitChange = (no_init: boolean) => {
@@ -471,7 +433,7 @@ export function AnyAction() {
                         className="checkboxinput"
                         type="checkbox"
                         checked={ignoreGameStop}
-                        onChange={(e) => setIgnoreGameStop(e.target.checked)}
+                        onChange={(e) => setIgnoreGameStop(e.target.checked || RESET)}
                     />
                 </div>
                 {!noInit &&
@@ -484,7 +446,7 @@ export function AnyAction() {
                                 className="checkboxinput"
                                 type="checkbox"
                                 checked={ignoreCost}
-                                onChange={(e) => setIgnoreCost(e.target.checked)}
+                                onChange={(e) => setIgnoreCost(e.target.checked || RESET)}
                             />
                         </div>
                         <div className="mx-10 field">
@@ -495,7 +457,7 @@ export function AnyAction() {
                                 className="checkboxinput"
                                 type="checkbox"
                                 checked={ignoreThrows}
-                                onChange={(e) => setIgnoreThrows(e.target.checked)}
+                                onChange={(e) => setIgnoreThrows(e.target.checked || RESET)}
                             />
                         </div>
                     </>
@@ -508,7 +470,7 @@ export function AnyAction() {
                         className="checkboxinput"
                         type="checkbox"
                         checked={jsonArgs}
-                        onChange={(e) => setJsonArgs(e.target.checked)}
+                        onChange={(e) => setJsonArgs(e.target.checked || RESET)}
                     />
                 </div>
             </div>
@@ -536,7 +498,7 @@ export function AnyAction() {
             {action ? (
                 <PerformAnyAction
                     action={action}
-                    onReset={() => setActionId(undefined)}
+                    onReset={() => setActionId(RESET)}
                     ignoreCost={noInit ? undefined : ignoreCost}
                     ignoreThrows={noInit ? undefined : ignoreThrows}
                     ignoreGameStop={ignoreGameStop}

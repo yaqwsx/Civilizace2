@@ -9,18 +9,10 @@ import {
     TeamEntityVyroba,
 } from "../types";
 import { fetcher } from "../utils/axios";
-import { useAtom } from "jotai";
 import { atomWithHash } from "jotai/utils";
 import { EntityVyroba } from "../types";
 
-export const urlEntityAtom = atomWithHash<string | undefined>(
-    "entity",
-    undefined,
-    {
-        serialize: (x) => (x ? x : ""),
-        deserialize: (x) => (x ? x : undefined),
-    }
-);
+export const urlEntityAtom = atomWithHash<string | null>("entity", null);
 
 export function useTeamWork(teamId?: string) {
     const { data, error } = useSWR<Record<string, number>>(

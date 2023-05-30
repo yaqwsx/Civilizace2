@@ -32,17 +32,11 @@ import { useElementSize, useDebounce } from "usehooks-ts";
 import { PrintStickers } from "./printing";
 import { Link, Navigate } from "react-router-dom";
 import { useDebounceDeep } from "../utils/react";
-import { atomWithHash } from "jotai/utils";
+import { RESET, atomWithHash } from "jotai/utils";
 import { useAtom } from "jotai";
 
-export const activeActionIdAtom = atomWithHash<number | null>(
-    "activeAction",
-    null
-);
-export const finishedActionIdAtom = atomWithHash<number | null>(
-    "finishedAction",
-    null
-);
+export const activeActionIdAtom = atomWithHash<number | null>("activeAction", null);
+export const finishedActionIdAtom = atomWithHash<number | null>("finishedAction", null);
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
@@ -52,8 +46,8 @@ export function useUnfinishedActions(refreshInterval?: number) {
             refreshInterval: refreshInterval,
         }
     );
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
-    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const [activeAction] = useAtom(activeActionIdAtom);
+    const [finishedAction] = useAtom(finishedActionIdAtom);
     return {
         actions: actions
             ? actions.filter((a: UnfinishedAction) => a.id != activeAction && a.id != finishedAction)
@@ -157,11 +151,11 @@ export function PerformAction(props: {
     const [phase, setPhase] = useState<{ phase: ActionPhase, data?: any }>({
         phase: ActionPhase.initiatePhase,
     });
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [ , setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
-            setActiveAction(null);
+            setActiveAction(RESET);
         };
     }, []);
 
@@ -253,11 +247,11 @@ export function PerformNoInitAction(props: {
     ignoreGameStop?: boolean;
 }) {
     const [completedData, setCompletedData] = useState<any>(undefined);
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const [ , setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
-            setActiveAction(null);
+            setActiveAction(RESET);
         };
     }, []);
 
@@ -324,8 +318,8 @@ function NoInitActionPreviewPhase(props: {
     const [commitResult, setCommitResult] = useState<ActionResponse | undefined>(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
-    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const [ , setActiveAction] = useAtom(activeActionIdAtom);
+    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
 
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
@@ -346,10 +340,10 @@ function NoInitActionPreviewPhase(props: {
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
-                setActiveAction(result?.action);
+                setActiveAction(result?.action ?? RESET);
                 if (result.success) {
                     props.changePhase(ActionPhase.finish, result);
-                    setFinishedAction(result?.action);
+                    setFinishedAction(result?.action ?? RESET);
                 } else {
                     setCommitResult(result);
                     toast.error(
@@ -449,8 +443,8 @@ function ActionPreviewPhase(props: {
     const [initiateResult, setInitiateResult] = useState<ActionResponse | undefined>(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
-    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const [ , setActiveAction] = useAtom(activeActionIdAtom);
+    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
 
 
     const { actions } = useUnfinishedActions();
@@ -479,11 +473,11 @@ function ActionPreviewPhase(props: {
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
-                setActiveAction(result?.action);
+                setActiveAction(result?.action ?? RESET);
                 if (result.success) {
                     if (result.committed) {
                         props.changePhase(ActionPhase.finish, result);
-                        setFinishedAction(result?.action);
+                        setFinishedAction(result?.action ?? RESET);
                     } else {
                         props.changePhase(ActionPhase.diceThrowPhase, result);
                     }
@@ -614,13 +608,13 @@ export function ActionDicePhase(props: {
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
     const { mutate } = useSWRConfig();
-    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
-    const [finishedAction, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const [ , setActiveAction] = useAtom(activeActionIdAtom);
+    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
 
 
     useEffect(() => {
         return () => {
-            setActiveAction(null);
+            setActiveAction(RESET);
         };
     }, [props.actionNumber]);
 

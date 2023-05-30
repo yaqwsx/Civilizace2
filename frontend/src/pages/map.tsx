@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import produce from "immer";
 import { useAtom } from "jotai";
-import { atomWithHash } from "jotai/utils";
+import { RESET, atomWithHash } from "jotai/utils";
 import _, { rest } from "lodash";
 import { useState } from "react";
 import useSWR from "swr";
@@ -30,8 +30,7 @@ export function MapMenu() {
     return null;
 }
 
-enum MapActiontype {
-    none,
+enum MapActionType {
     building,
     buildRoad,
     feeding,
@@ -42,15 +41,35 @@ enum MapActiontype {
     addCulture,
 }
 
-const urlMapActionAtom = atomWithHash<MapActiontype>(
-    "mapAction",
-    MapActiontype.none,
-    {
-        serialize: (x) => String(x),
-        deserialize: (x) =>
-            x ? (parseInt(x) as MapActiontype) : MapActiontype.none,
+// TODO useAtom(atomWithHash)
+const urlMapActionAtom = atomWithHash<MapActionType | null>("mapAction", null);
+
+function MapActionAgenda(props: {
+    action: MapActionType;
+    team: Team;
+}): JSX.Element {
+    switch (props.action) {
+        case MapActionType.army:
+            return <ArmyManipulation team={props.team} />;
+        case MapActionType.building:
+            return <BuildingAgenda team={props.team} />;
+        case MapActionType.buildRoad:
+            return <BuildRoadAgenda team={props.team} />;
+        case MapActionType.feeding:
+            return <FeedingAgenda team={props.team} />;
+        case MapActionType.automateFeeding:
+            return <AutomateFeedingAgenda team={props.team} />;
+        case MapActionType.trade:
+            return <TradeAgenda team={props.team} />;
+        case MapActionType.discoverTile:
+            return <DiscoverAgenda team={props.team} />;
+        case MapActionType.addCulture:
+            return <CultureAgenda team={props.team} />;
+        default:
+            const exhaustiveCheck: never = props.action;
+            return <></>; // Empty for invalid Enum value
     }
-);
+}
 
 export function MapAgenda() {
     useHideMenu();
@@ -69,7 +88,7 @@ export function MapAgenda() {
 
     const handleTeamChange = (t?: Team) => {
         setTeam(t);
-        setAction(MapActiontype.none);
+        setAction(RESET);
     };
 
     return (
@@ -84,75 +103,52 @@ export function MapAgenda() {
                         <Button
                             label="Krmit"
                             className="m-2 flex-1 bg-green-600 hover:bg-green-700"
-                            onClick={() => setAction(MapActiontype.feeding)}
+                            onClick={() => setAction(MapActionType.feeding)}
                         />
                         <Button
                             label="Automatizovat krmení"
                             className="m-2 flex-1 bg-green-600 hover:bg-green-700"
                             onClick={() =>
-                                setAction(MapActiontype.automateFeeding)
+                                setAction(MapActionType.automateFeeding)
                             }
                         />
                         <Button
                             label="Armáda"
                             className="m-2 flex-1 bg-orange-600 hover:bg-orange-700"
-                            onClick={() => setAction(MapActiontype.army)}
+                            onClick={() => setAction(MapActionType.army)}
                         />
                         <Button
                             label="Stavět"
                             className="m-2 flex-1"
-                            onClick={() => setAction(MapActiontype.building)}
+                            onClick={() => setAction(MapActionType.building)}
                         />
                         <Button
                             label="Postavit cestu"
                             className="m-2 flex-1"
-                            onClick={() => setAction(MapActiontype.buildRoad)}
+                            onClick={() => setAction(MapActionType.buildRoad)}
                         />
                         <Button
                             label="Obchodovat"
                             className="m-2 flex-1 bg-yellow-500 hover:bg-yellow-600"
-                            onClick={() => setAction(MapActiontype.trade)}
+                            onClick={() => setAction(MapActionType.trade)}
                         />
                         <Button
                             label="Objevit dílek"
                             className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
                             onClick={() =>
-                                setAction(MapActiontype.discoverTile)
+                                setAction(MapActionType.discoverTile)
                             }
                         />
                         <Button
                             label="Přidat kulturu"
                             className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
-                            onClick={() =>
-                                setAction(MapActiontype.addCulture)
-                            }
+                            onClick={() => setAction(MapActionType.addCulture)}
                         />
                     </FormRow>
                     <TeamRowIndicator team={team} />
 
-                    {action == MapActiontype.army ? (
-                        <ArmyManipulation team={team} />
-                    ) : null}
-                    {action == MapActiontype.building ? (
-                        <BuildingAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.buildRoad ? (
-                        <BuildRoadAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.feeding ? (
-                        <FeedingAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.automateFeeding ? (
-                        <AutomateFeedingAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.trade ? (
-                        <TradeAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.discoverTile ? (
-                        <DiscoverAgenda team={team} />
-                    ) : null}
-                    {action == MapActiontype.addCulture ? (
-                        <CultureAgenda team={team} />
+                    {!_.isNil(action) ? (
+                        <MapActionAgenda action={action} team={team} />
                     ) : null}
                 </>
             ) : null}
@@ -162,7 +158,7 @@ export function MapAgenda() {
 
 export function DiscoverAgenda(props: { team: Team }) {
     const [tile, setTile] = useState<any>(undefined);
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
 
     return (
         <PerformAction
@@ -173,7 +169,7 @@ export function DiscoverAgenda(props: { team: Team }) {
                 team: props.team.id,
                 tile: tile?.id,
             }}
-            onFinish={() => setAction(MapActiontype.none)}
+            onFinish={() => setAction(RESET)}
             onBack={() => {}}
             extraPreview={
                 <>
@@ -188,7 +184,7 @@ export function DiscoverAgenda(props: { team: Team }) {
 
 export function CultureAgenda(props: { team: Team }) {
     const [culture, setCulture] = useState<number>(0);
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
 
     return (
         <PerformNoInitAction
@@ -196,14 +192,14 @@ export function CultureAgenda(props: { team: Team }) {
             actionName={`Udělit kulturu týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                culture: culture
+                culture: culture,
             }}
-            onFinish={() => setAction(MapActiontype.none)}
+            onFinish={() => setAction(RESET)}
             onBack={() => {}}
             extraPreview={
                 <>
                     <FormRow label="Kolik přidat kultury?">
-                        <SpinboxInput value={culture} onChange={setCulture}/>
+                        <SpinboxInput value={culture} onChange={setCulture} />
                     </FormRow>
                 </>
             }
@@ -216,7 +212,7 @@ export function BuildingAgenda(props: { team: Team }) {
         `game/teams/${props.team.id}/buildings`,
         fetcher
     );
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
     const [building, setBuilding] = useState<any>(undefined);
     const [tile, setTile] = useState<any>(undefined);
 
@@ -244,7 +240,7 @@ export function BuildingAgenda(props: { team: Team }) {
                 argsValid={(a: any) => (a?.building && a?.tile) || false}
                 onBack={() => {}}
                 onFinish={() => {
-                    setAction(MapActiontype.none);
+                    setAction(RESET);
                 }}
                 extraPreview={
                     <>
@@ -276,7 +272,7 @@ export function BuildingAgenda(props: { team: Team }) {
 }
 
 export function BuildRoadAgenda(props: { team: Team }) {
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
     const [tile, setTile] = useState<any>(undefined);
 
     return (
@@ -290,7 +286,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
             argsValid={(a: any) => a?.tile || false}
             onBack={() => {}}
             onFinish={() => {
-                setAction(MapActiontype.none);
+                setAction(RESET);
             }}
             extraPreview={
                 <>
@@ -312,7 +308,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
 }
 
 export function TradeAgenda(props: { team: Team }) {
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
     const [recipient, setRecipient] = useState<Team | undefined>(undefined);
     const [resources, setResources] = useState<Record<string, number>>({});
 
@@ -357,7 +353,7 @@ export function TradeAgenda(props: { team: Team }) {
             }
             onBack={() => {}}
             onFinish={() => {
-                setAction(MapActiontype.none);
+                setAction(RESET);
             }}
             extraPreview={
                 <>
@@ -520,7 +516,9 @@ function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
                 />
                 <Button
                     label="Upgradovat armádu"
-                    disabled={props.army.mode != "Idle" || props.army.level == 3}
+                    disabled={
+                        props.army.mode != "Idle" || props.army.level == 3
+                    }
                     className="my-2 w-full bg-blue-600 hover:bg-blue-700"
                     onClick={() => setSelectedAction("armyUpgrade")}
                 />
@@ -782,7 +780,7 @@ function FeedingForm(props: {
 
 export function FeedingAgenda(props: { team: Team }) {
     const [feeding, setFeeding] = useState<Record<string, number>>({});
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
 
     let updateResource = (rId: string, v: number) => {
         if (v < 0) v = 0;
@@ -810,7 +808,7 @@ export function FeedingAgenda(props: { team: Team }) {
             }
             onBack={() => {}}
             onFinish={() => {
-                setAction(MapActiontype.none);
+                setAction(RESET);
             }}
         />
     );
@@ -823,7 +821,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
         error,
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
-    const [action, setAction] = useAtom(urlMapActionAtom);
+    const [, setAction] = useAtom(urlMapActionAtom);
 
     if (!availableProductions) {
         return (
@@ -884,7 +882,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
             }
             onBack={() => {}}
             onFinish={() => {
-                setAction(MapActiontype.none);
+                setAction(RESET);
             }}
         />
     );

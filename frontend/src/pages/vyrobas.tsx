@@ -41,14 +41,7 @@ import _ from "lodash";
 import { useHideMenu } from "./atoms";
 import { produce } from "immer";
 
-export const urlVyrobaActionAtom = atomWithHash<string | undefined>(
-    "vyrobaAction",
-    undefined,
-    {
-        serialize: (x) => (x ? x : ""),
-        deserialize: (x) => (x ? x : undefined),
-    }
-);
+export const urlVyrobaActionAtom = atomWithHash<string | null>("vyrobaAction", null);
 
 export function VyrobaMenu() {
     return null;
@@ -58,7 +51,7 @@ export function Vyroba() {
     useHideMenu();
 
     const { team, setTeam, loading, error } = useTeamFromUrl();
-    const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
+    const [ , setVyrobaId] = useAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (loading) {
@@ -75,7 +68,7 @@ export function Vyroba() {
 
     const handleTeamChange = (t?: Team) => {
         setTeam(t);
-        setVyrobaId(undefined);
+        setVyrobaId(RESET);
     };
 
     return (
@@ -146,7 +139,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
     let vyroba = vyrobaId ? vyrobas[vyrobaId] : null;
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setVyrobaId(event.target.value);
+        setVyrobaId(event.target.value || RESET);
     };
 
     let vyrobasArray = Object.values(vyrobas);
@@ -176,7 +169,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
                     vyroba={vyroba}
                     team={team}
                     resources={resources}
-                    onReset={() => setVyrobaId(undefined)}
+                    onReset={() => setVyrobaId(RESET)}
                 />
             ) : null}
         </>
@@ -341,7 +334,7 @@ function WithdrawStorage(props: { team: Team }) {
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/storage`, fetcher);
     const [toWithdraw, setToWithdraw] = useState<any>({});
-    const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
+    const [ , setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (!storage)
         return (
@@ -412,7 +405,7 @@ function WithdrawStorage(props: { team: Team }) {
                             mutate();
                             setSubmitting(false);
                             setToWithdraw({});
-                            setVyrobaAction(undefined);
+                            setVyrobaAction(RESET);
                         }}
                         onBack={() => setSubmitting(false)}
                     />

@@ -3,14 +3,11 @@ import useSWRImmutable from "swr/immutable";
 import { Team } from "../types";
 import { fetcher } from "../utils/axios";
 import { useAtom } from "jotai";
-import { atomWithHash } from "jotai/utils";
+import { RESET, atomWithHash } from "jotai/utils";
 import classNames from "classnames";
 import { InlineSpinner, ComponentError } from ".";
 
-const urlTeamAtom = atomWithHash<string | undefined>("team", undefined, {
-    serialize: (x) => (x ? x : ""),
-    deserialize: (x) => (x ? x : undefined),
-});
+const urlTeamAtom = atomWithHash<string | null>("team", null);
 
 export function useTeams() {
     const { data, error } = useSWRImmutable<Team[]>(() => "/teams/", fetcher);
@@ -56,7 +53,7 @@ export function useTeamFromUrl() {
 
     return {
         team: team,
-        setTeam: (t?: Team) => setTeamId(t?.id),
+        setTeam: (t?: Team) => setTeamId(t?.id ?? RESET),
         loading: loading,
         error: combinedError,
         allTeams: teams,
