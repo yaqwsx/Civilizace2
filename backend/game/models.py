@@ -155,7 +155,7 @@ class DbAction(models.Model):
     DbInteractionModel.
     """
 
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     actionType = models.CharField("actionType", max_length=64, null=False)
     entitiesRevision = models.IntegerField()
     description = models.TextField(null=True)
@@ -237,7 +237,7 @@ class DbTeamState(models.Model):
 
 
 class DbMapState(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     data = JSONField("data")
 
     def toIr(self, entities) -> MapState:
@@ -245,7 +245,7 @@ class DbMapState(models.Model):
 
 
 class DbWorldState(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     data = JSONField("data")
 
     def toIr(self, entities) -> WorldState:
