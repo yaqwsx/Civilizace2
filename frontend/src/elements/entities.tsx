@@ -11,8 +11,9 @@ import {
 import { fetcher } from "../utils/axios";
 import { atomWithHash } from "jotai/utils";
 import { EntityVyroba } from "../types";
+import { stringAtomWithHash } from "../utils/atoms";
 
-export const urlEntityAtom = atomWithHash<string | null>("entity", null);
+export const urlEntityAtom = stringAtomWithHash("entity");
 
 export function useTeamWork(teamId?: string) {
     const { data, error } = useSWR<Record<string, number>>(

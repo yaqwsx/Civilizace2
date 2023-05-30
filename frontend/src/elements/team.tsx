@@ -6,8 +6,9 @@ import { useAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
 import classNames from "classnames";
 import { InlineSpinner, ComponentError } from ".";
+import { stringAtomWithHash } from "../utils/atoms";
 
-const urlTeamAtom = atomWithHash<string | null>("team", null);
+const urlTeamAtom = stringAtomWithHash("team");
 
 export function useTeams() {
     const { data, error } = useSWRImmutable<Team[]>(() => "/teams/", fetcher);

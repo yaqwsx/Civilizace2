@@ -31,8 +31,9 @@ import { useEntities } from "../elements/entities";
 import _ from "lodash";
 import { Ace } from "ace-builds";
 import produce from "immer";
+import { stringAtomWithHash } from "../utils/atoms";
 
-const urlActionAtom = atomWithHash<string | null>("action", null);
+const urlActionAtom = stringAtomWithHash("action");
 
 const urlIgnoreCostAtom = atomWithHash<boolean>("igncost", false);
 const urlIgnoreGameStopAtom = atomWithHash<boolean>("igngamestop", false);

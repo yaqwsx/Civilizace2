@@ -22,7 +22,7 @@ import {
     Entity,
     TeamEntityResource,
 } from "../types";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { atomWithHash, RESET } from "jotai/utils";
 import { data } from "autoprefixer";
 import {
@@ -40,11 +40,9 @@ import { fetcher } from "../utils/axios";
 import _ from "lodash";
 import { useHideMenu } from "./atoms";
 import { produce } from "immer";
+import { stringAtomWithHash } from "../utils/atoms";
 
-export const urlVyrobaActionAtom = atomWithHash<string | null>(
-    "vyrobaAction",
-    null
-);
+export const urlVyrobaActionAtom = stringAtomWithHash("vyrobaAction");
 
 export function VyrobaMenu() {
     return null;
@@ -54,7 +52,7 @@ export function Vyroba() {
     useHideMenu();
 
     const { team, setTeam, loading, error } = useTeamFromUrl();
-    const [, setVyrobaId] = useAtom(urlEntityAtom);
+    const setVyrobaId = useSetAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (loading) {
@@ -332,7 +330,7 @@ function WithdrawStorage(props: { team: Team }) {
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/storage`, fetcher);
     const [toWithdraw, setToWithdraw] = useState<any>({});
-    const [, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
+    const setVyrobaAction = useSetAtom(urlVyrobaActionAtom);
 
     if (!storage)
         return (

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import produce from "immer";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
 import _, { rest } from "lodash";
 import { useState } from "react";
@@ -41,7 +41,6 @@ enum MapActionType {
     addCulture,
 }
 
-// TODO useAtom(atomWithHash)
 const urlMapActionAtom = atomWithHash<MapActionType | null>("mapAction", null);
 
 function MapActionAgenda(props: {
@@ -158,7 +157,7 @@ export function MapAgenda() {
 
 export function DiscoverAgenda(props: { team: Team }) {
     const [tile, setTile] = useState<any>(undefined);
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
 
     return (
         <PerformAction
@@ -184,7 +183,7 @@ export function DiscoverAgenda(props: { team: Team }) {
 
 export function CultureAgenda(props: { team: Team }) {
     const [culture, setCulture] = useState<number>(0);
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
 
     return (
         <PerformNoInitAction
@@ -212,7 +211,7 @@ export function BuildingAgenda(props: { team: Team }) {
         `game/teams/${props.team.id}/buildings`,
         fetcher
     );
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
     const [building, setBuilding] = useState<any>(undefined);
     const [tile, setTile] = useState<any>(undefined);
 
@@ -272,7 +271,7 @@ export function BuildingAgenda(props: { team: Team }) {
 }
 
 export function BuildRoadAgenda(props: { team: Team }) {
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
     const [tile, setTile] = useState<any>(undefined);
 
     return (
@@ -308,7 +307,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
 }
 
 export function TradeAgenda(props: { team: Team }) {
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
     const [recipient, setRecipient] = useState<Team | undefined>(undefined);
     const [resources, setResources] = useState<Record<string, number>>({});
 
@@ -780,7 +779,7 @@ function FeedingForm(props: {
 
 export function FeedingAgenda(props: { team: Team }) {
     const [feeding, setFeeding] = useState<Record<string, number>>({});
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
 
     let updateResource = (rId: string, v: number) => {
         if (v < 0) v = 0;
@@ -821,7 +820,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
         error,
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
-    const [, setAction] = useAtom(urlMapActionAtom);
+    const setAction = useSetAtom(urlMapActionAtom);
 
     if (!availableProductions) {
         return (

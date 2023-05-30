@@ -33,7 +33,7 @@ import { PrintStickers } from "./printing";
 import { Link, Navigate } from "react-router-dom";
 import { useDebounceDeep } from "../utils/react";
 import { RESET, atomWithHash } from "jotai/utils";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 
 export const activeActionIdAtom = atomWithHash<number | null>(
     "activeAction",
@@ -171,7 +171,7 @@ export function PerformAction(props: {
     const [phase, setPhase] = useState<{ phase: ActionPhase; data?: any }>({
         phase: ActionPhase.initiatePhase,
     });
-    const [, setActiveAction] = useAtom(activeActionIdAtom);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
@@ -267,7 +267,7 @@ export function PerformNoInitAction(props: {
     ignoreGameStop?: boolean;
 }) {
     const [completedData, setCompletedData] = useState<any>(undefined);
-    const [, setActiveAction] = useAtom(activeActionIdAtom);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
@@ -344,8 +344,8 @@ function NoInitActionPreviewPhase(props: {
     >(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [, setActiveAction] = useAtom(activeActionIdAtom);
-    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
+    const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
@@ -478,8 +478,8 @@ function ActionPreviewPhase(props: {
     >(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [, setActiveAction] = useAtom(activeActionIdAtom);
-    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
+    const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
     const { actions } = useUnfinishedActions();
 
@@ -647,8 +647,8 @@ export function ActionDicePhase(props: {
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
     const { mutate } = useSWRConfig();
-    const [, setActiveAction] = useAtom(activeActionIdAtom);
-    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
+    const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
     useEffect(() => {
         return () => {
