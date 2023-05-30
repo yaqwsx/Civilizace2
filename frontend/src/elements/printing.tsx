@@ -15,7 +15,7 @@ export function usePrinters() {
         fetcher,
         {
             revalidateOnMount: true,
-            refreshInterval: 10000
+            refreshInterval: 10000,
         }
     );
     return {
@@ -52,7 +52,7 @@ export function PrintStickers(props: {
     stickers: Sticker[];
     onPrinted: () => void;
 }) {
-    const {teams, error: teamsError} = useTeams()
+    const { teams, error: teamsError } = useTeams();
     const { printers, error } = usePrinters();
     const [stickerPrinter, setStickerPrinter] = useLocalStorage<
         string | undefined
@@ -93,9 +93,12 @@ export function PrintStickers(props: {
             props.stickers.map((sticker) => {
                 return axiosService
                     .post<any, any>(`/game/stickers/${sticker.id}/print/`, {
-                        printerId: sticker.entityId.startsWith("tec-") || sticker.entityId.startsWith("bui-") || sticker.entityId.startsWith("vyr")
-                            ? stickerPrinterObj?.id
-                            : paperPrinterObj?.id,
+                        printerId:
+                            sticker.entityId.startsWith("tec-") ||
+                            sticker.entityId.startsWith("bui-") ||
+                            sticker.entityId.startsWith("vyr")
+                                ? stickerPrinterObj?.id
+                                : paperPrinterObj?.id,
                     })
                     .then((data) => {
                         toast.success(`Samolepka ${sticker.id} vytištěna`);
@@ -120,7 +123,7 @@ export function PrintStickers(props: {
                     {props.stickers.map((s) => (
                         <li key={s.id} className="list-disc">
                             <EntityTag id={s.entityId} /> typ {s.type} pro{" "}
-                            {teams.find(x => x.id === s.team)?.name}
+                            {teams.find((x) => x.id === s.team)?.name}
                         </li>
                     ))}
                 </ul>

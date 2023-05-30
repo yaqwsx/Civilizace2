@@ -11,10 +11,11 @@ const contextClass: Record<string, string> = {
 };
 
 let toastClassName: ToastClassName = (props) => {
-    return contextClass[props?.type || "default"] +
+    return (
+        contextClass[props?.type || "default"] +
         " relative flex p-1 min-h-10 rounded-md justify-between overflow-hidden cursor-pointer"
+    );
 };
-
 
 export function ToastProvider() {
     return (

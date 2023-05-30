@@ -9,14 +9,16 @@ export function ScanTest() {
         setCodes(newCodes);
     });
 
-    return <>
-        <h1>Testování čtečky:</h1>
-        {
-            codes.map((v, i) => {
-                return <div key={i} className="w-full font-mono my-2">
-                    {JSON.stringify(v)}
-                </div>
-            })
-        }
-    </>
+    return (
+        <>
+            <h1>Testování čtečky:</h1>
+            {codes.map((v, i) => {
+                return (
+                    <div key={i} className="my-2 w-full font-mono">
+                        {JSON.stringify(v)}
+                    </div>
+                );
+            })}
+        </>
+    );
 }

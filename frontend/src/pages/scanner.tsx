@@ -1,6 +1,12 @@
 import _ from "lodash";
 import onScan from "onscan.js";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 
 function decodeKeyEvent(event: KeyboardEvent) {
@@ -53,10 +59,10 @@ export function ScannerDispatcher(props: { children: any }) {
     );
 }
 
-export function useScanner(callback: ((words: string[]) => void)) {
-    const {items} = useContext(ScannerContext);
+export function useScanner(callback: (words: string[]) => void) {
+    const { items } = useContext(ScannerContext);
 
     useEffect(() => {
         callback(items);
-    }, [items])
+    }, [items]);
 }

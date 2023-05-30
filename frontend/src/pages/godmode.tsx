@@ -20,7 +20,7 @@ export function GodModeMenu() {
     return null;
 }
 
-export function GodModeImpl(props: {state: any; onFinish: () => void}) {
+export function GodModeImpl(props: { state: any; onFinish: () => void }) {
     const [newStateStr, setNewStateStr] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editor, setEditor] = useState<any>(undefined);
@@ -106,7 +106,6 @@ export function GodModeImpl(props: {state: any; onFinish: () => void}) {
             )}
         </>
     );
-
 }
 
 export function GodMode() {
@@ -117,16 +116,18 @@ export function GodMode() {
     let fetchNew = () => {
         setError(undefined);
         setState(null);
-        fetcher("/game/state/latest").then((data) => {
-            setState(data);
-        }).catch((error) => {
-            setError(error);
-        })
-    }
+        fetcher("/game/state/latest")
+            .then((data) => {
+                setState(data);
+            })
+            .catch((error) => {
+                setError(error);
+            });
+    };
 
     useEffect(() => {
         fetchNew();
-    }, [])
+    }, []);
 
     if (!state) {
         return (
@@ -138,7 +139,7 @@ export function GodMode() {
         );
     }
 
-    return <GodModeImpl state={state} onFinish={fetchNew}/>
+    return <GodModeImpl state={state} onFinish={fetchNew} />;
 }
 
 function Changelog(props: {
@@ -261,7 +262,7 @@ function jsonDiff(newJson: any, originalJson: any) {
                     (x: any) => !origArr.some((y: any) => _.isEqual(x, y))
                 );
                 let toRemove = origArr.filter(
-                    (x: any) => !newArr.some((y: any) => _.isEqual(x,y))
+                    (x: any) => !newArr.some((y: any) => _.isEqual(x, y))
                 );
                 if (toAdd.length != 0) {
                     add[key] = toAdd;

@@ -43,16 +43,17 @@ export function Tasks() {
 }
 
 export function useEditableTasks() {
-    return useSWR<Task[]>(
-        "game/tasks",
-        fetcher
-    );
+    return useSWR<Task[]>("game/tasks", fetcher);
 }
 
 function TasksOverview() {
     useHideMenu();
 
-    const { data: tasks, error: taskError, mutate: mutateTasks } = useEditableTasks();
+    const {
+        data: tasks,
+        error: taskError,
+        mutate: mutateTasks,
+    } = useEditableTasks();
     const {
         data: techs,
         loading: techLoading,
@@ -61,13 +62,13 @@ function TasksOverview() {
 
     let handleDelete = (id: string) => {
         let options = {
-            optimisticData: tasks?.filter(x => x.id != id)
+            optimisticData: tasks?.filter((x) => x.id != id),
         };
         let fetchNew = async () => {
-            return fetcher("/game/tasks")
-        }
+            return fetcher("/game/tasks");
+        };
         mutateTasks(fetchNew, options);
-    }
+    };
 
     if (!tasks || taskError || techLoading || techError || !techs)
         return (
@@ -85,7 +86,12 @@ function TasksOverview() {
                 <Button label="Nový úkol" className="mx-0 my-2 w-full" />
             </Link>
             {tasks.map((t) => (
-                <TaskItem key={t.id} task={t} techs={techs} onDelete={() => handleDelete(t.id)} />
+                <TaskItem
+                    key={t.id}
+                    task={t}
+                    techs={techs}
+                    onDelete={() => handleDelete(t.id)}
+                />
             ))}
         </>
     );
@@ -167,24 +173,34 @@ function TaskItem(props: {
     );
 }
 
-function DeleteDialog(props: { close: () => void; task: Task; onDelete: () => void }) {
+function DeleteDialog(props: {
+    close: () => void;
+    task: Task;
+    onDelete: () => void;
+}) {
     let [deleting, setDeleting] = useState<boolean>(false);
 
     let handleDelete = () => {
         setDeleting(true);
-        axiosService.delete(`game/tasks/${props.task.id}/`).then(data => {
-            props.onDelete();
-            props.close();
-            toast.success(`Úkol ${props.task.name} (${props.task.id}) byl smazán`);
-        }).catch(error => {
-            if (error?.response?.status === "403") {
-                toast.error(error.response.data.detail);
-            } else {
-                toast.error(`Nastala neočekávaná chyba: ${error}`)
-            }
-        }).finally(() => {
-            props.close();
-        })
+        axiosService
+            .delete(`game/tasks/${props.task.id}/`)
+            .then((data) => {
+                props.onDelete();
+                props.close();
+                toast.success(
+                    `Úkol ${props.task.name} (${props.task.id}) byl smazán`
+                );
+            })
+            .catch((error) => {
+                if (error?.response?.status === "403") {
+                    toast.error(error.response.data.detail);
+                } else {
+                    toast.error(`Nastala neočekávaná chyba: ${error}`);
+                }
+            })
+            .finally(() => {
+                props.close();
+            });
     };
 
     return (
@@ -193,8 +209,10 @@ function DeleteDialog(props: { close: () => void; task: Task; onDelete: () => vo
             <Row className="my-4 flex">
                 <Button
                     disabled={deleting}
-                    className="flex-1" onClick={handleDelete}
-                    label={deleting ? "Mažu, prosím čekejte" : "Ano"}  />
+                    className="flex-1"
+                    onClick={handleDelete}
+                    label={deleting ? "Mažu, prosím čekejte" : "Ano"}
+                />
                 <Button
                     disabled={deleting}
                     label="Ne"
@@ -302,7 +320,7 @@ function TaskEdit() {
                               capacity: 5,
                               occupiedCount: 0,
                               techs: [],
-                              assignments: []
+                              assignments: [],
                           }
                 }
                 onSubmit={handleSubmit}

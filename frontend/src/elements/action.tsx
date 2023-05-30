@@ -35,8 +35,14 @@ import { useDebounceDeep } from "../utils/react";
 import { RESET, atomWithHash } from "jotai/utils";
 import { useAtom } from "jotai";
 
-export const activeActionIdAtom = atomWithHash<number | null>("activeAction", null);
-export const finishedActionIdAtom = atomWithHash<number | null>("finishedAction", null);
+export const activeActionIdAtom = atomWithHash<number | null>(
+    "activeAction",
+    null
+);
+export const finishedActionIdAtom = atomWithHash<number | null>(
+    "finishedAction",
+    null
+);
 
 export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
@@ -50,7 +56,10 @@ export function useUnfinishedActions(refreshInterval?: number) {
     const [finishedAction] = useAtom(finishedActionIdAtom);
     return {
         actions: actions
-            ? actions.filter((a: UnfinishedAction) => a.id != activeAction && a.id != finishedAction)
+            ? actions.filter(
+                  (a: UnfinishedAction) =>
+                      a.id != activeAction && a.id != finishedAction
+              )
             : undefined,
         ...other,
     };
@@ -79,38 +88,49 @@ export function UnfinishedActionBar() {
 }
 
 export function useActionPreview(props: {
-    actionId: string,
-    actionArgs: any,
-    argsValid: (args: any) => boolean,
-    ignoreGameStop?: boolean,
-    ignoreCost?: boolean,
-    ignoreThrows?: boolean,
-    isNoInit?: boolean,
+    actionId: string;
+    actionArgs: any;
+    argsValid: (args: any) => boolean;
+    ignoreGameStop?: boolean;
+    ignoreCost?: boolean;
+    ignoreThrows?: boolean;
+    isNoInit?: boolean;
 }) {
     const [preview, setPreview] = useState<ActionResponse | null>(null);
     const [error, setError] = useState<any>(null);
 
-    const debounced = useDebounceDeep({
-        args: props.actionArgs,
-        ignoreCost: props.ignoreCost,
-        ignoreGameStop: props.ignoreGameStop,
-        ignoreThrows: props.ignoreThrows,
-    }, 500);
+    const debounced = useDebounceDeep(
+        {
+            args: props.actionArgs,
+            ignoreCost: props.ignoreCost,
+            ignoreGameStop: props.ignoreGameStop,
+            ignoreThrows: props.ignoreThrows,
+        },
+        500
+    );
 
     useEffect(() => {
         setError(null);
         setPreview(null);
 
-        if (!props.actionArgs || !debounced.args || !props.argsValid(debounced.args)) return;
+        if (
+            !props.actionArgs ||
+            !debounced.args ||
+            !props.argsValid(debounced.args)
+        )
+            return;
 
         axiosService
-            .post<any, any>(`/game/actions/${props.isNoInit ? 'noinit' : 'team'}/dry/`, {
-                action: props.actionId,
-                args: debounced.args,
-                ignore_cost: debounced.ignoreCost,
-                ignore_game_stop: debounced.ignoreGameStop,
-                ignore_throws: debounced.ignoreThrows,
-            })
+            .post<any, any>(
+                `/game/actions/${props.isNoInit ? "noinit" : "team"}/dry/`,
+                {
+                    action: props.actionId,
+                    args: debounced.args,
+                    ignore_cost: debounced.ignoreCost,
+                    ignore_game_stop: debounced.ignoreGameStop,
+                    ignore_throws: debounced.ignoreThrows,
+                }
+            )
             .then((data) => {
                 setTimeout(() => {
                     setError(null);
@@ -148,10 +168,10 @@ export function PerformAction(props: {
     ignoreGameStop?: boolean;
     ignoreThrows?: boolean;
 }) {
-    const [phase, setPhase] = useState<{ phase: ActionPhase, data?: any }>({
+    const [phase, setPhase] = useState<{ phase: ActionPhase; data?: any }>({
         phase: ActionPhase.initiatePhase,
     });
-    const [ , setActiveAction] = useAtom(activeActionIdAtom);
+    const [, setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
@@ -247,7 +267,7 @@ export function PerformNoInitAction(props: {
     ignoreGameStop?: boolean;
 }) {
     const [completedData, setCompletedData] = useState<any>(undefined);
-    const [ , setActiveAction] = useAtom(activeActionIdAtom);
+    const [, setActiveAction] = useAtom(activeActionIdAtom);
 
     useEffect(() => {
         return () => {
@@ -267,7 +287,9 @@ export function PerformNoInitAction(props: {
                     actionId={props.actionId}
                     actionArgs={props.actionArgs}
                     onAbort={props.onBack}
-                    changePhase={(_, data) => setCompletedData(data === undefined ? {} : data)}
+                    changePhase={(_, data) =>
+                        setCompletedData(data === undefined ? {} : data)
+                    }
                     argsValid={argsValid}
                     ignoreGameStop={props.ignoreGameStop}
                 />
@@ -313,14 +335,17 @@ function NoInitActionPreviewPhase(props: {
         ignoreGameStop: props.ignoreGameStop,
         isNoInit: true,
     });
-    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(undefined);
+    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(
+        undefined
+    );
     const [submitting, setSubmitting] = useState(false);
-    const [commitResult, setCommitResult] = useState<ActionResponse | undefined>(undefined);
+    const [commitResult, setCommitResult] = useState<
+        ActionResponse | undefined
+    >(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [ , setActiveAction] = useAtom(activeActionIdAtom);
-    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
-
+    const [, setActiveAction] = useAtom(activeActionIdAtom);
+    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
@@ -426,9 +451,9 @@ function ActionPreviewPhase(props: {
     onAbort: () => void;
     changePhase: (phase: ActionPhase, data: any) => void;
     argsValid: (args: any) => boolean;
-    ignoreGameStop?: boolean,
-    ignoreCost?: boolean,
-    ignoreThrows?: boolean,
+    ignoreGameStop?: boolean;
+    ignoreCost?: boolean;
+    ignoreThrows?: boolean;
 }) {
     const { preview, error, debouncedArgs } = useActionPreview({
         actionId: props.actionId,
@@ -438,14 +463,23 @@ function ActionPreviewPhase(props: {
         ignoreCost: props.ignoreCost,
         ignoreThrows: props.ignoreThrows,
     });
-    const [lastArgs, setLastArgs] = useState<{ actionId: string, args: any, ignoreCost?: boolean, ignoreGameStop?: boolean } | undefined>(undefined);
+    const [lastArgs, setLastArgs] = useState<
+        | {
+              actionId: string;
+              args: any;
+              ignoreCost?: boolean;
+              ignoreGameStop?: boolean;
+          }
+        | undefined
+    >(undefined);
     const [submitting, setSubmitting] = useState(false);
-    const [initiateResult, setInitiateResult] = useState<ActionResponse | undefined>(undefined);
+    const [initiateResult, setInitiateResult] = useState<
+        ActionResponse | undefined
+    >(undefined);
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
-    const [ , setActiveAction] = useAtom(activeActionIdAtom);
-    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
-
+    const [, setActiveAction] = useAtom(activeActionIdAtom);
+    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
 
     const { actions } = useUnfinishedActions();
 
@@ -455,7 +489,12 @@ function ActionPreviewPhase(props: {
 
     if (height != 0 && height != loaderHeight) setLoaderHeight(height);
 
-    const currentArgs = { actionId: props.actionId, args: props.actionArgs, ignoreCost: props.ignoreCost, ignoreGameStop: props.ignoreGameStop };
+    const currentArgs = {
+        actionId: props.actionId,
+        args: props.actionArgs,
+        ignoreCost: props.ignoreCost,
+        ignoreGameStop: props.ignoreGameStop,
+    };
     if (!_.isEqual(lastArgs, currentArgs)) {
         setLastArgs(currentArgs);
         setInitiateResult(undefined);
@@ -608,9 +647,8 @@ export function ActionDicePhase(props: {
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
     const { mutate } = useSWRConfig();
-    const [ , setActiveAction] = useAtom(activeActionIdAtom);
-    const [ , setFinishedAction] = useAtom(finishedActionIdAtom);
-
+    const [, setActiveAction] = useAtom(activeActionIdAtom);
+    const [, setFinishedAction] = useAtom(finishedActionIdAtom);
 
     useEffect(() => {
         return () => {
@@ -646,10 +684,13 @@ export function ActionDicePhase(props: {
             return;
         setSubmitting(true);
         axiosService
-            .post<any, any>(`/game/actions/team/${props.actionNumber}/commit/`, {
-                throws: throwInfo.throws,
-                dots: throwInfo.dots,
-            })
+            .post<any, any>(
+                `/game/actions/team/${props.actionNumber}/commit/`,
+                {
+                    throws: throwInfo.throws,
+                    dots: throwInfo.dots,
+                }
+            )
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
@@ -669,7 +710,9 @@ export function ActionDicePhase(props: {
         ) {
             setSubmitting(true);
             axiosService
-                .post<any, any>(`/game/actions/team/${props.actionNumber}/revert/`)
+                .post<any, any>(
+                    `/game/actions/team/${props.actionNumber}/revert/`
+                )
                 .then((data) => {
                     setSubmitting(false);
                     setFinishedAction(props.actionNumber);
@@ -759,8 +802,8 @@ function DiceThrowForm(props: {
 
     let throwsLeft = teamWork
         ? Math.floor(
-            (teamWork - props.throws * props.throwCost) / props.throwCost
-        )
+              (teamWork - props.throws * props.throwCost) / props.throwCost
+          )
         : "??";
 
     return (

@@ -3,23 +3,23 @@ module.exports = {
         postcss: {
             loaderOptions: (postcssLoaderOptions) => {
                 postcssLoaderOptions.postcssOptions.plugins = [
-                    require('postcss-import'),
-                    require('tailwindcss/nesting'),
-                    require('tailwindcss')('./tailwind.config.js'),
-                    'postcss-flexbugs-fixes',
+                    require("postcss-import"),
+                    require("tailwindcss/nesting"),
+                    require("tailwindcss")("./tailwind.config.js"),
+                    "postcss-flexbugs-fixes",
                     [
-                        'postcss-preset-env',
+                        "postcss-preset-env",
                         {
                             autoprefixer: {
-                                flexbox: 'no-2009',
+                                flexbox: "no-2009",
                             },
                             stage: 3,
                         },
                     ],
-                ]
+                ];
 
-                return postcssLoaderOptions
+                return postcssLoaderOptions;
             },
         },
     },
-}
+};

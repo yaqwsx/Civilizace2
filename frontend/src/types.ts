@@ -36,7 +36,7 @@ export interface EntityResource extends EntityBase {
 }
 
 export interface TeamEntityResource extends EntityResource {
-    available: number
+    available: number;
 }
 
 export interface EntityWithCost extends EntityBase {
@@ -51,13 +51,13 @@ export interface EntityVyroba extends EntityWithCost {
 }
 
 export interface TeamEntityVyroba extends EntityVyroba {
-    allowedTiles: string[]
+    allowedTiles: string[];
 }
 
 export enum TechStatus {
     Owned = "owned",
     Researching = "researching",
-    Available = "available"
+    Available = "available",
 }
 
 export interface TaskAssignment {
@@ -87,9 +87,7 @@ export interface TeamEntityTech extends EntityTech {
     assignedTask?: Task;
 }
 
-export type Entity =
-    | EntityResource
-    | EntityVyroba;
+export type Entity = EntityResource | EntityVyroba;
 
 export interface AccountResponse {
     user: User;
@@ -105,7 +103,7 @@ export interface UserResponse {
 export enum AnnouncementType {
     Normal = "normal",
     Important = "important",
-    Game = "game"
+    Game = "game",
 }
 
 export interface Announcement {
@@ -137,16 +135,15 @@ export interface Sticker {
     team: string;
 }
 
-
 export enum ActionStatus {
     Success = "success",
-    Fail = "fail"
+    Fail = "fail",
 }
 
 export interface ServerActionType {
     id: string;
     has_init: boolean;
-    args: Record<string, { type: string, required: boolean, default?: any }>;
+    args: Record<string, { type: string; required: boolean; default?: any }>;
 }
 
 export interface ActionResponse {
@@ -175,5 +172,5 @@ export interface Printer {
 
 export interface UnfinishedAction {
     id: number;
-    description?: string
+    description?: string;
 }

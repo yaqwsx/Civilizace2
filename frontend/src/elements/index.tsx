@@ -50,7 +50,6 @@ export function RequireSuperOrg({ children }: RequireOrgProps) {
     );
 }
 
-
 // Avoid purging team background colors
 let teamColorPlaceholder = [
     "bg-gray-600",
@@ -159,7 +158,7 @@ export function SpinboxInput(props: SpinboxInputType) {
                 type="number"
                 disabled={props.disabled}
                 onChange={handleChange}
-                value={String(props.value ?? '')}
+                value={String(props.value ?? "")}
                 className="numberinput mx-3 flex-1"
             />
             <button className={buttonClassName} onClick={() => incValue(1)}>
@@ -202,7 +201,12 @@ export function LoadingOrError(props: {
                 ) : (
                     <>
                         <p>{props.error.toString()}</p>
-                        <p>{(JSON.stringify(props.error?.response?.data) || new String()).substring(0, 400)}</p>
+                        <p>
+                            {(
+                                JSON.stringify(props.error?.response?.data) ||
+                                new String()
+                            ).substring(0, 400)}
+                        </p>
                     </>
                 )}
             </ComponentError>
@@ -450,4 +454,3 @@ export function Card(props: {
         </div>
     );
 }
-

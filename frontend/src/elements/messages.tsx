@@ -7,8 +7,15 @@ type MessageProps = {
 
 export function ErrorMessage(props: MessageProps) {
     let className = classNames(
-        "relative", "my-6", "rounded", "border", "border-red-400", "bg-red-100",
-        "px-4", "py-3", "text-red-700"
+        "relative",
+        "my-6",
+        "rounded",
+        "border",
+        "border-red-400",
+        "bg-red-100",
+        "px-4",
+        "py-3",
+        "text-red-700"
     );
 
     if (props.className) {
@@ -19,8 +26,15 @@ export function ErrorMessage(props: MessageProps) {
 
 export function SuccessMessage(props: MessageProps) {
     let className = classNames(
-        "relative", "my-6", "rounded", "border", "border-green-400", "bg-green-100",
-        "px-4", "py-3", "text-green-700"
+        "relative",
+        "my-6",
+        "rounded",
+        "border",
+        "border-green-400",
+        "bg-green-100",
+        "px-4",
+        "py-3",
+        "text-green-700"
     );
 
     if (props.className) {
@@ -31,8 +45,15 @@ export function SuccessMessage(props: MessageProps) {
 
 export function WarningMessage(props: MessageProps) {
     let className = classNames(
-        "relative", "my-6", "rounded", "border", "border-orange-400", "bg-orange-100",
-        "px-4", "py-3", "text-orange-700"
+        "relative",
+        "my-6",
+        "rounded",
+        "border",
+        "border-orange-400",
+        "bg-orange-100",
+        "px-4",
+        "py-3",
+        "text-orange-700"
     );
 
     if (props.className) {
@@ -43,8 +64,15 @@ export function WarningMessage(props: MessageProps) {
 
 export function NeutralMessage(props: MessageProps) {
     let className = classNames(
-        "relative", "my-6", "rounded", "border", "border-blue-400", "bg-blue-100",
-        "px-4", "py-3", "text-blue-700"
+        "relative",
+        "my-6",
+        "rounded",
+        "border",
+        "border-blue-400",
+        "bg-blue-100",
+        "px-4",
+        "py-3",
+        "text-blue-700"
     );
 
     if (props.className) {
@@ -52,6 +80,3 @@ export function NeutralMessage(props: MessageProps) {
     }
     return <div className={className}>{props.children}</div>;
 }
-
-
-

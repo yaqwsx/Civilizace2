@@ -41,7 +41,10 @@ export function FinishAction() {
 
     return (
         <>
-            <h1>Máte nedokončenou akci {actionId}, je třeba ji dokončit než můžete zadávat další akce.</h1>
+            <h1>
+                Máte nedokončenou akci {actionId}, je třeba ji dokončit než
+                můžete zadávat další akce.
+            </h1>
             {!finished ? (
                 <ActionDicePhase
                     actionNumber={action.id}

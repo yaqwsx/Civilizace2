@@ -72,7 +72,7 @@ export function TeamSelector(props: TeamSelectorProps) {
     if (error && props.onError) {
         props.onError(
             "Nemůžu načíst týmy ze serveru. Zkouším znovu...\n" +
-            error.toString()
+                error.toString()
         );
     }
 

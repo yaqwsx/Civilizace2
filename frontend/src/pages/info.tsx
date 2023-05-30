@@ -93,15 +93,13 @@ function Countdown() {
                 {paused
                     ? "Hra je aktuálně pozastavena"
                     : // @ts-ignore
-                    `Herní čas: ${info.id}­–${String(minutesFow).padStart(
-                        2,
-                        "0"
-                    )}:${String(secsFow).padStart(2, "0")}`}
+                      `Herní čas: ${info.id}­–${String(minutesFow).padStart(
+                          2,
+                          "0"
+                      )}:${String(secsFow).padStart(2, "0")}`}
             </h1>
             <div style={{ fontSize: "30px" }} className="leading-none">
-                {!paused &&
-                    `Čas do konce kola:`
-                }
+                {!paused && `Čas do konce kola:`}
             </div>
             <div style={{ fontSize: "300px" }} className="leading-none">
                 {!paused &&
@@ -157,7 +155,11 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     const actionArgs = useMemo(() => {
         return { team: props.teamId, materials: {} };
     }, [props.teamId]);
-    const { preview, error } = useActionPreview({ actionId: "FeedAction", actionArgs, argsValid: () => true });
+    const { preview, error } = useActionPreview({
+        actionId: "FeedAction",
+        actionArgs,
+        argsValid: () => true,
+    });
     const [submitting, setSubmitting] = useState(false);
 
     useScanner((items: string[]) => {

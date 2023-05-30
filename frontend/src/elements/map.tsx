@@ -21,7 +21,9 @@ export function TileSelect(props: {
         );
     }
 
-    const sortedTiles = Object.values(tiles).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedTiles = Object.values(tiles).sort((a, b) =>
+        a.name.localeCompare(b.name)
+    );
 
     let className = classNames("select", props.className);
     return (
@@ -61,7 +63,9 @@ export function TeamTileSelect(props: {
         );
     }
 
-    const sortedTiles = Object.values(tiles).sort((a, b) => a.entity.name.localeCompare(b.entity.name));
+    const sortedTiles = Object.values(tiles).sort((a, b) =>
+        a.entity.name.localeCompare(b.entity.name)
+    );
 
     let className = classNames("select field", props.className);
     return (

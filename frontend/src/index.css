@@ -1,85 +1,87 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
 }
 
-h1, h2, h3, h4, h5 {
-  @apply mt-1;
+h1,
+h2,
+h3,
+h4,
+h5 {
+    @apply mt-1;
 }
 
 h1 {
-  @apply text-2xl font-semibold;
+    @apply text-2xl font-semibold;
 }
 
 h2 {
-  @apply text-xl font-semibold;
+    @apply text-xl font-semibold;
 }
 
 h3 {
-  @apply text-lg font-semibold;
+    @apply text-lg font-semibold;
 }
 
 p {
-  @apply block w-full;
+    @apply block w-full;
 }
 
 ul {
-  @apply px-6;
+    @apply px-6;
 }
 
 li {
-  @apply list-disc;
+    @apply list-disc;
 }
 
-
 .field {
-  @apply flex;
+    @apply flex;
 }
 
 .field input {
-  @apply bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight;
+    @apply w-full appearance-none rounded border-2 border-gray-200 bg-gray-200 py-2 px-4 leading-tight text-gray-700;
 }
 
 .field input:focus {
-  @apply outline-none bg-white border-purple-500;
+    @apply border-purple-500 bg-white outline-none;
 }
 
 .select {
-  @apply block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight;
+    @apply block w-full appearance-none rounded border border-gray-200 bg-gray-200 py-3 px-4 pr-8 leading-tight text-gray-700;
 }
 
 .select:focus {
-  @apply outline-none bg-white border-gray-500;
+    @apply border-gray-500 bg-white outline-none;
 }
 
 .field textarea {
-  @apply bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight;
-  min-height: 50px;
+    @apply w-full appearance-none rounded border-2 border-gray-200 bg-gray-200 py-2 px-4 leading-tight text-gray-700;
+    min-height: 50px;
 }
 
 .field textarea:focus {
-  @apply outline-none bg-white border-purple-500;
+    @apply border-purple-500 bg-white outline-none;
 }
 
 .checkboxinput {
-  -webkit-appearance: checkbox !important;
-  -moz-appearance: checkbox !important;
-  appearance: checkbox !important;
-  width: 1.6rem !important;
-  height: 1.6rem !important;
-  @apply inline-block;
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    appearance: checkbox !important;
+    width: 1.6rem !important;
+    height: 1.6rem !important;
+    @apply inline-block;
 }

@@ -235,7 +235,8 @@ function OrgMenu() {
                         icon={faTimeline}
                         path="actionlog/"
                     />
-                </>) : null}
+                </>
+            ) : null}
         </MenuRow>
     );
 }
@@ -379,9 +380,7 @@ function AppPages() {
     return (
         <AppFrame>
             <ScannerNavigator />
-            {
-                account?.user?.isOrg ? <UnfinishedActionBar/> : <></>
-            }
+            {account?.user?.isOrg ? <UnfinishedActionBar /> : <></>}
             <Routes>
                 <Route
                     path="/dashboard/*"
@@ -413,7 +412,7 @@ function OrgPages() {
             <Route path="/tasks/*" element={<Tasks />} />
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
-            <Route path="/actions/team/:actionId" element={<FinishAction/>}/>
+            <Route path="/actions/team/:actionId" element={<FinishAction />} />
             <Route
                 path="*"
                 element={

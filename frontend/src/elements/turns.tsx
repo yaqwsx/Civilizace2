@@ -65,7 +65,7 @@ export function TurnCountdownSticker() {
     return (
         <div className="mb-4 rounded-b border-t-4 px-4 py-3 shadow-md">
             <div className="generationInfo">
-                <CurrentTurnCountdown/>
+                <CurrentTurnCountdown />
             </div>
         </div>
     );

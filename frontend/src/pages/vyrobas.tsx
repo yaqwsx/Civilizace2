@@ -41,7 +41,10 @@ import _ from "lodash";
 import { useHideMenu } from "./atoms";
 import { produce } from "immer";
 
-export const urlVyrobaActionAtom = atomWithHash<string | null>("vyrobaAction", null);
+export const urlVyrobaActionAtom = atomWithHash<string | null>(
+    "vyrobaAction",
+    null
+);
 
 export function VyrobaMenu() {
     return null;
@@ -51,7 +54,7 @@ export function Vyroba() {
     useHideMenu();
 
     const { team, setTeam, loading, error } = useTeamFromUrl();
-    const [ , setVyrobaId] = useAtom(urlEntityAtom);
+    const [, setVyrobaId] = useAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (loading) {
@@ -218,8 +221,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     useEffect(() => {
         if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
-        console.log(vyroba)
-        let homeTile = tiles.find((t) => t?.homeTeam === props.team.id)
+        console.log(vyroba);
+        let homeTile = tiles.find((t) => t?.homeTeam === props.team.id);
         setTile(homeTile.entity);
         return;
         // if (!homeTile)
@@ -258,10 +261,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
         })
     );
 
-    let sortedTiles = tiles.sort((a, b) =>
-        a.name.localeCompare(b.name)
-    );
-
+    let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return (
         <PerformAction
@@ -291,9 +291,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                             value={tile}
                             onChange={(e) => setTile(e.target.value)}
                         >
-                            <option value="">
-                                Pole nevybráno
-                            </option>
+                            <option value="">Pole nevybráno</option>
                             {sortedTiles
                                 // .filter((t) =>
                                 //     vyroba.allowedTiles.includes(t.entity)
@@ -334,7 +332,7 @@ function WithdrawStorage(props: { team: Team }) {
         mutate,
     } = useSWR<any>(`game/teams/${props.team.id}/storage`, fetcher);
     const [toWithdraw, setToWithdraw] = useState<any>({});
-    const [ , setVyrobaAction] = useAtom(urlVyrobaActionAtom);
+    const [, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (!storage)
         return (

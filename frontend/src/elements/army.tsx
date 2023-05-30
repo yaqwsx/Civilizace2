@@ -58,8 +58,7 @@ export function ArmyGoalSelect(props: {
     onChange: (v: number) => void;
 }) {
     useEffect(() => {
-        if (!props.value)
-            props.onChange(0);
+        if (!props.value) props.onChange(0);
     }, [props.value]);
 
     return (

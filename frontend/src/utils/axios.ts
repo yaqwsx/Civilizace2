@@ -1,12 +1,12 @@
-import axios from 'axios';
-import createAuthRefreshInterceptor from 'axios-auth-refresh';
-import store from '../store';
-import authSlice from '../store/slices/auth';
+import axios from "axios";
+import createAuthRefreshInterceptor from "axios-auth-refresh";
+import store from "../store";
+import authSlice from "../store/slices/auth";
 
 const axiosService = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
 });
 
@@ -15,9 +15,13 @@ axiosService.interceptors.request.use(async (config) => {
 
     if (token !== null) {
         // @ts-ignore
-        config.headers.Authorization = 'Bearer ' + token;
+        config.headers.Authorization = "Bearer " + token;
         // @ts-ignore
-        console.debug('[Request]', config.baseURL + config.url, JSON.stringify(token));
+        console.debug(
+            "[Request]",
+            config.baseURL ?? "" + config.url,
+            JSON.stringify(token)
+        );
     }
     return config;
 });
@@ -30,7 +34,7 @@ axiosService.interceptors.response.use(
     },
     (err) => {
         console.debug(
-            '[Response error]',
+            "[Response error]",
             err.config.baseURL + err.config.url,
             err.response.status,
             err.response.data
@@ -46,19 +50,23 @@ const refreshAuthLogic = async (failedRequest) => {
     if (refreshToken !== null) {
         return axios
             .post(
-                '/auth/refresh/',
+                "/auth/refresh/",
                 {
                     refresh: refreshToken,
                 },
                 {
-                    baseURL: process.env.REACT_APP_API_URL
+                    baseURL: process.env.REACT_APP_API_URL,
                 }
             )
             .then((resp) => {
                 const { access, refresh } = resp.data;
-                failedRequest.response.config.headers.Authorization = 'Bearer ' + access;
+                failedRequest.response.config.headers.Authorization =
+                    "Bearer " + access;
                 store.dispatch(
-                    authSlice.actions.setAuthTokens({ token: access, refreshToken: refresh })
+                    authSlice.actions.setAuthTokens({
+                        token: access,
+                        refreshToken: refresh,
+                    })
                 );
             })
             .catch((err) => {

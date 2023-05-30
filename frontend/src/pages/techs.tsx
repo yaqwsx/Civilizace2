@@ -388,9 +388,15 @@ function SelectTaskForTechForm(props: {
                     className="select"
                 >
                     <option>Nevybráno</option>
-                    {recommendedTechs.sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
-                        <TaskSelectRow key={t.id} team={props.team} task={t} />
-                    ))}
+                    {recommendedTechs
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((t) => (
+                            <TaskSelectRow
+                                key={t.id}
+                                team={props.team}
+                                task={t}
+                            />
+                        ))}
                 </select>
             </FormRow>
             <FormRow label="Všechny úkoly (pokud doporučený nevyhovuje)">
@@ -400,9 +406,15 @@ function SelectTaskForTechForm(props: {
                     className="select"
                 >
                     <option>Nevybráno</option>
-                    {Object.values(tasks).sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
-                        <TaskSelectRow key={t.id} team={props.team} task={t} />
-                    ))}
+                    {Object.values(tasks)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((t) => (
+                            <TaskSelectRow
+                                key={t.id}
+                                team={props.team}
+                                task={t}
+                            />
+                        ))}
                 </select>
             </FormRow>
             <FormRow label="Popis pro orga">

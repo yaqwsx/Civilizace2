@@ -14,7 +14,6 @@ import { fetcher } from "../utils/axios";
 import AceEditor from "react-ace";
 import { useHideMenu } from "./atoms";
 
-
 export function ActionLog() {
     useHideMenu();
 
@@ -89,31 +88,31 @@ function Action(props: { action: any }) {
                         <div className="w-1/2">
                             <h4 className="font-bold">Parametry</h4>
                             <AceEditor
-                            mode="javascript"
-                            theme="github"
-                            readOnly={true}
-                            name="godmodeeditor"
-                            fontSize={14}
-                            showPrintMargin={true}
-                            showGutter={true}
-                            highlightActiveLine={true}
-                            value={JSON.stringify(action.args, null, 4)}
-                            className="w-full max-h-full"
-                            maxLines={10}
-                            setOptions={{
-                                enableBasicAutocompletion: false,
-                                enableLiveAutocompletion: false,
-                                enableSnippets: false,
-                                showLineNumbers: false,
-                                tabSize: 4,
-                            }}
-                        />
+                                mode="javascript"
+                                theme="github"
+                                readOnly={true}
+                                name="godmodeeditor"
+                                fontSize={14}
+                                showPrintMargin={true}
+                                showGutter={true}
+                                highlightActiveLine={true}
+                                value={JSON.stringify(action.args, null, 4)}
+                                className="max-h-full w-full"
+                                maxLines={10}
+                                setOptions={{
+                                    enableBasicAutocompletion: false,
+                                    enableLiveAutocompletion: false,
+                                    enableSnippets: false,
+                                    showLineNumbers: false,
+                                    tabSize: 4,
+                                }}
+                            />
                         </div>
                         <div className="w-1/2">
                             <h4 className="font-bold">Interakce</h4>
-                            {
-                                action.interactions.map((i: any, k: any) => <Interaction interaction={i} key={k}/>)
-                            }
+                            {action.interactions.map((i: any, k: any) => (
+                                <Interaction interaction={i} key={k} />
+                            ))}
                         </div>
                     </div>
                 </>
@@ -123,24 +122,21 @@ function Action(props: { action: any }) {
 }
 
 function interactionName(id: number) {
-    const NAMES = [
-        "initiate",
-        "commit",
-        "revert",
-    ];
+    const NAMES = ["initiate", "commit", "revert"];
 
-    if (id < 0 || id >= NAMES.length )
-        return `Unknown interaction id ${id}`;
+    if (id < 0 || id >= NAMES.length) return `Unknown interaction id ${id}`;
     return NAMES[id];
 }
 
 function Interaction(props: { interaction: any }) {
     const intr = props.interaction;
-    return <div className="row p-2 bg-gray-200 rounded my-1">
-        <div>
-            Typ: {interactionName(intr.phase)}, spotřebovalo {intr.workConsumed} práce
-        </div>
-        <AceEditor
+    return (
+        <div className="row my-1 rounded bg-gray-200 p-2">
+            <div>
+                Typ: {interactionName(intr.phase)}, spotřebovalo{" "}
+                {intr.workConsumed} práce
+            </div>
+            <AceEditor
                 mode="javascript"
                 theme="github"
                 readOnly={true}
@@ -160,8 +156,7 @@ function Interaction(props: { interaction: any }) {
                     tabSize: 4,
                 }}
             />
-        <CiviMarkdown>
-            {intr.trace}
-        </CiviMarkdown>
-    </div>
+            <CiviMarkdown>{intr.trace}</CiviMarkdown>
+        </div>
+    );
 }
