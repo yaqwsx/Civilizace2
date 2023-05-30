@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { classNames, LoadingOrError } from ".";
-import { Team } from "../types";
+import { EntityTeamAttribute, Team } from "../types";
 import { fetcher } from "../utils/axios";
 import { useEntities } from "./entities";
 
@@ -121,6 +121,53 @@ export function BuildingSelect(props: {
                 .map((t: any) => (
                     <option key={t.id} value={t.id}>
                         {t.name}
+                    </option>
+                ))}
+        </select>
+    );
+}
+
+export function TeamAttributeSelect(props: {
+    allowed?: string[];
+    value: any;
+    onChange: (value: any) => void;
+    className?: any;
+}) {
+    const { data: attributes, error } =
+        useEntities<EntityTeamAttribute>("team_attributes");
+
+    if (!attributes || error) {
+        return (
+            <LoadingOrError
+                loading={!error}
+                error={error}
+                message="Nemůžu načíst týmové vlastnosti"
+            />
+        );
+    }
+
+    const className = classNames("select field", props.className);
+    return (
+        <select
+            className={className}
+            value={props?.value?.id}
+            onChange={(e) =>
+                props.onChange(
+                    e.target.value ? attributes[e.target.value] : null
+                )
+            }
+        >
+            <option value="">Žádná vlastnost</option>
+            {Object.entries(attributes)
+                .filter(
+                    ([key]) =>
+                        !props.allowed ||
+                        key in props.allowed ||
+                        (props.allowed?.includes && props.allowed.includes(key))
+                )
+                .map(([key, attribute]) => (
+                    <option key={key} value={key}>
+                        {attribute.name}
                     </option>
                 ))}
         </select>

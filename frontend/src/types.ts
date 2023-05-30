@@ -54,6 +54,12 @@ export interface TeamEntityVyroba extends EntityVyroba {
     allowedTiles: string[];
 }
 
+export interface EntityTeamAttribute extends EntityWithCost {}
+
+export interface TeamEntityTeamAttribute extends EntityTeamAttribute {
+    owned: boolean;
+}
+
 export enum TechStatus {
     Owned = "owned",
     Researching = "researching",

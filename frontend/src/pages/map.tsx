@@ -15,14 +15,24 @@ import {
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect, ArmySelectBox } from "../elements/army";
 import { EntityTag, useEntities } from "../elements/entities";
-import { BuildingSelect, TeamTileSelect, TileSelect } from "../elements/map";
+import {
+    BuildingSelect,
+    TeamAttributeSelect,
+    TeamTileSelect,
+    TileSelect,
+} from "../elements/map";
 import { ErrorMessage } from "../elements/messages";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import { EntityResource, Team, TeamEntityResource } from "../types";
+import {
+    EntityResource,
+    Team,
+    TeamEntityResource,
+    TeamEntityTeamAttribute,
+} from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -36,6 +46,7 @@ enum MapActionType {
     army,
     building,
     buildRoad,
+    addAttribute,
     trade,
     discoverTile,
     addCulture,
@@ -53,6 +64,8 @@ function MapActionColorClassNames(action: MapActionType): string {
         case MapActionType.building:
         case MapActionType.buildRoad:
             return "bg-purple-600 hover:bg-purple-700";
+        case MapActionType.addAttribute:
+            return "bg-red-500 hover:bg-red-600";
         case MapActionType.trade:
             return "bg-yellow-500 hover:bg-yellow-600";
         case MapActionType.discoverTile:
@@ -76,6 +89,8 @@ function MapActionName(action: MapActionType): string {
             return "Stavět";
         case MapActionType.buildRoad:
             return "Postavit cestu";
+        case MapActionType.addAttribute:
+            return "Získat vlastnost";
         case MapActionType.trade:
             return "Obchodovat";
         case MapActionType.discoverTile:
@@ -103,6 +118,8 @@ function MapActionAgenda(props: {
             return <BuildingAgenda team={props.team} />;
         case MapActionType.buildRoad:
             return <BuildRoadAgenda team={props.team} />;
+        case MapActionType.addAttribute:
+            return <AddAttributeAgenda team={props.team} />;
         case MapActionType.trade:
             return <TradeAgenda team={props.team} />;
         case MapActionType.discoverTile:
@@ -315,6 +332,57 @@ export function BuildRoadAgenda(props: { team: Team }) {
                             team={props.team}
                             value={tile}
                             onChange={setTile}
+                        />
+                    </FormRow>
+                </>
+            }
+        />
+    );
+}
+
+export function AddAttributeAgenda(props: { team: Team }) {
+    const { data: teamAttributes, error } = useSWR<
+        Record<string, TeamEntityTeamAttribute>
+    >(`game/teams/${props.team.id}/attributes`, fetcher);
+    const setAction = useSetAtom(urlMapActionAtom);
+    const [attribute, setAttribute] = useState<any>(undefined);
+
+    if (!teamAttributes || error) {
+        return (
+            <LoadingOrError
+                loading={!error}
+                error={error}
+                message="Nemůžu načíst vlastnosti dostupné týmu"
+            />
+        );
+    }
+
+    return (
+        <PerformAction
+            actionId="AcquireTeamAttributeAction"
+            actionName={`Získat vlastnost pro tým ${props.team.name}`}
+            actionArgs={{
+                team: props.team.id,
+                attribute: attribute?.id,
+            }}
+            argsValid={(a) => Boolean(a?.team && a?.attribute)}
+            onBack={() => {}}
+            onFinish={() => {
+                setAction(RESET);
+            }}
+            extraPreview={
+                <>
+                    <h1>Získat vlastnost pro tým {props.team.name}</h1>
+                    <FormRow
+                        label="Vyberte vlastnost"
+                        error={!attribute ? "Je třeba vybrat vlastnost" : null}
+                    >
+                        <TeamAttributeSelect
+                            allowed={Object.entries(teamAttributes)
+                                .filter(([key, value]) => !value.owned)
+                                .map(([key]) => key)}
+                            value={attribute}
+                            onChange={setAttribute}
                         />
                     </FormRow>
                 </>
