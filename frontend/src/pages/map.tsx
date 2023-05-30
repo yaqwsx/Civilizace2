@@ -686,11 +686,11 @@ function FeedingForm(props: {
         .filter(
             (e: any) =>
                 e.id.startsWith("mat-") &&
-                (e.typ.id === "typ-jidlo" || e.typ.id === "typ-luxus") &&
+                (e.typ?.id === "typ-jidlo" || e.typ?.id === "typ-luxus") &&
                 !automatedResIds.includes(e.id)
         )
         // @ts-ignore
-        .sort((a, b) => a.typ.level - b.typ.level);
+        .sort((a, b) => a.typ?.name.localeCompare(b.typ?.name));
 
     let missing =
         Object.values(props.feeding).reduce((a, b) => a + b, 0) -
@@ -718,7 +718,7 @@ function FeedingForm(props: {
                 <div key={resType}>
                     <h2>{resType === "typ-jidlo" ? "Jídlo" : "Luxus"}</h2>
                     {automatedRes
-                        .filter(([r, recommended]: any) => r.typ.id === resType)
+                        .filter(([r, recommended]: any) => r.typ?.id === resType)
                         .map(([r, recommended]: any) => (
                             <FormRow
                                 key={r.id}
