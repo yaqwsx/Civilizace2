@@ -1095,6 +1095,16 @@ class EntityParser:
                 )
             )
 
+        with err_handler.add_context("teamAttributes"):
+            add_entities(
+                parseSheet(
+                    TeamAttribute,
+                    data["teamAttributes"],
+                    allowed_prefixes=["att"],
+                    entities=entities_map,
+                    err_handler=err_handler,
+                )
+            )
         with err_handler.add_context("buildings"):
             add_entities(
                 parseSheet(

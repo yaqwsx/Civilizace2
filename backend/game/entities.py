@@ -197,6 +197,7 @@ Entity = Union[
     Vyroba,
     Building,
     BuildingUpgrade,
+    TeamAttribute,
     Tech,
     MapTileEntity,
     TeamEntity,
@@ -275,7 +276,15 @@ class Entities(frozendict[EntityId, Entity]):
 
     @cached_property
     def building_upgrades(self) -> frozendict[EntityId, BuildingUpgrade]:
-        return frozendict({k: v for k, v in self.items() if isinstance(v, BuildingUpgrade)})
+        return frozendict(
+            {k: v for k, v in self.items() if isinstance(v, BuildingUpgrade)}
+        )
+
+    @cached_property
+    def team_attributes(self) -> frozendict[EntityId, TeamAttribute]:
+        return frozendict(
+            {k: v for k, v in self.items() if isinstance(v, TeamAttribute)}
+        )
 
     @cached_property
     def techs(self) -> frozendict[EntityId, Tech]:
