@@ -37,7 +37,7 @@ def checkAndSave(
     for x in [
         "tymy",
         "orgove",
-        "natuaral resources",
+        "natural resources",
         "types of resources",
         "map tiles",
         "buildings",

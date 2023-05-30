@@ -4,13 +4,14 @@ from game.viewsets.action_no_init import NoInitActionViewSet
 from game.viewsets.action_team import TeamActionViewSet
 from game.viewsets.action_view_helper import ActionLogViewSet
 from game.viewsets.armies import ArmiesViewSet
-from game.viewsets.entity import EntityViewSet, TeamViewSet
+from game.viewsets.entity import EntityViewSet
 from game.viewsets.map import MapViewSet
 from game.viewsets.mapdiff import MapDiffViewSet
 from game.viewsets.printers import PrinterViewSet
 from game.viewsets.state import StateViewSet
 from game.viewsets.stickers import StickerViewSet
 from game.viewsets.tasks import TaskViewSet
+from game.viewsets.team import TeamViewSet
 from game.viewsets.tick import TickViewSet
 from game.viewsets.turns import TurnsViewSet
 
