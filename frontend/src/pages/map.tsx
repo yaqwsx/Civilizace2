@@ -31,11 +31,11 @@ export function MapMenu() {
 }
 
 enum MapActionType {
-    building,
-    buildRoad,
     feeding,
     automateFeeding,
     army,
+    building,
+    buildRoad,
     trade,
     discoverTile,
     addCulture,
@@ -43,21 +43,66 @@ enum MapActionType {
 
 const urlMapActionAtom = atomWithHash<MapActionType | null>("mapAction", null);
 
+function MapActionColorClassNames(action: MapActionType): string {
+    switch (action) {
+        case MapActionType.feeding:
+        case MapActionType.automateFeeding:
+            return "bg-green-600 hover:bg-green-700";
+        case MapActionType.army:
+            return "bg-orange-600 hover:bg-orange-700";
+        case MapActionType.building:
+        case MapActionType.buildRoad:
+            return "bg-purple-600 hover:bg-purple-700";
+        case MapActionType.trade:
+            return "bg-yellow-500 hover:bg-yellow-600";
+        case MapActionType.discoverTile:
+        case MapActionType.addCulture:
+            return "bg-blue-500 hover:bg-blue-600";
+        default:
+            const exhaustiveCheck: never = action;
+            return "bg-gray-500 hover:bg-gray-600"; // For invalid Enum value
+    }
+}
+
+function MapActionName(action: MapActionType): string {
+    switch (action) {
+        case MapActionType.feeding:
+            return "Krmení";
+        case MapActionType.automateFeeding:
+            return "Automatizovat krmení";
+        case MapActionType.army:
+            return "Armáda";
+        case MapActionType.building:
+            return "Stavět";
+        case MapActionType.buildRoad:
+            return "Postavit cestu";
+        case MapActionType.trade:
+            return "Obchodovat";
+        case MapActionType.discoverTile:
+            return "Objevit dílek";
+        case MapActionType.addCulture:
+            return "Přidat kulturu";
+        default:
+            const exhaustiveCheck: never = action;
+            return String(action); // For invalid Enum value
+    }
+}
+
 function MapActionAgenda(props: {
     action: MapActionType;
     team: Team;
 }): JSX.Element {
     switch (props.action) {
+        case MapActionType.feeding:
+            return <FeedingAgenda team={props.team} />;
+        case MapActionType.automateFeeding:
+            return <AutomateFeedingAgenda team={props.team} />;
         case MapActionType.army:
             return <ArmyManipulation team={props.team} />;
         case MapActionType.building:
             return <BuildingAgenda team={props.team} />;
         case MapActionType.buildRoad:
             return <BuildRoadAgenda team={props.team} />;
-        case MapActionType.feeding:
-            return <FeedingAgenda team={props.team} />;
-        case MapActionType.automateFeeding:
-            return <AutomateFeedingAgenda team={props.team} />;
         case MapActionType.trade:
             return <TradeAgenda team={props.team} />;
         case MapActionType.discoverTile:
@@ -66,7 +111,7 @@ function MapActionAgenda(props: {
             return <CultureAgenda team={props.team} />;
         default:
             const exhaustiveCheck: never = props.action;
-            return <></>; // Empty for invalid Enum value
+            return <></>; // For invalid Enum value
     }
 }
 
@@ -99,50 +144,22 @@ export function MapAgenda() {
             {team ? (
                 <>
                     <FormRow label="Vyberte akci:">
-                        <Button
-                            label="Krmit"
-                            className="m-2 flex-1 bg-green-600 hover:bg-green-700"
-                            onClick={() => setAction(MapActionType.feeding)}
-                        />
-                        <Button
-                            label="Automatizovat krmení"
-                            className="m-2 flex-1 bg-green-600 hover:bg-green-700"
-                            onClick={() =>
-                                setAction(MapActionType.automateFeeding)
-                            }
-                        />
-                        <Button
-                            label="Armáda"
-                            className="m-2 flex-1 bg-orange-600 hover:bg-orange-700"
-                            onClick={() => setAction(MapActionType.army)}
-                        />
-                        <Button
-                            label="Stavět"
-                            className="m-2 flex-1"
-                            onClick={() => setAction(MapActionType.building)}
-                        />
-                        <Button
-                            label="Postavit cestu"
-                            className="m-2 flex-1"
-                            onClick={() => setAction(MapActionType.buildRoad)}
-                        />
-                        <Button
-                            label="Obchodovat"
-                            className="m-2 flex-1 bg-yellow-500 hover:bg-yellow-600"
-                            onClick={() => setAction(MapActionType.trade)}
-                        />
-                        <Button
-                            label="Objevit dílek"
-                            className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
-                            onClick={() =>
-                                setAction(MapActionType.discoverTile)
-                            }
-                        />
-                        <Button
-                            label="Přidat kulturu"
-                            className="m-2 flex-1 bg-blue-500 hover:bg-blue-600"
-                            onClick={() => setAction(MapActionType.addCulture)}
-                        />
+                        {Object.values(MapActionType)
+                            .map(Number)
+                            .filter((value) => !isNaN(value))
+                            .map((value) => value as MapActionType)
+                            .map((action) => {
+                                const colorClassNames =
+                                    MapActionColorClassNames(action);
+                                return (
+                                    <Button
+                                        key={action}
+                                        label={MapActionName(action)}
+                                        className={`m-2 flex-1 ${colorClassNames}`}
+                                        onClick={() => setAction(action)}
+                                    />
+                                );
+                            })}
                     </FormRow>
                     <TeamRowIndicator team={team} />
 
@@ -341,7 +358,7 @@ export function TradeAgenda(props: { team: Team }) {
     return (
         <PerformAction
             actionId="TradeAction"
-            actionName={`Obchod ${props.team.name} → ${recipient?.name}`}
+            actionName={`Obchod ${props.team.name} → ${recipient?.name ?? ""}`}
             actionArgs={{
                 team: props.team.id,
                 receiver: recipient?.id,
@@ -717,7 +734,9 @@ function FeedingForm(props: {
                 <div key={resType}>
                     <h2>{resType === "typ-jidlo" ? "Jídlo" : "Luxus"}</h2>
                     {automatedRes
-                        .filter(([r, recommended]: any) => r.typ?.id === resType)
+                        .filter(
+                            ([r, recommended]: any) => r.typ?.id === resType
+                        )
                         .map(([r, recommended]: any) => (
                             <FormRow
                                 key={r.id}
