@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+
 from core.models.announcement import Announcement, AnnouncementType
 from core.models.team import Team
 from core.models.user import User
-from core.serializers.fields import TextEnumField
+from core.serializers.fields import TextEnumSerializer
 from core.serializers.user import UserSerializer
 
 
@@ -22,7 +23,7 @@ class TeamIdSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     teams = TeamIdSerializer(many=True)
-    type = TextEnumField(AnnouncementType.choices)
+    type = TextEnumSerializer(AnnouncementType)
 
     class Meta:
         model = Announcement

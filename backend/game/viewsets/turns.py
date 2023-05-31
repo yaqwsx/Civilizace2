@@ -26,14 +26,14 @@ class TurnsViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def list(self, request):
-        if not request.user.isOrg:
+        if not request.user.is_org:
             raise PermissionError()
         turns = DbTurn.objects.all().order_by("id")
         serializer = DbTurnSerializer(turns, many=True)
         return Response(serializer.data)
 
     def update(self, request, pk):
-        if not request.user.isOrg:
+        if not request.user.is_org:
             raise PermissionError()
 
         turn = get_object_or_404(DbTurn, pk=pk)

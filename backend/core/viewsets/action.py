@@ -1,8 +1,13 @@
+import typing
 from enum import Enum
 from typing import Any, Dict, Type
-import typing
+
+from pydantic.fields import ModelField
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
+
 from game.actions import GAME_ACTIONS, GameAction, actionId
 from game.actions.actionBase import (
     ActionCommonBase,
@@ -10,17 +15,13 @@ from game.actions.actionBase import (
     TeamInteractionActionBase,
 )
 from game.viewsets.permissions import IsOrg
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.request import Request
-from pydantic.fields import ModelField
 
 
 class ActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
     @staticmethod
-    def typeInfo(outer_type: Type) -> Dict[str, Any]:
+    def type_info(outer_type: Type[Any]) -> Dict[str, Any]:
         if isinstance(outer_type, type):
             if issubclass(outer_type, Enum):
                 return {
@@ -35,28 +36,28 @@ class ActionViewSet(viewsets.ViewSet):
             return {
                 "type": typing.get_origin(outer_type).__name__,
                 "subtypes": [
-                    ActionViewSet.typeInfo(subtype)
+                    ActionViewSet.type_info(subtype)
                     for subtype in typing.get_args(outer_type)
                 ],
             }
-        assert False, f"Not expected type {outer_type} (check if it's a ForwardRef)"
+        assert False, f"Not expected type {outer_type!r} (check if it's a ForwardRef)"
 
     @staticmethod
-    def fieldInfo(field: ModelField) -> Dict[str, Any]:
-        info = ActionViewSet.typeInfo(field.outer_type_)
+    def field_info(field: ModelField) -> Dict[str, Any]:
+        info = ActionViewSet.type_info(field.outer_type_)
         info["required"] = bool(field.required)
         if not field.required:
             info["default"] = field.get_default()
         return info
 
     @staticmethod
-    def serialize_action(action: GameAction):
+    def serialize_action_args(action: GameAction):
         assert isinstance(action.action, type)
         assert issubclass(action.action, ActionCommonBase)
-        assert issubclass(action.action, TeamInteractionActionBase | NoInitActionBase)
+        assert issubclass(action.action, (TeamInteractionActionBase, NoInitActionBase))
 
         args = {
-            name: ActionViewSet.fieldInfo(field)
+            name: ActionViewSet.field_info(field)
             for name, field in action.argument.__fields__.items()
         }
 
@@ -68,5 +69,8 @@ class ActionViewSet(viewsets.ViewSet):
 
     def list(self, request: Request):
         return Response(
-            [ActionViewSet.serialize_action(action) for action in GAME_ACTIONS.values()]
+            [
+                ActionViewSet.serialize_action_args(action)
+                for action in GAME_ACTIONS.values()
+            ]
         )

@@ -34,7 +34,7 @@ class TeamViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def validateAccess(self, user: User, teamId: TeamId) -> None:
-        if not user.isOrg:
+        if not user.is_org:
             assert user.team is not None
             if user.team.id != teamId:
                 raise PermissionDenied("Nedovolený přístup")
@@ -50,14 +50,9 @@ class TeamViewSet(viewsets.ViewSet):
         return state.teamStates[team], entities
 
     def unreadAnnouncements(self, user: User, team: Team) -> QuerySet[Announcement]:
-        if user.isOrg:
-            return Announcement.objects.getTeamUnread(team)
-        return Announcement.objects.getUnread(user)
-
-    def list(self, request: Request):
-        if not request.user.isOrg:
-            raise PermissionDenied("Nedovolený přístup")
-        return Response(TeamSerializer(Team.objects.all(), many=True).data)
+        if user.is_org:
+            return Announcement.objects.get_team_unread(team)
+        return Announcement.objects.get_unread(user)
 
     def retrieve(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
@@ -69,14 +64,14 @@ class TeamViewSet(viewsets.ViewSet):
     def serializeArmy(a: Army, reachableTiles) -> Dict[str, Any]:
         return {
             "index": a.index,
-            "team": a.team,
+            "team": a.team.id,
             "name": a.name,
             "level": a.level,
             "equipment": a.equipment,
             "boost": a.boost,
             "tile": a.tile.id if a.tile is not None else None,
-            "mode": str(a.mode).split(".")[1],
-            "goal": str(a.goal).split(".")[1] if a.goal is not None else None,
+            "mode": a.mode.name,
+            "goal": a.goal.name if a.goal is not None else None,
             "reachableTiles": [t.id for t in reachableTiles]
             if reachableTiles is not None
             else None,
@@ -182,7 +177,7 @@ class TeamViewSet(viewsets.ViewSet):
     def tasks(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(Team.objects.all(), pk=pk)
-        if request.user.isOrg:
+        if request.user.is_org:
             taskSet = DbTask.objects.all()
             serializer = DbTaskSerializer
         else:
@@ -200,7 +195,7 @@ class TeamViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=["POST"], permission_classes=[IsOrg])
     def changetask(self, request: Request, pk: TeamId) -> Response:
-        assert request.user.isOrg
+        assert request.user.is_org
         team = get_object_or_404(Team.objects.all(), pk=pk)
 
         deserializer = ChangeTaskSerializer(data=request.data)
@@ -273,7 +268,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "announcements": [
                     {
                         "id": announcement.id,
-                        "type": announcement.typeString(),
+                        "type": announcement.type.name,
                         "content": announcement.content,
                         "read": False,
                         "appearDatetime": announcement.appearDatetime,
@@ -296,15 +291,15 @@ class TeamViewSet(viewsets.ViewSet):
             [
                 {
                     "id": announcement.id,
-                    "type": announcement.typeString(),
+                    "type": announcement.type.name,
                     "content": announcement.content,
                     "read": request.user in announcement.read.all(),
                     "appearDatetime": announcement.appearDatetime,
                     "readBy": set([x.team.name for x in announcement.read.all()])
-                    if request.user.isOrg
+                    if request.user.is_org
                     else None,
                 }
-                for announcement in Announcement.objects.getTeam(team)
+                for announcement in Announcement.objects.get_team(team)
             ]
         )
 

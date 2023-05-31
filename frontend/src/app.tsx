@@ -187,7 +187,7 @@ function OrgMenu() {
     const account = useSelector((state: RootState) => state.auth.account);
     const [teamId] = useTeamIdFromUrl();
 
-    if (account === null || !account.user.isOrg) {
+    if (account === null || !account.user.is_org) {
         return null;
     }
 
@@ -380,7 +380,7 @@ function AppPages() {
     return (
         <AppFrame>
             <ScannerNavigator />
-            {account?.user?.isOrg ? <UnfinishedActionBar /> : <></>}
+            {account?.user?.is_org ? <UnfinishedActionBar /> : <></>}
             <Routes>
                 <Route
                     path="/dashboard/*"

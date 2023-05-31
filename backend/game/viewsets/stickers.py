@@ -44,7 +44,7 @@ class PrintSerializer(serializers.Serializer):
 class StickerViewSet(viewsets.ViewSet):
     def _getSticker(self, user, pk):
         sticker = get_object_or_404(DbSticker.objects.all(), pk=pk)
-        # if not user.isOrg and user.team != sticker.team:
+        # if not user.is_org and user.team != sticker.team:
         #     raise PermissionDenied("Nedovolený přístup")
         return sticker
 

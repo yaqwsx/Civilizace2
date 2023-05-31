@@ -1,9 +1,11 @@
-from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.viewsets import ModelViewSet, ViewSet
-from rest_framework.permissions import AllowAny
 from rest_framework import status
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from core.serializers.auth import LoginSerializer
 
 
@@ -12,7 +14,7 @@ class LoginViewSet(ModelViewSet, TokenObtainPairView):
     permission_classes = (AllowAny,)
     http_method_names = ["post"]
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         try:
@@ -20,14 +22,14 @@ class LoginViewSet(ModelViewSet, TokenObtainPairView):
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        return Response(serializer.validated_data)
 
 
 class RefreshViewSet(ViewSet, TokenRefreshView):
     permission_classes = (AllowAny,)
     http_method_names = ["post"]
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
         try:
@@ -35,4 +37,4 @@ class RefreshViewSet(ViewSet, TokenRefreshView):
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        return Response(serializer.validated_data)

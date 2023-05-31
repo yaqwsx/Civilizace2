@@ -90,7 +90,7 @@ function DashboardMenuImpl() {
         { url: "stickers", name: "Samolepky", orgOnly: true },
     ];
 
-    let accessibleSubLinks = user?.isOrg
+    let accessibleSubLinks = user?.is_org
         ? subLinks
         : subLinks.filter((x) => !x.orgOnly);
 
@@ -107,7 +107,7 @@ function DashboardMenuImpl() {
 
     return (
         <>
-            {user?.isOrg ? <MiddleTeamMenu teams={teams} /> : null}
+            {user?.is_org ? <MiddleTeamMenu teams={teams} /> : null}
             <ul className="list-reset w-full flex-1 items-center border-b-2 border-gray-600 px-4 md:px-0 lg:flex lg:border-none">
                 {accessibleSubLinks.map((l) => (
                     <li key={l.url} className="my-2 mr-6 list-none md:my-0">
@@ -164,14 +164,14 @@ export function Dashboard() {
                 <Route
                     path=""
                     element={
-                        user?.isOrg ? (
+                        user?.is_org ? (
                             <Navigate
                                 to={`${urlTeamId || firstTeam.id}/#team=${
                                     urlTeamId || firstTeam.id
                                 }`}
                             />
                         ) : (
-                            <Navigate to={`${user?.team.id}`} />
+                            <Navigate to={`${user?.team?.id}`} />
                         )
                     }
                 />
@@ -239,7 +239,7 @@ function TeamOverview() {
                 </>
             ) : null}
 
-            {account?.user?.isOrg ? (
+            {account?.user?.is_org ? (
                 <CardSection name="Org menu">
                     <Card
                         label="Technologie vlastněné týmem"
@@ -574,7 +574,7 @@ function Announcement(props: {
                 <div className="m-2 inline-block w-full md:w-auto md:flex-grow">
                     <CiviMarkdown>{props.content}</CiviMarkdown>
                 </div>
-                {!props.read && !user.isOrg ? (
+                {!props.read && !user.is_org ? (
                     <div className="inline-block w-full md:w-auto">
                         <Button
                             label={
@@ -698,7 +698,7 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
                     })}
                 </div>
 
-                {auth.account?.user?.isOrg && (
+                {auth.account?.user?.is_org && (
                     <div className="flex flex-wrap">
                         <Button
                             disabled={isUpdating}

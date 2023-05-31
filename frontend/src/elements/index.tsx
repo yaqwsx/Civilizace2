@@ -34,7 +34,7 @@ type RequireOrgProps = {
 };
 export function RequireOrg({ children }: RequireOrgProps) {
     const auth = useSelector((state: RootState) => state.auth);
-    return auth.account?.user?.isOrg ? (
+    return auth.account?.user?.is_org ? (
         <>{children}</>
     ) : (
         <Navigate to="/forbidden" />
@@ -43,7 +43,7 @@ export function RequireOrg({ children }: RequireOrgProps) {
 
 export function RequireSuperOrg({ children }: RequireOrgProps) {
     const auth = useSelector((state: RootState) => state.auth);
-    return auth.account?.user?.isOrg && auth.account?.user?.is_superuser ? (
+    return auth.account?.user?.is_org && auth.account?.user?.is_superuser ? (
         <>{children}</>
     ) : (
         <Navigate to="/forbidden" />

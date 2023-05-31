@@ -9,9 +9,9 @@ export interface Team {
 export interface User {
     id: string;
     username: string;
-    isOrg: boolean;
-    team: Team;
+    is_org: boolean;
     is_superuser: boolean;
+    team?: Team;
 }
 
 type ResourceId = string;

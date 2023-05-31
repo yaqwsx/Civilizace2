@@ -16,7 +16,7 @@ class TeamViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         assert isinstance(self.request.user, User)
-        if self.request.user.isOrg:
+        if self.request.user.is_org:
             return Team.objects.all()
         return Team.objects.filter(visible=True)
 

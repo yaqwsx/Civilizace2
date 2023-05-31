@@ -1,3 +1,6 @@
+from typing import Optional, Type
+
+from django_enumfield import enum
 from rest_framework import serializers
 
 
@@ -22,4 +25,24 @@ class TextEnumField(serializers.ChoiceField):
         for key, val in self._choices.items():
             if val.lower() == data:
                 return key
+        self.fail("invalid_choice", input=data)
+
+
+class TextEnumSerializer(serializers.Field):
+    def __init__(self, enum_type: Type[enum.Enum], *args, **kwargs):
+        self.enum_type = enum_type
+        super().__init__(*args, allow_null=True, **kwargs)
+
+    def to_representation(self, obj: Optional[enum.Enum]) -> Optional[str]:
+        return obj.name if obj is not None else None
+
+    def to_internal_value(self, data: Optional[str]) -> Optional[enum.Enum]:
+        if data is None or data == "":
+            return None
+
+        value = self.enum_type._member_map_.get(str(data))
+        if value is not None:
+            assert isinstance(value, self.enum_type)
+            return value
+
         self.fail("invalid_choice", input=data)

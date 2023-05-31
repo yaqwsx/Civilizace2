@@ -37,33 +37,6 @@ class Command(BaseCommand):
 
     help = "usage: create [entities|users|state]+"
 
-    @staticmethod
-    def create_or_update_user(
-        username: str,
-        password: str,
-        *,
-        superuser: bool = False,
-        team: Optional[Team] = None,
-    ) -> User:
-        assert password is not None
-        assert not superuser or team is None
-        try:
-            user: User = User.objects.get(username=username)
-            user.set_password(password)
-            user.team = team
-            user.is_superuser = superuser
-            user.save()
-            return user
-        except User.DoesNotExist:
-            if superuser:
-                return User.objects.create_superuser(
-                    username=username, password=password
-                )
-            else:
-                return User.objects.create_user(
-                    username=username, password=password, team=team
-                )
-
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("set", type=str)
@@ -102,9 +75,9 @@ class Command(BaseCommand):
     @staticmethod
     def create_orgs(orgs: frozendict[EntityId, OrgEntity]) -> None:
         for org in orgs.values():
-            assert org.username is not None, f"Org {org} cannot have a blank username"
-            assert org.password is not None, f"Org {org} cannot have a blank password"
-            Command.create_or_update_user(
+            assert org.username, f"Org {org} cannot have a blank username"
+            assert org.password, f"Org {org} cannot have a blank password"
+            User.update_or_create(
                 username=org.username,
                 password=org.password,
                 superuser=org.role == OrgRole.SUPER,
@@ -120,13 +93,9 @@ class Command(BaseCommand):
                 visible=team.visible,
             )
             for i in range(4):
-                assert (
-                    team.username is not None
-                ), f"Team {team} cannot have a blank username"
-                assert (
-                    team.password is not None
-                ), f"Team {team} cannot have a blank password"
-                Command.create_or_update_user(
+                assert team.username, f"Team {team} cannot have a blank username"
+                assert team.password, f"Team {team} cannot have a blank password"
+                User.update_or_create(
                     username=f"{team.id[4:]}{i+1}",
                     password=team.password,
                     superuser=False,
