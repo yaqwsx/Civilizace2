@@ -155,6 +155,7 @@ function AnnouncementItem(props: {
                                 return null;
                             return (
                                 <div
+                                    key={team.id}
                                     className={classNames(
                                         "flex-none",
                                         "w-6",
@@ -423,8 +424,8 @@ function AnnouncementEditForm(props: {
                     <div className="flex w-full flex-row flex-wrap">
                         {props.teams.map((t) => (
                             <div
-                                className="m-2 flex-none rounded bg-white p-2 shadow"
                                 key={t.id}
+                                className="m-2 flex-none rounded bg-white p-2 shadow"
                             >
                                 <Field
                                     type="checkbox"
