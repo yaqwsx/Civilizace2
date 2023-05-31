@@ -67,13 +67,7 @@ class Announcement(models.Model):
     objects = AnnouncementManager()
 
     def typeString(self):
-        return {1: "normal", 2: "important", 3: "game"}[self.type]
-
-    def allowedTeams(self):
-        return self.teamStatuses.filter(visible=True)
-
-    def isPublic(self):
-        return self.allowedTeams().count() == Team.objects.count()
+        return AnnouncementType(self.type).name
 
     def seenByTeamAt(self, team: Team) -> Optional[datetime]:
         try:
