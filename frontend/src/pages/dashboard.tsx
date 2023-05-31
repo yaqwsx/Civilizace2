@@ -193,6 +193,17 @@ export function Dashboard() {
     );
 }
 
+function CardSection(props: { name: string; children?: any }) {
+    return (
+        <div className="section w-full">
+            <h2 className="text-xl" id="section-1">
+                {props.name}
+            </h2>
+            <div className="flex w-full flex-wrap">{props.children}</div>
+        </div>
+    );
+}
+
 function TeamOverview() {
     const { teamId } = useParams();
     const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
@@ -226,11 +237,8 @@ function TeamOverview() {
                 </>
             ) : null}
 
-            {account?.user?.isOrg && (
-                <div className="section w-full">
-                    <h2 className="text-xl" id="section-1">
-                        Org menu
-                    </h2>
+            {account?.user?.isOrg ? (
+                <CardSection name="Org menu">
                     <Card
                         label="Technologie vlastněné týmem"
                         color={team.color}
@@ -244,16 +252,10 @@ function TeamOverview() {
                             ))}
                         </ul>
                     </Card>
-                </div>
-            )}
+                </CardSection>
+            ) : null}
 
-            <div className="section w-full">
-                <h2 className="text-xl" id="section-1">
-                    Souhrnné informace
-                </h2>
-            </div>
-
-            <div className="flex w-full flex-wrap">
+            <CardSection name="Souhrnné informace">
                 <Card label="Populace" color={team.color} icon={faUsers}>
                     {data.population.nospec}/{data.population.all}
                     <div className="w-full text-center text-sm text-gray-400">
@@ -283,144 +285,128 @@ function TeamOverview() {
                 >
                     {data.culture}
                 </Card>
-            </div>
+            </CardSection>
 
-            <div className="section w-full">
-                <h2 className="text-xl" id="section-1">
-                    Ekonomika
-                </h2>
+            <CardSection name="Ekonomika">
+                <Card
+                    label="Právě zkoumané technologie"
+                    color={team.color}
+                    icon={faCogs}
+                >
+                    {data.researchingTechs.length ? (
+                        <ul className="list-disc text-left">
+                            {data.researchingTechs.map((t: any) => (
+                                <li key={t.id}>{t.name}</li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <span>Právě nezkoumáte žádné technologie.</span>
+                    )}
+                </Card>
 
-                <div className="flex w-full flex-wrap">
-                    <Card
-                        label="Právě zkoumané technologie"
-                        color={team.color}
-                        icon={faCogs}
-                    >
-                        {data.researchingTechs.length ? (
+                <Card
+                    label="Dostupné produkce"
+                    color={team.color}
+                    icon={faWarehouse}
+                >
+                    {data.productions.length ? (
+                        <ul className="list-disc text-left">
+                            {data.productions.map((p: any) => (
+                                <li key={p[0]}>
+                                    <EntityTag id={p[0]} quantity={p[1]} />
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <span>Nevlastníte žádné produkce</span>
+                    )}
+                </Card>
+
+                <Card
+                    label="Materiály ve skladu"
+                    color={team.color}
+                    icon={faWarehouse}
+                >
+                    {data.storage.length ? (
+                        <ul className="list-disc text-left">
+                            {data.storage.map((p: any) => (
+                                <li key={p[0]}>
+                                    <EntityTag id={p[0]} quantity={p[1]} />
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <span>Sklad je prázdný</span>
+                    )}
+                </Card>
+                <Card
+                    label="Zásobování centra"
+                    color={team.color}
+                    icon={faWheatAwn}
+                >
+                    {data.granary.length ? (
+                        <>
+                            Maximálně bonusů: {data.feeding.casteCount}
+                            <br />
+                            Potřeba žetonů, aby nikdo neumřel:{" "}
+                            {data.feeding.tokensRequired}
+                            <br />
+                            Potřeba žetonů pro spokojenost kasty:{" "}
+                            {data.feeding.tokensPerCaste}
                             <ul className="list-disc text-left">
-                                {data.researchingTechs.map((t: any) => (
-                                    <li key={t.id}>{t.name}</li>
-                                ))}
+                                {data.granary.map((p: any) => {
+                                    let missing =
+                                        p[1] - data.feeding.tokensPerCaste;
+                                    return (
+                                        <li key={p[0]}>
+                                            <EntityTag
+                                                id={p[0]}
+                                                quantity={p[1]}
+                                            />{" "}
+                                            (
+                                            {missing < 0 ? (
+                                                <span className="text-red-500">
+                                                    {missing}
+                                                </span>
+                                            ) : (
+                                                <span className="text-green-500">
+                                                    +{missing}
+                                                </span>
+                                            )}
+                                            )
+                                        </li>
+                                    );
+                                })}
                             </ul>
-                        ) : (
-                            <span>Právě nezkoumáte žádné technologie.</span>
-                        )}
-                    </Card>
+                        </>
+                    ) : (
+                        <span>Zatím nezásobujete centrum</span>
+                    )}
+                </Card>
+            </CardSection>
 
+            <CardSection name="Armády">
+                {data.armies.map((a: any) => (
                     <Card
-                        label="Dostupné produkce"
+                        key={a.index}
+                        label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}
                         color={team.color}
-                        icon={faWarehouse}
+                        icon={faShieldHalved}
                     >
-                        {data.productions.length ? (
-                            <ul className="list-disc text-left">
-                                {data.productions.map((p: any) => (
-                                    <li key={p[0]}>
-                                        <EntityTag id={p[0]} quantity={p[1]} />
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <span>Nevlastníte žádné produkce</span>
-                        )}
+                        <ArmyDescription army={a} orgView={false} />
                     </Card>
+                ))}
+            </CardSection>
 
-                    <Card
-                        label="Materiály ve skladu"
-                        color={team.color}
-                        icon={faWarehouse}
-                    >
-                        {data.storage.length ? (
-                            <ul className="list-disc text-left">
-                                {data.storage.map((p: any) => (
-                                    <li key={p[0]}>
-                                        <EntityTag id={p[0]} quantity={p[1]} />
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <span>Sklad je prázdný</span>
-                        )}
-                    </Card>
-                    <Card
-                        label="Zásobování centra"
-                        color={team.color}
-                        icon={faWheatAwn}
-                    >
-                        {data.granary.length ? (
-                            <>
-                                Maximálně bonusů: {data.feeding.casteCount}
-                                <br />
-                                Potřeba žetonů, aby nikdo neumřel:{" "}
-                                {data.feeding.tokensRequired}
-                                <br />
-                                Potřeba žetonů pro spokojenost kasty:{" "}
-                                {data.feeding.tokensPerCaste}
-                                <ul className="list-disc text-left">
-                                    {data.granary.map((p: any) => {
-                                        let missing =
-                                            p[1] - data.feeding.tokensPerCaste;
-                                        return (
-                                            <li key={p[0]}>
-                                                <EntityTag
-                                                    id={p[0]}
-                                                    quantity={p[1]}
-                                                />{" "}
-                                                (
-                                                {missing < 0 ? (
-                                                    <span className="text-red-500">
-                                                        {missing}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-green-500">
-                                                        +{missing}
-                                                    </span>
-                                                )}
-                                                )
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </>
-                        ) : (
-                            <span>Zatím nezásobujete centrum</span>
-                        )}
-                    </Card>
-                </div>
-            </div>
-            <div className="section w-full">
-                <h2 className="text-xl" id="section-1">
-                    Armády
-                </h2>
-
-                <div className="flex w-full flex-wrap">
-                    {data.armies.map((a: any) => (
-                        <Card
-                            key={a.index}
-                            label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}
-                            color={team.color}
-                            icon={faShieldHalved}
-                        >
-                            <ArmyDescription army={a} orgView={false} />
-                        </Card>
-                    ))}
-                </div>
-            </div>
-            <div className="section w-full">
-                <h2 className="text-xl" id="section-1">
-                    Různé
-                </h2>
-
-                <div className="flex w-full flex-wrap">
-                    <Card label="Krmení" color={team.color} icon={faQrcode}>
-                        <QRCode
-                            value={`krm-${team.id}`}
-                            size={128}
-                            className="m-10 mx-auto max-h-40"
-                        />
-                    </Card>
-                </div>
-            </div>
+            <CardSection name="Různé">
+                <Card label="Krmení" color={team.color} icon={faQrcode}>
+                    <QRCode
+                        value={`krm-${team.id}`}
+                        size={128}
+                        className="m-10 mx-auto max-h-40"
+                    />
+                </Card>
+            </CardSection>
         </>
     );
 }
