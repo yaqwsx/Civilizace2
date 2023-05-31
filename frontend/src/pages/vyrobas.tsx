@@ -361,7 +361,7 @@ function WithdrawStorage(props: { team: Team }) {
                                     );
                                 }}
                             >
-                                <EntityTag id={r} /> (max {maxV}):{" "}
+                                <EntityTag id={r} /> (max {maxV}):
                             </span>
                         </>
                     }

@@ -84,7 +84,7 @@ function Login() {
                                 </label>
                                 {formik.errors.username ? (
                                     <div className="pr-4 text-right text-sm text-red-700">
-                                        {formik.errors.username}{" "}
+                                        {formik.errors.username}
                                     </div>
                                 ) : null}
                             </div>
@@ -113,7 +113,7 @@ function Login() {
                                 </label>
                                 {formik.errors.password ? (
                                     <div className="pr-4 text-right text-sm text-red-700">
-                                        {formik.errors.password}{" "}
+                                        {formik.errors.password}
                                     </div>
                                 ) : null}
                             </div>

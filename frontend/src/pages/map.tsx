@@ -784,7 +784,7 @@ function FeedingForm(props: {
         <>
             <h1>Krmení týmu {props.team.name}</h1>
             <FormRow label="Parametry krmení">
-                <span className="mx-3">Kast: {feedReq.casteCount},</span>{" "}
+                <span className="mx-3">Kast: {feedReq.casteCount}, </span>
                 <span className="mx-3">
                     Vyžadováno žetonů: {feedReq.tokensRequired}{" "}
                     {missing < 0 && (
@@ -792,8 +792,8 @@ function FeedingForm(props: {
                             (chybí {-missing})
                         </span>
                     )}
-                    ,
-                </span>{" "}
+                    ,{" "}
+                </span>
                 <span className="mx-3">
                     Žetonů na kastu: {feedReq.tokensPerCaste}
                 </span>
