@@ -52,6 +52,7 @@ class AnnouncementManager(models.Manager):
 
 
 class Announcement(models.Model):
+    id = models.BigAutoField(primary_key=True)
     author = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="announcementsFrom", null=True
     )
