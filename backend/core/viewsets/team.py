@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from core.serializers import TeamSerializer
 from core.models import Team, User
 from rest_framework import viewsets
@@ -22,7 +23,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     def get_object(self):
         lookupFieldValue = self.kwargs[self.lookup_field]
 
-        obj = self.get_queryset().get(pk=lookupFieldValue)
+        obj = get_object_or_404(self.get_queryset(), pk=lookupFieldValue)
         self.check_object_permissions(self.request, obj)
 
         return obj

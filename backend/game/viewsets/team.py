@@ -197,9 +197,9 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response({"work": state.work})
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], permission_classes=[IsOrg])
     def changetask(self, request: Request, pk: TeamId) -> Response:
-        self.validateAccess(request.user, pk)
+        assert request.user.isOrg
         team = get_object_or_404(Team.objects.all(), pk=pk)
 
         deserializer = ChangeTaskSerializer(data=request.data)

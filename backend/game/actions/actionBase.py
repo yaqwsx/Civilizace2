@@ -357,8 +357,10 @@ class TeamInteractionActionBase(TeamActionBase):
             if amount == 0:
                 continue
 
+            assert self.entities.obyvatel.isTracked
             if not resource.isTracked:
                 tokens[resource] = amount
+                continue
 
             if resource == self.entities.obyvatel:
                 value, denom = amount.as_integer_ratio()
@@ -380,7 +382,6 @@ class TeamInteractionActionBase(TeamActionBase):
             f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}",
         )
 
-        # TODO check if multiple runs of commit can happen (would result in multiplicating input cost)
         for resource, amount in resources.items():
             if resource not in self.paid:
                 self.paid[resource] = Decimal(0)
