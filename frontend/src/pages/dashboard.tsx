@@ -21,16 +21,18 @@ import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
 import { RootState } from "../store";
 import { Team, Sticker as StickerT } from "../types";
 import {
-    faUsers,
+    faBarcode,
     faBriefcase,
     faCalendar,
     faCogs,
+    faMasksTheater,
+    faScrewdriverWrench,
+    faSeedling,
+    faShieldAlt,
+    faTags,
+    faUsers,
     faWarehouse,
     faWheatAwn,
-    faQrcode,
-    faShieldHalved,
-    faBookSkull,
-    faMasksTheater,
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
@@ -227,7 +229,7 @@ function TeamOverview() {
         <>
             <h1>Přehled týmu {team.name}</h1>
 
-            {data?.announcements?.length ? (
+            {data.announcements?.length ? (
                 <>
                     <h2>Nová oznámení</h2>
                     <AnnouncementList
@@ -242,7 +244,7 @@ function TeamOverview() {
                     <Card
                         label="Technologie vlastněné týmem"
                         color={team.color}
-                        icon={faCalendar}
+                        icon={faScrewdriverWrench}
                     >
                         <ul>
                             {data.techs.map((tid: string) => (
@@ -307,7 +309,7 @@ function TeamOverview() {
                 <Card
                     label="Dostupné produkce"
                     color={team.color}
-                    icon={faWarehouse}
+                    icon={faSeedling}
                 >
                     {data.productions.length ? (
                         <ul className="list-disc text-left">
@@ -391,7 +393,7 @@ function TeamOverview() {
                         key={a.index}
                         label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}
                         color={team.color}
-                        icon={faShieldHalved}
+                        icon={faShieldAlt}
                     >
                         <ArmyDescription army={a} orgView={false} />
                     </Card>
@@ -399,7 +401,7 @@ function TeamOverview() {
             </CardSection>
 
             <CardSection name="Různé">
-                <Card label="Krmení" color={team.color} icon={faQrcode}>
+                <Card label="Krmení" color={team.color} icon={faBarcode}>
                     <QRCode
                         value={`krm-${team.id}`}
                         size={128}
