@@ -19,6 +19,7 @@ from game.gameGlue import serializeEntity, stateSerialize
 from game.models import DbState, DbSticker, DbTask, DbTaskAssignment
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import Army, MapTile, TeamState
+from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer
 
 TeamId = str  # intentionally left weak
