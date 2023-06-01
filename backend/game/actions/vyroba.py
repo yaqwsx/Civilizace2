@@ -5,6 +5,7 @@ from typing import Dict, NamedTuple, Optional
 
 from typing_extensions import override
 
+from game import state
 from game.actions.actionBase import (
     NoInitActionBase,
     TeamActionArgs,
@@ -34,18 +35,18 @@ class VyrobaReward(NamedTuple):
         }
 
 
-def computeVyrobaReward(args: VyrobaArgs, tileRichnessTokens: int) -> VyrobaReward:
+def computeVyrobaReward(args: VyrobaArgs, tileState: state.MapTile) -> VyrobaReward:
     resource, amount = args.vyroba.reward
-    amount *= args.count
 
-    bonus = Decimal(tileRichnessTokens) / 10
+    bonus = Decimal(tileState.richnessTokens) / 10
     if args.plunder:
-        plundered = min(tileRichnessTokens, args.count)
-        tileRichnessTokens -= plundered
+        plundered = min(tileState.richnessTokens, args.count)
+        tileState.richnessTokens -= plundered
+        assert tileState.richnessTokens >= 0
     else:
         plundered = None
 
-    reward = {resource: amount * (1 + bonus) + (plundered or 0)}
+    reward = {resource: amount * (1 + bonus) * (args.count + (plundered or 0))}
     return VyrobaReward(reward=reward, bonus=bonus, plundered=plundered)
 
 
@@ -93,15 +94,10 @@ class VyrobaAction(TeamInteractionActionBase):
             scheduled = self._scheduleAction(
                 VyrobaCompletedAction, self.args, travelTime
             )
-            self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(scheduled.delay_s / 60)} minut"
+            self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(scheduled.delay_s / 60)} minut."
         else:
-            self._info += f"Zadání výroby bylo úspěšné"
-            tileState = self.args.tileState(self.state)
-            reward = computeVyrobaReward(self.args, tileState.richnessTokens)
-
-            if reward.plundered is not None:
-                tileState.richnessTokens -= reward.plundered
-                assert tileState.richnessTokens >= 0
+            self._info += f"Zadání výroby bylo úspěšné."
+            reward = computeVyrobaReward(self.args, self.args.tileState(self.state))
 
             instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
             self._info += printResourceListForMarkdown(
@@ -134,12 +130,7 @@ class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
 
     @override
     def _commitImpl(self) -> None:
-        tileState = self.args.tileState(self.state)
-        reward = computeVyrobaReward(self.args, tileState.richnessTokens)
-
-        if reward.plundered is not None:
-            tileState.richnessTokens -= reward.plundered
-            assert tileState.richnessTokens >= 0
+        reward = computeVyrobaReward(self.args, self.args.tileState(self.state))
 
         self._receiveResources(reward.reward)
 

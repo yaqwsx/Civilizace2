@@ -31,7 +31,15 @@ class WithdrawAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        self._ensure(len(self.args.resources) > 0, "Nejsou vybrány žádné materiály")
+
         for resource, amount in self.args.resources.items():
+            if amount == 0:
+                continue
+            self._ensure(
+                not resource.isProduction,
+                f"Nelze vybrat produkci: [[{resource.id}]]",
+            )
             self._ensure(
                 amount >= 0,
                 f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]",

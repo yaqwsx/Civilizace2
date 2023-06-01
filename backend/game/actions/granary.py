@@ -29,12 +29,24 @@ class GranaryAction(TeamInteractionActionBase):
         return self.args.productions
 
     @override
+    def _initiateCheck(self) -> None:
+        self._ensure(len(self.args.productions) > 0, "Není vybráno co automatizovat")
+
+        for resource, amount in self.args.productions.items():
+            if amount == 0:
+                continue
+            self._ensure(
+                resource.isProduction,
+                f"Nelze automatizovat [[{resource.id}]] - není produkce",
+            )
+            self._ensure(
+                amount >= 0,
+                f"Nelze automatizovat záporné množství {amount}×[[{resource.id}]]",
+            )
+
+    @override
     def _commitSuccessImpl(self) -> None:
         for resource, amount in self.args.productions.items():
-            if not resource.isProduction:
-                self._errors += f"[[{resource.id}]] není produkce"
-                continue
-
             if resource not in self.teamState.granary:
                 self.teamState.granary[resource] = Decimal(0)
             self.teamState.granary[resource] += amount
