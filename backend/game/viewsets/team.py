@@ -121,6 +121,12 @@ class TeamViewSet(viewsets.ViewSet):
         return Response({b.id: serializeEntity(b) for b in teamState.buildings})
 
     @action(detail=True)
+    def building_upgrades(self, request: Request, pk: TeamId) -> Response:
+        self.validateAccess(request.user, pk)
+        teamState = self.getTeamState(pk)
+        return Response({u.id: serializeEntity(u) for u in teamState.building_upgrades})
+
+    @action(detail=True)
     def attributes(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = self.getTeamState(pk)

@@ -113,6 +113,48 @@ export function BuildingSelect(props: {
     );
 }
 
+export function BuildingUpgradeSelect(props: {
+    allowed?: string[] | Record<string, any>;
+    value: any;
+    onChange: (value: any) => void;
+    className?: any;
+}) {
+    const { data: upgrades, error } = useEntities<any>("building_upgrades");
+
+    if (!upgrades) {
+        return (
+            <LoadingOrError
+                error={error}
+                message="Nemůžu načíst vylepšení budov"
+            />
+        );
+    }
+
+    let className = classNames("select field", props.className);
+    return (
+        <select
+            className={className}
+            value={props?.value?.id}
+            onChange={(e) => props.onChange(upgrades[e.target.value])}
+        >
+            <option value="">Žádné vylepšení</option>
+            {Object.values(upgrades)
+                .filter(
+                    (u) =>
+                        !props.allowed ||
+                        u?.id in props.allowed ||
+                        (props.allowed?.includes &&
+                            props.allowed.includes(u?.id))
+                )
+                .map((u: any) => (
+                    <option key={u.id} value={u.id}>
+                        {u.name}
+                    </option>
+                ))}
+        </select>
+    );
+}
+
 export function TeamAttributeSelect(props: {
     allowed?: string[];
     value: any;

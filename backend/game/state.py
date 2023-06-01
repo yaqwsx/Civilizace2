@@ -328,6 +328,13 @@ class TeamState(StateModel):
         return buildings
 
     @property
+    def building_upgrades(self) -> set[Building]:
+        upgrades = set()
+        for b in self.buildings:
+            upgrades.update(b.upgrades)
+        return upgrades
+
+    @property
     def unlocked_attributes(self) -> set[TeamAttribute]:
         attributes = set()
         for tech in self.techs:

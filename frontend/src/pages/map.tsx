@@ -2,7 +2,7 @@ import classNames from "classnames";
 import produce from "immer";
 import { useAtom, useSetAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
-import _, { rest } from "lodash";
+import _ from "lodash";
 import { useState } from "react";
 import useSWR from "swr";
 import {
@@ -13,10 +13,11 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
-import { ArmyGoalSelect, ArmySelectBox } from "../elements/army";
+import { ArmyGoalSelect } from "../elements/army";
 import { EntityTag, useEntities } from "../elements/entities";
 import {
     BuildingSelect,
+    BuildingUpgradeSelect,
     TeamAttributeSelect,
     TeamTileSelect,
     TileSelect,
@@ -27,12 +28,7 @@ import {
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import {
-    ResourceEntity,
-    Team,
-    TeamEntityResource,
-    TeamEntityTeamAttribute,
-} from "../types";
+import { ResourceEntity, Team, TeamEntityTeamAttribute } from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -45,6 +41,7 @@ enum MapActionType {
     automateFeeding,
     army,
     building,
+    buildingUpgrade,
     buildRoad,
     addAttribute,
     trade,
@@ -62,6 +59,7 @@ function MapActionColorClassNames(action: MapActionType): string {
         case MapActionType.army:
             return "bg-orange-600 hover:bg-orange-700";
         case MapActionType.building:
+        case MapActionType.buildingUpgrade:
         case MapActionType.buildRoad:
             return "bg-purple-600 hover:bg-purple-700";
         case MapActionType.addAttribute:
@@ -86,7 +84,9 @@ function MapActionName(action: MapActionType): string {
         case MapActionType.army:
             return "Armáda";
         case MapActionType.building:
-            return "Stavět";
+            return "Stavět budovu";
+        case MapActionType.buildingUpgrade:
+            return "Vylepšit budovu";
         case MapActionType.buildRoad:
             return "Postavit cestu";
         case MapActionType.addAttribute:
@@ -116,6 +116,8 @@ function MapActionAgenda(props: {
             return <ArmyManipulation team={props.team} />;
         case MapActionType.building:
             return <BuildingAgenda team={props.team} />;
+        case MapActionType.buildingUpgrade:
+            return <BuildingUpgradeAgenda team={props.team} />;
         case MapActionType.buildRoad:
             return <BuildRoadAgenda team={props.team} />;
         case MapActionType.addAttribute:
@@ -325,6 +327,66 @@ export function BuildRoadAgenda(props: { team: Team }) {
                 </>
             }
         />
+    );
+}
+
+export function BuildingUpgradeAgenda(props: { team: Team }) {
+    const { data: availableUpgrades, error } = useSWR<any>(
+        `game/teams/${props.team.id}/building_upgrades`,
+        fetcher
+    );
+    const setAction = useSetAtom(urlMapActionAtom);
+    const [tile, setTile] = useState<any>(undefined);
+    const [upgrade, setUpgrade] = useState<any>(undefined);
+
+    if (!availableUpgrades) {
+        return <LoadingOrError error={error} message="Něco se pokazilo" />;
+    }
+
+    return (
+        <>
+            <h1>Stavění vylepšení budovy pro tým {props.team.name}</h1>
+            <PerformAction
+                actionId="BuildUpgradeAction"
+                actionName={`Stavba vylepšení budovy pro tým ${props.team.name}`}
+                actionArgs={{
+                    team: props.team.id,
+                    tile: tile?.entity.id,
+                    upgrade: upgrade?.id,
+                }}
+                argsValid={(a: any) => (a?.upgrade && a?.tile) || false}
+                onBack={() => {}}
+                onFinish={() => {
+                    setAction(RESET);
+                }}
+                extraPreview={
+                    <>
+                        <FormRow
+                            label="Vyberte políčko"
+                            error={!tile ? "Je třeba vybrat pole" : null}
+                        >
+                            <TeamTileSelect
+                                team={props.team}
+                                value={tile}
+                                onChange={setTile}
+                            />
+                        </FormRow>
+                        <FormRow
+                            label="Vyberte vylepšení"
+                            error={
+                                !upgrade ? "Je třeba vybrat vylepšení" : null
+                            }
+                        >
+                            <BuildingUpgradeSelect
+                                value={upgrade}
+                                onChange={setUpgrade}
+                                allowed={availableUpgrades}
+                            />
+                        </FormRow>
+                    </>
+                }
+            />
+        </>
     );
 }
 
