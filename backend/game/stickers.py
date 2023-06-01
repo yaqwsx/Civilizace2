@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from backend.settings import ICON_PATH
 from core.models.team import Team
 
-from game.entities import Building, BuildingUpgrade, Entity, Tech, Vyroba
+from game.entities import RESOURCE_VILLAGER, RESOURCE_WORK, Building, BuildingUpgrade, Entity, Tech, Vyroba
 from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
@@ -219,10 +219,8 @@ def sortedCost(items):
     def keyFn(item):
         r, a = item
         idx = 10
-        if r.id == "res-prace":
+        if r.id == RESOURCE_WORK:
             idx = 0
-        if r.typ is not None and r.typ[0].id == "typ-obchod":
-            idx = 1
         return (idx, r.name)
 
     return sorted(items, key=keyFn)

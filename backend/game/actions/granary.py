@@ -33,12 +33,6 @@ class GranaryAction(TeamInteractionActionBase):
             if not resource.isProduction:
                 self._errors += f"[[{resource.id}]] není produkce"
                 continue
-            if resource.typ not in [
-                self.entities["typ-jidlo"],
-                self.entities["typ-luxus"],
-            ]:
-                self._errors += f"[[{resource.id}]] není produkce jídla ani luxusu"
-                continue
 
             if resource not in self.teamState.granary:
                 self.teamState.granary[resource] = Decimal(0)

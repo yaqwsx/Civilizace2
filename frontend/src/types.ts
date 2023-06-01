@@ -23,15 +23,7 @@ export interface EntityBase {
     name: string;
 }
 
-export interface ResourceType {
-    id: string;
-    level: number;
-    name: string;
-    prodName: string;
-}
-
 export interface EntityResource extends EntityBase {
-    typ?: ResourceType;
     produces?: ResourceId;
 }
 

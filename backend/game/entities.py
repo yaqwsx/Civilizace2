@@ -63,15 +63,7 @@ class Die(EntityBase):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class ResourceType(EntityBase):
-    productionName: str
-    colorName: str
-    colorHex: str = "0x000000"
-
-
-@dataclass(init=False, repr=False, eq=False)
 class Resource(EntityBase):
-    typ: Optional[ResourceType] = None
     produces: Optional[Resource] = None
 
     @property
@@ -191,7 +183,6 @@ class GameInitState(BaseModel):
 # Common type of all available entities
 Entity = Union[
     Die,
-    ResourceType,
     Resource,
     NaturalResource,
     Vyroba,

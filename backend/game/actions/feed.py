@@ -29,18 +29,9 @@ def computeFeedRequirements(
         for production, amount in teamState.granary.items()
         if production.produces is not None
     ]
-    automatedCount = floor(
-        sum(
-            amount
-            for production, amount in automated
-            if production.typ == entities["typ-jidlo"]
-        )
-    )
+    automatedCount = floor(sum(amount for production, amount in automated))
 
     automated.sort(key=lambda x: -x[1])  # secondary order: amount
-    automated.sort(
-        key=lambda x: x[0].typ != entities["typ-jidlo"]
-    )  # primary order: type
 
     return FeedRequirements(
         tokensRequired=max(tokensRequired - automatedCount, 0),
@@ -87,11 +78,7 @@ class FeedAction(TeamInteractionActionBase):
     def _commitSuccessImpl(self) -> None:
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
-        paidFood = sum(
-            amount
-            for resource, amount in self.args.materials.items()
-            if resource.typ == self.entities["typ-jidlo"]
-        )
+        paidFood = sum(self.args.materials.values())
 
         newborns = 0
         if req.tokensRequired > paidFood:
@@ -109,15 +96,6 @@ class FeedAction(TeamInteractionActionBase):
         for resource, amount in automated.items():
             if amount >= req.tokensPerCaste:
                 saturated.add(resource)
-
-        food = [x for x in saturated if x.typ[0] == self.entities["typ-jidlo"]]
-        food.sort(key=lambda x: -x.typ[1])
-        luxus = [x for x in saturated if x.typ[0] == self.entities["typ-luxus"]]
-        luxus.sort(key=lambda x: -x.typ[1])
-
-        newborns += sum([x.typ[1] for x in food[:3]])
-
-        newborns += sum([x.typ[1] for x in luxus[:3]])
 
         self._addObyvatel(newborns)
 

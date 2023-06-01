@@ -48,7 +48,6 @@ from .entities import (
     NaturalResource,
     OrgEntity,
     Resource,
-    ResourceType,
     TeamAttribute,
     TeamEntity,
     Tech,
@@ -840,7 +839,7 @@ def createProduction(
             resource.icon = "UNKNOWN_ICON_a.svg"
         icon = resource.icon[: -len(mat_icon_suff)] + pro_icon_suff
 
-    return Resource(id=id, name=prod_name, typ=resource.typ, produces=resource, icon=icon)  # type: ignore
+    return Resource(id=id, name=prod_name, produces=resource, icon=icon)  # type: ignore
 
 
 def with_productions(
@@ -1018,16 +1017,6 @@ class EntityParser:
                     Die,
                     data["dice"],
                     allowed_prefixes=["die"],
-                    entities=entities_map,
-                    err_handler=err_handler,
-                )
-            )
-        with err_handler.add_context("resourceTypes"):
-            add_entities(
-                parseSheet(
-                    ResourceType,
-                    data["resourceTypes"],
-                    allowed_prefixes=["typ"],
                     entities=entities_map,
                     err_handler=err_handler,
                 )

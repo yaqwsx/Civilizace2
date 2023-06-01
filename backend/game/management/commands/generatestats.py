@@ -48,7 +48,6 @@ def teamStat(team, states):
         if isRoundEnd(prevState, state):
             tState = state.teamStates[team]
             prod = 0
-            wprod = 0
             for resource, amount in tState.resources.items():
                 if resource.isProduction and resource.id not in [
                     "res-obyvatel",
@@ -58,9 +57,7 @@ def teamStat(team, states):
             for resource, amount in tState.granary.items():
                 if resource.isProduction:
                     prod += amount
-                    wprod += resource.typ[1] * amount
             prodSum += prod
-            weightedSum += wprod
             stat.append(
                 {
                     "obyvatele": tState.obyvatels,
@@ -68,7 +65,6 @@ def teamStat(team, states):
                     "techy": len(tState.techs),
                     "productions": prod,
                     "prodSum": prodSum,
-                    "weightedSum": weightedSum,
                 }
             )
     return stat

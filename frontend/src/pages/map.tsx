@@ -769,12 +769,9 @@ function FeedingForm(props: {
     let remaingRes = Object.values(entities)
         .filter(
             (e: any) =>
-                e.id.startsWith("mat-") &&
-                (e.typ?.id === "typ-jidlo" || e.typ?.id === "typ-luxus") &&
-                !automatedResIds.includes(e.id)
+                e.id.startsWith("mat-") && !automatedResIds.includes(e.id)
         )
-        // @ts-ignore
-        .sort((a, b) => a.typ?.name.localeCompare(b.typ?.name));
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     let missing =
         Object.values(props.feeding).reduce((a, b) => a + b, 0) -
@@ -798,58 +795,44 @@ function FeedingForm(props: {
                     Žetonů na kastu: {feedReq.tokensPerCaste}
                 </span>
             </FormRow>
-            {["typ-jidlo", "typ-luxus"].map((resType) => (
-                <div key={resType}>
-                    <h2>{resType === "typ-jidlo" ? "Jídlo" : "Luxus"}</h2>
-                    {automatedRes
-                        .filter(
-                            ([r, recommended]: any) => r.typ?.id === resType
-                        )
-                        .map(([r, recommended]: any) => (
-                            <FormRow
-                                key={r.id}
-                                label={
-                                    <>
-                                        <EntityTag id={r.id} /> ({r?.typ?.level}
-                                        )
-                                        <br />
-                                        <span className="text-sm">
-                                            (doporučeno {recommended}
-                                        </span>
-                                        )
-                                    </>
-                                }
-                            >
-                                <SpinboxInput
-                                    value={_.get(props.feeding, r.id, 0)}
-                                    onChange={(v) =>
-                                        props.updateResource(r.id, v)
-                                    }
-                                />
-                            </FormRow>
-                        ))}
-                    {remaingRes
-                        .filter((r) => r?.typ?.id === resType)
-                        .map((r) => (
-                            <FormRow
-                                key={r.id}
-                                label={
-                                    <>
-                                        <EntityTag id={r.id} /> ({r?.typ?.level}
-                                        )
-                                    </>
-                                }
-                            >
-                                <SpinboxInput
-                                    value={_.get(props.feeding, r.id, 0)}
-                                    onChange={(v) =>
-                                        props.updateResource(r.id, v)
-                                    }
-                                />
-                            </FormRow>
-                        ))}
-                </div>
-            ))}
+            <div>
+                {automatedRes.map(([r, recommended]: any) => (
+                    <FormRow
+                        key={r.id}
+                        label={
+                            <>
+                                <EntityTag id={r.id} />
+                                <br />
+                                <span className="text-sm">
+                                    (doporučeno {recommended}
+                                </span>
+                                )
+                            </>
+                        }
+                    >
+                        <SpinboxInput
+                            value={_.get(props.feeding, r.id, 0)}
+                            onChange={(v) => props.updateResource(r.id, v)}
+                        />
+                    </FormRow>
+                ))}
+                {remaingRes.map((r) => (
+                    <FormRow
+                        key={r.id}
+                        label={
+                            <>
+                                <EntityTag id={r.id} />
+                            </>
+                        }
+                    >
+                        <SpinboxInput
+                            value={_.get(props.feeding, r.id, 0)}
+                            onChange={(v) => props.updateResource(r.id, v)}
+                        />
+                    </FormRow>
+                ))}
+            </div>
+
             {missing < 0 && (
                 <ErrorMessage>
                     Nemáš dost žetonů, aby nikdo neumřel (chybí {-missing}).
@@ -919,9 +902,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
         );
     }
 
-    let food = Object.values(availableProductions).filter(
-        (a: any) => a?.typ?.id === "typ-jidlo" || a?.typ?.id == "typ-luxus"
-    );
+    let food = Object.values(availableProductions);
 
     let updateResource = (rId: string, v: number) => {
         if (v < 0) v = 0;
