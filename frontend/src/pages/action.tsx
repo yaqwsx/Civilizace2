@@ -20,13 +20,7 @@ export function FinishAction() {
     if (!actionId)
         return <ErrorMessage>Nastala neočekávaná chyba</ErrorMessage>;
     if (!actions) {
-        return (
-            <LoadingOrError
-                loading={!actions && !error}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     let action = actions?.find((x) => x.id === parseInt(actionId));

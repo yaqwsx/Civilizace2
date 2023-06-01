@@ -381,19 +381,17 @@ function NoInitActionPreviewPhase(props: {
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
+    const actionPreview = commitResult ?? preview;
     return (
         <>
             <h1>Náhled efektu akce {props.actionName}</h1>
-            {preview || !props.argsValid(debouncedArgs) ? (
+            {!props.argsValid(debouncedArgs) ? (
                 <div ref={messageRef}>
-                    {props.argsValid(debouncedArgs) ? (
-                        // @ts-ignore
-                        <ActionMessage response={commitResult ?? preview} />
-                    ) : (
-                        <ErrorMessage>
-                            Zadané argumenty jsou neplatné.
-                        </ErrorMessage>
-                    )}
+                    <ErrorMessage>Zadané argumenty jsou neplatné.</ErrorMessage>
+                </div>
+            ) : actionPreview ? (
+                <div ref={messageRef}>
+                    <ActionMessage response={actionPreview} />
                 </div>
             ) : (
                 <div
@@ -403,7 +401,6 @@ function NoInitActionPreviewPhase(props: {
                     }}
                 >
                     <LoadingOrError
-                        loading={!preview && !error}
                         error={error}
                         message="Nemůžu načíst výsledek akce. Dejte o tom vědět Honzovi a Maarovi"
                     />
@@ -532,19 +529,17 @@ function ActionPreviewPhase(props: {
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
+    const actionPreview = initiateResult ?? preview;
     return (
         <>
             <h1>Náhled efektu akce {props.actionName}</h1>
-            {preview || !props.argsValid(debouncedArgs) ? (
+            {!props.argsValid(debouncedArgs) ? (
                 <div ref={messageRef}>
-                    {props.argsValid(debouncedArgs) ? (
-                        // @ts-ignore
-                        <ActionMessage response={initiateResult || preview} />
-                    ) : (
-                        <ErrorMessage>
-                            Zadané argumenty jsou neplatné.
-                        </ErrorMessage>
-                    )}
+                    <ErrorMessage>Zadané argumenty jsou neplatné.</ErrorMessage>
+                </div>
+            ) : actionPreview ? (
+                <div ref={messageRef}>
+                    <ActionMessage response={actionPreview} />
                 </div>
             ) : (
                 <div
@@ -554,7 +549,6 @@ function ActionPreviewPhase(props: {
                     }}
                 >
                     <LoadingOrError
-                        loading={!preview && !error}
                         error={error}
                         message="Nemůžu načíst výsledek akce. Dejte o tom vědět Honzovi a Maarovi"
                     />
@@ -601,7 +595,6 @@ export function IgnoreActionDicePhase(props: {
             <>
                 {header}
                 <LoadingOrError
-                    loading={!action && !actionErr}
                     error={actionErr}
                     message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
                 />
@@ -663,7 +656,6 @@ export function ActionDicePhase(props: {
             <>
                 {header}
                 <LoadingOrError
-                    loading={!action && !actionErr}
                     error={actionErr}
                     message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
                 />
@@ -772,7 +764,7 @@ export function ActionDicePhase(props: {
 }
 
 function DiceThrowForm(props: {
-    teamId?: string;
+    teamId: string;
     dots: number;
     throws: number;
     throwCost: number;

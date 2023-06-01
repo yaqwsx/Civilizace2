@@ -21,13 +21,7 @@ export function ActionLog() {
     const { data, error } = useSWR<any>(`game/actions/logs?${page}`, fetcher);
 
     if (!data) {
-        return (
-            <LoadingOrError
-                loading={!data && !error}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     const { count: pageCount, results: actions } = data;

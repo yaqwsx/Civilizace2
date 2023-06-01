@@ -9,7 +9,6 @@ import {
 } from "../elements";
 import { Turn } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import { combineErrors } from "../utils/error";
 import { format as dateFormat } from "date-fns";
 import { ChangeEvent, useState } from "react";
 import { date } from "yup/lib/locale";
@@ -24,7 +23,7 @@ export function TurnsMenu() {
 export function Turns() {
     useHideMenu();
     const { mutate: globalMutate } = useSWRConfig();
-    const { data: turns, error: roundsError } = useSWR<Turn[]>(
+    const { data: turns, error: turnsError } = useSWR<Turn[]>(
         "game/turns",
         (url) =>
             fetcher(url).then((data) => {
@@ -53,17 +52,9 @@ export function Turns() {
         globalMutate("game/turns/active");
     };
 
-    if (!turns || roundsError) {
-        return (
-            <LoadingOrError
-                loading={!turns}
-                error={roundsError}
-                message="Nastala chyba"
-            />
-        );
+    if (!turns) {
+        return <LoadingOrError error={turnsError} message="Nastala chyba" />;
     }
-
-    let now = new Date();
 
     return (
         <>

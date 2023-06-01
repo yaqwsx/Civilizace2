@@ -132,7 +132,6 @@ export function GodMode() {
     if (!state) {
         return (
             <LoadingOrError
-                loading={!state && !error}
                 error={error}
                 message={"Něco se pokazilo"}
             />

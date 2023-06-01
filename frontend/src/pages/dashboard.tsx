@@ -36,7 +36,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import useSWR from "swr";
 import axiosService, { fetcher } from "../utils/axios";
-import { combineErrors } from "../utils/error";
 import { EntityTag, useEntities, useTeamTechs } from "../elements/entities";
 import { sortTechs } from "./techs";
 import { useState } from "react";
@@ -148,7 +147,6 @@ export function Dashboard() {
     if (!teams) {
         return (
             <LoadingOrError
-                loading={!teams && !teamError}
                 error={teamError}
                 message="Nemůžu se spojit se serverem. Zkouším znovu"
             />
@@ -208,7 +206,7 @@ function CardSection(props: { name: string; children?: any }) {
 
 function TeamOverview() {
     const { teamId } = useParams();
-    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
+    const { team, error: teamError } = useTeam(teamId);
     const { data, error: dataError } = useSWR<any>(
         () => (teamId ? `game/teams/${teamId}/dashboard` : null),
         fetcher
@@ -218,8 +216,7 @@ function TeamOverview() {
     if (!team || !data) {
         return (
             <LoadingOrError
-                loading={teamLoading || (!data && !dataError)}
-                error={combineErrors([teamError, dataError])}
+                error={teamError || dataError}
                 message={"Nedaří se spojit serverem"}
             />
         );
@@ -428,18 +425,22 @@ function TeamOverview() {
 
 function TeamTasks() {
     const { teamId } = useParams();
-    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
-    const {
-        techs,
-        loading: techsLoading,
-        error: techsError,
-    } = useTeamTechs(team);
+    const { team, error: teamError } = useTeam(teamId);
+    const { techs, error: techsError } = useTeamTechs(team);
 
-    if (!team || !techs) {
+    if (!team) {
         return (
             <LoadingOrError
-                loading={teamLoading || techsLoading}
-                error={teamError || techsError}
+                error={teamError}
+                message={"Nedaří se spojit serverem"}
+            />
+        );
+    }
+
+    if (!techs) {
+        return (
+            <LoadingOrError
+                error={techsError}
                 message={"Nedaří se spojit serverem"}
             />
         );
@@ -479,7 +480,7 @@ function TeamTasks() {
 
 function TeamMessages() {
     const { teamId } = useParams();
-    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
+    const { team, error: teamError } = useTeam(teamId);
     const { data, error: dataError } = useSWR<any>(
         () => (teamId ? `game/teams/${teamId}/announcements` : null),
         fetcher
@@ -488,8 +489,7 @@ function TeamMessages() {
     if (!team || !data) {
         return (
             <LoadingOrError
-                loading={teamLoading || (!data && !dataError)}
-                error={combineErrors([teamError, dataError])}
+                error={teamError || dataError}
                 message={"Nedaří se spojit serverem"}
             />
         );
@@ -621,7 +621,7 @@ export function AnnouncementList(props: {
 
 function TeamStickers() {
     const { teamId } = useParams();
-    const { team, error: teamError, loading: teamLoading } = useTeam(teamId);
+    const { team, error: teamError } = useTeam(teamId);
     const {
         data,
         error: dataError,
@@ -634,8 +634,7 @@ function TeamStickers() {
     if (!team || !data) {
         return (
             <LoadingOrError
-                loading={teamLoading || (!data && !dataError)}
-                error={combineErrors([teamError, dataError])}
+                error={teamError || dataError}
                 message={"Nedaří se spojit serverem"}
             />
         );

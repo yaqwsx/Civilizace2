@@ -24,6 +24,7 @@ import { EntityTech, Task, Team, TeamEntityTech } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { useEditableTasks } from "./tasks";
+import _ from "lodash";
 
 export function TechMenu() {
     return null;
@@ -31,16 +32,11 @@ export function TechMenu() {
 
 export function Tech() {
     useHideMenu();
-    const { team, setTeam, loading, error } = useTeamFromUrl();
+    const { team, setTeam, error, success } = useTeamFromUrl();
 
-    if (loading || error)
-        return (
-            <LoadingOrError
-                loading={loading}
-                error={error}
-                message={"Nemůžu načíst týmy"}
-            />
-        );
+    if (!success) {
+        return <LoadingOrError error={error} message={"Nemůžu načíst týmy"} />;
+    }
 
     const handleTeamChange = (t?: Team) => {
         setTeam(t);
@@ -55,7 +51,7 @@ export function Tech() {
             <FormRow label="Vyber tým:">
                 <TeamSelector onChange={handleTeamChange} activeId={team?.id} />
             </FormRow>
-            <TeamRowIndicator team={team} />
+            <TeamRowIndicator team={team ?? undefined} />
             {team ? <TechListing team={team} /> : null}
         </>
     );
@@ -67,12 +63,11 @@ export function sortTechs(techs: TeamEntityTech[]) {
 }
 
 function TechListing(props: { team: Team }) {
-    const { techs, loading, error, mutate } = useTeamTechs(props.team);
+    const { techs, error, mutate } = useTeamTechs(props.team);
 
-    if (loading || error || !techs)
+    if (!techs)
         return (
             <LoadingOrError
-                loading={loading}
                 error={error}
                 message={"Nemůžu načíst technologie pro tým."}
             />
@@ -360,7 +355,6 @@ function SelectTaskForTechForm(props: {
     if (!tasks) {
         return (
             <LoadingOrError
-                loading={!taskError && !tasks}
                 error={taskError}
                 message={"Nemůžu načíst úkoly ze serveru. Zkouším znovu"}
             />

@@ -11,6 +11,7 @@ import {
     ComponentError,
     FormRow,
     InlineSpinner,
+    LoadingOrError,
     SpinboxInput,
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
@@ -105,7 +106,7 @@ function UnknownArgTypeForm(serverInfo: ServerArgTypeInfo, error?: string) {
 
 type EntitiesByType = Record<
     string,
-    { data?: Record<string, EntityBase>; loading: boolean; error: any }
+    { data?: Record<string, EntityBase>; error?: any }
 >;
 
 type ArgFormProps = {
@@ -265,9 +266,9 @@ function GetArgForm(props: ArgFormProps) {
             const argEntities =
                 props.entities[props.serverInfo.type.toLowerCase()];
             if (!_.isNil(argEntities)) {
-                const { data, loading, error } = argEntities;
+                const { data, error } = argEntities;
 
-                if (error || loading || data === undefined) {
+                if (!data) {
                     const errorStr =
                         `Could not load entities` + error ? `: ${error}` : "";
                     return UnknownArgTypeForm(props.serverInfo, errorStr);
@@ -682,16 +683,13 @@ function PerformAnyAction(props: {
         }
     }, [urlTeam.team?.id, props.action.id]);
 
-    if (urlTeam.error) {
+    if (!urlTeam.success) {
         return (
-            <ComponentError>
-                <p>Nemůžu načíst týmy ze serveru.</p>
-                <p>{urlTeam.error.toString()}</p>
-            </ComponentError>
+            <LoadingOrError
+                error={urlTeam.error}
+                message="Nemůžu načíst týmy ze serveru."
+            />
         );
-    }
-    if (urlTeam.loading) {
-        return <InlineSpinner />;
     }
 
     const argsValid = (a: Record<string, any>) => {

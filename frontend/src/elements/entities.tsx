@@ -15,18 +15,10 @@ import { fetcher } from "../utils/axios";
 export const urlEntityAtom = stringAtomWithHash("entity");
 
 export function useEntities<T>(entityType?: string) {
-    const { data, error, mutate } = useSWRImmutable<
-        Record<string, T & EntityBase>
-    >(
-        () => (entityType ? `game/entities/${entityType}` : `game/entities`),
+    return useSWRImmutable<Record<string, T & EntityBase>>(
+        () => (entityType ? `game/entities/${entityType}` : "game/entities"),
         fetcher
     );
-    return {
-        data,
-        loading: !error && !data,
-        error: error,
-        mutate: mutate,
-    };
 }
 
 export function useTeamWork(teamId?: string) {
@@ -40,21 +32,18 @@ export function useTeamWork(teamId?: string) {
     };
 }
 
-export function useTeamEntity<T>(entityType: string, team?: Team) {
-    const { data, error, mutate } = useSWR<Record<string, T>>(
+export function useTeamEntities<T>(entityType: string, team?: Team) {
+    return useSWR<Record<string, T>>(
         () => (team ? `game/teams/${team.id}/${entityType}` : null),
         fetcher
     );
-    return {
-        data: data,
-        loading: !error && !data && Boolean(team),
-        error: error,
-        mutate: mutate,
-    };
 }
 
 export function useTeamVyrobas(team?: Team) {
-    const { data, ...rest } = useTeamEntity<TeamEntityVyroba>("vyrobas", team);
+    const { data, ...rest } = useTeamEntities<TeamEntityVyroba>(
+        "vyrobas",
+        team
+    );
     return {
         vyrobas: data,
         ...rest,
@@ -62,7 +51,7 @@ export function useTeamVyrobas(team?: Team) {
 }
 
 export function useTeamResources(team?: Team) {
-    const { data, ...rest } = useTeamEntity<TeamEntityResource>(
+    const { data, ...rest } = useTeamEntities<TeamEntityResource>(
         "resources",
         team
     );
@@ -73,7 +62,7 @@ export function useTeamResources(team?: Team) {
 }
 
 export function useTeamTechs(team?: Team) {
-    const { data, ...rest } = useTeamEntity<TeamEntityTech>("techs", team);
+    const { data, ...rest } = useTeamEntities<TeamEntityTech>("techs", team);
     return {
         techs: data,
         ...rest,

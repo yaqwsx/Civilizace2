@@ -1,12 +1,12 @@
-import useSWR from "swr";
-import useSWRImmutable from "swr/immutable";
-import { Team } from "../types";
-import { fetcher } from "../utils/axios";
-import { useAtom } from "jotai";
-import { RESET, atomWithHash } from "jotai/utils";
 import classNames from "classnames";
-import { InlineSpinner, ComponentError } from ".";
+import { useAtom } from "jotai";
+import { RESET } from "jotai/utils";
+import _ from "lodash";
+import useSWRImmutable from "swr/immutable";
+import { ComponentError, InlineSpinner } from ".";
+import { Team } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
+import { fetcher } from "../utils/axios";
 
 const urlTeamAtom = stringAtomWithHash("team");
 
@@ -14,8 +14,7 @@ export function useTeams() {
     const { data, error } = useSWRImmutable<Team[]>(() => "/teams/", fetcher);
     return {
         teams: data,
-        loading: !error && !data,
-        error: error,
+        error,
     };
 }
 
@@ -26,8 +25,7 @@ export function useTeam(teamId?: string) {
     );
     return {
         team: data,
-        loading: !error && !data,
-        error: error,
+        error,
     };
 }
 
@@ -37,27 +35,24 @@ export function useTeamIdFromUrl() {
 
 export function useTeamFromUrl() {
     const [teamId, setTeamId] = useTeamIdFromUrl();
-    const { teams, loading, error } = useTeams();
+    const { teams: allTeams, error } = useTeams();
 
-    let team: Team | undefined = undefined;
-    if (!loading && !error && teams && teamId) {
-        team = teams.find((t) => t.id === teamId);
-    }
-    let combinedError = undefined;
-    if (error) {
-        combinedError = error;
-    } else if (loading) {
-        combinedError = new Error(`Could not load teams`);
-    } else if (!team && teamId) {
-        combinedError = new Error(`No such team ${teamId}`);
-    }
+    console.assert(!error, "Error loading teams", error);
+
+    let team = !_.isNil(teamId) ? allTeams?.find((t) => t.id === teamId) : null;
 
     return {
-        team: team,
+        team,
         setTeam: (t?: Team) => setTeamId(t?.id ?? RESET),
-        loading: loading,
-        error: combinedError,
-        allTeams: teams,
+        success: !_.isUndefined(team),
+        error:
+            error ||
+            (_.isNil(allTeams) && new Error(`Could not load teams`)) ||
+            (!_.isNil(teamId) &&
+                _.isNil(team) &&
+                new Error(`No such team ${teamId}`)) ||
+            undefined,
+        allTeams,
     };
 }
 
@@ -69,23 +64,16 @@ type TeamSelectorProps = {
     ignoredTeam?: Team;
 };
 export function TeamSelector(props: TeamSelectorProps) {
-    const { teams, loading, error } = useTeams();
+    const { teams, error } = useTeams();
     if (error && props.onError) {
-        props.onError(
-            "Nemůžu načíst týmy ze serveru. Zkouším znovu...\n" +
-                error.toString()
-        );
-    }
-
-    if (loading) {
-        return <InlineSpinner />;
+        props.onError("Nemůžu načíst týmy ze serveru. " + error.toString());
     }
 
     return (
         <div className="flex w-full flex-wrap">
             {error ? (
                 <ComponentError>
-                    <p>Nemůžu načíst týmy ze serveru. Zkouším znovu...</p>
+                    <p>Nemůžu načíst týmy ze serveru</p>
                     <p>{error.toString()}</p>
                 </ComponentError>
             ) : teams ? (

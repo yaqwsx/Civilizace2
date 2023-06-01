@@ -10,8 +10,6 @@ import QRCode from "react-qr-code";
 import { ActionMessage, useActionPreview } from "../elements/action";
 import { toast } from "react-toastify";
 import produce from "immer";
-import { useTeam } from "../elements/team";
-import useSWRImmutable from "swr/immutable";
 
 export function InfoScreen() {
     return (
@@ -54,14 +52,8 @@ function Countdown() {
 
     let now = new Date();
 
-    if (!error && !info) {
-        return (
-            <LoadingOrError
-                loading={!error && !info}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+    if (!info) {
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     let paused = info?.id == -1 || !info?.end || !info?.start;
@@ -191,7 +183,6 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     if (!preview)
         return (
             <LoadingOrError
-                loading={!preview && !error}
                 error={error}
                 message="Něco se pokazilo. Řekni to Honzovi"
             />

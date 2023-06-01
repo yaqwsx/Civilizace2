@@ -21,7 +21,6 @@ import {
 import { useTeams } from "../elements/team";
 import { Announcement, AnnouncementType, Team } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import { combineErrors } from "../utils/error";
 import DateTime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { toast } from "react-toastify";
@@ -51,13 +50,12 @@ function AnnouncementsOverview() {
         error,
         mutate: mutateAnnouncements,
     } = useSWR<Announcement[]>("/announcements", fetcher);
-    const { teams, loading: teamLoading, error: teamError } = useTeams();
+    const { teams, error: teamError } = useTeams();
 
-    if (!announcements || error || !teams || teamError)
+    if (!announcements || !teams)
         return (
             <LoadingOrError
-                loading={(!announcements && !error) || teamLoading}
-                error={combineErrors([error, teamError])}
+                error={error || teamError}
                 message="Nastala chyba"
             />
         );
@@ -235,7 +233,7 @@ function DeleteDialog(props: {
 function AnnouncementEdit() {
     const { announcementId } = useParams();
     const navigate = useNavigate();
-    const { teams, error: teamError, loading: teamLoading } = useTeams();
+    const { teams, error: teamError } = useTeams();
     const { data: announcement, error: announcementError } =
         useSWR<Announcement>(
             () => (announcementId ? `/announcements/${announcementId}` : null),
@@ -246,11 +244,10 @@ function AnnouncementEdit() {
                 })
         );
 
-    if ((announcementId && !announcement) || teamError || teamLoading || !teams)
+    if ((announcementId && !announcement) || !teams)
         return (
             <LoadingOrError
-                loading={teamLoading || (!announcement && !announcementId)}
-                error={combineErrors([announcementError, teamError])}
+                error={announcementError || teamError}
                 message="Nastala chyba"
             />
         );

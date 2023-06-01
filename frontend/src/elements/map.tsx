@@ -9,15 +9,11 @@ export function TileSelect(props: {
     onChange: (tile: any) => void;
     className?: string;
 }) {
-    const { data: tiles, loading, error } = useEntities<any>("tiles");
+    const { data: tiles, error } = useEntities<any>("tiles");
 
     if (!tiles || error) {
         return (
-            <LoadingOrError
-                loading={loading}
-                error={error}
-                message="Nemůžu načíst dlaždice"
-            />
+            <LoadingOrError error={error} message="Nemůžu načíst dlaždice" />
         );
     }
 
@@ -53,13 +49,9 @@ export function TeamTileSelect(props: {
         fetcher
     );
 
-    if (!tiles || error) {
+    if (!tiles) {
         return (
-            <LoadingOrError
-                loading={!tiles && !error}
-                error={error}
-                message="Nemůžu načíst dlaždice"
-            />
+            <LoadingOrError error={error} message="Nemůžu načíst pole mapy" />
         );
     }
 
@@ -92,14 +84,8 @@ export function BuildingSelect(props: {
 }) {
     const { data: buildings, error } = useEntities<any>("buildings");
 
-    if (!buildings || error) {
-        return (
-            <LoadingOrError
-                loading={!buildings && !error}
-                error={error}
-                message="Nemůžu načíst budovy"
-            />
-        );
+    if (!buildings) {
+        return <LoadingOrError error={error} message="Nemůžu načíst budovy" />;
     }
 
     let className = classNames("select field", props.className);
@@ -136,10 +122,9 @@ export function TeamAttributeSelect(props: {
     const { data: attributes, error } =
         useEntities<EntityTeamAttribute>("team_attributes");
 
-    if (!attributes || error) {
+    if (!attributes) {
         return (
             <LoadingOrError
-                loading={!error}
                 error={error}
                 message="Nemůžu načíst týmové vlastnosti"
             />

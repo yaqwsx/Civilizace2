@@ -18,7 +18,6 @@ import {
 import { useEntities } from "../elements/entities";
 import { EntityTech, Task } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import { combineErrors } from "../utils/error";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useState } from "react";
 import { objectMap } from "../utils/functional";
@@ -54,11 +53,7 @@ function TasksOverview() {
         error: taskError,
         mutate: mutateTasks,
     } = useEditableTasks();
-    const {
-        data: techs,
-        loading: techLoading,
-        error: techError,
-    } = useEntities<EntityTech>("techs");
+    const { data: techs, error: techError } = useEntities<EntityTech>("techs");
 
     let handleDelete = (id: string) => {
         let options = {
@@ -70,11 +65,10 @@ function TasksOverview() {
         mutateTasks(fetchNew, options);
     };
 
-    if (!tasks || taskError || techLoading || techError || !techs)
+    if (!tasks || !techs)
         return (
             <LoadingOrError
-                loading={techLoading || (!tasks && !taskError)}
-                error={combineErrors([taskError, techError])}
+                error={taskError || techError}
                 message="Nastala chyba"
             />
         );
@@ -231,21 +225,16 @@ function sortTechs(techs: EntityTech[]) {
 function TaskEdit() {
     const { taskId } = useParams();
     const navigate = useNavigate();
-    const {
-        data: techs,
-        loading: techLoading,
-        error: techError,
-    } = useEntities<EntityTech>("techs");
+    const { data: techs, error: techError } = useEntities<EntityTech>("techs");
     const { data: task, error: taskError } = useSWR<Task>(
         () => (taskId ? `game/tasks/${taskId}` : null),
         fetcher
     );
 
-    if ((taskId && !task) || techError || techLoading || !techs)
+    if ((taskId && !task) || !techs)
         return (
             <LoadingOrError
-                loading={techLoading || (!task && !taskError)}
-                error={combineErrors([techError, taskError])}
+                error={techError || taskError}
                 message="Nastala chyba"
             />
         );

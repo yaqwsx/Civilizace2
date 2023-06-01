@@ -19,13 +19,7 @@ export function ArmySelectBox(props: {
     }, [armies, props.value]);
 
     if (!armies) {
-        return (
-            <LoadingOrError
-                loading={!armies && !armyError}
-                error={armyError}
-                message="Něco se pokazilo"
-            />
-        );
+        return <LoadingOrError error={armyError} message="Něco se pokazilo" />;
     }
 
     let handleChange = (id: any) => {

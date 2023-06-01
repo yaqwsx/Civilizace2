@@ -35,13 +35,7 @@ export function MapDiffContent() {
         refreshInterval: 10 * 1000,
     });
     if (!pendingUpdates)
-        return (
-            <LoadingOrError
-                loading={!pendingUpdates && !error}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     return (
         <>
             <h1>Aktualizace mapy</h1>
@@ -160,7 +154,6 @@ function MapState() {
     if (!tiles || !armies) {
         return (
             <LoadingOrError
-                loading={(!tiles && !tError) || (!armies && !aError)}
                 error={tError || aError}
                 message="Něco se pokazilo"
             />

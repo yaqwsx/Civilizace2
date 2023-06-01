@@ -134,17 +134,11 @@ function MapActionAgenda(props: {
 
 export function MapAgenda() {
     useHideMenu();
-    const { team, setTeam, loading, error } = useTeamFromUrl();
+    const { team, setTeam, error, success } = useTeamFromUrl();
     const [action, setAction] = useAtom(urlMapActionAtom);
 
-    if (loading || error) {
-        return (
-            <LoadingOrError
-                loading={loading}
-                error={error}
-                message="Něco se nepovedlo."
-            />
-        );
+    if (!success) {
+        return <LoadingOrError error={error} message="Něco se nepovedlo." />;
     }
 
     const handleTeamChange = (t?: Team) => {
@@ -249,14 +243,8 @@ export function BuildingAgenda(props: { team: Team }) {
     const [building, setBuilding] = useState<any>(undefined);
     const [tile, setTile] = useState<any>(undefined);
 
-    if (!availableBuildings || error) {
-        return (
-            <LoadingOrError
-                loading={!availableBuildings && !error}
-                error={error}
-                message="Něco se pokazilo"
-            />
-        );
+    if (!availableBuildings) {
+        return <LoadingOrError error={error} message="Něco se pokazilo" />;
     }
 
     return (
@@ -347,10 +335,9 @@ export function AddAttributeAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
     const [attribute, setAttribute] = useState<any>(undefined);
 
-    if (!teamAttributes || error) {
+    if (!teamAttributes) {
         return (
             <LoadingOrError
-                loading={!error}
                 error={error}
                 message="Nemůžu načíst vlastnosti dostupné týmu"
             />
@@ -403,13 +390,7 @@ export function TradeAgenda(props: { team: Team }) {
     } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
 
     if (!availableProductions) {
-        return (
-            <LoadingOrError
-                loading={!availableProductions && !error}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     let updateResource = (rId: string, v: number) => {
@@ -496,11 +477,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
 
     if (!armies) {
         return (
-            <LoadingOrError
-                loading={!armies && !armyError}
-                error={armyError}
-                message={"Něco se pokazilo"}
-            />
+            <LoadingOrError error={armyError} message={"Něco se pokazilo"} />
         );
     }
     return (
@@ -753,7 +730,6 @@ function FeedingForm(props: {
     if (!feedReq || !entities) {
         return (
             <LoadingOrError
-                loading={(!feedReq && !fError) || (!entities && !eError)}
                 error={fError || eError}
                 message="Něco se nepovedlo"
             />
@@ -893,13 +869,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
 
     if (!availableProductions) {
-        return (
-            <LoadingOrError
-                loading={!availableProductions && !error}
-                error={error}
-                message="Něco se nepovedlo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     let food = Object.values(availableProductions);

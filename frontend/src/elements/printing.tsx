@@ -77,7 +77,6 @@ export function PrintStickers(props: {
     if (!printers || !teams) {
         return (
             <LoadingOrError
-                loading={(!printers && !error) || (!teams && !teamsError)}
                 error={error || teamsError}
                 message="Něco se nepovedlo. Zkouším znovu"
             />

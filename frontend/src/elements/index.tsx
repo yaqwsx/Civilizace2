@@ -187,35 +187,30 @@ export function PrettyAxiosError(props: { error: any }) {
     );
 }
 
-export function LoadingOrError(props: {
-    loading: boolean;
-    error?: any;
-    message: string;
-}) {
-    if (props.error) {
-        return (
-            <ComponentError>
-                <p>{props.message}</p>
-                {props.error.isAxiosError && false ? (
-                    <PrettyAxiosError error={props.error} />
-                ) : (
-                    <>
-                        <p>{props.error.toString()}</p>
-                        <p>
-                            {(
-                                JSON.stringify(props.error?.response?.data) ||
-                                new String()
-                            ).substring(0, 400)}
-                        </p>
-                    </>
-                )}
-            </ComponentError>
-        );
-    }
-    if (props.loading) {
+export function LoadingOrError(props: { error?: any; message: string }) {
+    if (!props.error) {
         return <InlineSpinner />;
     }
-    return null;
+
+    console.error(props.message, props.error);
+    return (
+        <ComponentError>
+            <p>{props.message}</p>
+            {props.error.isAxiosError ? (
+                <PrettyAxiosError error={props.error} />
+            ) : (
+                <>
+                    <p>{props.error.toString()}</p>
+                    <p>
+                        {JSON.stringify(props.error?.response?.data).substring(
+                            0,
+                            400
+                        )}
+                    </p>
+                </>
+            )}
+        </ComponentError>
+    );
 }
 
 export function Row(props: { children: any; className?: string }) {

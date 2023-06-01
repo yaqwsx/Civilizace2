@@ -29,7 +29,6 @@ import {
     EntityTag,
     urlEntityAtom,
     useEntities,
-    useTeamEntity,
     useTeamResources,
     useTeamVyrobas,
 } from "../elements/entities";
@@ -50,12 +49,17 @@ export function VyrobaMenu() {
 export function Vyroba() {
     useHideMenu();
 
-    const { team, setTeam, loading, error } = useTeamFromUrl();
+    const { team, setTeam, error, success } = useTeamFromUrl();
     const setVyrobaId = useSetAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
-    if (loading) {
-        return <InlineSpinner />;
+    if (!success) {
+        return (
+            <LoadingOrError
+                error={error}
+                message="Nemůžu načíst týmy ze serveru."
+            />
+        );
     }
     if (error) {
         return (
@@ -80,7 +84,7 @@ export function Vyroba() {
             <FormRow label="Vyber tým:">
                 <TeamSelector onChange={handleTeamChange} activeId={team?.id} />
             </FormRow>
-            <TeamRowIndicator team={team} />
+            <TeamRowIndicator team={team ?? undefined} />
             <FormRow label="Vyberte akci:">
                 <div className="mx-0 w-1/2 flex-initial px-1">
                     <Button
@@ -110,32 +114,23 @@ type SelectVyrobaProps = {
     active?: TeamEntityVyroba;
 };
 function SelectVyroba(props: SelectVyrobaProps) {
-    const {
-        vyrobas,
-        loading: vLoading,
-        error: vError,
-    } = useTeamVyrobas(props.team);
-    const {
-        resources,
-        loading: rLoading,
-        error: rError,
-    } = useTeamResources(props.team);
+    const { vyrobas, error: vError } = useTeamVyrobas(props.team);
+    const { resources, error: rError } = useTeamResources(props.team);
     const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
 
-    if (vLoading || rLoading) return <InlineSpinner />;
-    if (vError || !vyrobas)
+    if (!vyrobas) {
         return (
-            <ComponentError>
-                Nemohu načíst entity týmu: {vError.toString()}
-            </ComponentError>
+            <LoadingOrError
+                error={vError}
+                message="Nemohu načíst výroby týmu."
+            />
         );
-    if (rError || !resources)
+    }
+    if (!resources) {
         return (
-            <ComponentError>
-                Nemohu načíst zdroje: {rError.toString()}
-            </ComponentError>
+            <LoadingOrError error={rError} message="Nemohu načíst zdroje." />
         );
-    let team = props.team;
+    }
     let vyroba = vyrobaId ? vyrobas[vyrobaId] : null;
 
     const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -167,7 +162,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
             {vyroba ? (
                 <PerformVyroba
                     vyroba={vyroba}
-                    team={team}
+                    team={props.team}
                     resources={resources}
                     onReset={() => setVyrobaId(RESET)}
                 />
@@ -241,7 +236,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
     if (!entities || !tiles) {
         return (
             <LoadingOrError
-                loading={!entities && !eError && !tiles && !tError}
                 error={eError || tError}
                 message="Nepodařilo se načíst entity"
             />
@@ -334,13 +328,7 @@ function WithdrawStorage(props: { team: Team }) {
     const setVyrobaAction = useSetAtom(urlVyrobaActionAtom);
 
     if (!storage)
-        return (
-            <LoadingOrError
-                loading={!storage && !error}
-                error={error}
-                message="Něco se pokazilo"
-            />
-        );
+        return <LoadingOrError error={error} message="Něco se pokazilo" />;
 
     let isEmpty = Object.keys(storage).length === 0;
 
@@ -384,7 +372,7 @@ function WithdrawStorage(props: { team: Team }) {
             ))}
 
             <Button
-                label={!isEmpty ? "Vybrat" : "Tým nemá ve skladu nic"}
+                label={!isEmpty ? "Vybrat" : "Tým nemá nic ve skladu"}
                 className="w-full"
                 onClick={() => setSubmitting(true)}
                 disabled={isEmpty}
