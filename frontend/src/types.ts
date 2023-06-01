@@ -146,12 +146,6 @@ export enum ActionStatus {
     Fail = "fail",
 }
 
-export interface ServerActionType {
-    id: string;
-    has_init: boolean;
-    args: Record<string, { type: string; required: boolean; default?: any }>;
-}
-
 export interface ActionResponse {
     success: boolean;
     expected: boolean;
@@ -179,4 +173,20 @@ export interface Printer {
 export interface UnfinishedAction {
     id: number;
     description?: string;
+}
+
+// AnyAction
+
+export interface ServerArgTypeInfo {
+    type: string;
+    required: boolean;
+    default?: any;
+    subtypes?: ServerArgTypeInfo[];
+    values?: Record<string, any>;
+}
+
+export interface ServerActionType {
+    id: string;
+    has_init: boolean;
+    args: Record<string, ServerArgTypeInfo>;
 }

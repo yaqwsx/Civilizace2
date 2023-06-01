@@ -1,37 +1,38 @@
-import useSWRImmutable from "swr/immutable";
-import {
-    FormRow,
-    InlineSpinner,
-    ComponentError,
-    Button,
-    SpinboxInput,
-} from "../elements";
-import {
-    useTeamFromUrl,
-    TeamSelector,
-    TeamRowIndicator,
-    useTeams,
-} from "../elements/team";
+import { Ace } from "ace-builds";
+import produce from "immer";
 import { useAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
+import _ from "lodash";
 import { useEffect, useState } from "react";
-import { fetcher } from "../utils/axios";
-import { useHideMenu } from "./atoms";
 import AceEditor from "react-ace";
+import useSWRImmutable from "swr/immutable";
+import {
+    Button,
+    ComponentError,
+    FormRow,
+    InlineSpinner,
+    SpinboxInput,
+} from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
+import { useEntities } from "../elements/entities";
+import {
+    TeamRowIndicator,
+    TeamSelector,
+    useTeamFromUrl,
+    useTeams,
+} from "../elements/team";
 import {
     EntityBase,
     EntityResource,
     EntityTech,
     EntityVyroba,
     ServerActionType,
+    ServerArgTypeInfo,
     Team,
 } from "../types";
-import { useEntities } from "../elements/entities";
-import _ from "lodash";
-import { Ace } from "ace-builds";
-import produce from "immer";
 import { stringAtomWithHash } from "../utils/atoms";
+import { fetcher } from "../utils/axios";
+import { useHideMenu } from "./atoms";
 
 const urlActionAtom = stringAtomWithHash("action");
 
@@ -58,23 +59,18 @@ export interface ActionType {
     args: Record<string, ArgumentInfo>;
 }
 
-function UnknownArgTypeForm(
-    serverInfo: { type: string; required: boolean; default?: any },
-    error?: string
-) {
-    const printType = (type: any) => {
-        return (
-            type.type +
-            (type.subtypes
-                ? `[${type.subtypes?.map(printType).join(",")}]`
-                : "")
-        );
-    };
+function PrintArgType(type: ServerArgTypeInfo): string {
+    return (
+        type.type +
+        (type.subtypes ? `[${type.subtypes.map(PrintArgType).join(",")}]` : "")
+    );
+}
 
+function UnknownArgTypeForm(serverInfo: ServerArgTypeInfo, error?: string) {
     return (props: ArgumentFormProps) => (
         <>
             <p>
-                Expected type: {printType(serverInfo)}
+                Expected type: {PrintArgType(serverInfo)}
                 {error ? ` (${error})` : ""}
             </p>
             <JsonForm
@@ -87,12 +83,14 @@ function UnknownArgTypeForm(
     );
 }
 
+type EntitiesByType = Record<
+    string,
+    { data?: Record<string, EntityBase>; loading: boolean; error: any }
+>;
+
 type ArgFormProps = {
-    serverInfo: { type: string; required: boolean; default?: any };
-    entities: Record<
-        string,
-        { data?: Record<string, EntityBase>; loading: boolean; error: any }
-    >;
+    serverInfo: ServerArgTypeInfo;
+    entities: EntitiesByType;
 };
 
 function GetArgForm(props: ArgFormProps) {
@@ -216,6 +214,7 @@ function GetArgForm(props: ArgFormProps) {
             );
         }
         case "enum":
+            console.assert(!_.isNil(props.serverInfo.values), props.serverInfo);
             return (p: ArgumentFormProps) => (
                 <select
                     className="select field"
@@ -227,7 +226,7 @@ function GetArgForm(props: ArgFormProps) {
                     }
                 >
                     <option value="">No value</option>
-                    {Object.entries<any>((props.serverInfo as any).values).map(
+                    {Object.entries(props.serverInfo.values ?? {}).map(
                         ([name, value]) => (
                             <option key={value} value={value}>
                                 {name}
@@ -247,9 +246,11 @@ function GetArgForm(props: ArgFormProps) {
                 />
             );
         case "dict": {
-            const [keyType, valueType]: { type: string }[] = (
-                props.serverInfo as any
-            ).subtypes;
+            console.assert(
+                !_.isNil(props.serverInfo.subtypes),
+                props.serverInfo
+            );
+            const [keyType, valueType] = props.serverInfo.subtypes ?? [];
 
             const keyInfo = GetArgInfo({
                 serverInfo: { ...keyType, required: true },
