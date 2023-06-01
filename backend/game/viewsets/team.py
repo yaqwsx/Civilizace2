@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
@@ -61,7 +61,9 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(TeamSerializer(t).data)
 
     @staticmethod
-    def serializeArmy(a: Army, reachableTiles) -> Dict[str, Any]:
+    def serializeArmy(
+        a: Army, reachableTiles: Optional[Iterable[MapTile]]
+    ) -> Dict[str, Any]:
         return {
             "index": a.index,
             "team": a.team.id,
@@ -227,16 +229,23 @@ class TeamViewSet(viewsets.ViewSet):
         team = get_object_or_404(Team.objects.all(), pk=pk)
 
         dbState = DbState.objects.latest("id")
+        assert isinstance(dbState, DbState)
         state = dbState.toIr()
         entities = dbState.entities
-        teamState = state.teamStates[entities[pk]]
+        teamEntity = entities.teams[team.id]
+        teamState = state.teamStates[teamEntity]
 
-        feedRequirements = computeFeedRequirements(state, entities, entities[pk])
+        feedRequirements = computeFeedRequirements(state, entities, teamEntity)
+
+        orgInfo = {
+            "techs": list(x.id for x in teamState.techs),
+            "attributes": list(x.id for x in teamState.attributes),
+        }
 
         return Response(
             {
                 "population": {
-                    "nospec": teamState.resources[entities["res-obyvatel"]],
+                    "nospec": teamState.resources[entities.obyvatel],
                     "all": teamState.population,
                 },
                 "work": teamState.work,
@@ -247,19 +256,10 @@ class TeamViewSet(viewsets.ViewSet):
                 "productions": [
                     (r.id, a)
                     for r, a in teamState.resources.items()
-                    if r.isProduction and r.id != "res-obyvatel"
+                    if r.isProduction and r != entities.obyvatel
                 ],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
-                "granary": [
-                    (r.id, a)
-                    for r, a in teamState.granary.items()
-                    if r.typ[0].id == "typ-jidlo"
-                ]
-                + [
-                    (r.id, a)
-                    for r, a in teamState.granary.items()
-                    if r.typ[0].id == "typ-luxus"
-                ],
+                "granary": [(r.id, a) for r, a in teamState.granary.items()],
                 "feeding": {
                     "casteCount": feedRequirements.casteCount,
                     "tokensPerCaste": feedRequirements.tokensPerCaste,
@@ -277,10 +277,9 @@ class TeamViewSet(viewsets.ViewSet):
                 ],
                 "armies": [
                     self.serializeArmy(army, None)
-                    for army in state.map.getTeamArmies(entities[pk])
+                    for army in state.map.getTeamArmies(teamEntity)
                 ],
-                "techs": list(x.id for x in teamState.techs),
-                "attributes": list(x.id for x in teamState.attributes),
+                **(orgInfo if request.user.is_org else {}),
             }
         )
 
