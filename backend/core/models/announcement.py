@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional
+
 from django.db import models
-from core.models.user import User
-from core.models.team import Team
-from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django_enumfield import enum
+
+from core.models.team import Team
+from core.models.user import User
 
 
 class AnnouncementType(enum.Enum):

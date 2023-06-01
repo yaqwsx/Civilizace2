@@ -11,17 +11,29 @@ from core.serializers.user import UserSerializer
 class TeamIdSerializer(serializers.ModelSerializer):
     class Meta(object):
         model = Team
-        fields = ("id",)
+        fields = ["id"]
 
-    def to_representation(self, value):
+    def to_representation(self, value: Team):
         return value.id
 
     def to_internal_value(self, data):
         return get_object_or_404(Team, pk=data)
 
 
+class UsernameSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = User
+        fields = ["username"]
+
+    def to_representation(self, value: User):
+        return value.username
+
+    def to_internal_value(self, data):
+        return get_object_or_404(User, username=data)
+
+
 class AnnouncementSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = UsernameSerializer(read_only=True)
     teams = TeamIdSerializer(many=True)
     type = TextEnumSerializer(AnnouncementType)
 

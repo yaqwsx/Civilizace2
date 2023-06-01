@@ -1,6 +1,8 @@
 import classNames from "classnames";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { useState } from "react";
+import DateTime from "react-datetime";
+import "react-datetime/css/react-datetime.css";
 import {
     Link,
     Navigate,
@@ -9,6 +11,7 @@ import {
     useNavigate,
     useParams,
 } from "react-router-dom";
+import { toast } from "react-toastify";
 import useSWR from "swr";
 import {
     Button,
@@ -21,9 +24,6 @@ import {
 import { useTeams } from "../elements/team";
 import { Announcement, AnnouncementType, Team } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import DateTime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
-import { toast } from "react-toastify";
 import { objectMap } from "../utils/functional";
 import { useHideMenu } from "./atoms";
 
@@ -131,7 +131,7 @@ function AnnouncementItem(props: {
             </Row>
             <Row>
                 <FormRow label="Naposledy upravil:" className="mb-0">
-                    <p>{props.announcement?.author?.username}</p>
+                    <p>{props.announcement?.author}</p>
                 </FormRow>
                 <FormRow label="Viditelné od:" className="mb-0">
                     <p>

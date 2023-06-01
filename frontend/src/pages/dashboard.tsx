@@ -1,25 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useSelector } from "react-redux";
-import {
-    Navigate,
-    NavLink,
-    Route,
-    Routes,
-    useNavigate,
-    useParams,
-} from "react-router-dom";
-import {
-    Button,
-    Card,
-    CiviMarkdown,
-    classNames,
-    Dialog,
-    LoadingOrError,
-    RequireOrg,
-} from "../elements";
-import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
-import { RootState } from "../store";
-import { Team, Sticker as StickerT } from "../types";
 import {
     faBarcode,
     faBriefcase,
@@ -34,18 +12,31 @@ import {
     faWarehouse,
     faWheatAwn,
 } from "@fortawesome/free-solid-svg-icons";
-import useSWR from "swr";
-import axiosService, { fetcher } from "../utils/axios";
-import { EntityTag, useEntities, useTeamTechs } from "../elements/entities";
-import { sortTechs } from "./techs";
 import { useState } from "react";
-import { toast } from "react-toastify";
-import { TurnCountdownSticker } from "../elements/turns";
 import QRCode from "react-qr-code";
-import { strictEqual } from "assert";
+import { useSelector } from "react-redux";
+import { NavLink, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import useSWR from "swr";
+import {
+    Button,
+    Card,
+    CiviMarkdown,
+    Dialog,
+    LoadingOrError,
+    RequireOrg,
+    classNames,
+} from "../elements";
+import { EntityTag, useEntities, useTeamTechs } from "../elements/entities";
 import { PrintStickers } from "../elements/printing";
+import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
+import { TurnCountdownSticker } from "../elements/turns";
+import { RootState } from "../store";
+import { Army, Sticker as StickerT, Team, TeamDashboard } from "../types";
+import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
+import { sortTechs } from "./techs";
 
 function MiddleTeamMenu(props: { teams: Team[] }) {
     let className = ({ isActive }: { isActive: boolean }) => {
@@ -207,7 +198,7 @@ function CardSection(props: { name: string; children?: any }) {
 function TeamOverview() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const { data, error: dataError } = useSWR<any>(
+    const { data, error: dataError } = useSWR<TeamDashboard>(
         () => (teamId ? `game/teams/${teamId}/dashboard` : null),
         fetcher
     );
@@ -244,7 +235,7 @@ function TeamOverview() {
                         icon={faScrewdriverWrench}
                     >
                         <ul>
-                            {data.techs.map((tid: string) => (
+                            {data.techs?.map((tid: string) => (
                                 <li key={tid}>
                                     <EntityTag id={tid} />
                                 </li>
@@ -398,7 +389,7 @@ function TeamOverview() {
             </CardSection>
 
             <CardSection name="Armády">
-                {data.armies.map((a: any) => (
+                {data.armies.map((a: Army) => (
                     <Card
                         key={a.index}
                         label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}
@@ -458,16 +449,17 @@ function TeamTasks() {
             {researchingTechs.length ? (
                 <>
                     {researchingTechs.map((t) => (
-                        <div className="my-2 w-full rounded bg-white p-3 py-2 px-4 shadow">
+                        <div
+                            key={t.id}
+                            className="my-2 w-full rounded bg-white p-3 py-2 px-4 shadow"
+                        >
                             <h3 className="mt-0">
                                 Úkol '{t.assignedTask?.name}' pro technologii '
                                 {t.name}'
                             </h3>
-                            <p>
-                                <CiviMarkdown>
-                                    {t.assignedTask?.teamDescription}
-                                </CiviMarkdown>
-                            </p>
+                            <CiviMarkdown>
+                                {t.assignedTask?.teamDescription}
+                            </CiviMarkdown>
                         </div>
                     ))}
                 </>

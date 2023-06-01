@@ -28,7 +28,7 @@ import {
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import { ResourceEntity, Team, TeamEntityTeamAttribute } from "../types";
+import { ResourceEntity, Team, TeamAttributeTeamEntity } from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -392,7 +392,7 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
 
 export function AddAttributeAgenda(props: { team: Team }) {
     const { data: teamAttributes, error } = useSWR<
-        Record<string, TeamEntityTeamAttribute>
+        Record<string, TeamAttributeTeamEntity>
     >(`game/teams/${props.team.id}/attributes`, fetcher);
     const setAction = useSetAtom(urlMapActionAtom);
     const [attribute, setAttribute] = useState<any>(undefined);

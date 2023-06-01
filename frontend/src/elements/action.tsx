@@ -1,18 +1,15 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ActionCommitResponse,
     ActionResponse,
-    ActionStatus,
-    Sticker,
-    Team,
     UnfinishedAction,
 } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 
+import { toast } from "react-toastify";
 import {
     Button,
     CiviMarkdown,
-    ComponentError,
     LoadingOrError,
     SpinboxInput,
     useFocus,
@@ -23,17 +20,16 @@ import {
     SuccessMessage,
     WarningMessage,
 } from "./messages";
-import { toast } from "react-toastify";
 
-import _ from "lodash";
-import useSWR, { useSWRConfig } from "swr";
-import { useTeamWork } from "./entities";
-import { useElementSize, useDebounce } from "usehooks-ts";
-import { PrintStickers } from "./printing";
-import { Link, Navigate } from "react-router-dom";
-import { useDebounceDeep } from "../utils/react";
-import { RESET, atomWithHash } from "jotai/utils";
 import { useAtom, useSetAtom } from "jotai";
+import { RESET, atomWithHash } from "jotai/utils";
+import _ from "lodash";
+import { Link, Navigate } from "react-router-dom";
+import useSWR, { useSWRConfig } from "swr";
+import { useElementSize } from "usehooks-ts";
+import { useDebounceDeep } from "../utils/react";
+import { useTeamWork } from "./entities";
+import { PrintStickers } from "./printing";
 
 export const activeActionIdAtom = atomWithHash<number | null>(
     "activeAction",
@@ -792,11 +788,13 @@ function DiceThrowForm(props: {
         }
     };
 
-    let throwsLeft = teamWork
-        ? Math.floor(
-              (teamWork - props.throws * props.throwCost) / props.throwCost
-          )
-        : "??";
+    let throwsLeft =
+        !_.isNil(teamWork) && _.isFinite(Number(teamWork))
+            ? Math.floor(
+                  (Number(teamWork) - props.throws * props.throwCost) /
+                      props.throwCost
+              )
+            : "??";
 
     return (
         <div className="w-full">

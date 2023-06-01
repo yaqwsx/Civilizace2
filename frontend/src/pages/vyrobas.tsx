@@ -243,12 +243,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
         else setAmount(x);
     };
 
-    const cost = sortCostItems(
-        Object.keys(vyroba.cost).map((k) => {
-            return [entities[k], vyroba.cost[k]];
-        })
-    );
-
     let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return (

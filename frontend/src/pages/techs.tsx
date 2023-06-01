@@ -9,13 +9,19 @@ import {
     LoadingOrError,
 } from "../elements";
 import { PerformAction } from "../elements/action";
-import { useTeamTechs } from "../elements/entities";
+import { useTeamEntities } from "../elements/entities";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import { Task, Team, TechEntity, TechTeamEntity } from "../types";
+import {
+    Task,
+    Team,
+    TechEntity,
+    TechOrgTeamEntity,
+    TechTeamEntity,
+} from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -50,13 +56,19 @@ export function Tech() {
     );
 }
 
-export function sortTechs(techs: TechTeamEntity[]) {
+export function sortTechs<TTechEntity extends TechTeamEntity>(
+    techs: TTechEntity[]
+) {
     // TBA
     return techs;
 }
 
 function TechListing(props: { team: Team }) {
-    const { techs, error, mutate } = useTeamTechs(props.team);
+    const {
+        data: techs,
+        error,
+        mutate,
+    } = useTeamEntities<TechOrgTeamEntity>("techs", props.team);
 
     if (!techs)
         return (
@@ -120,7 +132,7 @@ function TechListing(props: { team: Team }) {
 
 function TechList(props: {
     team: Team;
-    techs: TechTeamEntity[];
+    techs: TechOrgTeamEntity[];
     onTaskMutation: () => void;
 }) {
     return (
@@ -139,7 +151,7 @@ function TechList(props: {
 
 function TechItem(props: {
     team: Team;
-    tech: TechTeamEntity;
+    tech: TechOrgTeamEntity;
     onTaskMutation: () => void;
 }) {
     const [taskShown, setTaskShown] = useState<boolean>(false);
@@ -423,7 +435,7 @@ function SelectTaskForTechForm(props: {
 }
 
 function ChangeTaskDialog(props: {
-    tech: TechTeamEntity;
+    tech: TechOrgTeamEntity;
     team: Team;
     mutateTechs: () => void;
     onClose: () => void;

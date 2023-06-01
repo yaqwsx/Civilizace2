@@ -1,4 +1,4 @@
-export type Decimal = string;
+export type Decimal = string | number;
 
 export type TurnId = number;
 
@@ -79,12 +79,15 @@ export interface MapTileEntity extends EntityBase {
 // Team Entity Info
 
 export interface ResourceTeamEntity extends ResourceEntity {
-    available: number;
+    available: Decimal;
 }
 
 export interface VyrobaTeamEntity extends VyrobaEntity {
     allowedTiles: string[];
 }
+
+export interface BuildingTeamEntity extends BuildingEntity {}
+export interface BuildingUpgradeTeamEntity extends BuildingUpgradeEntity {}
 
 export interface TeamAttributeTeamEntity extends TeamAttributeEntity {
     owned: boolean;
@@ -96,29 +99,35 @@ export enum TechStatus {
     Available = "available",
 }
 
-export interface TechTeamEntity extends TechEntity {
-    status: TechStatus;
-    assignedTask?: Task;
-}
-
-// Task
-
 export interface TaskAssignment {
-    team: string;
-    techId: string;
+    team: TeamId;
+    techId: TechId;
     assignedAt: Date;
     finishedAt?: Date;
 }
 
-export interface Task {
+export interface TeamTask {
     id: string;
     name: string;
     teamDescription: string;
-    orgDescription?: string;
+    assignments: TaskAssignment[];
+}
+
+export interface Task extends TeamTask {
+    orgDescription: string;
     capacity: number;
     occupiedCount: number;
-    assignments: TaskAssignment[];
     techs: TechId[];
+}
+
+export interface TechTeamEntity extends TechEntity {
+    status: TechStatus;
+    assignedTask?: TeamTask;
+}
+
+export interface TechOrgTeamEntity extends TechTeamEntity {
+    status: TechStatus;
+    assignedTask?: Task;
 }
 
 // Announcement
@@ -129,14 +138,73 @@ export enum AnnouncementType {
     Game = "game",
 }
 
-export interface Announcement {
+export interface TeamAnnouncement {
     id: number;
-    author?: User;
     type: AnnouncementType;
     content: string;
+    read: boolean;
     appearDatetime: Date;
-    teams: string[];
-    read?: string[];
+    readBy?: string[];
+}
+
+export interface Announcement {
+    id: number;
+    author?: string;
+    appearDatetime: Date;
+    type: AnnouncementType;
+    content: string;
+    teams: TeamId[];
+    read?: TeamId[];
+}
+
+// Army
+
+export enum ArmyMode {
+    Idle = "Idle",
+    Marching = "Marching",
+    Occupying = "Occupying",
+}
+export enum ArmyGoal {
+    Occupy = "Occupy",
+    Eliminate = "Eliminate",
+    Supply = "Supply",
+    Replace = "Replace",
+}
+
+export interface Army {
+    index: number;
+    team: EntityId;
+    name: string;
+    level: number;
+    equipment: number;
+    boost: number;
+    tile: EntityId | null;
+    mode: ArmyMode;
+    goal: ArmyGoal | null;
+    reachableTiles?: EntityId[] | null;
+}
+
+// Dashboard
+
+export interface TeamDashboard {
+    population: { nospec: Decimal; all: Decimal };
+    work: Decimal;
+    culture: Decimal;
+    worldTurn: TurnId;
+    teamTurn: TurnId;
+    researchingTechs: TechEntity[];
+    productions: [EntityId, Decimal][];
+    storage: [EntityId, Decimal][];
+    granary: [EntityId, Decimal][];
+    feeding: {
+        casteCount: number;
+        tokensPerCaste: number;
+        tokensRequired: number;
+    };
+    announcements: TeamAnnouncement[];
+    armies: Army[];
+    techs?: EntityId[];
+    attributes?: EntityId[];
 }
 
 // Action

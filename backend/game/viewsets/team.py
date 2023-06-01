@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
@@ -16,7 +16,7 @@ from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
 from game.entities import Entities, EntityId, Vyroba
 from game.gameGlue import serializeEntity, stateSerialize
-from game.models import DbState, DbSticker, DbTask, DbTaskAssignment
+from game.models import DbState, DbSticker, DbTask, DbTaskAssignment, DbTaskManager
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
 from game.state import Army, MapTile, TeamState
 from game.viewsets.permissions import IsOrg
@@ -102,7 +102,7 @@ class TeamViewSet(viewsets.ViewSet):
         teamReachableTiles = state.map.getReachableTiles(entities.teams[pk])
 
         def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
-            return set(tile.features).issuperset(vyroba.requiredTileFeatures)
+            return set(vyroba.requiredTileFeatures).issubset(tile.features)
 
         def allowed_tiles(vyroba: Vyroba) -> List[EntityId]:
             return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]
@@ -138,6 +138,13 @@ class TeamViewSet(viewsets.ViewSet):
             }
         )
 
+    @staticmethod
+    def serialize_task(task: Union[DbTask, DbTaskManager], user: User):
+        if user.is_org:
+            return DbTaskSerializer(task).data
+        else:
+            return PlayerDbTaskSerializer(task).data
+
     @action(detail=True)
     def techs(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
@@ -160,17 +167,11 @@ class TeamViewSet(viewsets.ViewSet):
                     )
                 except DbTaskAssignment.DoesNotExist:
                     return {"status": "researching"}
-                task = assignment.task
                 return {
                     "status": "researching",
-                    "assignedTask": {
-                        "id": task.id,
-                        "name": task.name,
-                        "teamDescription": task.teamDescription,
-                        "orgDescription": task.orgDescription,
-                        "capacity": task.capacity,
-                        "occupiedCount": task.occupiedCount,
-                    },
+                    "assignedTask": TeamViewSet.serialize_task(
+                        assignment.task, request.user
+                    ),
                 }
             return {"status": "available"}
 
@@ -187,12 +188,12 @@ class TeamViewSet(viewsets.ViewSet):
         team = get_object_or_404(Team.objects.all(), pk=pk)
         if request.user.is_org:
             taskSet = DbTask.objects.all()
-            serializer = DbTaskSerializer
         else:
             taskSet = DbTask.objects.filter(assignments__team=team.pk)
-            serializer = PlayerDbTaskSerializer
 
-        return Response({t.id: serializer(t).data for t in taskSet})
+        return Response(
+            {t.id: TeamViewSet.serialize_task(t, request.user) for t in taskSet}
+        )
 
     @action(detail=True)
     def work(self, request: Request, pk: TeamId) -> Response:

@@ -2,6 +2,7 @@ import _ from "lodash";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {
+    Decimal,
     EntityBase,
     ResourceTeamEntity,
     Team,
@@ -21,12 +22,12 @@ export function useEntities<T>(entityType?: string) {
 }
 
 export function useTeamWork(teamId?: string) {
-    const { data, error } = useSWR<Record<string, number>>(
+    const { data, error } = useSWR<{ work: Decimal }>(
         () => (teamId ? `game/teams/${teamId}/work` : null),
         fetcher
     );
     return {
-        teamWork: data ? data["work"] : null,
+        teamWork: data?.work,
         error: error,
     };
 }
