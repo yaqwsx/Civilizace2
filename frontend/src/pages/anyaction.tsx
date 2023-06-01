@@ -19,7 +19,6 @@ import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
-    useTeams,
 } from "../elements/team";
 import {
     EntityBase,
@@ -57,6 +56,21 @@ export interface ActionType {
     id: string;
     has_init: boolean;
     args: Record<string, ArgumentInfo>;
+}
+
+function LoadEntitiesByType(): Record<
+    string,
+    { data?: Record<string, EntityBase>; loading: boolean; error: any }
+> {
+    return {
+        building: useEntities<EntityBase>("buildings"),
+        buildingupgrade: useEntities<EntityBase>("building_upgrades"),
+        maptileentity: useEntities<EntityBase>("tiles"),
+        resource: useEntities<EntityResource>("resources"),
+        teamattribute: useEntities<EntityBase>("team_attributes"),
+        tech: useEntities<EntityTech>("techs"),
+        vyroba: useEntities<EntityVyroba>("vyrobas"),
+    };
 }
 
 function PrintArgType(type: ServerArgTypeInfo): string {
@@ -133,7 +147,7 @@ function GetArgForm(props: ArgFormProps) {
                     onChange={(e) => p.onChange(e.target.checked)}
                 />
             );
-        case "team":
+        case "teamentity":
             return (p: ArgumentFormProps) => (
                 <TeamSelector
                     allowNull={!props.serverInfo.required}
@@ -141,35 +155,6 @@ function GetArgForm(props: ArgFormProps) {
                     onChange={(team) => p.onChange(team?.id)}
                 />
             );
-        case "maptileentity":
-        case "tech":
-        case "building":
-        case "resource":
-        case "vyroba": {
-            const { data, loading, error } =
-                props.entities[props.serverInfo.type.toLowerCase()];
-
-            if (error || loading || data === undefined) {
-                const errorStr =
-                    `Could not load entities` + error ? `: ${error}` : "";
-                return UnknownArgTypeForm(props.serverInfo, errorStr);
-            }
-
-            return (p: ArgumentFormProps) => (
-                <select
-                    className="select field"
-                    value={p.value ?? ""}
-                    onChange={(e) => p.onChange(e.target.value || undefined)}
-                >
-                    <option value="">No value</option>
-                    {Object.values(data).map((e) => (
-                        <option key={e.id} value={e.id}>
-                            {e.name}
-                        </option>
-                    ))}
-                </select>
-            );
-        }
         case "gamestate": {
             const fetchState = (props: {
                 setState: (state: any) => void;
@@ -270,13 +255,43 @@ function GetArgForm(props: ArgFormProps) {
                 />
             );
         }
-        default:
+        default: {
+            const argEntities =
+                props.entities[props.serverInfo.type.toLowerCase()];
+            if (!_.isNil(argEntities)) {
+                const { data, loading, error } = argEntities;
+
+                if (error || loading || data === undefined) {
+                    const errorStr =
+                        `Could not load entities` + error ? `: ${error}` : "";
+                    return UnknownArgTypeForm(props.serverInfo, errorStr);
+                }
+
+                return (p: ArgumentFormProps) => (
+                    <select
+                        className="select field"
+                        value={p.value ?? ""}
+                        onChange={(e) =>
+                            p.onChange(e.target.value || undefined)
+                        }
+                    >
+                        <option value="">No value</option>
+                        {Object.values(data).map((e) => (
+                            <option key={e.id} value={e.id}>
+                                {e.name}
+                            </option>
+                        ))}
+                    </select>
+                );
+            }
+
             console.log(
                 "Unknown arg type",
                 props.serverInfo.type.toLowerCase(),
                 props.serverInfo
             );
             return UnknownArgTypeForm(props.serverInfo);
+        }
     }
 }
 
@@ -399,26 +414,6 @@ function DictArgForm(props: {
             </FormRow>
         </div>
     );
-}
-
-function LoadEntitiesByType(): Record<
-    string,
-    { data?: Record<string, EntityBase>; loading: boolean; error: any }
-> {
-    const teams = useTeams();
-    return {
-        maptileentity: useEntities<EntityBase>("tiles"),
-        tech: useEntities<EntityTech>("techs"),
-        building: useEntities<EntityBase>("buildings"),
-        resource: useEntities<EntityResource>("resources"),
-        vyroba: useEntities<EntityVyroba>("vyrobas"),
-        team: {
-            data: teams.teams
-                ? Object.fromEntries(teams.teams.map((team) => [team.id, team]))
-                : undefined,
-            ...teams,
-        },
-    };
 }
 
 export function GetActionTypes(): {

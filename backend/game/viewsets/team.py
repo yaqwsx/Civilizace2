@@ -280,6 +280,7 @@ class TeamViewSet(viewsets.ViewSet):
                     for army in state.map.getTeamArmies(entities[pk])
                 ],
                 "techs": list(x.id for x in teamState.techs),
+                "attributes": list(x.id for x in teamState.attributes),
             }
         )
 

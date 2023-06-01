@@ -254,6 +254,19 @@ function TeamOverview() {
                             ))}
                         </ul>
                     </Card>
+                    <Card
+                        label="Vlastnosti týmu"
+                        color={team.color}
+                        icon={faTags}
+                    >
+                        <ul>
+                            {data.attributes?.map((aid: string) => (
+                                <li key={aid}>
+                                    <EntityTag id={aid} />
+                                </li>
+                            ))}
+                        </ul>
+                    </Card>
                 </CardSection>
             ) : null}
 
