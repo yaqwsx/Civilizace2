@@ -67,7 +67,7 @@ class GameTime(NamedTuple):
         if turn.startedAt is None:
             return GameTime(turn, 0)
 
-        time_s = math.floor((turn.startedAt - timezone.now()).total_seconds())
+        time_s = math.floor((timezone.now() - turn.startedAt).total_seconds())
         if time_s < 0:
             raise RuntimeError(f"Turn {turn.id} started in the future")
         time_s = min(time_s, turn.duration)
