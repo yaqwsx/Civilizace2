@@ -4,6 +4,7 @@ from typing import Dict
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.actions.common import MessageBuilder
 from game.entities import Resource
 from game.state import printResourceListForMarkdown
 
@@ -47,4 +48,6 @@ class WithdrawAction(TeamInteractionActionBase):
             if self.teamState.storage[resource] == 0:
                 del self.teamState.storage[resource]
 
-        self._info += f"Vydejte týmu zdroje: \n{printResourceListForMarkdown(self.args.resources)}"
+        self._info += MessageBuilder(
+            "Vydejte týmu zdroje:", printResourceListForMarkdown(self.args.resources)
+        )

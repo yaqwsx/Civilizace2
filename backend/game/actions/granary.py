@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import Dict
 from typing_extensions import override
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.actions.common import MessageBuilder
 from game.entities import Resource
 from game.state import printResourceListForMarkdown
 
@@ -38,4 +39,7 @@ class GranaryAction(TeamInteractionActionBase):
                 self.teamState.granary[resource] = Decimal(0)
             self.teamState.granary[resource] += amount
 
-        self._info += f"Krmení těmito produkcemi bylo automatizováno: \n{printResourceListForMarkdown(self.args.productions)}"
+        self._info += MessageBuilder(
+            "Krmení těmito produkcemi bylo automatizováno:",
+            printResourceListForMarkdown(self.args.productions),
+        )

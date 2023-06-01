@@ -85,18 +85,19 @@ class BuildUpgradeCompletedAction(TeamActionBase, NoInitActionBase):
 
         if self.state.map.getOccupyingTeam(self.args.tile) != self.args.team:
             # TODO: Check if this condition should stay (else add notification to the current team)
-            self._warnings += f"Pole [[{self.args.tile.id}]] není v držení týmu [[{self.args.team.id}]] pro stavbu vylepšení [[{self.args.upgrade.id}]]."
+            self._warnings += f"Pole [[{self.args.tile.id}]] není v držení týmu [[{self.args.team.id}]]."
         elif self.args.upgrade.building not in tileState.buildings:
-            self._warnings += f"Budova [[{self.args.upgrade.building.id}]] na poli [[{self.args.tile.id}]] neexistuje pro stavbu vylepšení [[{self.args.upgrade.id}]]."
+            self._warnings += f"Budova [[{self.args.upgrade.building.id}]] na poli [[{self.args.tile.id}]] neexistuje."
         elif self.args.upgrade in tileState.building_upgrades:
             self._warnings += f"Vylepšení [[{self.args.upgrade.id}]] budovy [[{self.args.upgrade.building.id}]] na poli [[{self.args.tile.id}]] už existuje."
         else:
             tileState.building_upgrades.add(self.args.upgrade)
-            self._info += f"Vylepšení [[{self.args.upgrade.id}]] budovy [[{self.args.upgrade.building}]] postaveno na poli [[{self.args.tile.id}]]."
+            self._info += f"Vylepšení [[{self.args.upgrade.id}]] budovy [[{self.args.upgrade.building.id}]] postaveno na poli [[{self.args.tile.id}]]."
 
-        msgBuilder = MessageBuilder(
-            message=f"Stavba vylepšení {self.args.upgrade.name} budovy {self.args.upgrade.building.name} dokončena:"
-        )
-        msgBuilder += self._warnings
+        msgBuilder = MessageBuilder()
+        if not self._warnings.empty:
+            msgBuilder += f"Stavba vylepšení [[{self.args.upgrade.id}]] budovy [[{self.args.upgrade.building.id}]] na poli [[{self.args.tile.id}]] se nezdařila:"
+            msgBuilder += self._warnings
+
         msgBuilder += self._info
         self._addNotification(self.args.team, msgBuilder.message)

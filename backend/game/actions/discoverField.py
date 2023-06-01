@@ -34,4 +34,4 @@ class DiscoverTileAction(TeamInteractionActionBase):
     @override
     def _commitSuccessImpl(self) -> None:
         self.teamState.discoveredTiles.add(self.args.tile)
-        self._info.add(f"Dílek [[{self.args.tile.id}]] byl objeven.")
+        self._info += f"Dílek [[{self.args.tile.id}]] byl objeven."

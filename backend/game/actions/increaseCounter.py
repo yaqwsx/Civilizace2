@@ -58,17 +58,17 @@ class IncreaseCounterAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        self.trace.add("Zahájen commit")
+        self._trace += "Zahájen commit"
         self.teamState.redCounter += self.args.red
-        self._info.add(
+        self._info += (
             f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
         )
-        self.trace.add(
+        self._trace += (
             f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
         )
 
         if self.args.resource is not None:
             self.teamState.blueCounter += 1
-            self._info.add(
+            self._info += (
                 f"Týmu bylo zvýšeno modré počítadlo na {self.teamState.blueCounter}"
             )

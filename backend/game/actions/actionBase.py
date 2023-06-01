@@ -61,10 +61,6 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
     def entities(self) -> Entities:
         return self._entities
 
-    @property
-    def trace(self) -> MessageBuilder:
-        return self._trace
-
     # Factory
 
     @classmethod
@@ -115,7 +111,7 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
         Checks the condition, if it doesn't hold, return error
         """
         if not condition:
-            self._errors.add(message)
+            self._errors += message
             return False
         return True
 
@@ -140,13 +136,9 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
         if not self._errors.empty:
             raise ActionFailed(self._errors)
 
-        msgBuilder = MessageBuilder()
-        msgBuilder.add(self._warnings.message)
-        msgBuilder.add(self._info.message)
-
         return ActionResult(
             expected=self._warnings.empty,
-            message=msgBuilder.message,
+            message=MessageBuilder(self._warnings, self._info).message,
             notifications=self._notifications,
             scheduledActions=self._scheduled_actions,
         )
@@ -230,10 +222,13 @@ class TeamInteractionActionBase(TeamActionBase):
             return "Ignoruje se placení za akci"
 
         require = self._payResources(self.cost())
-        if len(require) > 0:
-            return f"Vyberte od týmu materiály:\n\n{printResourceListForMarkdown(require, ceil)}"
-        else:
-            return "Není potřeba vybírat od týmu žádný materiál"
+
+        return printResourceListForMarkdown(
+            require,
+            ceil,
+            header="Vyberte od týmu materiály:",
+            emptyHeader="Není potřeba vybírat od týmu žádný materiál",
+        )
 
     def revertInitiate(self) -> str:
         """
@@ -242,7 +237,12 @@ class TeamInteractionActionBase(TeamActionBase):
         Returns: informace pro orgy o vrácení materiálů.
         """
         reward = self._revertPaidResources(instantWithdraw=True)
-        return f"Vraťte týmu materiály:\n\n{printResourceListForMarkdown(reward, ceil)}"
+        return printResourceListForMarkdown(
+            reward,
+            ceil,
+            header="Vraťte týmu materiály:",
+            emptyHeader="Nevracíte týmu žádné materiály",
+        )
 
     def commitThrows(self, *, throws: int, dots: int) -> ActionResult:
         """
@@ -330,13 +330,13 @@ class TeamInteractionActionBase(TeamActionBase):
             tState.resources.get(self.entities.work, Decimal(0)) - workConsumed,
         )
         if workConsumed > workAvailable:
-            self._warnings.add(
+            self._warnings += (
                 "Tým neměl dostatek práce (házel na jiném stanovišti?). "
                 + "Akce neuspěla. Tým přišel o zaplacené zdroje."
             )
             return False
         if pointsCost > dots:
-            self._warnings.add(
+            self._warnings += (
                 f"Tým nenaházel dostatek (chtěno {pointsCost}, naházeno {dots}). "
                 + "Akce neuspěla. Tým přišel o zaplacené zdroje."
             )
@@ -379,7 +379,10 @@ class TeamInteractionActionBase(TeamActionBase):
 
         self._ensureStrong(
             len(missing) == 0,
-            f"Tým nemá dostatek zdrojů. Chybí:\n\n{printResourceListForMarkdown(missing)}",
+            MessageBuilder(
+                "Tým nemá dostatek zdrojů. Chybí:",
+                printResourceListForMarkdown(missing),
+            ).message,
         )
 
         for resource, amount in resources.items():

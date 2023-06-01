@@ -42,9 +42,7 @@ class NoInitActionViewSet(viewsets.ViewSet):
         entities: Entities,
         state: GameState,
     ) -> str:
-        b = MessageBuilder()
-        b.add("## Efekty")
-        b.add(commitResult.message)
+        b = MessageBuilder("## Efekty", commitResult.message)
         with b.startList("Budou vydány samolepky:") as addLine:
             for t, e in stickers:
                 addLine(f"samolepka {e.name} pro tým {t.name}")

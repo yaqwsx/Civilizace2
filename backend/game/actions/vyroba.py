@@ -104,12 +104,16 @@ class VyrobaAction(TeamInteractionActionBase):
                 assert tileState.richnessTokens >= 0
 
             instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
-            self._info += f"Dejte týmu materiály:\n\n{printResourceListForMarkdown(instantReward, floor)}"
+            self._info += printResourceListForMarkdown(
+                instantReward,
+                floor,
+                header="Dejte týmu materiály:",
+                emptyHeader="Nedávejte týmu žádné materiály",
+            )
 
-            if len(tracked := reward.tracked()) > 0:
-                self._info += (
-                    f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
-                )
+            self._info += printResourceListForMarkdown(
+                reward.tracked(), header="Tým obdržel v systému:"
+            )
             if reward.bonus != 0:
                 self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
             if reward.plundered is not None:
@@ -139,18 +143,20 @@ class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
 
         self._receiveResources(reward.reward)
 
-        if len(tracked := reward.tracked()) > 0:
-            self._info += (
-                f"Tým obdržel v systému:\n\n{printResourceListForMarkdown(tracked)}"
-            )
+        self._info += printResourceListForMarkdown(
+            reward.reward,
+            header="Obdrželi jste v systému:",
+            emptyHeader="Neobdrželi jste žádné materiály",
+        )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
         if reward.plundered is not None:
             self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
-        msgBuilder = MessageBuilder(
-            message=f"Výroba {self.args.vyroba.name} dokončena:"
-        )
-        msgBuilder += self._warnings
+        msgBuilder = MessageBuilder()
+        if not self._warnings.empty:
+            msgBuilder += f"Výroba [[{self.args.vyroba.id}]] na poli [[{self.args.tile.id}]] se nezdařila:"
+            msgBuilder += self._warnings
+
         msgBuilder += self._info
         self._addNotification(self.args.team, msgBuilder.message)

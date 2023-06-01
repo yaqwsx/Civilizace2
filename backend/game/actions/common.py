@@ -29,10 +29,16 @@ class MessageBuilder(BaseModel):
 
     message: str = ""
 
-    def __iadd__(self, other: Any) -> MessageBuilder:
+    def __init__(self, *msgs: Union[str, MessageBuilder]):
+        super().__init__()
+        for msg in msgs:
+            self += msg
+
+    def __iadd__(self, other: Union[str, MessageBuilder]) -> MessageBuilder:
         if isinstance(other, MessageBuilder):
-            other = other.message
-        self.add(str(other))
+            self.add(other.message)
+        else:
+            self.add(other)
         return self
 
     def add(self, message: str) -> None:

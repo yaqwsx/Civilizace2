@@ -91,7 +91,7 @@ class ArmyDeployAction(TeamInteractionActionBase):
         army.mode = ArmyMode.Marching
         army.goal = self.args.goal
 
-        self._info.add(
+        self._info += (
             f"Armáda [[{army.name}]] vyslána na pole [[{self.args.tile.name}]]"
         )
 

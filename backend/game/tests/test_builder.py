@@ -10,10 +10,19 @@ def test_simple():
     assert m.message == "Hello!\n\nWorld!"
 
 
+def test_simple_op():
+    m = MessageBuilder()
+
+    m += "Hello!"
+    m += "World!"
+
+    assert m.message == "Hello!\n\nWorld!"
+
+
 def test_list1():
     m = MessageBuilder()
     m.addList(["a", "b"])
-    m.message == "- a\n- b"
+    assert m.message == "- a\n- b"
 
 
 def test_list2():

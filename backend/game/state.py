@@ -334,7 +334,6 @@ class TeamState(StateModel):
             attributes.update(tech.unlocksTeamAttributes)
         return attributes
 
-
     @property
     def work(self) -> Decimal:
         return get_by_entity_id(RESOURCE_WORK, self.resources, Decimal(0))
@@ -428,9 +427,14 @@ class GameState(StateModel):
 def printResourceListForMarkdown(
     resources: Mapping[Resource, Union[Decimal, int]],
     roundFunction: Callable[[Decimal], Any] = lambda x: x,
+    *,
+    header: str = "",
+    emptyHeader: str = "",
 ) -> str:
+    if len(resources) == 0:
+        return emptyHeader
     message = MessageBuilder()
-    with message.startList() as addLine:
+    with message.startList(header=header) as addLine:
         for resource, amount in resources.items():
             addLine(f"[[{resource.id}|{roundFunction(Decimal(amount))}]]")
     return message.message

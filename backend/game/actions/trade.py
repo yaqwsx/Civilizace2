@@ -4,6 +4,7 @@ from typing import Dict, List
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.actions.common import MessageBuilder
 from game.entities import Resource, TeamEntity
 from game.state import printResourceListForMarkdown
 
@@ -81,5 +82,8 @@ class TradeAction(TeamInteractionActionBase):
         self._info += printResourceListForMarkdown(self.args.resources)
         self._addNotification(
             self.args.receiver,
-            f"Od týmu {self.args.team.name} jste dostali {printResourceListForMarkdown(self.args.resources)}",
+            MessageBuilder(
+                f"Od týmu {self.args.team.name} jste dostali:",
+                printResourceListForMarkdown(self.args.resources),
+            ).message,
         )

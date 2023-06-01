@@ -104,7 +104,7 @@ class ActionViewHelper:
             action=dbAction,
             author=user,
             actionObject=stateSerialize(action),
-            trace=action.trace.message,
+            trace=action._trace.message,
         )
         dbState.updateFromIr(state)
         dbState.interaction = interaction
@@ -265,12 +265,11 @@ class ActionViewHelper:
         entities: Entities,
         state: GameState,
     ) -> str:
-        b = MessageBuilder()
         if scheduled.delay_s != 0:
             delayMsg = f"za {round(scheduled.delay_s / 60)} minut"
         else:
             delayMsg = "ihned"
-        b.add(f"**Akce má odložený efekt, který se provede {delayMsg}**:")
+        b = MessageBuilder(f"**Akce má odložený efekt, který se provede {delayMsg}**:")
 
         try:
             action = scheduled.actionType.makeAction(
@@ -278,10 +277,10 @@ class ActionViewHelper:
             )
             scheduledResult = action.commit()
 
-            b.add(
-                f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}úspěch)"
+            b += MessageBuilder(
+                f"### Odložený Efekt ({'' if scheduledResult.expected else 'NE'}úspěch)",
+                scheduledResult.message,
             )
-            b.add(scheduledResult.message)
 
             for team in [team] if team is not None else scheduledResult.notifications:
                 if len(scheduledResult.notifications.get(team, [])) == 0:
@@ -310,10 +309,7 @@ class ActionViewHelper:
         commitResult: ActionResult,
         scheduled: List[DbScheduledAction],
     ) -> str:
-        b = MessageBuilder()
-
-        b.add("## Efekty")
-        b.add(commitResult.message)
+        b = MessageBuilder("## Efekty", commitResult.message)
 
         assert len(scheduled) == len(commitResult.scheduledActions)
         for action in scheduled:
@@ -322,16 +318,17 @@ class ActionViewHelper:
                 gameTimeStr = f"v {targetGameTime}"
             else:
                 gameTimeStr = f"po konci nastavené hry"
-            b.add(
-                f"""**Akce má odložený efekt za {round(action.delay_s / 60)} min ({gameTimeStr}).**"""
-            )
+            b += f"**Akce má odložený efekt za {round(action.delay_s / 60)} min ({gameTimeStr}).**"
 
         return b.message
 
     @staticmethod
     def _actionFailedResponse(e: ActionFailed) -> Response:
         return Response(
-            data={"success": False, "message": f"Akci nelze zadat: \n\n{e}"}
+            data={
+                "success": False,
+                "message": MessageBuilder("Akci nelze zadat:", str(e)).message,
+            }
         )
 
     @staticmethod
@@ -339,7 +336,11 @@ class ActionViewHelper:
         return Response(
             data={
                 "success": False,
-                "message": f"Nastala chyba, kterou je třeba zahlásit Maarovi: \n\n{e}\n\n```\n{traceback}\n```",
+                "message": MessageBuilder(
+                    f"Nastala chyba, kterou je třeba zahlásit Maarovi:",
+                    str(e),
+                    f"```\n{traceback}```",
+                ).message,
             }
         )
 

@@ -123,14 +123,11 @@ class TeamActionViewSet(viewsets.ViewSet):
         entities: Entities,
         state: GameState,
     ) -> str:
-        b = MessageBuilder()
-        b.add("## Předpoklady")
-        b.add(initiateInfo)
+        b = MessageBuilder("## Předpoklady", initiateInfo)
 
-        b.add(TeamActionViewSet._previewDiceThrow(pointsCost))
+        b += TeamActionViewSet._previewDiceThrow(pointsCost)
 
-        b.add("## Efekty")
-        b.add(commitResult.message)
+        b += MessageBuilder("## Efekty", commitResult.message)
         with b.startList("Budou vydány samolepky:") as addLine:
             for t, e in stickers:
                 addLine(f"samolepka {e.name} pro tým {t.name}")
@@ -286,7 +283,7 @@ class TeamActionViewSet(viewsets.ViewSet):
             awardedStickers = ActionViewHelper._awardStickers(gainedStickers)
             ActionViewHelper.addResultNotifications(commitResult)
 
-            msgBuilder = MessageBuilder(message=initiateInfo)
+            msgBuilder = MessageBuilder(initiateInfo)
             msgBuilder += ActionViewHelper._commitMessage(commitResult, scheduled)
 
             return Response(
@@ -411,7 +408,10 @@ class TeamActionViewSet(viewsets.ViewSet):
                 dbAction, dbState, InteractionType.revert, request.user, state, action
             )
             return Response(
-                {"success": True, "message": f"## Akce zrušena\n\n{result}"}
+                {
+                    "success": True,
+                    "message": MessageBuilder("## Akce zrušena", result).message,
+                }
             )
         except ActionFailed as e:
             return ActionViewHelper._actionFailedResponse(e)

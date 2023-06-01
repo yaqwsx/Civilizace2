@@ -3,7 +3,7 @@ import traceback
 from typing_extensions import override
 
 from game.actions.actionBase import ActionArgs, NoInitActionBase
-from game.actions.common import ActionFailed
+from game.actions.common import ActionFailed, MessageBuilder
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.state import GameState
 
@@ -39,21 +39,21 @@ class GodModeAction(NoInitActionBase):
                 "Stavy světa se liší, nemůžu aplikovat změny",
             ):
                 self.state.world = newState.world
-                self._info.add("Upravuji stav světa")
+                self._info += "Upravuji stav světa"
         if newState.map.armies != originalState.map.armies:
             if self._ensure(
                 originalState.world == currentState.world,
                 "Stavy armád se liší, nemůžu aplikovat změny",
             ):
                 self.state.map.armies = newState.map.armies
-                self._info.add("Upravuji stav armád")
+                self._info += "Upravuji stav armád"
         if newState.map.tiles != originalState.map.tiles:
             if self._ensure(
                 originalState.world == currentState.world,
                 "Stavy políček se liší, nemůžu aplikovat změny",
             ):
                 self.state.map.tiles = newState.map.tiles
-                self._info.add("Upravuji stav mapy")
+                self._info += "Upravuji stav mapy"
         for t in currentState.teamStates.keys():
             if newState.teamStates[t] != originalState.teamStates[t]:
                 if self._ensure(
@@ -61,7 +61,7 @@ class GodModeAction(NoInitActionBase):
                     f"Stavy týmu {t} se liší. Nemůžu aplikovat změny.",
                 ):
                     self.state.teamStates[t] = newState.teamStates[t]
-                    self._info.add(f"Upravuji stav týmu {t.name}")
+                    self._info += f"Upravuji stav týmu {t.name}"
 
         self._ensureValid()
         try:
@@ -70,7 +70,9 @@ class GodModeAction(NoInitActionBase):
         except Exception as e:
             tb = traceback.format_exc()
             raise ActionFailed(
-                f"Upravený stav není možné serializovat:\n\n```\n{tb}\n```"
+                MessageBuilder(
+                    "Upravený stav není možné serializovat:", f"```\n{tb}\n```"
+                )
             )
 
-        self._info.add("Úspěsně provedeno")
+        self._info += "Úspěsně provedeno"

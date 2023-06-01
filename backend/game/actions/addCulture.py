@@ -30,6 +30,4 @@ class AddCultureAction(TeamActionBase, NoInitActionBase):
         tState.resources[culture] = (
             tState.resources.get(culture, Decimal(0)) + self.args.culture
         )
-        self._info.add(
-            f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}."
-        )
+        self._info += f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}."
