@@ -1,17 +1,8 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import AceEditor from "react-ace";
 import useSWR from "swr";
 import { Button, CiviMarkdown, LoadingOrError } from "../elements";
-import {
-    ActionDicePhase,
-    ActionFinishPhase,
-    ActionPhase,
-    useUnfinishedActions,
-} from "../elements/action";
-import { ErrorMessage, SuccessMessage } from "../elements/messages";
 import { fetcher } from "../utils/axios";
-import AceEditor from "react-ace";
 import { useHideMenu } from "./atoms";
 
 export function ActionLog() {

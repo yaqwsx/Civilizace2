@@ -1,30 +1,18 @@
-import classNames from "classnames";
+import { produce } from "immer";
+import { useAtom, useSetAtom } from "jotai";
+import { RESET } from "jotai/utils";
+import _ from "lodash";
+import { ChangeEvent, useEffect, useState } from "react";
 import useSWR from "swr";
 import {
-    FormRow,
-    InlineSpinner,
-    ComponentError,
-    SpinboxInput,
     Button,
+    ComponentError,
     Dialog,
+    FormRow,
     LoadingOrError,
+    SpinboxInput,
 } from "../elements";
-import {
-    useTeams,
-    useTeamFromUrl,
-    TeamSelector,
-    TeamRowIndicator,
-} from "../elements/team";
-import {
-    Team,
-    TeamEntityVyroba,
-    ResourceEntity,
-    TeamEntityResource,
-    Decimal,
-} from "../types";
-import { useAtom, useSetAtom } from "jotai";
-import { atomWithHash, RESET } from "jotai/utils";
-import { data } from "autoprefixer";
+import { PerformAction } from "../elements/action";
 import {
     EntityTag,
     urlEntityAtom,
@@ -32,13 +20,21 @@ import {
     useTeamResources,
     useTeamVyrobas,
 } from "../elements/entities";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { PerformAction } from "../elements/action";
-import { fetcher } from "../utils/axios";
-import _ from "lodash";
-import { useHideMenu } from "./atoms";
-import { produce } from "immer";
+import {
+    TeamRowIndicator,
+    TeamSelector,
+    useTeamFromUrl,
+} from "../elements/team";
+import {
+    Decimal,
+    ResourceEntity,
+    ResourceTeamEntity,
+    Team,
+    VyrobaTeamEntity,
+} from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
+import { fetcher } from "../utils/axios";
+import { useHideMenu } from "./atoms";
 
 export const urlVyrobaActionAtom = stringAtomWithHash("vyrobaAction");
 
@@ -111,7 +107,7 @@ export function Vyroba() {
 
 type SelectVyrobaProps = {
     team: Team;
-    active?: TeamEntityVyroba;
+    active?: VyrobaTeamEntity;
 };
 function SelectVyroba(props: SelectVyrobaProps) {
     const { vyrobas, error: vError } = useTeamVyrobas(props.team);
@@ -197,8 +193,8 @@ function isProduction(e: ResourceEntity) {
 }
 
 type PerformVyrobaProps = {
-    vyroba: TeamEntityVyroba;
-    resources: Record<string, TeamEntityResource>;
+    vyroba: VyrobaTeamEntity;
+    resources: Record<string, ResourceTeamEntity>;
     team: Team;
     onReset: () => void;
 };
@@ -291,7 +287,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                 .map((t) => (
                                     <option key={t.entity} value={t.entity}>
                                         {t.name}{" "}
-                                        {t?.homeTeam
+                                        {t.homeTeam
                                             ? `(domovské ${t.homeTeam})`
                                             : null}
                                     </option>

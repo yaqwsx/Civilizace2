@@ -1,30 +1,23 @@
-import { Props } from "@fortawesome/react-fontawesome";
-import classNames from "classnames";
 import { ChangeEvent, useState } from "react";
 import { toast } from "react-toastify";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import {
-    FormRow,
-    InlineSpinner,
-    ComponentError,
-    LoadingOrError,
-    Row,
     Button,
     CiviMarkdown,
     Dialog,
+    FormRow,
+    LoadingOrError,
 } from "../elements";
 import { PerformAction } from "../elements/action";
 import { useTeamTechs } from "../elements/entities";
 import {
-    useTeamFromUrl,
-    TeamSelector,
     TeamRowIndicator,
+    TeamSelector,
+    useTeamFromUrl,
 } from "../elements/team";
-import { EntityTech, Task, Team, TeamEntityTech } from "../types";
+import { Task, Team, TechEntity, TechTeamEntity } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
-import { useEditableTasks } from "./tasks";
-import _ from "lodash";
 
 export function TechMenu() {
     return null;
@@ -57,7 +50,7 @@ export function Tech() {
     );
 }
 
-export function sortTechs(techs: TeamEntityTech[]) {
+export function sortTechs(techs: TechTeamEntity[]) {
     // TBA
     return techs;
 }
@@ -127,7 +120,7 @@ function TechListing(props: { team: Team }) {
 
 function TechList(props: {
     team: Team;
-    techs: TeamEntityTech[];
+    techs: TechTeamEntity[];
     onTaskMutation: () => void;
 }) {
     return (
@@ -146,7 +139,7 @@ function TechList(props: {
 
 function TechItem(props: {
     team: Team;
-    tech: TeamEntityTech;
+    tech: TechTeamEntity;
     onTaskMutation: () => void;
 }) {
     const [taskShown, setTaskShown] = useState<boolean>(false);
@@ -343,7 +336,7 @@ function TaskSelectRow(props: { team: Team; task: Task }) {
 
 function SelectTaskForTechForm(props: {
     team: Team;
-    tech: EntityTech;
+    tech: TechEntity;
     selectedTask: Task | null;
     onChange: (t: Task) => void;
 }) {
@@ -430,7 +423,7 @@ function SelectTaskForTechForm(props: {
 }
 
 function ChangeTaskDialog(props: {
-    tech: TeamEntityTech;
+    tech: TechTeamEntity;
     team: Team;
     mutateTechs: () => void;
     onClose: () => void;

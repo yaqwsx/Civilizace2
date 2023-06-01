@@ -3,11 +3,10 @@ import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {
     EntityBase,
-    ResourceEntity,
+    ResourceTeamEntity,
     Team,
-    TeamEntityResource,
-    TeamEntityTech,
-    TeamEntityVyroba,
+    TechTeamEntity,
+    VyrobaTeamEntity,
 } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
 import { fetcher } from "../utils/axios";
@@ -40,7 +39,7 @@ export function useTeamEntities<T>(entityType: string, team?: Team) {
 }
 
 export function useTeamVyrobas(team?: Team) {
-    const { data, ...rest } = useTeamEntities<TeamEntityVyroba>(
+    const { data, ...rest } = useTeamEntities<VyrobaTeamEntity>(
         "vyrobas",
         team
     );
@@ -51,7 +50,7 @@ export function useTeamVyrobas(team?: Team) {
 }
 
 export function useTeamResources(team?: Team) {
-    const { data, ...rest } = useTeamEntities<TeamEntityResource>(
+    const { data, ...rest } = useTeamEntities<ResourceTeamEntity>(
         "resources",
         team
     );
@@ -62,7 +61,7 @@ export function useTeamResources(team?: Team) {
 }
 
 export function useTeamTechs(team?: Team) {
-    const { data, ...rest } = useTeamEntities<TeamEntityTech>("techs", team);
+    const { data, ...rest } = useTeamEntities<TechTeamEntity>("techs", team);
     return {
         techs: data,
         ...rest,

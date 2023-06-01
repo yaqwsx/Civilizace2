@@ -1,3 +1,5 @@
+import { ErrorMessage, Field, Form, Formik } from "formik";
+import { useState } from "react";
 import {
     Link,
     Navigate,
@@ -6,6 +8,7 @@ import {
     useNavigate,
     useParams,
 } from "react-router-dom";
+import { toast } from "react-toastify";
 import useSWR from "swr";
 import {
     Button,
@@ -16,14 +19,9 @@ import {
     Row,
 } from "../elements";
 import { useEntities } from "../elements/entities";
-import { EntityTech, Task } from "../types";
+import { Task, TechEntity } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import { useState } from "react";
 import { objectMap } from "../utils/functional";
-import { toast } from "react-toastify";
-import { toDate } from "date-fns/esm";
-import { data } from "autoprefixer";
 import { useHideMenu } from "./atoms";
 
 export function TasksMenu() {
@@ -53,7 +51,7 @@ function TasksOverview() {
         error: taskError,
         mutate: mutateTasks,
     } = useEditableTasks();
-    const { data: techs, error: techError } = useEntities<EntityTech>("techs");
+    const { data: techs, error: techError } = useEntities<TechEntity>("techs");
 
     let handleDelete = (id: string) => {
         let options = {
@@ -93,7 +91,7 @@ function TasksOverview() {
 
 function TaskItem(props: {
     task: Task;
-    techs: Record<string, EntityTech>;
+    techs: Record<string, TechEntity>;
     onDelete: () => void;
 }) {
     const [dDialog, setdDialog] = useState(false);
@@ -218,14 +216,14 @@ function DeleteDialog(props: {
     );
 }
 
-function sortTechs(techs: EntityTech[]) {
+function sortTechs(techs: TechEntity[]) {
     return techs;
 }
 
 function TaskEdit() {
     const { taskId } = useParams();
     const navigate = useNavigate();
-    const { data: techs, error: techError } = useEntities<EntityTech>("techs");
+    const { data: techs, error: techError } = useEntities<TechEntity>("techs");
     const { data: task, error: taskError } = useSWR<Task>(
         () => (taskId ? `game/tasks/${taskId}` : null),
         fetcher
@@ -330,7 +328,7 @@ function TaskEdit() {
 function TaskEditForm(props: {
     values: Task;
     setFieldValue: (field: string, value: any, validate: boolean) => void;
-    techs: EntityTech[];
+    techs: TechEntity[];
     submitting: boolean;
 }) {
     const allTechs = () => {

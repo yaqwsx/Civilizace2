@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { classNames, LoadingOrError } from ".";
-import { EntityTeamAttribute, Team } from "../types";
+import { Team, TeamAttributeEntity } from "../types";
 import { fetcher } from "../utils/axios";
 import { useEntities } from "./entities";
 
@@ -162,7 +162,7 @@ export function TeamAttributeSelect(props: {
     className?: any;
 }) {
     const { data: attributes, error } =
-        useEntities<EntityTeamAttribute>("team_attributes");
+        useEntities<TeamAttributeEntity>("team_attributes");
 
     if (!attributes) {
         return (

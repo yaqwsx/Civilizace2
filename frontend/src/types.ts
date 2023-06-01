@@ -78,17 +78,15 @@ export interface MapTileEntity extends EntityBase {
 
 // Team Entity Info
 
-export interface TeamEntityResource extends ResourceEntity {
+export interface ResourceTeamEntity extends ResourceEntity {
     available: number;
 }
 
-export interface TeamEntityVyroba extends VyrobaEntity {
+export interface VyrobaTeamEntity extends VyrobaEntity {
     allowedTiles: string[];
 }
 
-export interface EntityTeamAttribute extends EntityWithCost {}
-
-export interface TeamEntityTeamAttribute extends EntityTeamAttribute {
+export interface TeamAttributeTeamEntity extends TeamAttributeEntity {
     owned: boolean;
 }
 
@@ -97,6 +95,13 @@ export enum TechStatus {
     Researching = "researching",
     Available = "available",
 }
+
+export interface TechTeamEntity extends TechEntity {
+    status: TechStatus;
+    assignedTask?: Task;
+}
+
+// Task
 
 export interface TaskAssignment {
     team: string;
@@ -109,32 +114,14 @@ export interface Task {
     id: string;
     name: string;
     teamDescription: string;
-    orgDescription?: string; // Available only for orgs
+    orgDescription?: string;
     capacity: number;
     occupiedCount: number;
     assignments: TaskAssignment[];
     techs: TechId[];
 }
 
-export interface EntityTech extends EntityWithCost {
-    edges: Record<TechId, DieId>;
-}
-
-export interface TeamEntityTech extends EntityTech {
-    status: TechStatus;
-    assignedTask?: Task;
-}
-
-export interface AccountResponse {
-    user: User;
-    access: string;
-    refresh: string;
-}
-
-export interface UserResponse {
-    id: string;
-    username: string;
-}
+// Announcement
 
 export enum AnnouncementType {
     Normal = "normal",
@@ -152,24 +139,7 @@ export interface Announcement {
     read?: string[];
 }
 
-export interface Turn {
-    id: number;
-    startedAt?: Date;
-    shouldStartAt?: Date;
-    enabled: boolean;
-    duration: number;
-    prev?: Turn;
-    next?: Turn;
-}
-
-export interface Sticker {
-    id: number;
-    entityId: string;
-    entityRevision: number;
-    type: number;
-    awardedAt: string;
-    team: string;
-}
+// Action
 
 export enum ActionStatus {
     Success = "success",
@@ -191,20 +161,6 @@ export interface ActionCommitResponse {
     team: string;
 }
 
-export interface Printer {
-    id: number;
-    name: string;
-    address: string;
-    port: number;
-    registeredAt: string;
-    printsStickers: boolean;
-}
-
-export interface UnfinishedAction {
-    id: number;
-    description?: string;
-}
-
 // AnyAction
 
 export interface ServerArgTypeInfo {
@@ -219,4 +175,52 @@ export interface ServerActionType {
     id: string;
     has_init: boolean;
     args: Record<string, ServerArgTypeInfo>;
+}
+
+// Other
+
+export interface Turn {
+    id: number;
+    startedAt?: Date;
+    shouldStartAt?: Date;
+    enabled: boolean;
+    duration: number;
+    prev?: Turn;
+    next?: Turn;
+}
+
+export interface Sticker {
+    id: number;
+    entityId: string;
+    entityRevision: number;
+    type: number;
+    awardedAt: string;
+    team: string;
+}
+
+export interface Printer {
+    id: number;
+    name: string;
+    address: string;
+    port: number;
+    registeredAt: string;
+    printsStickers: boolean;
+}
+
+export interface UnfinishedAction {
+    id: number;
+    description?: string;
+}
+
+// Auth
+
+export interface AccountResponse {
+    user: User;
+    access: string;
+    refresh: string;
+}
+
+export interface UserResponse {
+    id: string;
+    username: string;
 }
