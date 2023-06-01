@@ -21,13 +21,18 @@ import {
     useTeamFromUrl,
 } from "../elements/team";
 import {
+    BuildingEntity,
+    BuildingUpgradeEntity,
+    DieEntity,
     EntityBase,
-    EntityResource,
-    EntityTech,
-    EntityVyroba,
+    MapTileEntity,
+    ResourceEntity,
     ServerActionType,
     ServerArgTypeInfo,
     Team,
+    TeamAttributeEntity,
+    TechEntity,
+    VyrobaEntity,
 } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
 import { fetcher } from "../utils/axios";
@@ -58,18 +63,19 @@ export interface ActionType {
     args: Record<string, ArgumentInfo>;
 }
 
-function LoadEntitiesByType(): Record<
-    string,
-    { data?: Record<string, EntityBase>; loading: boolean; error: any }
-> {
+// Confirms to backend/game/viewsets/entity.py:EntityViewSet
+// Key is lowercase entity type
+function UseAllEntitiesByType() {
     return {
-        building: useEntities<EntityBase>("buildings"),
-        buildingupgrade: useEntities<EntityBase>("building_upgrades"),
-        maptileentity: useEntities<EntityBase>("tiles"),
-        resource: useEntities<EntityResource>("resources"),
-        teamattribute: useEntities<EntityBase>("team_attributes"),
-        tech: useEntities<EntityTech>("techs"),
-        vyroba: useEntities<EntityVyroba>("vyrobas"),
+        resource: useEntities<ResourceEntity>("resources"),
+        tech: useEntities<TechEntity>("techs"),
+        vyroba: useEntities<VyrobaEntity>("vyrobas"),
+        maptileentity: useEntities<MapTileEntity>("tiles"),
+        building: useEntities<BuildingEntity>("buildings"),
+        buildingupgrade:
+            useEntities<BuildingUpgradeEntity>("building_upgrades"),
+        teamattribute: useEntities<TeamAttributeEntity>("team_attributes"),
+        die: useEntities<DieEntity>("dice"),
     };
 }
 
@@ -423,7 +429,7 @@ export function GetActionTypes(): {
     const { data: serverActions, error: actionsError } = useSWRImmutable<
         ServerActionType[]
     >(() => "/actions/", fetcher);
-    const entities = LoadEntitiesByType();
+    const entities = UseAllEntitiesByType();
 
     if (serverActions === undefined || actionsError) {
         return { actions: undefined, error: actionsError };

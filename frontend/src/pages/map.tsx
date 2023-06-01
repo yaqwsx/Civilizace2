@@ -28,7 +28,7 @@ import {
     useTeamFromUrl,
 } from "../elements/team";
 import {
-    EntityResource,
+    ResourceEntity,
     Team,
     TeamEntityResource,
     TeamEntityTeamAttribute,
@@ -749,7 +749,7 @@ function FeedingForm(props: {
         `/game/teams/${props.team.id}/feeding`,
         fetcher
     );
-    const { data: entities, error: eError } = useEntities<EntityResource>();
+    const { data: entities, error: eError } = useEntities<ResourceEntity>();
     if (!feedReq || !entities) {
         return (
             <LoadingOrError

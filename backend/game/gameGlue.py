@@ -237,4 +237,6 @@ def _shallow_entity(e: Any) -> Any:
     if isinstance(e, dict):
         return {_shallow_entity(k): _shallow_entity(v) for k, v in e.items()}
     assert isinstance(e, str | int | Decimal | type(None))
+    if isinstance(e, Decimal):
+        return str(e)
     return e

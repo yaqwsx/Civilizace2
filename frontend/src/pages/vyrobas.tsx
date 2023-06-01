@@ -18,9 +18,9 @@ import {
 import {
     Team,
     TeamEntityVyroba,
-    EntityResource,
-    Entity,
+    ResourceEntity,
     TeamEntityResource,
+    Decimal,
 } from "../types";
 import { useAtom, useSetAtom } from "jotai";
 import { atomWithHash, RESET } from "jotai/utils";
@@ -29,7 +29,6 @@ import {
     EntityTag,
     urlEntityAtom,
     useEntities,
-    useResources,
     useTeamEntity,
     useTeamResources,
     useTeamVyrobas,
@@ -177,27 +176,28 @@ function SelectVyroba(props: SelectVyrobaProps) {
     );
 }
 
-function sortCostItems(entries: [EntityResource, number][]) {
-    return entries.sort((x, y) => {
-        let a = x[0];
-        let b = y[0];
+function sortCostItems(entries: [ResourceEntity, Decimal][]) {
+    const sortIndex = (res: ResourceEntity) => {
+        if (res.id === "res-prace") return 0;
+        if (res.id === "res-obyvatel") return 1;
+        if (isGeneric(res) && isProduction(res)) return 2;
+        if (isGeneric(res)) return 3;
+        if (isProduction(res)) return 4;
+        return 5;
+    };
 
-        if (a.id == "res-prace") return -1;
-        if (b.id == "res-prace") return 1;
-        if (a.id == "res-obyvatel") return -1;
-        if (b.id == "res-obyvatel") return 1;
-        if (isGeneric(a) && isGeneric(b)) return 0;
-        if (isGeneric(a)) return -1;
-        if (isGeneric(b)) return 1;
-        return 0;
-    });
+    return _.sortBy(entries, ([res, num]) => [
+        sortIndex(res),
+        res.name,
+        res.id,
+    ]);
 }
 
-function isGeneric(entity: Entity) {
+function isGeneric(entity: ResourceEntity) {
     return entity.id.startsWith("mge-") || entity.id.startsWith("pge-");
 }
 
-function isProduction(e: EntityResource) {
+function isProduction(e: ResourceEntity) {
     return e.id.startsWith("pro-") || e.id.startsWith("pge-");
 }
 
@@ -208,7 +208,7 @@ type PerformVyrobaProps = {
     onReset: () => void;
 };
 function PerformVyroba(props: PerformVyrobaProps) {
-    const { data: entities, error: eError } = useEntities<EntityResource>();
+    const { data: entities, error: eError } = useEntities<ResourceEntity>();
     const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
 
     const [amount, setAmount] = useState<number>(1);
@@ -313,7 +313,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
                         />
                     </FormRow>
                     <h2>
-                        {amount}× {vyroba.name} → {amount * vyroba.reward[1]}×{" "}
+                        {amount}× {vyroba.name} →{" "}
+                        {amount * Number(vyroba.reward[1])}×{" "}
                         <EntityTag id={vyroba.reward[0]} />
                     </h2>
                 </>

@@ -1,10 +1,6 @@
-type EntityId = string;
+export type Decimal = string;
 
-export interface Team {
-    id: string;
-    name: string;
-    color: string;
-}
+export type TurnId = number;
 
 export interface User {
     id: string;
@@ -14,35 +10,79 @@ export interface User {
     team?: Team;
 }
 
-type ResourceId = string;
-type DieId = string;
-type TechId = string;
-
-export interface EntityBase {
-    id: string;
-    name: string;
+export interface Team extends EntityBase {
+    color: string;
 }
 
-export interface EntityResource extends EntityBase {
+// Entities
+
+export type EntityId = string;
+export type TeamId = EntityId;
+
+export type DieId = EntityId;
+export type ResourceId = EntityId;
+export type TileFeatureId = EntityId;
+export type NaturalResourceId = TileFeatureId;
+export type VyrobaId = EntityId;
+export type BuildingId = TileFeatureId;
+export type BuildingUpgradeId = TileFeatureId;
+export type TeamAttributeId = EntityId;
+export type TechId = EntityId;
+export type MapTileEntityId = EntityId;
+
+export interface EntityBase {
+    id: EntityId;
+    name: string;
+    icon?: string;
+}
+
+export interface DieEntity extends EntityBase {
+    briefName: string;
+}
+
+export interface ResourceEntity extends EntityBase {
     produces?: ResourceId;
 }
 
-export interface TeamEntityResource extends EntityResource {
+export interface EntityWithCost extends EntityBase {
+    cost: Record<ResourceId, Decimal>;
+    points: number;
+    unlockedBy: TechId[];
+}
+
+export interface VyrobaEntity extends EntityWithCost {
+    reward: [ResourceId, Decimal];
+    requiredTileFeatures: TileFeatureId[];
+}
+
+export interface BuildingEntity extends EntityWithCost {
+    requiredTileFeatures: TileFeatureId[];
+    upgrades: BuildingUpgradeId[];
+}
+
+export interface BuildingUpgradeEntity extends EntityWithCost {
+    building: BuildingId;
+}
+
+export interface TeamAttributeEntity extends EntityWithCost {}
+
+export interface TechEntity extends EntityWithCost {
+    unlocks: EntityWithCost[];
+}
+
+export interface MapTileEntity extends EntityBase {
+    index: number;
+    naturalResources: NaturalResourceId[];
+    richness: number;
+}
+
+// Team Entity Info
+
+export interface TeamEntityResource extends ResourceEntity {
     available: number;
 }
 
-export interface EntityWithCost extends EntityBase {
-    cost: Record<ResourceId, number>;
-    points: number;
-}
-
-export interface EntityVyroba extends EntityWithCost {
-    reward: [ResourceId, number];
-    points: number;
-    unlockedBy: [EntityId, DieId][];
-}
-
-export interface TeamEntityVyroba extends EntityVyroba {
+export interface TeamEntityVyroba extends VyrobaEntity {
     allowedTiles: string[];
 }
 
@@ -84,8 +124,6 @@ export interface TeamEntityTech extends EntityTech {
     status: TechStatus;
     assignedTask?: Task;
 }
-
-export type Entity = EntityResource | EntityVyroba;
 
 export interface AccountResponse {
     user: User;

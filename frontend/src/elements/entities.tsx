@@ -1,19 +1,33 @@
-import useSWR, { mutate } from "swr";
+import _ from "lodash";
+import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {
-    Entity,
-    EntityResource,
+    EntityBase,
+    ResourceEntity,
     Team,
     TeamEntityResource,
     TeamEntityTech,
     TeamEntityVyroba,
 } from "../types";
-import { fetcher } from "../utils/axios";
-import { atomWithHash } from "jotai/utils";
-import { EntityVyroba } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
+import { fetcher } from "../utils/axios";
 
 export const urlEntityAtom = stringAtomWithHash("entity");
+
+export function useEntities<T>(entityType?: string) {
+    const { data, error, mutate } = useSWRImmutable<
+        Record<string, T & EntityBase>
+    >(
+        () => (entityType ? `game/entities/${entityType}` : `game/entities`),
+        fetcher
+    );
+    return {
+        data,
+        loading: !error && !data,
+        error: error,
+        mutate: mutate,
+    };
+}
 
 export function useTeamWork(teamId?: string) {
     const { data, error } = useSWR<Record<string, number>>(
@@ -39,31 +53,10 @@ export function useTeamEntity<T>(entityType: string, team?: Team) {
     };
 }
 
-export function useEntities<T>(entityType?: string) {
-    const { data, error, mutate } = useSWRImmutable<Record<string, T>>(
-        () => (entityType ? `game/entities/${entityType}` : `game/entities`),
-        fetcher
-    );
-    return {
-        data: data,
-        loading: !error && !data,
-        error: error,
-        mutate: mutate,
-    };
-}
-
 export function useTeamVyrobas(team?: Team) {
     const { data, ...rest } = useTeamEntity<TeamEntityVyroba>("vyrobas", team);
     return {
         vyrobas: data,
-        ...rest,
-    };
-}
-
-export function useResources() {
-    const { data, ...rest } = useEntities<EntityResource>("resources");
-    return {
-        resources: data,
         ...rest,
     };
 }
@@ -88,14 +81,11 @@ export function useTeamTechs(team?: Team) {
 }
 
 export function EntityTag(props: { id: string; quantity?: number }) {
-    const { data } = useSWRImmutable<Record<string, Entity>>(
-        "game/entities/",
-        fetcher
-    );
+    const { data } = useEntities();
     let isProduction = String(props.id).startsWith("pro-");
     let name = props.id;
     if (data && data[props.id]?.name) name = data[props.id].name;
-    // @ts-ignore
+
     let icon = data && data[props.id]?.icon;
 
     let iconMarkup = icon ? (
@@ -113,15 +103,8 @@ export function EntityTag(props: { id: string; quantity?: number }) {
 
     return (
         <span>
-            {props.quantity == undefined ? (
-                <>
-                    {iconMarkup} {nameMarkup}
-                </>
-            ) : (
-                <>
-                    {props.quantity}× {iconMarkup} {nameMarkup}
-                </>
-            )}
+            {!_.isNil(props.quantity) ? `${props.quantity}× ` : null}
+            {iconMarkup} {nameMarkup}
         </span>
     );
 }
