@@ -215,7 +215,6 @@ class DbInteraction(models.Model):
         DbAction, on_delete=models.CASCADE, null=False, related_name="interactions"
     )
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    workConsumed = models.IntegerField(default=0)
     actionObject = JSONField()
     trace = models.TextField(default="")
 

@@ -117,10 +117,7 @@ function Interaction(props: { interaction: any }) {
     const intr = props.interaction;
     return (
         <div className="row my-1 rounded bg-gray-200 p-2">
-            <div>
-                Typ: {interactionName(intr.phase)}, spotřebovalo{" "}
-                {intr.workConsumed} práce
-            </div>
+            <div>Typ: {interactionName(intr.phase)}</div>
             <AceEditor
                 mode="javascript"
                 theme="github"
