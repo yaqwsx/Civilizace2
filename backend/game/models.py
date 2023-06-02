@@ -393,7 +393,7 @@ class DbTaskPreference(models.Model):
     techId = models.CharField(max_length=32)
 
 
-class StickerType(models.IntegerChoices):
+class StickerType(enum.Enum):
     regular = 0
     techSmall = 1
     techFirst = 2
@@ -403,7 +403,7 @@ class DbSticker(models.Model):
     team = models.ForeignKey(Team, related_name="stickers", on_delete=models.CASCADE)
     entityId = models.CharField(max_length=32)
     entityRevision = models.IntegerField()
-    type = models.IntegerField(choices=StickerType.choices)
+    type: StickerType = enum.EnumField(StickerType)  # type: ignore
     awardedAt = models.DateTimeField(auto_now_add=True)
 
     def update(self) -> None:
@@ -418,10 +418,6 @@ class DbSticker(models.Model):
     @cached_property
     def entity(self) -> Entity:
         return DbEntities.objects.get_revision(self.entityRevision)[1][self.entityId]
-
-    @property
-    def stickerType(self) -> StickerType:
-        return StickerType(self.type)
 
 
 class PrinterManager(models.Manager):
@@ -449,7 +445,7 @@ class DbTick(models.Model):
     lastTick = models.DateTimeField(auto_now=True)
 
 
-class DiffType(models.IntegerChoices):
+class DiffType(enum.Enum):
     richness = 0
     armyLevel = 1
     armyMove = 2
@@ -458,7 +454,7 @@ class DiffType(models.IntegerChoices):
 
 class DbMapDiff(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
-    type = models.IntegerField(choices=DiffType.choices)
+    type: DiffType = enum.EnumField(DiffType)  # type: ignore
     tile = models.CharField(max_length=32, null=True)
     newRichness = models.IntegerField(null=True)
     newLevel = models.IntegerField(null=True)

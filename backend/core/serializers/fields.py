@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Any, Optional, Type, TypeVar
 
 from django_enumfield import enum
 from rest_framework import serializers
@@ -46,3 +46,13 @@ class TextEnumSerializer(serializers.Field):
             return value
 
         self.fail("invalid_choice", input=data)
+
+
+TEnum = TypeVar("TEnum", bound=enum.Enum)
+
+
+def enum_map(
+    enum_type: Type[TEnum],
+) -> dict[str, TEnum]:
+    member_map: dict[str, Any] = enum_type._member_map_
+    return member_map  # type: ignore

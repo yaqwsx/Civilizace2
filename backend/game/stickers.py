@@ -5,17 +5,25 @@ if __name__ == "__main__":
 
 import contextlib
 import os
-from pathlib import Path
 from collections.abc import Generator
+from pathlib import Path
 from typing import List, Optional
 
 import qrcode
 from django.conf import settings
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+
 from backend.settings import ICON_PATH
 from core.models.team import Team
-
-from game.entities import RESOURCE_VILLAGER, RESOURCE_WORK, Building, BuildingUpgrade, Entity, Tech, Vyroba
+from game.entities import (
+    RESOURCE_VILLAGER,
+    RESOURCE_WORK,
+    Building,
+    BuildingUpgrade,
+    Entity,
+    Tech,
+    Vyroba,
+)
 from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
@@ -327,7 +335,9 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
     return b.getImage()
 
 
-def makeBuildingUpgradeSticker(e: BuildingUpgrade, t: Team, stype: StickerType) -> Image.Image:
+def makeBuildingUpgradeSticker(
+    e: BuildingUpgrade, t: Team, stype: StickerType
+) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
@@ -401,7 +411,7 @@ def getStickerFile(stickerModel: DbSticker) -> Path:
 
     def render(path):
         s = makeSticker(
-            entities[stickerModel.entityId], stickerModel.team, stickerModel.stickerType
+            entities[stickerModel.entityId], stickerModel.team, stickerModel.type
         )
         s.save(path)
 
