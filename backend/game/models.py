@@ -1,18 +1,18 @@
 from __future__ import annotations
+
 import functools
 import math
-
 from functools import cached_property
 from typing import Dict, NamedTuple, Optional, Tuple
 
-from core.models import Team, User
-from core.models.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
 from django_enumfield import enum
 
+from core.models import Team, User
+from core.models.fields import JSONField
 from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionArgs, ActionCommonBase
 from game.entities import Entities, Entity
@@ -144,7 +144,7 @@ class DbEntities(models.Model):
     class Meta:
         get_latest_by = "id"
 
-    data = JSONField("data")
+    data = JSONField()
     objects = DbEntitiesManager()
 
 
@@ -156,7 +156,7 @@ class DbAction(models.Model):
     """
 
     id = models.BigAutoField(primary_key=True)
-    actionType = models.CharField("actionType", max_length=64, null=False)
+    actionType = models.CharField(max_length=64, null=False)
     entitiesRevision = models.IntegerField()
     description = models.TextField(null=True)
     args = JSONField()
@@ -230,7 +230,7 @@ class DbInteraction(models.Model):
 
 class DbTeamState(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    data = JSONField("data")
+    data = JSONField()
 
     def toIr(self, entities) -> TeamState:
         return stateDeserialize(TeamState, self.data, entities)
@@ -238,7 +238,7 @@ class DbTeamState(models.Model):
 
 class DbMapState(models.Model):
     id = models.BigAutoField(primary_key=True)
-    data = JSONField("data")
+    data = JSONField()
 
     def toIr(self, entities) -> MapState:
         return stateDeserialize(MapState, self.data, entities)
@@ -246,7 +246,7 @@ class DbMapState(models.Model):
 
 class DbWorldState(models.Model):
     id = models.BigAutoField(primary_key=True)
-    data = JSONField("data")
+    data = JSONField()
 
     def toIr(self, entities) -> WorldState:
         return stateDeserialize(WorldState, self.data, entities)

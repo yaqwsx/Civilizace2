@@ -1,8 +1,7 @@
 import traceback
 from typing import Iterable, Optional
 
-from django.db import transaction
-from django.db.models import Count
+from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers, viewsets
@@ -17,8 +16,7 @@ from game.actions.actionBase import ActionResult, TeamInteractionActionBase
 from game.actions.common import ActionFailed, MessageBuilder
 from game.actions.researchFinish import ResearchFinishAction
 from game.actions.researchStart import ResearchStartAction
-from game.entities import Entities
-from game.entities import TeamEntity
+from game.entities import Entities, TeamEntity
 from game.gameGlue import stateSerialize
 from game.models import (
     DbAction,
@@ -422,16 +420,15 @@ class TeamActionViewSet(viewsets.ViewSet):
     @action(methods=["GET"], detail=False)
     @transaction.atomic()
     def unfinished(self, request: Request) -> Response:
-        unfinishedInteractions = (
-            DbInteraction.objects.filter(
-                phase=InteractionType.initiate, author=request.user
-            )
-            .annotate(interaction_count=Count("action__interactions"))
-            .filter(interaction_count=1)
+        unfinishedActions = DbAction.objects.annotate(
+            interaction_count=models.Count("interactions")
+        ).filter(
+            interaction_count=1,
+            interactions__in=DbInteraction.objects.filter(
+                phase=InteractionType.initiate,
+                author=request.user,
+            ),
         )
-        unfinishedActions = DbAction.objects.filter(
-            interactions__in=unfinishedInteractions
-        ).distinct()
         return Response(
             [{"id": x.id, "description": x.description} for x in unfinishedActions]
         )
