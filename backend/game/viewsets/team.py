@@ -43,7 +43,7 @@ class TeamViewSet(viewsets.ViewSet):
         return self.getTeamStateAndEntities(teamId)[0]
 
     def getTeamStateAndEntities(self, teamId: TeamId) -> Tuple[TeamState, Entities]:
-        dbState: DbState = DbState.objects.latest("id")
+        dbState: DbState = DbState.objects.latest()
         state = dbState.toIr()
         entities = dbState.entities
         team = entities.teams[teamId]
@@ -235,7 +235,7 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         team = get_object_or_404(Team.objects.all(), pk=pk)
 
-        dbState = DbState.objects.latest("id")
+        dbState = DbState.objects.latest()
         assert isinstance(dbState, DbState)
         state = dbState.toIr()
         entities = dbState.entities

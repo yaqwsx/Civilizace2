@@ -20,15 +20,15 @@ class AnnouncementType(enum.Enum):
 
 class AnnouncementManager(models.Manager):
     def get_unread(self, user: User) -> QuerySet[Announcement]:
-        return self.get_team(user.team).filter(
-            ~models.Exists(
-                ReadEvent.objects.filter(user=user, announcement=models.OuterRef("pk"))
+        return self.get_team(user.team).exclude(
+            models.Exists(
+                ReadEvent.objects.filter(announcement=models.OuterRef("pk"), user=user)
             )
         )
 
     def get_team_unread(self, team: Team) -> QuerySet[Announcement]:
-        return self.get_team(team).filter(
-            ~models.Exists(
+        return self.get_team(team).exclude(
+            models.Exists(
                 ReadEvent.objects.filter(
                     announcement=models.OuterRef("pk"), user__team=team
                 )
@@ -46,10 +46,10 @@ class AnnouncementManager(models.Manager):
         )
 
     def get_public(self) -> QuerySet[Announcement]:
-        return self.get_visible().filter(
-            ~models.Exists(
-                Team.objects.filter(
-                    ~models.Q(announcement=models.OuterRef("pk"), visible=True)
+        return self.get_visible().exclude(
+            models.Exists(
+                Team.objects.filter(visible=True).exclude(
+                    announcement=models.OuterRef("pk")
                 )
             )
         )

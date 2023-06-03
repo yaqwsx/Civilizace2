@@ -6,7 +6,7 @@ from functools import cached_property
 from typing import Dict, NamedTuple, Optional, Tuple
 
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django_enumfield import enum
@@ -87,7 +87,7 @@ class DbTurn(models.Model):
 
     @staticmethod
     def getActiveTurn() -> DbTurn:
-        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).latest("id")
+        turn = DbTurn.objects.filter(enabled=True, startedAt__isnull=False).latest()
         assert turn.startedAt is not None
         if timezone.now() > turn.startedAt + timezone.timedelta(seconds=turn.duration):
             # Turn already ended
@@ -209,6 +209,9 @@ class InteractionType(enum.Enum):
 
 
 class DbInteraction(models.Model):
+    class Meta:
+        unique_together = ("action", "phase")
+
     created = models.DateTimeField("Time of creating the action", auto_now_add=True)
     phase: InteractionType = enum.EnumField(InteractionType)  # type: ignore
     action = models.ForeignKey(
@@ -252,6 +255,7 @@ class DbWorldState(models.Model):
 
 
 class DbStateManager(models.Manager):
+    @transaction.atomic
     def createFromIr(self, ir: GameState) -> DbState:
         mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
         worldState = DbWorldState.objects.create(data=stateSerialize(ir.world))
@@ -372,6 +376,20 @@ class DbTask(models.Model):
 
 
 class DbTaskAssignment(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                condition=models.Q(abandoned=False),
+                fields=["team", "techId"],
+                name="Unique task assignment for each tech per team",
+            ),
+            models.UniqueConstraint(
+                condition=models.Q(abandoned=False, finishedAt__isnull=False),
+                fields=["team", "task"],
+                name="Unique task per team",
+            ),
+        ]
+
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     task = models.ForeignKey(
         DbTask, on_delete=models.CASCADE, related_name="assignments"
