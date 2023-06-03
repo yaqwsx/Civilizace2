@@ -457,11 +457,6 @@ class Printer(models.Model):
     objects = PrinterManager()
 
 
-class DbTick(models.Model):
-    name = models.CharField(max_length=32, primary_key=True)
-    lastTick = models.DateTimeField(auto_now=True)
-
-
 class DiffType(enum.Enum):
     richness = 0
     armyLevel = 1

@@ -14,7 +14,6 @@ from game.models import (
     DbInteraction,
     DbScheduledAction,
     DbSticker,
-    DbTick,
     DbTurn,
     DbState,
     DbTeamState,
@@ -57,7 +56,6 @@ class Command(BaseCommand):
 
     @staticmethod
     def clear_game() -> None:
-        DbTick.objects.all().delete()
         DbSticker.objects.all().delete()
         DbScheduledAction.objects.all().delete()
         DbEntities.objects.all().delete()
