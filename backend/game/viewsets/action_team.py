@@ -148,7 +148,7 @@ class TeamActionViewSet(viewsets.ViewSet):
         ignoreThrows = request.user.is_superuser and data["ignore_throws"]
 
         _, entities = DbEntities.objects.get_revision()
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
@@ -215,7 +215,7 @@ class TeamActionViewSet(viewsets.ViewSet):
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
-            dbState = DbState.objects.latest()
+            dbState = DbState.get_latest()
             state = dbState.toIr()
             sourceState = dbState.toIr()
             dryState = dbState.toIr()
@@ -307,7 +307,7 @@ class TeamActionViewSet(viewsets.ViewSet):
 
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
@@ -390,7 +390,7 @@ class TeamActionViewSet(viewsets.ViewSet):
         dbAction = get_object_or_404(DbAction, pk=pk)
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
 
         dbInteraction = dbAction.lastInteraction()

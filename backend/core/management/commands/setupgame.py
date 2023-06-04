@@ -109,7 +109,7 @@ class Command(BaseCommand):
     @staticmethod
     def create_initial_state(entities: Entities) -> None:
         irState = GameState.create_initial(entities)
-        DbState.objects.createFromIr(irState)
+        DbState.objects.create_from(irState, source=None)
         stickers = {
             t: s.collectStickerEntitySet() for t, s in irState.teamStates.items()
         }

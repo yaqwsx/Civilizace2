@@ -170,8 +170,8 @@ class DbAction(models.Model):
 
 
 class DbScheduledAction(models.Model):
-    action = models.ForeignKey(
-        DbAction, on_delete=models.CASCADE, related_name="scheduled", unique=True
+    action = models.OneToOneField(
+        DbAction, on_delete=models.CASCADE, related_name="scheduled"
     )
 
     created = models.DateTimeField(auto_now_add=True)
@@ -224,6 +224,9 @@ class DbInteraction(models.Model):
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     actionObject = JSONField(blank=True)
     trace = models.TextField(default="", blank=True)
+    new_state = models.OneToOneField(
+        "DbState", on_delete=models.CASCADE, related_name="interaction"
+    )
 
     def getActionIr(self, entities: Entities, state: GameState) -> ActionCommonBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
@@ -260,16 +263,45 @@ class DbWorldState(models.Model):
 
 class DbStateManager(models.Manager):
     @transaction.atomic
-    def createFromIr(self, ir: GameState) -> DbState:
-        mapState = DbMapState.objects.create(data=stateSerialize(ir.map))
-        worldState = DbWorldState.objects.create(data=stateSerialize(ir.world))
-        state = self.create(worldState=worldState, mapState=mapState, interaction=None)
-        for t, ts in ir.teamStates.items():
-            dbTs = DbTeamState.objects.create(
-                team=Team.objects.get(id=t.id), data=stateSerialize(ts)
+    def create_from(self, ir: GameState, *, source: Optional[DbState]) -> DbState:
+        ir.normalize()
+
+        sMap = stateSerialize(ir.map)
+        if source is not None and sMap == source.mapState.data:
+            mapState = source.mapState
+        else:
+            mapState = DbMapState.objects.create(data=sMap)
+
+        sWorld = stateSerialize(ir.world)
+        if source is not None and sWorld == source.worldState.data:
+            worldState = source.worldState
+        else:
+            worldState = DbWorldState.objects.create(data=sWorld)
+
+        dbTeamStates = []
+        if len(ir.teamStates) != Team.objects.count():
+            raise ValueError(
+                f"GameState has missing teamStates (missing: {Team.objects.exclude(id__in=ir.teamStates.keys())})"
             )
-            state.teamStates.add(dbTs)
-        state.save()
+        for team, teamState in ir.teamStates.items():
+            dbTeam = Team.objects.get(id=team.id)
+            sTeamState = stateSerialize(teamState)
+            if (
+                source is not None
+                and sTeamState
+                == (sourceDbTeamState := source.teamStates.get(team=dbTeam)).data
+            ):
+                dbTeamStates.append(sourceDbTeamState)
+            else:
+                dbTeamStates.append(
+                    DbTeamState.objects.create(team=dbTeam, data=sTeamState)
+                )
+
+        state: DbState = self.create(
+            mapState=mapState,
+            worldState=worldState,
+        )
+        state.teamStates.set(dbTeamStates)
         return state
 
 
@@ -280,13 +312,8 @@ class DbState(models.Model):
     mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE)
     worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE)
     teamStates = models.ManyToManyField(DbTeamState, related_name="states")
-    interaction = models.ForeignKey(DbInteraction, on_delete=models.CASCADE, null=True)
 
     objects = DbStateManager()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._teamStates = []
 
     def toIr(self) -> GameState:
         entities = self.entities
@@ -301,58 +328,21 @@ class DbState(models.Model):
         g._setParent()
         return g
 
-    def updateFromIr(self, ir: GameState) -> None:
-        ir.normalize()
-        self._teamStates = []
-        dirty = False
-        sMap = stateSerialize(ir.map)
-        if True or sMap != self.mapState.data:
-            dirty = True
-            self.mapState.pk = None
-            self.mapState.data = sMap
-        sWorld = stateSerialize(ir.world)
-        if True or sWorld != self.worldState.data:
-            dirty = True
-            self.worldState.pk = None
-            self.worldState.data = sWorld
-        teamMapping = {t.id: t for t in ir.teamStates.keys()}
-        for ts in self.teamStates.all():
-            sTs = stateSerialize(ir.teamStates[teamMapping[ts.team.id]])
-            self._teamStates.append(ts)
-            if True or sTs != ts.data:
-                dirty = True
-                ts.pk = None
-                ts.data = sTs
-        if dirty:
-            self.pk = None
+    @staticmethod
+    def get_latest() -> DbState:
+        return DbState.objects.latest()
 
-    def save(self, *args, **kwargs):
-        if self.mapState.id is None:
-            mstate = self.mapState
-            mstate.save()
-            self.mapState = mstate
-        if self.worldState.id is None:
-            wstate = self.worldState
-            wstate.save()
-            self.worldState = wstate
-        for t in self._teamStates:
-            if t.id is None:
-                t.save()
-        wasDirty = self.pk is None
-        super().save(*args, **kwargs)
-        if wasDirty:
-            self.teamStates.clear()
-            for t in self._teamStates:
-                self.teamStates.add(t)
-            self._teamStates = []
+    def get_interaction(self) -> Optional[DbInteraction]:
+        try:
+            return self.interaction  # type: ignore
+        except DbInteraction.DoesNotExist:
+            return None
 
     @property
     def entities(self) -> Entities:
-        if self.interaction is None:
+        if (interaction := self.get_interaction()) is None:
             return DbEntities.objects.get_revision()[1]
-        return DbEntities.objects.get_revision(
-            self.interaction.action.entitiesRevision
-        )[1]
+        return DbEntities.objects.get_revision(interaction.action.entitiesRevision)[1]
 
 
 class DbTaskManager(models.Manager):

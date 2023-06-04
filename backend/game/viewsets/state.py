@@ -13,6 +13,6 @@ class StateViewSet(viewsets.ViewSet):
 
     @action(detail=False)
     def latest(self, request: Request) -> Response:
-        state = DbState.objects.latest()
+        state = DbState.get_latest()
         ir = state.toIr()
         return Response(stateSerialize(ir))

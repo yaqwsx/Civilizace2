@@ -63,7 +63,7 @@ class NoInitActionViewSet(viewsets.ViewSet):
         ignoreGameStop = request.user.is_superuser and data["ignore_game_stop"]
 
         _, entities = DbEntities.objects.get_revision()
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
@@ -127,7 +127,7 @@ class NoInitActionViewSet(viewsets.ViewSet):
                 ActionViewHelper._ensureGameIsRunning(data["action"])
 
             entityRevision, entities = DbEntities.objects.get_revision()
-            dbState = DbState.objects.latest()
+            dbState = DbState.get_latest()
             state = dbState.toIr()
             sourceState = dbState.toIr()
 

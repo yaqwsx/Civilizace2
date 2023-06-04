@@ -11,7 +11,7 @@ class MapViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
     def list(self, request):
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         entities = dbState.entities
         state = dbState.toIr()
         tiles = state.map.tiles

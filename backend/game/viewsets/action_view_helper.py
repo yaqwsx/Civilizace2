@@ -92,28 +92,26 @@ class ActionViewHelper:
 
     @staticmethod
     def dbStoreInteraction(
-        dbAction: DbAction,
-        dbState: DbState,
-        interactionType: InteractionType,
+        db_action: DbAction,
+        source_db_state: DbState,
+        interaction_type: InteractionType,
         user: Optional[User],
-        state: GameState,
+        new_state: GameState,
         action: ActionCommonBase,
     ):
+        new_dbstate = DbState.objects.create_from(new_state, source=source_db_state)
         interaction = DbInteraction.objects.create(
-            phase=interactionType,
-            action=dbAction,
+            phase=interaction_type,
+            action=db_action,
             author=user,
             actionObject=stateSerialize(action),
             trace=action._trace.message,
+            new_state=new_dbstate,
         )
-        dbState.updateFromIr(state)
-        dbState.interaction = interaction
-        dbState.save()
 
-        newDescription = action.description
-        if newDescription is not None and len(newDescription) > 0:
-            dbAction.description = action.description
-            dbAction.save()
+        if newDescription := action.description:
+            db_action.description = newDescription
+            db_action.save()
 
     @staticmethod
     def addResultNotifications(result: ActionResult) -> None:
@@ -238,7 +236,7 @@ class ActionViewHelper:
         dbAction = scheduled.action
         _, entities = DbEntities.objects.get_revision(dbAction.entitiesRevision)
 
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
         sourceState = dbState.toIr()
 

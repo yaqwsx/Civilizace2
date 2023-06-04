@@ -62,7 +62,7 @@ def updateTurn():
 
 def makeNextTurnAction():
     entityRevision, entities = DbEntities.objects.get_revision()
-    dbState = DbState.objects.latest()
+    dbState = DbState.get_latest()
     state = dbState.toIr()
     prevState = dbState.toIr()
 
@@ -77,7 +77,7 @@ def makeNextTurnAction():
 
     action.commit()
     ActionViewHelper.dbStoreInteraction(
-        dbAction, dbState, InteractionType.commit, user=None, state=state, action=action
+        dbAction, dbState, InteractionType.commit, user=None, new_state=state, action=action
     )
 
     ActionViewHelper._markMapDiff(prevState, state)

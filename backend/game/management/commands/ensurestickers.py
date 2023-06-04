@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         revision, entities = DbEntities.objects.get_revision()
-        dbState = DbState.objects.latest()
+        dbState = DbState.get_latest()
         state = dbState.toIr()
         stickers = {t: s.collectStickerEntitySet() for t, s in state.teamStates.items()}
         for t, stickers in stickers.items():
