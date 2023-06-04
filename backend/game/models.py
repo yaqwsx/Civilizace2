@@ -79,7 +79,7 @@ class DbTurn(models.Model):
         get_latest_by = "id"
 
     id = models.AutoField(primary_key=True)
-    startedAt = models.DateTimeField(null=True)
+    startedAt = models.DateTimeField(null=True, blank=True)
     enabled = models.BooleanField(default=False)
     duration = models.IntegerField(
         default=15 * 60, validators=[MinValueValidator(0)]
@@ -156,10 +156,10 @@ class DbAction(models.Model):
     """
 
     id = models.BigAutoField(primary_key=True)
-    actionType = models.CharField(max_length=64, null=False)
+    actionType = models.CharField(max_length=64)
     entitiesRevision = models.IntegerField()
-    description = models.TextField(null=True)
-    args = JSONField()
+    description = models.TextField(null=True, blank=True)
+    args = JSONField(blank=True)
 
     def lastInteraction(self) -> DbInteraction:
         return DbInteraction.objects.filter(action=self).latest("phase")
@@ -171,13 +171,17 @@ class DbAction(models.Model):
 
 class DbScheduledAction(models.Model):
     action = models.ForeignKey(
-        DbAction, on_delete=models.CASCADE, null=False, related_name="scheduled"
+        DbAction, on_delete=models.CASCADE, related_name="scheduled", unique=True
     )
 
-    created = models.DateTimeField("Time of creating the action", auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_from = models.ForeignKey(
-        DbAction, on_delete=models.CASCADE, null=True, related_name="subsequent"
+        DbAction,
+        related_name="subsequent",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     start_round = models.ForeignKey(DbTurn, on_delete=models.CASCADE)
@@ -215,11 +219,11 @@ class DbInteraction(models.Model):
     created = models.DateTimeField("Time of creating the action", auto_now_add=True)
     phase: InteractionType = enum.EnumField(InteractionType)  # type: ignore
     action = models.ForeignKey(
-        DbAction, on_delete=models.CASCADE, null=False, related_name="interactions"
+        DbAction, on_delete=models.CASCADE, related_name="interactions"
     )
-    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    actionObject = JSONField()
-    trace = models.TextField(default="")
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    actionObject = JSONField(blank=True)
+    trace = models.TextField(default="", blank=True)
 
     def getActionIr(self, entities: Entities, state: GameState) -> ActionCommonBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
@@ -273,9 +277,9 @@ class DbState(models.Model):
     class Meta:
         get_latest_by = "id"
 
-    mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE, null=False)
-    worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE, null=False)
-    teamStates = models.ManyToManyField(DbTeamState)
+    mapState = models.ForeignKey(DbMapState, on_delete=models.CASCADE)
+    worldState = models.ForeignKey(DbWorldState, on_delete=models.CASCADE)
+    teamStates = models.ManyToManyField(DbTeamState, related_name="states")
     interaction = models.ForeignKey(DbInteraction, on_delete=models.CASCADE, null=True)
 
     objects = DbStateManager()
@@ -357,7 +361,7 @@ class DbTaskManager(models.Manager):
 
 
 class DbTask(models.Model):
-    id = models.CharField(primary_key=True, max_length=32, null=False)
+    id = models.CharField(primary_key=True, max_length=32)
     name = models.TextField()
     capacity = models.IntegerField()
     orgDescription = models.TextField()
@@ -396,7 +400,7 @@ class DbTaskAssignment(models.Model):
     )
     techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now_add=True)
-    finishedAt = models.DateTimeField(null=True)
+    finishedAt = models.DateTimeField(null=True, blank=True)
     abandoned = models.BooleanField(default=False)
 
 
@@ -467,8 +471,8 @@ class DiffType(enum.Enum):
 class DbMapDiff(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
     type: DiffType = enum.EnumField(DiffType)  # type: ignore
-    tile = models.CharField(max_length=32, null=True)
-    newRichness = models.IntegerField(null=True)
-    newLevel = models.IntegerField(null=True)
-    team = models.CharField(max_length=32, null=True)
-    armyName = models.CharField(max_length=32, null=True)
+    tile = models.CharField(max_length=32, null=True, blank=True)
+    newRichness = models.IntegerField(null=True, blank=True)
+    newLevel = models.IntegerField(null=True, blank=True)
+    team = models.CharField(max_length=32, null=True, blank=True)
+    armyName = models.CharField(max_length=32, null=True, blank=True)
