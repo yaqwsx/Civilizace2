@@ -22,6 +22,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = BaseUserManager()
 
     @property
+    def is_staff(self) -> bool:
+        return self.is_superuser
+
+    @property
     def is_org(self) -> bool:
         return self.team is None
 

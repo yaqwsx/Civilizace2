@@ -58,10 +58,14 @@ class AnnouncementManager(models.Manager):
 class Announcement(models.Model):
     id = models.BigAutoField(primary_key=True)
     author = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name="announcementsFrom", null=True
+        User,
+        on_delete=models.PROTECT,
+        related_name="createdAnnouncements",
+        null=True,
+        blank=True,
     )
-    appearDatetime = models.DateTimeField("Time of appearance the message")
     type: AnnouncementType = enum.EnumField(AnnouncementType, default=AnnouncementType.normal)  # type: ignore
+    appearDatetime = models.DateTimeField("Time of public appearance")
     content = models.TextField("Message content")
     teams = models.ManyToManyField(Team)
     read = models.ManyToManyField(User, through="ReadEvent")
@@ -83,6 +87,9 @@ class Announcement(models.Model):
 
 
 class ReadEvent(models.Model):
+    class Meta:
+        unique_together = ("announcement", "user")
+
     announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     readAt = models.DateTimeField(auto_now=True)
