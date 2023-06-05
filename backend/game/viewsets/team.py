@@ -1,5 +1,8 @@
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from __future__ import annotations
 
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
+
+from django.db import transaction
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -14,11 +17,11 @@ from core.models import Team, User
 from core.models.announcement import Announcement
 from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
-from game.entities import Entities, EntityId, Vyroba
+from game.entities import Entities, EntityId, TeamEntity, Vyroba
 from game.gameGlue import serializeEntity, stateSerialize
 from game.models import DbState, DbSticker, DbTask, DbTaskAssignment, DbTaskManager
 from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
-from game.state import Army, MapTile, TeamState
+from game.state import Army, GameState, MapTile, TeamState
 from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer
 
@@ -30,6 +33,23 @@ class ChangeTaskSerializer(serializers.Serializer):
     newTask = serializers.CharField(allow_blank=True, allow_null=True)
 
 
+class TeamStateInfo(NamedTuple):
+    state: GameState
+    teamEntity: TeamEntity
+    entities: Entities
+
+    @property
+    def teamState(self) -> TeamState:
+        return self.state.teamStates[self.teamEntity]
+
+    @staticmethod
+    def get_latest(teamId: TeamId) -> TeamStateInfo:
+        dbState = DbState.get_latest()
+        state = dbState.toIr()
+        entities = dbState.entities
+        return TeamStateInfo(state, entities.teams[teamId], entities)
+
+
 class TeamViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
@@ -38,16 +58,6 @@ class TeamViewSet(viewsets.ViewSet):
             assert user.team is not None
             if user.team.id != teamId:
                 raise PermissionDenied("Nedovolený přístup")
-
-    def getTeamState(self, teamId: TeamId) -> TeamState:
-        return self.getTeamStateAndEntities(teamId)[0]
-
-    def getTeamStateAndEntities(self, teamId: TeamId) -> Tuple[TeamState, Entities]:
-        dbState: DbState = DbState.get_latest()
-        state = dbState.toIr()
-        entities = dbState.entities
-        team = entities.teams[teamId]
-        return state.teamStates[team], entities
 
     def unreadAnnouncements(self, user: User, team: Team) -> QuerySet[Announcement]:
         if user.is_org:
@@ -82,7 +92,7 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def resources(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        resources = self.getTeamState(pk).resources
+        resources = TeamStateInfo.get_latest(pk).teamState.resources
 
         assert all(amount >= 0 for amount in resources.values())
         return Response(
@@ -96,10 +106,9 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def vyrobas(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState, entities = self.getTeamStateAndEntities(pk)
-        state = teamState.parent
+        stateInfo = TeamStateInfo.get_latest(pk)
 
-        teamReachableTiles = state.map.getReachableTiles(entities.teams[pk])
+        teamReachableTiles = stateInfo.state.map.getReachableTiles(stateInfo.teamEntity)
 
         def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
             return set(vyroba.requiredTileFeatures).issubset(tile.features)
@@ -110,26 +119,26 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
-                for v in teamState.vyrobas
+                for v in stateInfo.teamState.vyrobas
             }
         )
 
     @action(detail=True)
     def buildings(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState = self.getTeamState(pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
         return Response({b.id: serializeEntity(b) for b in teamState.buildings})
 
     @action(detail=True)
     def building_upgrades(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState = self.getTeamState(pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
         return Response({u.id: serializeEntity(u) for u in teamState.building_upgrades})
 
     @action(detail=True)
     def attributes(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState = self.getTeamState(pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
 
         return Response(
             {
@@ -150,17 +159,17 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         team = get_object_or_404(Team.objects.all(), pk=pk)
 
-        state = self.getTeamState(pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
 
-        teamTechs = set(state.techs)
-        teamTechs.update(state.researching)
-        for t in state.techs:
+        teamTechs = set(teamState.techs)
+        teamTechs.update(teamState.researching)
+        for t in teamState.techs:
             teamTechs.update(t.unlocksTechs)
 
         def tech_extra_fields(tech):
-            if tech in state.techs:
+            if tech in teamState.techs:
                 return {"status": "owned"}
-            if tech in state.researching:
+            if tech in teamState.researching:
                 try:
                     assignment = DbTaskAssignment.objects.get(
                         team=team, techId=tech.id, finishedAt=None
@@ -185,11 +194,10 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def tasks(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        team = get_object_or_404(Team.objects.all(), pk=pk)
         if request.user.is_org:
             taskSet = DbTask.objects.all()
         else:
-            taskSet = DbTask.objects.filter(assignments__team=team.pk)
+            taskSet = DbTask.objects.filter(assignments__team=pk)
 
         return Response(
             {t.id: TeamViewSet.serialize_task(t, request.user) for t in taskSet}
@@ -198,11 +206,12 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def work(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        state = self.getTeamState(pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
 
-        return Response({"work": state.work})
+        return Response({"work": teamState.work})
 
     @action(detail=True, methods=["POST"], permission_classes=[IsOrg])
+    @transaction.atomic()
     def changetask(self, request: Request, pk: TeamId) -> Response:
         assert request.user.is_org
         team = get_object_or_404(Team.objects.all(), pk=pk)
@@ -211,6 +220,11 @@ class TeamViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
         assert isinstance(data, dict)
+
+        if newTaskPk := data["newTask"]:
+            newTask = get_object_or_404(DbTask.objects.all(), pk=newTaskPk)
+        else:
+            newTask = None
 
         try:
             assignment = DbTaskAssignment.objects.get(
@@ -222,10 +236,10 @@ class TeamViewSet(viewsets.ViewSet):
         except DbTaskAssignment.DoesNotExist:
             pass
 
-        if data["newTask"]:
+        if newTask is not None:
             DbTaskAssignment.objects.create(
                 team=team,
-                task=get_object_or_404(DbTask.objects.all(), pk=data["newTask"]),
+                task=newTask,
                 techId=data["tech"],
             )
         return Response({})
@@ -234,12 +248,11 @@ class TeamViewSet(viewsets.ViewSet):
     def dashboard(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         team = get_object_or_404(Team.objects.all(), pk=pk)
-
-        dbState = DbState.get_latest()
-        state = dbState.toIr()
-        entities = dbState.entities
-        teamEntity = entities.teams[team.id]
-        teamState = state.teamStates[teamEntity]
+        stateInfo = TeamStateInfo.get_latest(pk)
+        state = stateInfo.state
+        entities = stateInfo.entities
+        teamEntity = stateInfo.teamEntity
+        teamState = stateInfo.teamState
 
         feedRequirements = computeFeedRequirements(state, entities, teamEntity)
 
@@ -312,51 +325,50 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def armies(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        tState, entities = self.getTeamStateAndEntities(pk)
-        state = tState.parent
-        team = entities.teams[pk]
-        reachableTiles = state.map.getReachableTiles(team)
+        stateInfo = TeamStateInfo.get_latest(pk)
+        reachableTiles = stateInfo.state.map.getReachableTiles(stateInfo.teamEntity)
 
         return Response(
             {
                 a.index: self.serializeArmy(a, reachableTiles)
-                for a in state.map.getTeamArmies(team)
+                for a in stateInfo.state.map.getTeamArmies(stateInfo.teamEntity)
             }
         )
 
     @action(detail=True)
     def stickers(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        stickers = DbSticker.objects.filter(team__id=pk).order_by("-awardedAt")
+        stickers = DbSticker.objects.filter(team=pk).order_by("-awardedAt")
         return Response(DbStickerSerializer(stickers, many=True).data)
 
     @action(detail=True)
     def storage(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        storage = self.getTeamState(pk).storage
+        teamState = TeamStateInfo.get_latest(pk).teamState
 
-        assert all(amount >= 0 for amount in storage.values())
+        assert all(amount >= 0 for amount in teamState.storage.values())
         return Response(
-            {res.id: amount for res, amount in storage.items() if amount > 0}
+            {res.id: amount for res, amount in teamState.storage.items() if amount > 0}
         )
 
     @action(detail=True)
     def feeding(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState, entities = self.getTeamStateAndEntities(pk)
-        state = teamState.parent
+        stateInfo = TeamStateInfo.get_latest(pk)
 
         return Response(
-            stateSerialize(computeFeedRequirements(state, entities, entities.teams[pk]))
+            stateSerialize(
+                computeFeedRequirements(
+                    stateInfo.state, stateInfo.entities, stateInfo.teamEntity
+                )
+            )
         )
 
     @action(detail=True)
     def tiles(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        tState, entities = self.getTeamStateAndEntities(pk)
-        state = tState.parent
-        teamE = entities.teams[pk]
-        reachableTiles = state.map.getReachableTiles(teamE)
+        stateInfo = TeamStateInfo.get_latest(pk)
+        reachableTiles = stateInfo.state.map.getReachableTiles(stateInfo.teamEntity)
 
         return Response(
             {
