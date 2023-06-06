@@ -40,14 +40,19 @@ class BuildAction(TeamInteractionActionBase):
         return self.args.building.points
 
     def travelTime(self) -> int:
-        return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))
+        return ceil(
+            self.state.map.getActualDistance(
+                self.args.team, self.args.tile, self.state.teamStates
+            )
+        )
 
     @override
     def _initiateCheck(self) -> None:
         tileState = self.args.tileState(self.state)
 
         self._ensureStrong(
-            self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+            self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
+            == self.args.team,
             f"Nelze postavit budovu, protože pole {self.args.tile.name} není v držení týmu.",
         )
         self._ensureStrong(
@@ -84,7 +89,10 @@ class BuildCompletedAction(TeamActionBase, NoInitActionBase):
     def _commitImpl(self) -> None:
         tileState = self.args.tileState(self.state)
 
-        if self.state.map.getOccupyingTeam(self.args.tile) != self.args.team:
+        if (
+            self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
+            != self.args.team
+        ):
             # TODO: Check if this condition should stay (else add notification to the current team)
             self._warnings += f"Pole [[{self.args.tile.id}]] není v držení týmu [[{self.args.team.id}]]."
         elif self.args.building in tileState.buildings:

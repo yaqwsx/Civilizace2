@@ -39,7 +39,10 @@ class BuildRoadAction(TeamInteractionActionBase):
 
     def travelTime(self) -> int:
         return ceil(
-            2 * self.state.map.getActualDistance(self.args.team, self.args.tile)
+            2
+            * self.state.map.getActualDistance(
+                self.args.team, self.args.tile, self.state.teamStates
+            )
         )
 
     @override
@@ -49,7 +52,8 @@ class BuildRoadAction(TeamInteractionActionBase):
             f"Na pole {self.args.tile.name} je už cesta postavena",
         )
         self._ensureStrong(
-            self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+            self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
+            == self.args.team,
             f"Nelze postavit cestu, protože pole {self.args.tile.name} není v držení týmu.",
         )
 

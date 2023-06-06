@@ -36,7 +36,9 @@ def test_actualDistance():
 
     for index, expected, message in expectations:
         distance = state.map.getActualDistance(
-            TEST_ENTITIES.teams["tym-modri"], state.map.tiles[index].entity
+            TEST_ENTITIES.teams["tym-modri"],
+            state.map.tiles[index].entity,
+            state.teamStates,
         )
         assert (
             distance == expected

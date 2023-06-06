@@ -74,12 +74,17 @@ class VyrobaAction(TeamInteractionActionBase):
         return ceil(self.args.vyroba.points * (1 + self.args.count) / 2)
 
     def travelTime(self) -> int:
-        return ceil(self.state.map.getActualDistance(self.args.team, self.args.tile))
+        return ceil(
+            self.state.map.getActualDistance(
+                self.args.team, self.args.tile, self.state.teamStates
+            )
+        )
 
     @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
-            self.state.map.getOccupyingTeam(self.args.tile) == self.args.team,
+            self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
+            == self.args.team,
             f"Nelze provést výrobu, protože pole {self.args.tile.name} není v držení týmu.",
         )
         for feature in self.args.vyroba.requiredTileFeatures:

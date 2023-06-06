@@ -55,7 +55,9 @@ class ArmyDeployAction(TeamInteractionActionBase):
         return self.state.map.armies[self.args.armyIndex]
 
     def travelTime(self) -> Decimal:
-        return self.state.map.getActualDistance(self.army.team, self.args.tile)
+        return self.state.map.getActualDistance(
+            self.army.team, self.args.tile, self.state.teamStates
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:
@@ -95,7 +97,9 @@ class ArmyDeployAction(TeamInteractionActionBase):
             f"Armáda [[{army.name}]] vyslána na pole [[{self.args.tile.name}]]"
         )
 
-        defender = self.state.map.getOccupyingTeam(self.args.tile)
+        defender = self.state.map.getOccupyingTeam(
+            self.args.tile, self.state.teamStates
+        )
         if defender is not None and defender != self.args.team:
             self._addNotification(
                 defender,

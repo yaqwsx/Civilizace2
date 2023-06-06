@@ -320,13 +320,11 @@ class DbState(models.Model):
         teams = {}
         for ts in self.teamStates.all():
             teams[entities[ts.team.id]] = ts.toIr(entities)
-        g = GameState.construct(
+        return GameState.construct(
             teamStates=teams,
             map=self.mapState.toIr(entities),
             world=self.worldState.toIr(entities),
         )
-        g._setParent()
-        return g
 
     @staticmethod
     def get_latest() -> DbState:

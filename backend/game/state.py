@@ -11,16 +11,6 @@ TModel = TypeVar("TModel", bound="BaseModel")
 
 
 class StateModel(BaseModel):
-    _parent: Optional[StateModel] = PrivateAttr()
-
-    def __eq__(self, other: Any) -> bool:
-        if self.__class__ != other.__class__:
-            return False
-        for field in self.__fields__.values():
-            if getattr(self, field.name) != getattr(other, field.name):
-                return False
-        return True
-
     # By default, pydantic makes a copy of models on validation. We want to
     # avoid this as state is shared. Therefore, we override the behavior
     @classmethod
@@ -28,9 +18,6 @@ class StateModel(BaseModel):
         if isinstance(value, cls):
             return value  # This is the changed behavior
         return super().validate(value)
-
-    def _setParent(self, parent: Optional[StateModel] = None):
-        self._parent = parent
 
 
 class ArmyMode(enum.Enum):
@@ -56,11 +43,6 @@ class Army(StateModel):
     tile: Optional[MapTileEntity] = None
     mode: ArmyMode = ArmyMode.Idle
     goal: Optional[ArmyGoal] = None
-
-    @property
-    def parent(self) -> MapState:
-        assert isinstance(self._parent, MapState)
-        return self._parent
 
     @property
     def capacity(self) -> int:
@@ -95,11 +77,6 @@ class MapTile(StateModel):  # Game state element
     buildings: Set[Building] = set()
     building_upgrades: Set[BuildingUpgrade] = set()
     richnessTokens: int
-
-    @property
-    def parent(self) -> MapState:
-        assert isinstance(self._parent, MapState)
-        return self._parent
 
     @property
     def name(self) -> str:
@@ -143,16 +120,6 @@ class MapState(StateModel):
     tiles: Dict[int, MapTile]
     armies: List[Army]
 
-    def _setParent(self, parent: Optional[StateModel] = None):
-        self._parent = parent
-        for t in self.tiles.values():
-            t._setParent(self)
-
-    @property
-    def parent(self) -> GameState:
-        assert isinstance(self._parent, GameState)
-        return self._parent
-
     def getTileById(self, id: str) -> Optional[MapTile]:
         tiles = [tile for tile in self.tiles.values() if tile.id == id]
         if len(tiles) != 1:
@@ -160,11 +127,12 @@ class MapState(StateModel):
         return tiles[0]
 
     def getHomeOfTeam(self, team: TeamEntity) -> MapTile:
-        return self.parent.teamStates[team].homeTile
+        home = self.getTileById(team.homeTile.id)
+        assert home is not None, f"Team {team} has not home ({team.homeTile})"
+        return home
 
     def _getRelativeIndex(self, team: TeamEntity, tile: MapTileEntity) -> int:
         home = self.getHomeOfTeam(team)
-        assert home != None, "Team {} has no home tile".format(team.id)
         relIndex = tile.index - home.index
         relIndexOffset = relIndex + self.size / 2
         return round((relIndexOffset % self.size) - self.size / 2)
@@ -176,7 +144,12 @@ class MapState(StateModel):
         ), "Tile {} is unreachable for {}".format(tile, team.id)
         return TILE_DISTANCES_RELATIVE[relativeIndex] * TIME_PER_TILE_DISTANCE
 
-    def getActualDistance(self, team: TeamEntity, tile: MapTileEntity) -> Decimal:
+    def getActualDistance(
+        self,
+        team: TeamEntity,
+        tile: MapTileEntity,
+        teamStates: Dict[TeamEntity, TeamState],
+    ) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert (
             relativeIndex in TILE_DISTANCES_RELATIVE
@@ -186,10 +159,10 @@ class MapState(StateModel):
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8)  # Tiles are around the map
         multiplier = Decimal(1)
-        teamState = self.parent.teamStates[team]
+        teamState = teamStates[team]
         if tile in teamState.roadsTo:
             multiplier -= Decimal(0.5)
-        if self.getOccupyingTeam(tile) == team:
+        if self.getOccupyingTeam(tile, teamStates) == team:
             multiplier -= Decimal(0.5)
         return distance * multiplier
 
@@ -207,15 +180,14 @@ class MapState(StateModel):
                 return army
         return None
 
-    def getOccupyingTeam(self, tile: MapTileEntity) -> Optional[TeamEntity]:
+    def getOccupyingTeam(
+        self, tile: MapTileEntity, teams: Iterable[TeamEntity]
+    ) -> Optional[TeamEntity]:
         for army in self.armies:
             if army.tile == tile and army.mode == ArmyMode.Occupying:
                 return army.team
 
-        for team in self.parent.teamStates.keys():
-            if team.homeTile == tile:
-                return team
-        return None
+        return next(filter(lambda team: team.homeTile == tile, teams), None)
 
     def retreatArmy(self, army: Army) -> int:
         result = army.equipment
@@ -288,20 +260,6 @@ class TeamState(StateModel):
     employees: Decimal = Decimal(0)
 
     discoveredTiles: Set[MapTileEntity] = set()
-
-    def _setParent(self, parent: Optional[StateModel] = None):
-        self._parent = parent
-
-    @property
-    def parent(self) -> GameState:
-        assert isinstance(self._parent, GameState)
-        return self._parent
-
-    @property
-    def homeTile(self) -> MapTile:
-        tile = self.parent.map.getTileById(self.team.homeTile.id)
-        assert tile is not None
-        return tile
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
@@ -395,11 +353,6 @@ class GameState(StateModel):
     map: MapState
     world: WorldState
 
-    def _setParent(self) -> None:
-        for t in self.teamStates.values():
-            t._setParent(self)
-        self.map._setParent(self)
-
     @staticmethod
     def create_initial(entities: Entities) -> GameState:
         return GameState(
@@ -410,10 +363,6 @@ class GameState(StateModel):
             map=MapState.create_initial(entities),
             world=WorldState.create_initial(entities),
         )
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._setParent()
 
     def normalize(self) -> None:
         for team in self.teamStates.values():
