@@ -36,8 +36,8 @@ def test_feedRequirements_some():
 
     teamState.resources[entities.obyvatel] = Decimal(201)
     teamState.granary = {
-        entities.productions["pro-maso"]: Decimal(2),
-        entities.productions["pro-bobule"]: Decimal(1),
+        entities.productions["pro-maso"]: 2,
+        entities.productions["pro-bobule"]: 1,
     }
 
     expected = FeedRequirements(
@@ -45,8 +45,8 @@ def test_feedRequirements_some():
         tokensPerCaste=2,
         casteCount=3,
         automated=[
-            (entities.resources["mat-maso"], Decimal(2)),
-            (entities.resources["mat-bobule"], Decimal(1)),
+            (entities.resources["mat-maso"], 2),
+            (entities.resources["mat-bobule"], 1),
         ],
     )
 
@@ -64,11 +64,11 @@ def test_feedRequirements_order():
 
     teamState.resources[entities.obyvatel] = Decimal(201)
     teamState.granary = {
-        entities.productions["pro-maso"]: Decimal(1),
-        entities.productions["pro-bobule"]: Decimal(3),
-        entities.productions["pro-kuze"]: Decimal(2),
-        entities.productions["pro-keramika"]: Decimal(2),
-        entities.productions["pro-cukr"]: Decimal(1),
+        entities.productions["pro-maso"]: 1,
+        entities.productions["pro-bobule"]: 3,
+        entities.productions["pro-kuze"]: 2,
+        entities.productions["pro-keramika"]: 2,
+        entities.productions["pro-cukr"]: 1,
     }
 
     expected = FeedRequirements(
@@ -76,11 +76,11 @@ def test_feedRequirements_order():
         tokensPerCaste=2,
         casteCount=3,
         automated=[
-            (entities.resources["mat-bobule"], Decimal(3)),
-            (entities.resources["mat-cukr"], Decimal(1)),
-            (entities.resources["mat-maso"], Decimal(1)),
-            (entities.resources["mat-keramika"], Decimal(2)),
-            (entities.resources["mat-kuze"], Decimal(2)),
+            (entities.resources["mat-bobule"], 3),
+            (entities.resources["mat-cukr"], 1),
+            (entities.resources["mat-maso"], 1),
+            (entities.resources["mat-keramika"], 2),
+            (entities.resources["mat-kuze"], 2),
         ],
     )
 
@@ -255,9 +255,9 @@ def test_productions():
         entities.resources["mat-cukr"]: Decimal(6),
     }
     state.teamStates[teamEntity].granary = {
-        entities.productions["pro-bobule"]: Decimal(20),
-        entities.productions["pro-kuze"]: Decimal(10),
-        entities.productions["pro-maso"]: Decimal(8),
+        entities.productions["pro-bobule"]: 20,
+        entities.productions["pro-kuze"]: 10,
+        entities.productions["pro-maso"]: 8,
     }
 
     action = FeedAction.makeAction(

@@ -48,7 +48,7 @@ class GranaryAction(TeamInteractionActionBase):
     def _commitSuccessImpl(self) -> None:
         for resource, amount in self.args.productions.items():
             if resource not in self.teamState.granary:
-                self.teamState.granary[resource] = Decimal(0)
+                self.teamState.granary[resource] = 0
             self.teamState.granary[resource] += amount
 
         self._info += MessageBuilder(

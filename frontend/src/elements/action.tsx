@@ -44,9 +44,7 @@ export function useUnfinishedActions(refreshInterval?: number) {
     const { data: actions, ...other } = useSWR<UnfinishedAction[]>(
         "game/actions/team/unfinished",
         fetcher,
-        {
-            refreshInterval: refreshInterval,
-        }
+        { refreshInterval }
     );
     const [activeAction] = useAtom(activeActionIdAtom);
     const [finishedAction] = useAtom(finishedActionIdAtom);

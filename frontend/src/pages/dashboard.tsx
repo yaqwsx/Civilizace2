@@ -357,14 +357,14 @@ function TeamOverview() {
                             Potřeba žetonů pro spokojenost kasty:{" "}
                             {data.feeding.tokensPerCaste}
                             <ul className="list-disc text-left">
-                                {data.granary.map((p: any) => {
+                                {data.granary.map(([prod, amount]) => {
                                     let missing =
-                                        p[1] - data.feeding.tokensPerCaste;
+                                        amount - data.feeding.tokensPerCaste;
                                     return (
-                                        <li key={p[0]}>
+                                        <li key={prod}>
                                             <EntityTag
-                                                id={p[0]}
-                                                quantity={p[1]}
+                                                id={prod}
+                                                quantity={amount}
                                             />{" "}
                                             (
                                             {missing < 0 ? (

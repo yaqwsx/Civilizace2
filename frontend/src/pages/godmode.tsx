@@ -1,5 +1,3 @@
-// @ts-ignore
-import { JsonEditor as Editor } from "jsoneditor-react";
 import "jsoneditor-react/es/editor.min.css";
 import { useEffect, useState } from "react";
 import useSWR from "swr";

@@ -195,7 +195,7 @@ export interface TeamDashboard {
     researchingTechs: TechEntity[];
     productions: [EntityId, Decimal][];
     storage: [EntityId, Decimal][];
-    granary: [EntityId, Decimal][];
+    granary: [EntityId, number][];
     feeding: {
         casteCount: number;
         tokensPerCaste: number;

@@ -255,7 +255,7 @@ class TeamState(StateModel):
 
     resources: Dict[Resource, Decimal]
     storage: Dict[Resource, Decimal]
-    granary: Dict[Resource, Decimal] = {}
+    granary: Dict[Resource, int] = {}
     storageCapacity: Decimal = Decimal(10)
     employees: Decimal = Decimal(0)
 

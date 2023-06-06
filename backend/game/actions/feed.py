@@ -14,13 +14,13 @@ class FeedRequirements(BaseModel):
     tokensRequired: int
     tokensPerCaste: int
     casteCount: int
-    automated: List[Tuple[Resource, Decimal]]  # sorted in preferred display order
+    automated: List[Tuple[Resource, int]]  # sorted in preferred display order
 
 
 def computeFeedRequirements(
     state: GameState, entities: Entities, team: TeamEntity
 ) -> FeedRequirements:
-    teamState: TeamState = state.teamStates[team]
+    teamState = state.teamStates[team]
     tokensRequired = ceil(teamState.population / 20)
     foodPerCaste = ceil(tokensRequired / (2 * state.world.casteCount))
 
@@ -30,8 +30,6 @@ def computeFeedRequirements(
         if production.produces is not None
     ]
     automatedCount = floor(sum(amount for production, amount in automated))
-
-    automated.sort(key=lambda x: -x[1])  # secondary order: amount
 
     return FeedRequirements(
         tokensRequired=max(tokensRequired - automatedCount, 0),
@@ -61,12 +59,14 @@ class FeedAction(TeamInteractionActionBase):
     def cost(self) -> Dict[Resource, int]:
         return self.args.materials
 
-    def _addObyvatel(self, amount: int) -> None:  # supports negative amounts
-        self.teamState.resources[self.entities.obyvatel] = (
-            self.teamState.resources.get(self.entities.obyvatel, Decimal(0)) + amount
-        )
-        if self.teamState.resources[self.entities.obyvatel] < 0:
-            self.teamState.resources[self.entities.obyvatel] = Decimal(0)
+    def _adjustObyvatels(self, diff_amount: int) -> None:
+        teamState = self.teamState
+        obyvatel = self.entities.obyvatel
+        if obyvatel not in teamState.resources:
+            teamState.resources[obyvatel] = Decimal(0)
+        teamState.resources[obyvatel] += diff_amount
+        if teamState.resources[obyvatel] < 0:
+            teamState.resources[obyvatel] = Decimal(0)
 
     @override
     def _initiateCheck(self) -> None:
@@ -78,17 +78,17 @@ class FeedAction(TeamInteractionActionBase):
     def _commitSuccessImpl(self) -> None:
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
-        paidFood = sum(self.args.materials.values())
+        paid = sum(self.args.materials.values())
 
         newborns = 0
-        if req.tokensRequired > paidFood:
-            starved = (req.tokensRequired - paidFood) * 5
-            self._addObyvatel(-starved)
-            self._warnings += f"Chybí {req.tokensRequired - paidFood} jednotek jídla, takže uhynulo {starved} obyvatel"
-        else:
+        if paid >= req.tokensRequired:
             newborns += 10
+        else:
+            starved = (req.tokensRequired - paid) * 5
+            self._adjustObyvatels(-starved)
+            self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, takže uhynulo {starved} obyvatel"
 
-        automated = {x[0]: x[1] for x in req.automated}
+        automated = {prod: amount for prod, amount in req.automated}
         saturated = set()
         for resource, amount in self.args.materials.items():
             if amount + automated.get(resource, 0) >= req.tokensPerCaste:
@@ -97,7 +97,7 @@ class FeedAction(TeamInteractionActionBase):
             if amount >= req.tokensPerCaste:
                 saturated.add(resource)
 
-        self._addObyvatel(newborns)
+        self._adjustObyvatels(newborns)
 
         self._info += (
             f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."

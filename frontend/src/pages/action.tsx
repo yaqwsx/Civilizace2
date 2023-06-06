@@ -23,7 +23,7 @@ export function FinishAction() {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
-    let action = actions?.find((x) => x.id === parseInt(actionId));
+    let action = actions.find((x) => x.id === parseInt(actionId));
     if (!action)
         return (
             <SuccessMessage>
