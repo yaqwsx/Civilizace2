@@ -1,4 +1,4 @@
-from game.actions.actionBase import makeAction
+from game.actions.actionBase import NoInitActionBase
 from game.tests.actions.common import createTestInitState
 from testing import PYTEST_COLLECT, reimport
 
@@ -14,15 +14,14 @@ def test_turnCounter():
     state = createTestInitState()
     args = NextTurnArgs()
 
-    action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
+    action = NextTurnAction.makeAction(state=state, entities=entities, args=args)
 
-    cost = action.cost()
-    assert cost == {}
-    action.applyCommit()
+    assert isinstance(NextTurnAction, NoInitActionBase)
+    action.commit()
     assert state.world.turn == 1
 
     for i in range(20):
-        action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
+        action = NextTurnAction.makeAction(state=state, entities=entities, args=args)
         action.applyCommit()
         assert state.world.turn == i + 2
 
@@ -33,13 +32,13 @@ def test_richnessIncrease():
     state = createTestInitState()
     args = NextTurnArgs()
 
-    action = makeAction(NextTurnAction, state=state, entities=entities, args=args)
+    action = NextTurnAction.makeAction(state=state, entities=entities, args=args)
     for tile in state.map.tiles.values():
         assert tile.richnessTokens == tile.richness
         tile.richnessTokens = 0
 
     for i in range(10):
-        action.applyCommit()
+        action.commit()
 
     for tile in state.map.tiles.values():
         assert tile.richnessTokens == tile.entity.richness

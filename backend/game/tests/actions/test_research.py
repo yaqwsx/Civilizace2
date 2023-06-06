@@ -1,33 +1,31 @@
-from game.actions.actionBase import makeAction
+import pytest
+
 from game.actions.common import ActionFailed
 from game.actions.researchFinish import ResearchFinishAction
 from game.actions.researchStart import ResearchArgs, ResearchStartAction
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
 
-import pytest
-
-teamState = TEAM_BASIC
+teamEntity = TEAM_BASIC
 
 
 def test_initialState():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    assert len(state.teamStates[teamState].researching) == 0
-    assert len(state.teamStates[teamState].techs) == 1
-    assert entities["tec-start"] in state.teamStates[teamState].techs
+    assert len(state.teamStates[teamEntity].researching) == 0
+    assert len(state.teamStates[teamEntity].techs) == 1
+    assert entities.techs["tec-start"] in state.teamStates[teamEntity].techs
 
 
 def test_start():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    tech = entities["tec-a"]
+    tech = entities.techs["tec-a"]
 
-    action = makeAction(
-        ResearchStartAction,
+    action = ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=tech, team=teamState),
+        args=ResearchArgs(tech=tech, team=teamEntity),
     )
 
     cost = action.cost()
@@ -35,128 +33,123 @@ def test_start():
     assert cost == tech.cost
     assert points == 20
 
-    action.applyCommit(1, 100)
+    action.commitThrows(throws=1, dots=100)
 
-    assert state.teamStates[teamState].researching == {tech}
+    assert state.teamStates[teamEntity].researching == {tech}
 
 
 def test_startOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = makeAction(
-        ResearchStartAction,
+    action = ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-start"], team=teamState),
+        args=ResearchArgs(tech=entities.techs["tec-start"], team=teamEntity),
     )
 
     with pytest.raises(ActionFailed) as einfo:
         action.cost()
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit()
+        action.commitThrows(throws=0, dots=0)
 
 
 def test_startInProgress():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    state.teamStates[teamState].researching.add(entities["tec-c"])
+    state.teamStates[teamEntity].researching.add(entities.techs["tec-c"])
 
-    action = makeAction(
-        ResearchStartAction,
+    action = ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-c"], team=teamState),
+        args=ResearchArgs(tech=entities.techs["tec-c"], team=teamEntity),
     )
 
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit(1, 100)
+        action.commitThrows(throws=1, dots=100)
 
 
 def test_finish():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    tech = entities["tec-c"]
-    state.teamStates[teamState].researching.add(entities["tec-c"])
+    tech = entities.techs["tec-c"]
+    state.teamStates[teamEntity].researching.add(entities.techs["tec-c"])
 
-    args = ResearchArgs(tech=tech, team=teamState)
-    action = makeAction(ResearchFinishAction, state=state, entities=entities, args=args)
+    args = ResearchArgs(tech=tech, team=teamEntity)
+    action = ResearchFinishAction.makeAction(state=state, entities=entities, args=args)
 
     assert action.cost() == {}
 
-    action.applyCommit(1, 100)
-    assert len(state.teamStates[teamState].researching) == 0
-    assert len(state.teamStates[teamState].techs) == 2
-    assert tech in state.teamStates[teamState].techs
+    action.commitThrows(throws=1, dots=100)
+    assert len(state.teamStates[teamEntity].researching) == 0
+    assert len(state.teamStates[teamEntity].techs) == 2
+    assert tech in state.teamStates[teamEntity].techs
 
 
 def test_finishOwned():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = makeAction(
-        ResearchFinishAction,
+    action = ResearchFinishAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-start"], team=teamState),
+        args=ResearchArgs(tech=entities.techs["tec-start"], team=teamEntity),
     )
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit(1, 100)
+        action.commitThrows(throws=1, dots=100)
 
 
 def test_finishUnknown():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    action = makeAction(
-        ResearchFinishAction,
+    action = ResearchFinishAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-a"], team=teamState),
+        args=ResearchArgs(tech=entities.techs["tec-a"], team=teamEntity),
     )
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit(1, 100)
+        action.commitThrows(throws=1, dots=100)
 
 
 def test_compound():
     entities = TEST_ENTITIES
     state = createTestInitState()
 
-    makeAction(
-        ResearchStartAction,
+    ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-a"], team=teamState),
-    ).applyCommit(1, 100)
-    makeAction(
-        ResearchFinishAction,
+        args=ResearchArgs(tech=entities.techs["tec-a"], team=teamEntity),
+    ).commitThrows(throws=1, dots=100)
+    ResearchFinishAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-a"], team=teamState),
-    ).applyCommit(1, 100)
-    makeAction(
-        ResearchStartAction,
+        args=ResearchArgs(tech=entities.techs["tec-a"], team=teamEntity),
+    ).commitThrows(throws=1, dots=100)
+    ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-c"], team=teamState),
-    ).applyCommit(1, 100)
-    makeAction(
-        ResearchFinishAction,
+        args=ResearchArgs(tech=entities.techs["tec-c"], team=teamEntity),
+    ).commitThrows(throws=1, dots=100)
+    ResearchFinishAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-c"], team=teamState),
-    ).applyCommit(1, 100)
-    makeAction(
-        ResearchStartAction,
+        args=ResearchArgs(tech=entities.techs["tec-c"], team=teamEntity),
+    ).commitThrows(throws=1, dots=100)
+    ResearchStartAction.makeAction(
         state=state,
         entities=entities,
-        args=ResearchArgs(tech=entities["tec-d"], team=teamState),
-    ).applyCommit(1, 100)
+        args=ResearchArgs(tech=entities.techs["tec-d"], team=teamEntity),
+    ).commitThrows(throws=1, dots=100)
 
-    teamState = state.teamStates[teamState]
+    teamState = state.teamStates[teamEntity]
 
-    expected = {entities["tec-start"], entities["tec-a"], entities["tec-c"]}
+    expected = {
+        entities.techs["tec-start"],
+        entities.techs["tec-a"],
+        entities.techs["tec-c"],
+    }
     diff = teamState.techs.symmetric_difference(expected)
     assert len(diff) == 0
     assert len(teamState.researching) == 1
-    assert entities["tec-d"] in teamState.researching
+    assert entities.techs["tec-d"] in teamState.researching

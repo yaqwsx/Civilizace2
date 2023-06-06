@@ -1,8 +1,9 @@
-from core.management.commands.addarmies import addArmies
-from game.state import GameState
-from game.gameGlue import stateSerialize, stateDeserialize
-from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 import json
+
+from core.management.commands.addarmies import addArmies
+from game.gameGlue import stateDeserialize, stateSerialize
+from game.state import GameState
+from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 
 
 def test_stateEq():

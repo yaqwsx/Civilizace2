@@ -1,6 +1,6 @@
 import pytest
-from game.actions.build import BuildAction, BuildArgs
-from game.actions.buildFinish import BuildFinishAction, BuildFinishArgs
+
+from game.actions.build import BuildAction, BuildArgs, BuildCompletedAction
 from game.actions.common import ActionFailed
 from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 
@@ -8,8 +8,8 @@ from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 def test_homeStart():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    building = entities["bui-pila"]
-    team = entities["tym-zluti"]
+    building = entities.buildings["bui-pila"]
+    team = entities.teams["tym-zluti"]
     tile = state.map.tiles[29]
 
     action = BuildAction.makeAction(
@@ -17,7 +17,7 @@ def test_homeStart():
         entities=entities,
         args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
-    action.applyCommit(1, 100)
+    action.commitThrows(throws=1, dots=100)
 
     assert tile.buildings == set([building])
 
@@ -25,8 +25,8 @@ def test_homeStart():
 def test_homeFinish():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    building = entities["bui-pila"]
-    team = entities["tym-zluti"]
+    building = entities.buildings["bui-pila"]
+    team = entities.teams["tym-zluti"]
     tile = state.map.tiles[29]
 
     action = BuildAction.makeAction(
@@ -34,7 +34,7 @@ def test_homeFinish():
         entities=entities,
         args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
-    action.applyCommit(1, 100)
+    action.commitThrows(throws=1, dots=100)
 
     assert tile.buildings == set([building])
 
@@ -42,8 +42,8 @@ def test_homeFinish():
 def test_failStartExisting():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    building = entities["bui-pila"]
-    team = entities["tym-zluti"]
+    building = entities.buildings["bui-pila"]
+    team = entities.teams["tym-zluti"]
     tile = state.map.tiles[29]
 
     start = BuildAction.makeAction(
@@ -51,25 +51,24 @@ def test_failStartExisting():
         entities=entities,
         args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
-    start.applyCommit(1, 100)
+    start.commitThrows(throws=1, dots=100)
 
-    finish = makeAction(
-        BuildFinishAction,
+    finish = BuildCompletedAction.makeAction(
         state=state,
         entities=entities,
-        args=BuildFinishArgs(building=building, team=team, tile=tile.entity),
+        args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
-    finish.applyCommit()
+    finish.commit()
 
     with pytest.raises(ActionFailed) as einfo:
-        start.applyCommit()
+        start.commitThrows(throws=0, dots=0)
 
 
 def test_buildOnOccupied():
     entities = TEST_ENTITIES
     state = createTestInitState()
-    building = entities["bui-pila"]
-    team = entities["tym-zluti"]
+    building = entities.buildings["bui-pila"]
+    team = entities.teams["tym-zluti"]
     tile = state.map.tiles[28]
 
     action = BuildAction.makeAction(
@@ -78,4 +77,4 @@ def test_buildOnOccupied():
         args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit()
+        action.commitThrows(throws=0, dots=0)

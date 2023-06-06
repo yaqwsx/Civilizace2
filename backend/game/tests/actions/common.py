@@ -1,7 +1,10 @@
 import os
+from decimal import Decimal
+
 from django.conf import settings
-from game.entityParser import EntityParser
+
 from game.entities import Entities
+from game.entityParser import EntityParser
 
 TEST_ENTITIES = EntityParser.load(
     os.path.join(settings.DATA_PATH, "entities", "TEST.json")
@@ -14,15 +17,14 @@ TEAM_BASIC = TEST_ENTITIES.teams[
 ]  # the team that is in the initial state, with home tile set up
 
 
-# TODO: move to Google Sheets
 def createTestInitState(entities: Entities = TEST_ENTITIES):
     from game.state import GameState
 
     state = GameState.create_initial(entities)
-    state.world.combatRandomness = 0
+    state.world.combatRandomness = Decimal(0)
 
-    team = TEAM_ADVANCED
-    teamState = state.teamStates[TEAM_ADVANCED]
+    teamEntity = TEAM_ADVANCED
+    teamState = state.teamStates[teamEntity]
 
     # tech
     teamState.researching.add(entities.techs["tec-c"])

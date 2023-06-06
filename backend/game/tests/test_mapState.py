@@ -1,7 +1,5 @@
-from game.tests.actions.common import createTestInitState
+from game.tests.actions.common import TEAM_ADVANCED, TEST_ENTITIES, createTestInitState
 from testing import reimport
-
-from game.tests.actions.common import TEST_ENTITIES, TEAM_ADVANCED
 
 
 def test_rawDistance():
@@ -38,7 +36,7 @@ def test_actualDistance():
 
     for index, expected, message in expectations:
         distance = state.map.getActualDistance(
-            TEST_ENTITIES["tym-modri"], state.map.tiles[index].entity
+            TEST_ENTITIES.teams["tym-modri"], state.map.tiles[index].entity
         )
         assert (
             distance == expected
@@ -51,7 +49,7 @@ def test_reachableTiles():
     state = createTestInitState()
     entities = TEST_ENTITIES
 
-    team = entities["tym-zluti"]
+    team = entities.teams["tym-zluti"]
 
     tiles = [x.entity for x in state.map.getReachableTiles(team)]
 

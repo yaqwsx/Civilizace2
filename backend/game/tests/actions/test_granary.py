@@ -1,9 +1,10 @@
-from game.actions.actionBase import makeAction
+from decimal import Decimal
+
+import pytest
+
 from game.actions.common import ActionFailed
 from game.actions.granary import GranaryAction, GranaryArgs
 from game.tests.actions.common import TEAM_BASIC, TEST_ENTITIES, createTestInitState
-
-import pytest
 
 teamId = TEAM_BASIC
 
@@ -16,8 +17,7 @@ def test_empty():
 
     assert team.granary == {}, "Granary is not empty in initial state"
 
-    action = makeAction(
-        GranaryAction,
+    action = GranaryAction.makeAction(
         state=state,
         entities=entities,
         args=GranaryArgs(team=teamId, productions=productions),
@@ -26,7 +26,7 @@ def test_empty():
     cost = action.cost()
     assert cost == {}
 
-    action.applyCommit()
+    action.commitThrows(throws=0, dots=0)
 
     assert (
         team.granary == {}
@@ -38,14 +38,13 @@ def test_successBulk():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities["pro-maso"]: 2,
-        entities["pro-dobytek"]: 1,
-        entities["pro-bobule"]: 5,
+        entities.productions["pro-maso"]: 2,
+        entities.productions["pro-dobytek"]: 1,
+        entities.productions["pro-bobule"]: 5,
     }
-    team.resources = productions.copy()
+    team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
 
-    action = makeAction(
-        GranaryAction,
+    action = GranaryAction.makeAction(
         state=state,
         entities=entities,
         args=GranaryArgs(team=teamId, productions=productions),
@@ -55,7 +54,7 @@ def test_successBulk():
     assert cost == productions
 
     action.applyInitiate()
-    action.applyCommit()
+    action.commitThrows(throws=0, dots=0)
 
     assert team.granary == productions, "Granary does not contain expected productions"
     assert sum(team.resources.values()) == 0, "Team resources should have been emptied"
@@ -66,15 +65,14 @@ def test_failInsufficient():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities["pro-maso"]: 2,
-        entities["pro-dobytek"]: 1,
-        entities["pro-bobule"]: 5,
+        entities.productions["pro-maso"]: 2,
+        entities.productions["pro-dobytek"]: 1,
+        entities.productions["pro-bobule"]: 5,
     }
-    team.resources = productions.copy()
-    productions[entities["pro-dobytek"]] = 3
+    team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
+    productions[entities.productions["pro-dobytek"]] = 3
 
-    action = makeAction(
-        GranaryAction,
+    action = GranaryAction.makeAction(
         state=state,
         entities=entities,
         args=GranaryArgs(team=teamId, productions=productions),
@@ -82,7 +80,7 @@ def test_failInsufficient():
 
     with pytest.raises(ActionFailed) as einfo:
         action.applyInitiate()
-        action.applyCommit()
+        action.commitThrows(throws=0, dots=0)
 
 
 def test_failWrong():
@@ -90,18 +88,17 @@ def test_failWrong():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities["pro-maso"]: 2,
-        entities["mat-dobytek"]: 1,
-        entities["pro-bobule"]: 5,
+        entities.productions["pro-maso"]: 2,
+        entities.resources["mat-dobytek"]: 1,
+        entities.productions["pro-bobule"]: 5,
     }
-    team.resources = productions.copy()
+    team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
 
-    action = makeAction(
-        GranaryAction,
+    action = GranaryAction.makeAction(
         state=state,
         entities=entities,
         args=GranaryArgs(team=teamId, productions=productions),
     )
 
     with pytest.raises(ActionFailed) as einfo:
-        action.applyCommit()
+        action.commitThrows(throws=0, dots=0)
