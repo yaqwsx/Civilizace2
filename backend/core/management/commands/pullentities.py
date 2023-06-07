@@ -7,7 +7,7 @@ from django.core.management import BaseCommand
 from core.gsheets import getSheets
 from django.conf import settings
 
-from game.entityParser import ErrorHandler, EntityParser
+from game.entityParser import ErrorHandler, EntityParser, ParserError
 
 ENTITY_SETS = {
     "GAME": "1ZNjrkBA6na8_aQVPBheqjRO5vMbevZR38AYCYVyLqh0",
@@ -64,10 +64,8 @@ def trySave(name, id: str, err_handler: ErrorHandler = ErrorHandler()):
         print(f"Pulling world {name} to file {targetFile}")
         data = pullEntityTable(id)
         checkAndSave(data, targetFile, err_handler=err_handler)
-    except AssertionError as e:
-        raise
-    except Exception as e:
-        sys.exit(f"ERROR: Failed to save entities {name}. Cause: {e.__repr__()}")
+    except ParserError as e:
+        sys.exit(f"PARSE ERROR: Failed to save entities {name}. Cause: {e.reason}")
 
 
 class Command(BaseCommand):
@@ -97,3 +95,4 @@ class Command(BaseCommand):
                 ENTITY_SETS[entity_set],
                 ErrorHandler(max_errs=options["max_errs"], no_warn=options["no_warn"]),
             )
+            print()

@@ -50,6 +50,7 @@ from .entities import (
     Resource,
     TeamAttribute,
     TeamEntity,
+    TeamGroup,
     Tech,
     UserEntity,
     Vyroba,
@@ -703,6 +704,12 @@ def updateEntityArgs(
         if cost_villager is not None:
             args["cost"] = f"{RESOURCE_VILLAGER}:{cost_villager},{args['cost']}"
 
+    if issubclass(cls, TeamGroup):
+        if "teams" in args:
+            err_handler.error(
+                "Don't use 'teams' in teamGroups, use 'groups' in teams instead"
+            )
+
     def tileIdFromName(name: str) -> EntityId:
         return f"map-tile-{name}"
 
@@ -897,23 +904,15 @@ def checkGuaranteedIds(
             )
 
 
-def checkEntitiesHaveUnlockedBy(
-    entities: Entities, *, err_handler: ErrorHandler
-) -> None:
-    for entity in entities.values():
-        if not isinstance(entity, EntityWithCost):
-            continue
-        if entity.id == TECHNOLOGY_START:
-            if len(entity.unlockedBy) > 0:
-                err_handler.warn(f"{entity!r} has unlocking edge, but is START")
-            continue
-        if len(entity.unlockedBy) == 0:
-            err_handler.warn(f"{entity!r} doesn't have unlocking edge")
-
-
-# TODO: check - and probably change
 def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
-    visited_entities: Set[EntityWithCost] = set([entities.techs[TECHNOLOGY_START]])
+    tech_start = entities.techs[TECHNOLOGY_START]
+    if len(tech_start.unlockedBy) > 0:
+        err_handler.warn(f"Tech {tech_start} has unlocking edge, but is START")
+
+    visited_entities: Set[EntityWithCost] = set([tech_start]).union(
+        e for group in entities.team_groups.values() for e in group.unlocks
+    )
+
     changed = True
     while changed:
         changed = False
@@ -922,7 +921,7 @@ def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
                 continue
             if entity in visited_entities:
                 continue
-            if any(tech in visited_entities for tech in entity.unlockedBy):
+            if not visited_entities.isdisjoint(entity.unlockedBy):
                 visited_entities.add(entity)
                 changed = True
     # Building upgrades are always reachable from their building
@@ -934,7 +933,7 @@ def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
         if entity not in visited_entities
     ]
     if len(unreachable) > 0:
-        err_handler.warn(f"There are unreachable entities with cost {unreachable}")
+        err_handler.warn(f"There are unreachable entities with cost: {unreachable}")
 
 
 def check_teams_have_different_home_tiles(
@@ -1120,6 +1119,17 @@ class EntityParser:
                     Vyroba,
                     data["vyrobas"],
                     allowed_prefixes=["vyr"],
+                    entities=entities_map,
+                    err_handler=err_handler,
+                )
+            )
+
+        with err_handler.add_context("teamGroups"):
+            add_entities(
+                parseSheet(
+                    TeamGroup,
+                    data["teamGroups"],
+                    allowed_prefixes=["tgr"],
                     entities=entities_map,
                     err_handler=err_handler,
                 )

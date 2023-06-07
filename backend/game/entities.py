@@ -157,6 +157,15 @@ class MapTileEntity(EntityBase):
 
 
 @dataclass(init=False, repr=False, eq=False)
+class TeamGroup(EntityBase):
+    """Group of teams that can unlock techs, vyrobas, etc."""
+
+    unlocks: List[EntityWithCost] = []
+    # duplicates: TeamEntity.groups
+    teams: List[TeamEntity] = []
+
+
+@dataclass(init=False, repr=False, eq=False)
 class UserEntity(EntityBase):
     # We use it to populate database
     username: Optional[str]
@@ -169,6 +178,7 @@ class TeamEntity(UserEntity):
     visible: bool
     homeTile: MapTileEntity
     hexColor: str = "#000000"
+    groups: List[TeamGroup] = []
 
 
 class OrgRole(Enum):
@@ -199,6 +209,7 @@ Entity = Union[
     MapTileEntity,
     TeamEntity,
     OrgEntity,
+    TeamGroup,
 ]
 
 EntityWithCost.update_forward_refs()
@@ -297,6 +308,10 @@ class Entities(frozendict[EntityId, Entity]):
         return frozendict(
             {k: v for k, v in self.items() if isinstance(v, MapTileEntity)}
         )
+
+    @cached_property
+    def team_groups(self) -> frozendict[EntityId, TeamGroup]:
+        return frozendict({k: v for k, v in self.items() if isinstance(v, TeamGroup)})
 
     @cached_property
     def teams(self) -> frozendict[EntityId, TeamEntity]:

@@ -43,12 +43,20 @@ class EntityViewSet(viewsets.ViewSet):
         return self._list(lambda e: e.team_attributes)
 
     @action(detail=False)
+    def team_groups(self, request: Request) -> Response:
+        return self._list(lambda e: e.team_groups)
+
+    @action(detail=False)
     def dice(self, request: Request) -> Response:
         return self._list(lambda e: e.dice)
 
     def list(self, request: Request) -> Response:
         return self._list(lambda e: e.all)
 
-    def _list(self, entitySelector: Callable[[Entities], Mapping[EntityId, Entity]]) -> Response:
+    def _list(
+        self, entitySelector: Callable[[Entities], Mapping[EntityId, Entity]]
+    ) -> Response:
         entities = DbEntities.objects.get_revision()[1]
-        return Response({e.id: serializeEntity(e) for e in entitySelector(entities).values()})
+        return Response(
+            {e.id: serializeEntity(e) for e in entitySelector(entities).values()}
+        )
