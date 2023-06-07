@@ -1,6 +1,16 @@
 from collections import Counter
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, Optional, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Optional,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from game.entities import EntityBase, EntityId, Entity
 
@@ -55,3 +65,10 @@ def get_by_entity_id(
 ) -> Union[T, Optional[U]]:
     entity: TEntity = EntityBase(id=entity_id, name="")  # type: ignore used only for eq
     return mapping.get(entity, default)
+
+
+def set_by_entity_id(
+    entity_id: EntityId, mapping: MutableMapping[TEntity, T], value: T
+):
+    entity: TEntity = EntityBase(id=entity_id, name="")  # type: ignore used only for eq
+    mapping[entity] = value

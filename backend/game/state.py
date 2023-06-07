@@ -1,11 +1,14 @@
 from __future__ import annotations
+
 import enum
-from pydantic import BaseModel, PrivateAttr
-from typing import Any, Callable, List, Dict, Mapping, Optional, Type, TypeVar, Set
 from decimal import Decimal
+from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Type, TypeVar
+
+from pydantic import BaseModel, PrivateAttr
+
 from game.actions.common import MessageBuilder
 from game.entities import *
-from game.util import get_by_entity_id
+from game.util import get_by_entity_id, set_by_entity_id
 
 TModel = TypeVar("TModel", bound="BaseModel")
 
@@ -302,9 +305,17 @@ class TeamState(StateModel):
     def work(self) -> Decimal:
         return get_by_entity_id(RESOURCE_WORK, self.resources, Decimal(0))
 
+    @work.setter
+    def work(self, value: Decimal) -> None:
+        set_by_entity_id(RESOURCE_WORK, self.resources, value)
+
     @property
     def obyvatels(self) -> Decimal:
         return get_by_entity_id(RESOURCE_VILLAGER, self.resources, Decimal(0))
+
+    @obyvatels.setter
+    def obyvatels(self, value: Decimal) -> None:
+        set_by_entity_id(RESOURCE_VILLAGER, self.resources, value)
 
     @property
     def population(self) -> Decimal:
@@ -313,6 +324,10 @@ class TeamState(StateModel):
     @property
     def culture(self) -> Decimal:
         return get_by_entity_id(RESOURCE_CULTURE, self.resources, Decimal(0))
+
+    @culture.setter
+    def culture(self, value: Decimal) -> None:
+        set_by_entity_id(RESOURCE_CULTURE, self.resources, value)
 
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:

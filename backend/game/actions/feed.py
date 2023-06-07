@@ -61,12 +61,8 @@ class FeedAction(TeamInteractionActionBase):
 
     def _adjustObyvatels(self, diff_amount: int) -> None:
         teamState = self.teamState
-        obyvatel = self.entities.obyvatel
-        if obyvatel not in teamState.resources:
-            teamState.resources[obyvatel] = Decimal(0)
-        teamState.resources[obyvatel] += diff_amount
-        if teamState.resources[obyvatel] < 0:
-            teamState.resources[obyvatel] = Decimal(0)
+        teamState.obyvatels += diff_amount
+        teamState.obyvatels = max(Decimal(0), teamState.obyvatels)
 
     @override
     def _initiateCheck(self) -> None:
@@ -86,7 +82,7 @@ class FeedAction(TeamInteractionActionBase):
         else:
             starved = (req.tokensRequired - paid) * 5
             self._adjustObyvatels(-starved)
-            self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, takže uhynulo {starved} obyvatel"
+            self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, uhynulo vám {starved} obyvatel."
 
         automated = {prod: amount for prod, amount in req.automated}
         saturated = set()
@@ -104,15 +100,14 @@ class FeedAction(TeamInteractionActionBase):
         )
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
-        self.teamState.resources[self.entities.work] = (
-            self.teamState.resources.get(self.entities.work, Decimal(0)) // 2
-        )
+        self.teamState.work //= 2
 
-        reward = {
-            resource.produces: amount
-            for resource, amount in self.teamState.resources.items()
-            if resource.produces is not None
-        }
-        self._receiveResources(reward)
+        self._receiveResources(
+            {
+                resource.produces: amount
+                for resource, amount in self.teamState.resources.items()
+                if resource.produces is not None
+            }
+        )
 
         self.teamState.turn = self.state.world.turn

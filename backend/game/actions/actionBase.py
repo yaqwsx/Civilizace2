@@ -324,10 +324,7 @@ class TeamInteractionActionBase(TeamActionBase):
         workConsumed = throws * self.throwCost()
         workAvailable = tState.work
 
-        tState.resources[self.entities.work] = max(
-            Decimal(0),
-            tState.resources.get(self.entities.work, Decimal(0)) - workConsumed,
-        )
+        tState.work = max(Decimal(0), tState.work - workConsumed)
         if workConsumed > workAvailable:
             self._warnings += (
                 "Tým neměl dostatek práce (házel na jiném stanovišti?). "

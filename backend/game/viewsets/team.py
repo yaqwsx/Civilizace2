@@ -264,7 +264,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 "population": {
-                    "nospec": teamState.resources[entities.obyvatel],
+                    "nospec": teamState.obyvatels,
                     "all": teamState.population,
                 },
                 "work": teamState.work,

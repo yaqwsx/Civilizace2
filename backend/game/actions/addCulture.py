@@ -26,8 +26,7 @@ class AddCultureAction(TeamActionBase, NoInitActionBase):
         self._ensureStrong(self.args.culture >= 0, "Nemůžu udělit zápornou kulturu")
 
         tState = self.teamState
-        culture = self.entities.culture
-        tState.resources[culture] = (
-            tState.resources.get(culture, Decimal(0)) + self.args.culture
+        tState.culture += self.args.culture
+        self._info += (
+            f"Tým dostal {self.args.culture} kultury. Nyní má {tState.culture}."
         )
-        self._info += f"Tým dostal {self.args.culture} kultury. Nyní má {tState.resources[culture]}."
