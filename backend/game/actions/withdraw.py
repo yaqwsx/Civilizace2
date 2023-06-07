@@ -45,14 +45,15 @@ class WithdrawAction(TeamInteractionActionBase):
                 amount >= 0,
                 f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]",
             )
+            available = self.teamState.resources.get(resource, Decimal(0))
+            self._ensure(
+                amount <= available,
+                f"Tým nemá dostatek [[{resource.id}]] (dostupné: {available}, požadováno: {amount})",
+            )
 
     @override
     def _commitSuccessImpl(self) -> None:
-        for resource, amount in self.args.resources.items():
-            if resource not in self.teamState.storage:
-                self.teamState.storage[resource] = Decimal(0)
-            self.teamState.storage[resource] -= amount
-            assert self.teamState.storage[resource] >= 0
+        self._payResources(self.args.resources)
 
         self._info += MessageBuilder(
             "Vydejte týmu zdroje:", printResourceListForMarkdown(self.args.resources)

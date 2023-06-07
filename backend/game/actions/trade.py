@@ -59,20 +59,14 @@ class TradeAction(TeamInteractionActionBase):
     @override
     def _commitSuccessImpl(self) -> None:
         teamState = self.teamState
+        receivingTeamState = self.state.teamStates[self.args.receiver]
 
+        self._payResources(self.args.resources)
         for resource, amount in self.args.resources.items():
-            them = self.state.teamStates[self.args.receiver]
-
-            if resource not in teamState.resources:
-                teamState.resources[resource] = Decimal(0)
-            if resource not in them.resources:
-                them.resources[resource] = Decimal(0)
-
-            teamState.resources[resource] -= amount
-            them.resources[resource] += amount
-
             assert amount >= 0
-            assert teamState.resources[resource] >= 0
+            if resource not in receivingTeamState.resources:
+                receivingTeamState.resources[resource] = Decimal(0)
+            receivingTeamState.resources[resource] += amount
 
         self._info += f"Úspěšně prodáno týmu {self.args.receiver.name}:"
         self._info += printResourceListForMarkdown(self.args.resources)

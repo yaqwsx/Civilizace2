@@ -65,9 +65,10 @@ class VyrobaAction(TeamInteractionActionBase):
     @override
     def cost(self) -> Dict[Resource, Decimal]:
         result: Dict[Resource, Decimal] = defaultdict(Decimal)
-        for resource, cost in self.args.vyroba.cost.items():
-            result[resource] += cost * self.args.count
-        return result
+        return {
+            resource: self.args.count * cost
+            for resource, cost in self.args.vyroba.cost.items()
+        }
 
     @override
     def pointsCost(self) -> int:
