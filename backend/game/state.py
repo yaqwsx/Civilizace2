@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import enum
+import itertools
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Type, TypeVar
 
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 
 from game.actions.common import MessageBuilder
 from game.entities import *
@@ -262,9 +263,7 @@ class TeamState(StateModel):
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
-        stickers.update(self.techs)
-        stickers.update(self.vyrobas)
-        stickers.update(self.buildings)
+        stickers.update(self._unlocked_without_tiles())
         return stickers
 
     def add_newborns(self, amount: int) -> None:
@@ -294,34 +293,6 @@ class TeamState(StateModel):
             for resource, amount in self.resources.items()
             if resource.isWithdrawable
         }
-
-    @property
-    def vyrobas(self) -> set[Vyroba]:
-        vyrobas = set()
-        for t in self.techs:
-            vyrobas.update(t.unlocksVyrobas)
-        return vyrobas
-
-    @property
-    def buildings(self) -> set[Building]:
-        buildings = set()
-        for t in self.techs:
-            buildings.update(t.unlocksBuildings)
-        return buildings
-
-    @property
-    def building_upgrades(self) -> set[Building]:
-        upgrades = set()
-        for b in self.buildings:
-            upgrades.update(b.upgrades)
-        return upgrades
-
-    @property
-    def unlocked_attributes(self) -> set[TeamAttribute]:
-        attributes = set()
-        for tech in self.techs:
-            attributes.update(tech.unlocksTeamAttributes)
-        return attributes
 
     @property
     def work(self) -> Decimal:
@@ -354,6 +325,38 @@ class TeamState(StateModel):
     @withdraw_capacity.setter
     def withdraw_capacity(self, value: Decimal) -> None:
         set_by_entity_id(RESOURCE_WITHDRAW_CAPACITY, self.resources, value)
+
+    def _unlocked_without_tiles(self) -> Iterable[EntityWithCost]:
+        """Does not return BuildingUpgrades since they depend on the current owned tiles.
+
+        Will return multiple copies, so it should be collected into a set/dict.
+        """
+        return itertools.chain(
+            (e for group in self.team.groups for e in group.unlocks),
+            (e for tech in self.techs for e in tech.unlocks),
+        )
+
+    def unlocked_techs(self) -> set[Tech]:
+        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Tech))
+
+    def unlocked_vyrobas(self) -> set[Vyroba]:
+        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Vyroba))
+
+    def unlocked_buildings(self) -> set[Building]:
+        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Building))
+
+    def unlocked_attributes(self) -> set[TeamAttribute]:
+        return set(
+            e for e in self._unlocked_without_tiles() if isinstance(e, TeamAttribute)
+        )
+
+    def unlocked_building_upgrades(self) -> set[BuildingUpgrade]:
+        return set(
+            upgrade
+            for building in self._unlocked_without_tiles()
+            if isinstance(building, Building)
+            for upgrade in building.upgrades
+        )
 
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:

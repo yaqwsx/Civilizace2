@@ -119,7 +119,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
-                for v in stateInfo.teamState.vyrobas
+                for v in stateInfo.teamState.unlocked_vyrobas()
             }
         )
 
@@ -127,13 +127,17 @@ class TeamViewSet(viewsets.ViewSet):
     def buildings(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
-        return Response({b.id: serializeEntity(b) for b in teamState.buildings})
+        return Response(
+            {b.id: serializeEntity(b) for b in teamState.unlocked_buildings()}
+        )
 
     @action(detail=True)
     def building_upgrades(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
-        return Response({u.id: serializeEntity(u) for u in teamState.building_upgrades})
+        return Response(
+            {u.id: serializeEntity(u) for u in teamState.unlocked_building_upgrades()}
+        )
 
     @action(detail=True)
     def attributes(self, request: Request, pk: TeamId) -> Response:
@@ -143,7 +147,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 a.id: serializeEntity(a, {"owned": a in teamState.attributes})
-                for a in teamState.unlocked_attributes
+                for a in teamState.unlocked_attributes()
             }
         )
 
