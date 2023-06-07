@@ -257,7 +257,6 @@ class TeamState(StateModel):
     roadsTo: Set[MapTileEntity] = set()
 
     resources: Dict[Resource, Decimal]
-    storage: Dict[Resource, Decimal]
     granary: Dict[Resource, int] = {}
     employees: Decimal = Decimal(0)
 
@@ -272,6 +271,14 @@ class TeamState(StateModel):
 
     def addEmployees(self, amount: int) -> None:
         self.employees += amount
+
+    @property
+    def storage(self) -> Dict[Resource, Decimal]:
+        return {
+            resource: amount
+            for resource, amount in self.resources.items()
+            if resource.isWithdrawable
+        }
 
     @property
     def vyrobas(self) -> set[Vyroba]:
@@ -346,7 +353,6 @@ class TeamState(StateModel):
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),
             },
-            storage={},
         )
 
 
@@ -391,15 +397,11 @@ class GameState(StateModel):
         for team in self.teamStates.values():
             assert all(amount >= 0 for amount in team.resources.values())
             assert all(amount >= 0 for amount in team.granary.values())
-            assert all(amount >= 0 for amount in team.storage.values())
             team.resources = {
                 res: amount for res, amount in team.resources.items() if amount > 0
             }
             team.granary = {
                 res: amount for res, amount in team.granary.items() if amount > 0
-            }
-            team.storage = {
-                res: amount for res, amount in team.storage.items() if amount > 0
             }
 
 

@@ -171,7 +171,6 @@ def test_highlevelLuxury():
     state.world.turn = 10
 
     state.teamStates[teamEntity].resources = {}
-    state.teamStates[teamEntity].storage = {}
     state.teamStates[teamEntity].granary = {}
     state.teamStates[teamEntity].resources[entities.work] = Decimal(200)
     state.teamStates[teamEntity].resources[entities.obyvatel] = Decimal(400)
@@ -203,7 +202,6 @@ def test_highlevelLuxury():
     assert state.teamStates[teamEntity].population == 1038 + 50
     assert state.teamStates[teamEntity].resources[entities.work] == 538
     assert state.teamStates[teamEntity].resources[entities.obyvatel] == 488
-    assert state.teamStates[teamEntity].storage == {}
     assert state.teamStates[teamEntity].granary == {}
 
 
@@ -248,8 +246,6 @@ def test_productions():
         entities.productions["pro-bobule"]: Decimal(20),
         entities.productions["pro-kuze"]: Decimal(5),
         entities.productions["pro-drevo"]: Decimal(3),
-    }
-    state.teamStates[teamEntity].storage = {
         entities.resources["mat-bobule"]: Decimal(8),
         entities.resources["mat-drevo"]: Decimal(3),
         entities.resources["mat-cukr"]: Decimal(6),
@@ -274,9 +270,6 @@ def test_productions():
         entities.productions["pro-bobule"]: 20,
         entities.productions["pro-kuze"]: 5,
         entities.productions["pro-drevo"]: 3,
-    }
-
-    assert state.teamStates[teamEntity].storage == {
         entities.resources["mat-bobule"]: 10,
         entities.resources["mat-drevo"]: 6,
         entities.resources["mat-cukr"]: 6,

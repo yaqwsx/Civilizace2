@@ -186,6 +186,12 @@ export interface Army {
 
 // Dashboard
 
+export interface FeedingRequirements {
+    casteCount: number;
+    tokensPerCaste: number;
+    tokensRequired: number;
+}
+
 export interface TeamDashboard {
     population: { nospec: Decimal; all: Decimal };
     work: Decimal;
@@ -197,11 +203,7 @@ export interface TeamDashboard {
     productions: [EntityId, Decimal][];
     storage: [EntityId, Decimal][];
     granary: [EntityId, number][];
-    feeding: {
-        casteCount: number;
-        tokensPerCaste: number;
-        tokensRequired: number;
-    };
+    feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];
     armies: Army[];
     techs?: EntityId[];

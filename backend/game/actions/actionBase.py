@@ -169,29 +169,26 @@ class TeamActionBase(ActionCommonBase):
         excludeWork: bool = False,
     ) -> Dict[Resource, Decimal]:
         team = self.teamState
-        storage: Dict[Resource, Decimal] = {}
+        withdrawing: Dict[Resource, Decimal] = {}
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
                 continue
-            if excludeWork and resource.id == "res-obyvatel":
+            if resource == self.entities.obyvatel:
                 value, denom = amount.as_integer_ratio()
                 assert (
                     denom == 1
                 ), "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
                 team.addEmployees(-value)
-            if resource.isTracked:
+            if instantWithdraw and resource.isWithdrawable:
+                withdrawing[resource] = Decimal(amount)
+            else:
                 if resource not in team.resources:
                     team.resources[resource] = Decimal(0)
                 team.resources[resource] += amount
-            else:
-                storage[resource] = Decimal(amount)
-        if instantWithdraw:
-            return storage
-        for resource, amount in storage.items():
-            if resource not in team.storage:
-                team.storage[resource] = Decimal(0)
-            team.storage[resource] += amount
-        return {}
+
+        if not instantWithdraw:
+            assert withdrawing == {}
+        return withdrawing
 
 
 class TeamInteractionActionBase(TeamActionBase):

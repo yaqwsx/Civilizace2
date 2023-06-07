@@ -249,12 +249,7 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         team = get_object_or_404(Team.objects.all(), pk=pk)
         stateInfo = TeamStateInfo.get_latest(pk)
-        state = stateInfo.state
-        entities = stateInfo.entities
-        teamEntity = stateInfo.teamEntity
         teamState = stateInfo.teamState
-
-        feedRequirements = computeFeedRequirements(state, entities, teamEntity)
 
         orgInfo = {
             "techs": list(x.id for x in teamState.techs),
@@ -270,21 +265,21 @@ class TeamViewSet(viewsets.ViewSet):
                 "work": teamState.work,
                 "culture": teamState.culture,
                 "withdraw_capacity": teamState.withdraw_capacity,
-                "worldTurn": state.world.turn,
+                "worldTurn": stateInfo.state.world.turn,
                 "teamTurn": teamState.turn,
                 "researchingTechs": [serializeEntity(x) for x in teamState.researching],
                 "productions": [
                     (r.id, a)
                     for r, a in teamState.resources.items()
-                    if r.isProduction and r != entities.obyvatel
+                    if r.isProduction and not r.nontradable
                 ],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
                 "granary": [(r.id, a) for r, a in teamState.granary.items()],
-                "feeding": {
-                    "casteCount": feedRequirements.casteCount,
-                    "tokensPerCaste": feedRequirements.tokensPerCaste,
-                    "tokensRequired": feedRequirements.tokensRequired,
-                },
+                "feeding": stateSerialize(
+                    computeFeedRequirements(
+                        stateInfo.state, stateInfo.entities, stateInfo.teamEntity
+                    )
+                ),
                 "announcements": [
                     {
                         "id": announcement.id,
@@ -297,7 +292,7 @@ class TeamViewSet(viewsets.ViewSet):
                 ],
                 "armies": [
                     self.serializeArmy(army, None)
-                    for army in state.map.getTeamArmies(teamEntity)
+                    for army in stateInfo.state.map.getTeamArmies(stateInfo.teamEntity)
                 ],
                 **(orgInfo if request.user.is_org else {}),
             }
@@ -346,10 +341,10 @@ class TeamViewSet(viewsets.ViewSet):
     def storage(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
-
-        assert all(amount >= 0 for amount in teamState.storage.values())
+        storage = teamState.storage
+        assert all(amount >= 0 for amount in storage.values())
         return Response(
-            {res.id: amount for res, amount in teamState.storage.items() if amount > 0}
+            {res.id: amount for res, amount in storage.items() if amount > 0}
         )
 
     @action(detail=True)

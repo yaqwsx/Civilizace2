@@ -77,6 +77,10 @@ class Resource(EntityBase):
         return self.id.startswith("pge-") or self.id.startswith("mge-")
 
     @property
+    def isWithdrawable(self) -> bool:
+        return not self.isProduction and not self.nontradable
+
+    @property
     def isTracked(self) -> bool:
         return not self.id.startswith("mat-") and not self.id.startswith("mge-")
 

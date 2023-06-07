@@ -123,34 +123,34 @@ def test_receiveResources():
 
     teamState = state.teamStates[teamEntity]
 
-    teamState.storage = {}
     teamState.resources = {}
 
     withdraw = action._receiveResources({})
     assert teamState.resources == {}
-    assert teamState.storage == {}
     assert withdraw == {}
 
     withdraw = action._receiveResources(
         {entities.resources["mat-kuze"]: 2}, instantWithdraw=True
     )
     assert teamState.resources == {}
-    assert teamState.storage == {}
     assert withdraw == {entities.resources["mat-kuze"]: 2}
 
     withdraw = action._receiveResources({entities.resources["mat-kuze"]: 2})
-    assert teamState.resources == {}
-    assert teamState.storage == {entities.resources["mat-kuze"]: 2}
+    assert teamState.resources == {entities.resources["mat-kuze"]: 2}
     assert withdraw == {}
 
     withdraw = action._receiveResources({entities.productions["pro-kuze"]: 3})
-    assert teamState.resources == {entities.productions["pro-kuze"]: 3}
-    assert teamState.storage == {entities.resources["mat-kuze"]: 2}
+    assert teamState.resources == {
+        entities.productions["pro-kuze"]: 3,
+        entities.resources["mat-kuze"]: 2,
+    }
     assert withdraw == {}
 
     withdraw = action._receiveResources(
         {entities.productions["pro-kuze"]: 10, entities.resources["mat-kuze"]: 10}
     )
-    assert teamState.resources == {entities.productions["pro-kuze"]: 13}
-    assert teamState.storage == {entities.resources["mat-kuze"]: 10}
+    assert teamState.resources == {
+        entities.productions["pro-kuze"]: 13,
+        entities.resources["mat-kuze"]: 10,
+    }
     assert withdraw == {}

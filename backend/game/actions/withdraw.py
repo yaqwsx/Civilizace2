@@ -37,10 +37,7 @@ class WithdrawAction(TeamInteractionActionBase):
         for resource, amount in self.args.resources.items():
             if amount == 0:
                 continue
-            self._ensure(
-                not resource.isProduction,
-                f"Nelze vybrat produkci: [[{resource.id}]]",
-            )
+            self._ensure(resource.isWithdrawable, f"Nelze vybrat: [[{resource.id}]]")
             self._ensure(
                 amount >= 0,
                 f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]",
