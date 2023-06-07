@@ -76,8 +76,8 @@ function TurnComp(props: { turn: Turn; turnsMutate: any }) {
         Math.floor(props.turn.duration / 60)
     );
     const [enabled, setEnabled] = useState<boolean>(props.turn.enabled);
-    const [dirty, setDirty] = useState<boolean>(false);
-    const [submitting, setSubmitting] = useState<boolean>(false);
+    const [dirty, setDirty] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     let turn = props.turn;
     let changeDuration = (v: number) => {

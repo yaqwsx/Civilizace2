@@ -90,8 +90,8 @@ export function useActionPreview(props: {
     ignoreThrows?: boolean;
     isNoInit?: boolean;
 }) {
-    const [preview, setPreview] = useState<ActionResponse | null>(null);
-    const [error, setError] = useState<any>(null);
+    const [preview, setPreview] = useState<ActionResponse>();
+    const [error, setError] = useState<any>();
 
     const debounced = useDebounceDeep(
         {
@@ -104,8 +104,8 @@ export function useActionPreview(props: {
     );
 
     useEffect(() => {
-        setError(null);
-        setPreview(null);
+        setError(undefined);
+        setPreview(undefined);
 
         if (
             !props.actionArgs ||
@@ -127,19 +127,19 @@ export function useActionPreview(props: {
             )
             .then((data) => {
                 setTimeout(() => {
-                    setError(null);
+                    setError(undefined);
                     setPreview(data.data);
                 }, 0);
             })
             .catch((error) => {
-                setPreview(null);
+                setPreview(undefined);
                 setError(error);
             });
     }, [props.actionId, debounced]);
 
     return {
-        preview: preview,
-        error: error,
+        preview,
+        error,
         debouncedArgs: debounced.args,
     };
 }
@@ -177,8 +177,8 @@ export function PerformAction(props: {
 
     let changePhase = (phase: ActionPhase, data: any) => {
         setPhase({
-            phase: phase,
-            data: data,
+            phase,
+            data,
         });
     };
 
@@ -260,7 +260,7 @@ export function PerformNoInitAction(props: {
     onBack: () => void;
     ignoreGameStop?: boolean;
 }) {
-    const [completedData, setCompletedData] = useState<any>(undefined);
+    const [completedData, setCompletedData] = useState<any>();
     const setActiveAction = useSetAtom(activeActionIdAtom);
 
     useEffect(() => {
@@ -329,13 +329,9 @@ function NoInitActionPreviewPhase(props: {
         ignoreGameStop: props.ignoreGameStop,
         isNoInit: true,
     });
-    const [lastArgs, setLastArgs] = useState<[string, any] | undefined>(
-        undefined
-    );
+    const [lastArgs, setLastArgs] = useState<[string, any]>();
     const [submitting, setSubmitting] = useState(false);
-    const [commitResult, setCommitResult] = useState<
-        ActionResponse | undefined
-    >(undefined);
+    const [commitResult, setCommitResult] = useState<ActionResponse>();
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
     const setActiveAction = useSetAtom(activeActionIdAtom);
@@ -454,19 +450,14 @@ function ActionPreviewPhase(props: {
         ignoreCost: props.ignoreCost,
         ignoreThrows: props.ignoreThrows,
     });
-    const [lastArgs, setLastArgs] = useState<
-        | {
-              actionId: string;
-              args: any;
-              ignoreCost?: boolean;
-              ignoreGameStop?: boolean;
-          }
-        | undefined
-    >(undefined);
+    const [lastArgs, setLastArgs] = useState<{
+        actionId: string;
+        args: any;
+        ignoreCost?: boolean;
+        ignoreGameStop?: boolean;
+    }>();
     const [submitting, setSubmitting] = useState(false);
-    const [initiateResult, setInitiateResult] = useState<
-        ActionResponse | undefined
-    >(undefined);
+    const [initiateResult, setInitiateResult] = useState<ActionResponse>();
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
     const setActiveAction = useSetAtom(activeActionIdAtom);

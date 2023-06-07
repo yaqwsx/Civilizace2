@@ -21,7 +21,7 @@ export function useEntities<T>(entityType?: string) {
     );
 }
 
-export function useTeamWork(teamId?: string) {
+export function useTeamWork(teamId: string | undefined) {
     const { data, error } = useSWR<{ work: Decimal }>(
         () => (teamId ? `game/teams/${teamId}/work` : null),
         fetcher
@@ -32,14 +32,14 @@ export function useTeamWork(teamId?: string) {
     };
 }
 
-export function useTeamEntities<T>(entityType: string, team?: Team) {
+export function useTeamEntities<T>(entityType: string, team: Team | undefined) {
     return useSWR<Record<string, T>>(
         () => (team ? `game/teams/${team.id}/${entityType}` : null),
         fetcher
     );
 }
 
-export function useTeamVyrobas(team?: Team) {
+export function useTeamVyrobas(team: Team | undefined) {
     const { data, ...rest } = useTeamEntities<VyrobaTeamEntity>(
         "vyrobas",
         team
@@ -50,7 +50,7 @@ export function useTeamVyrobas(team?: Team) {
     };
 }
 
-export function useTeamResources(team?: Team) {
+export function useTeamResources(team: Team | undefined) {
     const { data, ...rest } = useTeamEntities<ResourceTeamEntity>(
         "resources",
         team
@@ -61,7 +61,7 @@ export function useTeamResources(team?: Team) {
     };
 }
 
-export function useTeamTechs(team?: Team) {
+export function useTeamTechs(team: Team | undefined) {
     const { data, ...rest } = useTeamEntities<TechTeamEntity>("techs", team);
     return {
         techs: data,

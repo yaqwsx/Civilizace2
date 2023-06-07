@@ -21,7 +21,7 @@ export function GodModeMenu() {
 export function GodModeImpl(props: { state: any; onFinish: () => void }) {
     const [newStateStr, setNewStateStr] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editor, setEditor] = useState<any>(undefined);
+    const [editor, setEditor] = useState<any>();
 
     useEffect(() => {
         setNewStateStr(JSON.stringify(props.state, undefined, 2));
@@ -108,8 +108,8 @@ export function GodModeImpl(props: { state: any; onFinish: () => void }) {
 
 export function GodMode() {
     useHideMenu();
-    const [state, setState] = useState<any>(undefined);
-    const [error, setError] = useState<any>(undefined);
+    const [state, setState] = useState<any>();
+    const [error, setError] = useState<any>();
 
     let fetchNew = () => {
         setError(undefined);
@@ -128,12 +128,7 @@ export function GodMode() {
     }, []);
 
     if (!state) {
-        return (
-            <LoadingOrError
-                error={error}
-                message={"Něco se pokazilo"}
-            />
-        );
+        return <LoadingOrError error={error} message={"Něco se pokazilo"} />;
     }
 
     return <GodModeImpl state={state} onFinish={fetchNew} />;

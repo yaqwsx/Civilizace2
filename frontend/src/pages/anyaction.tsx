@@ -316,11 +316,9 @@ function DictArgForm(props: {
     value: any;
     onChange: (value: any) => void;
 }) {
-    const [errors, setErrors] = useState<Record<string, string | undefined>>(
-        {}
-    );
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [newKeyValue, setNewKeyValue] = useState<any>(props.keyInfo.default);
-    const [newKeyError, setNewKeyError] = useState<string | undefined>();
+    const [newKeyError, setNewKeyError] = useState<string>();
 
     const valueDict = props.value ?? {};
     console.assert(_.isObject(valueDict));
@@ -642,9 +640,7 @@ function PerformAnyAction(props: {
     const [argErrors, setArgErrors] = useState<Record<string, string> | string>(
         {}
     );
-    const [lastActionId, setLastActionId] = useState<string | undefined>(
-        undefined
-    );
+    const [lastActionId, setLastActionId] = useState<string>();
 
     const setDefaultArgs = () => {
         const defaultArgs = Object.fromEntries(
@@ -857,7 +853,7 @@ function AllArgsForm(props: {
     argErrors: string | Record<string, string>;
     onChange: (value: any) => void;
 }) {
-    const [parseError, setParseError] = useState<string | undefined>(undefined);
+    const [parseError, setParseError] = useState<string>();
 
     let jsonArgsError: JSX.Element | undefined;
     if (_.isObject(props.argErrors)) {
@@ -904,9 +900,9 @@ function JsonForm(props: {
     onError?: (value: string) => void;
     lines?: number;
 }) {
-    const [lastValue, setLastValue] = useState<any>(undefined);
-    const [argsStr, setArgsStr] = useState<string>("");
-    const [editor, setEditor] = useState<Ace.Editor | undefined>(undefined);
+    const [lastValue, setLastValue] = useState<any>();
+    const [argsStr, setArgsStr] = useState<string>();
+    const [editor, setEditor] = useState<Ace.Editor>();
 
     const onError = props.onError ?? (() => {});
 

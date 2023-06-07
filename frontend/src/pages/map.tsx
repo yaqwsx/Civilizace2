@@ -180,7 +180,7 @@ export function MapAgenda() {
 }
 
 export function CultureAgenda(props: { team: Team }) {
-    const [culture, setCulture] = useState<number>(0);
+    const [culture, setCulture] = useState(0);
     const setAction = useSetAtom(urlMapActionAtom);
 
     return (
@@ -210,8 +210,8 @@ export function BuildingAgenda(props: { team: Team }) {
         fetcher
     );
     const setAction = useSetAtom(urlMapActionAtom);
-    const [building, setBuilding] = useState<any>(undefined);
-    const [tile, setTile] = useState<any>(undefined);
+    const [building, setBuilding] = useState<any>();
+    const [tile, setTile] = useState<any>();
 
     if (!availableBuildings) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
@@ -264,7 +264,7 @@ export function BuildingAgenda(props: { team: Team }) {
 
 export function BuildRoadAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<any>(undefined);
+    const [tile, setTile] = useState<any>();
 
     return (
         <PerformAction
@@ -304,8 +304,8 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
         fetcher
     );
     const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<any>(undefined);
-    const [upgrade, setUpgrade] = useState<any>(undefined);
+    const [tile, setTile] = useState<any>();
+    const [upgrade, setUpgrade] = useState<any>();
 
     if (!availableUpgrades) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
@@ -363,7 +363,7 @@ export function AddAttributeAgenda(props: { team: Team }) {
         Record<string, TeamAttributeTeamEntity>
     >(`game/teams/${props.team.id}/attributes`, fetcher);
     const setAction = useSetAtom(urlMapActionAtom);
-    const [attribute, setAttribute] = useState<any>(undefined);
+    const [attribute, setAttribute] = useState<any>();
 
     if (!teamAttributes) {
         return (
@@ -410,7 +410,7 @@ export function AddAttributeAgenda(props: { team: Team }) {
 
 export function TradeAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const [recipient, setRecipient] = useState<Team | undefined>(undefined);
+    const [recipient, setRecipient] = useState<Team>();
     const [resources, setResources] = useState<Record<string, number>>({});
 
     const {
@@ -631,12 +631,10 @@ function ArmyDeployForm(props: {
     army: any;
     onFinish: () => void;
 }) {
-    const [tile, setTile] = useState<any>(null);
+    const [tile, setTile] = useState<any>();
     const [goal, setGoal] = useState<any>(0);
-    const [equipment, setEquipment] = useState<number>(1);
-    const [friendlyTeam, setFriendlyTeam] = useState<Team | undefined>(
-        undefined
-    );
+    const [equipment, setEquipment] = useState(1);
+    const [friendlyTeam, setFriendlyTeam] = useState<Team>();
 
     return (
         <Dialog onClose={props.onFinish}>

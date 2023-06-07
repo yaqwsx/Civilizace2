@@ -186,7 +186,7 @@ function DeleteDialog(props: {
     announcement: Announcement;
     onDelete: () => void;
 }) {
-    let [deleting, setDeleting] = useState<boolean>(false);
+    let [deleting, setDeleting] = useState(false);
 
     let handleDelete = () => {
         setDeleting(true);

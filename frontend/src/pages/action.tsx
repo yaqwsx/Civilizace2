@@ -15,7 +15,7 @@ export function FinishAction() {
     const { actionId } = useParams();
     const { actions, error, mutate } = useUnfinishedActions();
     const [finished, setFinished] = useState(false);
-    const [response, setResponse] = useState<any>(undefined);
+    const [response, setResponse] = useState<any>();
 
     if (!actionId)
         return <ErrorMessage>Nastala neočekávaná chyba</ErrorMessage>;

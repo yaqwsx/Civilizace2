@@ -31,7 +31,7 @@ export function useCurrentTurn() {
 
 export function CurrentTurnCountdown() {
     const { info, reload, error } = useCurrentTurn();
-    const [elapsed, setElapsed] = useState<number>(0);
+    const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
         let int = setInterval(() => {

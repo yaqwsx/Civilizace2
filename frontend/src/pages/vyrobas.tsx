@@ -202,8 +202,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
     const { data: entities, error: eError } = useEntities<ResourceEntity>();
     const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
 
-    const [amount, setAmount] = useState<number>(1);
-    const [tile, setTile] = useState<string | undefined>(undefined);
+    const [amount, setAmount] = useState(1);
+    const [tile, setTile] = useState<string>();
     const [plunder, setPlunder] = useState(false);
 
     const vyroba = props.vyroba;

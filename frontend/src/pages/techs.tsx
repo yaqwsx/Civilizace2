@@ -154,23 +154,23 @@ function TechItem(props: {
     tech: TechOrgTeamEntity;
     onTaskMutation: () => void;
 }) {
-    const [taskShown, setTaskShown] = useState<boolean>(false);
-    const [changeTaskShown, setChangeTaskShown] = useState<boolean>(false);
-    const [finishTaskShown, setFinishTaskShown] = useState<boolean>(false);
-    const [startTaskShown, setStartTaskShown] = useState<boolean>(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [taskShown, setTaskShown] = useState(false);
+    const [changeTaskShown, setChangeTaskShown] = useState(false);
+    const [finishTaskShown, setFinishTaskShown] = useState(false);
+    const [startTaskShown, setStartTaskShown] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<Task>();
 
     const toggleTask = () => setTaskShown(!taskShown);
     const toggleChangeTask = () => {
-        setSelectedTask(null);
+        setSelectedTask(undefined);
         setChangeTaskShown(!changeTaskShown);
     };
     const toggleFinishTask = () => {
-        setSelectedTask(null);
+        setSelectedTask(undefined);
         setFinishTaskShown(!finishTaskShown);
     };
     const toggleStartTask = () => {
-        setSelectedTask(null);
+        setSelectedTask(undefined);
         setStartTaskShown(!startTaskShown);
     };
 
@@ -304,7 +304,7 @@ function TechItem(props: {
                         actionArgs={{
                             tech: tech.id,
                             team: props.team.id,
-                            task: selectedTask ? selectedTask.id : null,
+                            task: selectedTask?.id,
                         }}
                         extraPreview={
                             <>
@@ -349,7 +349,7 @@ function TaskSelectRow(props: { team: Team; task: Task }) {
 function SelectTaskForTechForm(props: {
     team: Team;
     tech: TechEntity;
-    selectedTask: Task | null;
+    selectedTask?: Task;
     onChange: (t: Task) => void;
 }) {
     const { data: tasks, error: taskError } = useSWR<Record<string, Task>>(
@@ -382,7 +382,7 @@ function SelectTaskForTechForm(props: {
         <>
             <FormRow label="Doporučené úkoly">
                 <select
-                    value={String(props.selectedTask?.id)}
+                    value={props.selectedTask?.id}
                     onChange={handleChange}
                     className="select"
                 >
@@ -400,7 +400,7 @@ function SelectTaskForTechForm(props: {
             </FormRow>
             <FormRow label="Všechny úkoly (pokud doporučený nevyhovuje)">
                 <select
-                    value={String(props.selectedTask?.id)}
+                    value={props.selectedTask?.id}
                     onChange={handleChange}
                     className="select"
                 >
@@ -440,7 +440,7 @@ function ChangeTaskDialog(props: {
     mutateTechs: () => void;
     onClose: () => void;
 }) {
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [selectedTask, setSelectedTask] = useState<Task>();
     const [submitting, setSubmitting] = useState(false);
 
     let handleSubmit = () => {
@@ -448,7 +448,7 @@ function ChangeTaskDialog(props: {
         axiosService
             .post<any, any>(`/game/teams/${props.team.id}/changetask/`, {
                 tech: props.tech.id,
-                newTask: selectedTask ? selectedTask?.id : null,
+                newTask: selectedTask?.id,
             })
             .then(() => {
                 setSubmitting(false);

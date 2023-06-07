@@ -41,7 +41,7 @@ function InfoScreenContent() {
 
 function Countdown() {
     const { info, reload, error } = useCurrentTurn();
-    const [elapsed, setElapsed] = useState<number>(0);
+    const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
         let int = setInterval(() => {
@@ -121,7 +121,7 @@ function PublicAnnouncements() {
 }
 
 function AutoFeedDialog() {
-    const [teamId, setTeamId] = useState<string | undefined>(undefined);
+    const [teamId, setTeamId] = useState<string>();
 
     useScanner((items: string[]) => {
         if (items.length != 1) return;
