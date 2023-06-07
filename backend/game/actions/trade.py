@@ -31,9 +31,6 @@ class TradeAction(TeamInteractionActionBase):
         amount = sum(self.args.resources.values(), Decimal(0))
         return {self.entities.resources["mge-obchod"]: amount}
 
-    def getNontradable(self) -> List[Resource]:
-        return [self.entities.work, self.entities.obyvatel, self.entities.culture]
-
     @override
     def _initiateCheck(self) -> None:
         self._ensure(
@@ -43,9 +40,8 @@ class TradeAction(TeamInteractionActionBase):
 
         with self._errors.startList("Obchod nelze provést") as err:
             teamState = self.teamState
-            nontradable = self.getNontradable()
             for resource, amount in self.args.resources.items():
-                if not resource.isProduction or resource in nontradable:
+                if not resource.isProduction or resource.nontradable:
                     err(f"Nelze obchodovat [[{resource.id}]]")
                     continue
 

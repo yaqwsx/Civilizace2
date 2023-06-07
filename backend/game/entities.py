@@ -65,6 +65,7 @@ class Die(EntityBase):
 @dataclass(init=False, repr=False, eq=False)
 class Resource(EntityBase):
     produces: Optional[Resource] = None
+    nontradable: bool = False
 
     @property
     def isProduction(self) -> bool:
