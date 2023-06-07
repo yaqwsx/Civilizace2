@@ -268,11 +268,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "worldTurn": stateInfo.state.world.turn,
                 "teamTurn": teamState.turn,
                 "researchingTechs": [serializeEntity(x) for x in teamState.researching],
-                "productions": [
-                    (r.id, a)
-                    for r, a in teamState.resources.items()
-                    if r.isProduction and not r.nontradable
-                ],
+                "productions": [(r.id, a) for r, a in teamState.productions.items()],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
                 "granary": [(r.id, a) for r, a in teamState.granary.items()],
                 "feeding": stateSerialize(

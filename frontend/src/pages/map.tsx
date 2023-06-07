@@ -463,8 +463,6 @@ export function TradeAgenda(props: { team: Team }) {
                     </FormRow>
                     {Object.keys(availableProductions).length > 0
                         ? Object.values(availableProductions).map((a: any) => {
-                              if (["res-prace", "res-obyvatel"].includes(a.id))
-                                  return null;
                               return (
                                   <FormRow
                                       key={a.id}

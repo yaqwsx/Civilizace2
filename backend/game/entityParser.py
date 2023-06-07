@@ -33,6 +33,7 @@ from pydantic import BaseModel, ValidationError
 from . import entities
 from .entities import (
     GUARANTEED_IDS,
+    RESOURCE_CULTURE,
     RESOURCE_VILLAGER,
     RESOURCE_WORK,
     TECHNOLOGY_START,
@@ -801,9 +802,12 @@ def add_hardcoded_values(
 ) -> None:
     work = entities[RESOURCE_WORK]
     obyvatel = entities[RESOURCE_VILLAGER]
+    culture = entities[RESOURCE_CULTURE]
     assert isinstance(work, Resource)
     assert isinstance(obyvatel, Resource)
+    assert isinstance(culture, Resource)
     obyvatel.produces = work
+    culture.produces = obyvatel
 
 
 def production_prefix(

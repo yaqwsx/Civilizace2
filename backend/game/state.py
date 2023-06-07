@@ -279,7 +279,16 @@ class TeamState(StateModel):
         self.obyvatels -= real_amount
 
     @property
-    def storage(self) -> Dict[Resource, Decimal]:
+    def productions(self) -> Mapping[Resource, Decimal]:
+        return {
+            resource: amount
+            for resource, amount in self.resources.items()
+            if resource.isProduction
+            if not resource.nontradable
+        }
+
+    @property
+    def storage(self) -> Mapping[Resource, Decimal]:
         return {
             resource: amount
             for resource, amount in self.resources.items()
