@@ -329,6 +329,14 @@ class TeamState(StateModel):
     def culture(self, value: Decimal) -> None:
         set_by_entity_id(RESOURCE_CULTURE, self.resources, value)
 
+    @property
+    def withdraw_capacity(self) -> Decimal:
+        return get_by_entity_id(RESOURCE_WITHDRAW_CAPACITY, self.resources, Decimal(0))
+
+    @withdraw_capacity.setter
+    def withdraw_capacity(self, value: Decimal) -> None:
+        set_by_entity_id(RESOURCE_WITHDRAW_CAPACITY, self.resources, value)
+
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:
         return TeamState(
@@ -349,6 +357,7 @@ class WorldState(StateModel):
     roadCost: Dict[Resource, int]
     roadPointsCost: int = 10
     armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]] = {}  # TODO remove
+    withdrawCapacity: int = 20
 
     @staticmethod
     def create_initial(entities: Entities) -> WorldState:

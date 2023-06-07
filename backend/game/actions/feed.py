@@ -101,6 +101,7 @@ class FeedAction(TeamInteractionActionBase):
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
         self.teamState.work //= 2
+        self.teamState.withdraw_capacity = Decimal(self.state.world.withdrawCapacity)
 
         self._receiveResources(
             {

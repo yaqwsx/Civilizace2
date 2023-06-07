@@ -35,6 +35,7 @@ TECHNOLOGY_START = "tec-start"
 RESOURCE_VILLAGER = "res-obyvatel"
 RESOURCE_WORK = "res-prace"
 RESOURCE_CULTURE = "res-kultura"
+RESOURCE_WITHDRAW_CAPACITY = "res-withdraw_cap"
 
 GUARANTEED_IDS: Dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
@@ -205,6 +206,7 @@ GUARANTEED_IDS = {
     RESOURCE_VILLAGER: Resource,
     RESOURCE_WORK: Resource,
     RESOURCE_CULTURE: Resource,
+    RESOURCE_WITHDRAW_CAPACITY: Resource,
 }
 
 
@@ -232,6 +234,10 @@ class Entities(frozendict[EntityId, Entity]):
     @property
     def culture(self) -> Resource:
         return self.resources[RESOURCE_CULTURE]
+
+    @property
+    def withdraw_capacity(self) -> Resource:
+        return self.resources[RESOURCE_WITHDRAW_CAPACITY]
 
     @property
     def zbrane(self) -> Resource:

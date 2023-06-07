@@ -190,6 +190,7 @@ export interface TeamDashboard {
     population: { nospec: Decimal; all: Decimal };
     work: Decimal;
     culture: Decimal;
+    withdraw_capacity: Decimal;
     worldTurn: TurnId;
     teamTurn: TurnId;
     researchingTechs: TechEntity[];

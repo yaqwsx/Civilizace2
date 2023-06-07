@@ -269,6 +269,7 @@ class TeamViewSet(viewsets.ViewSet):
                 },
                 "work": teamState.work,
                 "culture": teamState.culture,
+                "withdraw_capacity": teamState.withdraw_capacity,
                 "worldTurn": state.world.turn,
                 "teamTurn": teamState.turn,
                 "researchingTechs": [serializeEntity(x) for x in teamState.researching],

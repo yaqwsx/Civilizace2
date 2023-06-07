@@ -27,7 +27,8 @@ class WithdrawAction(TeamInteractionActionBase):
 
     @override
     def cost(self) -> Dict[Resource, int]:
-        return {self.entities.work: max(0, sum(self.args.resources.values()))}
+        tokens = max(0, sum(self.args.resources.values()))
+        return {self.entities.work: tokens, self.entities.withdraw_capacity: tokens}
 
     @override
     def _initiateCheck(self) -> None:
