@@ -53,9 +53,6 @@ class WithdrawAction(TeamInteractionActionBase):
             self.teamState.storage[resource] -= amount
             assert self.teamState.storage[resource] >= 0
 
-            if self.teamState.storage[resource] == 0:
-                del self.teamState.storage[resource]
-
         self._info += MessageBuilder(
             "Vydejte týmu zdroje:", printResourceListForMarkdown(self.args.resources)
         )

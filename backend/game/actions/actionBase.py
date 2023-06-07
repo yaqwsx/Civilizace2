@@ -188,10 +188,9 @@ class TeamActionBase(ActionCommonBase):
         if instantWithdraw:
             return storage
         for resource, amount in storage.items():
-            amount = team.storage.get(resource, Decimal(0)) + amount
-            if amount > team.storageCapacity and resource.id != "mat-zbrane":
-                amount = team.storageCapacity
-            team.storage[resource] = amount
+            if resource not in team.storage:
+                team.storage[resource] = Decimal(0)
+            team.storage[resource] += amount
         return {}
 
 
