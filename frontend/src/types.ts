@@ -44,6 +44,12 @@ export interface ResourceEntity extends EntityBase {
     produces?: ResourceId;
 }
 
+export interface MapTileEntity extends EntityBase {
+    index: number;
+    naturalResources: NaturalResourceId[];
+    richness: number;
+}
+
 export interface EntityWithCost extends EntityBase {
     cost: Record<ResourceId, Decimal>;
     points: number;
@@ -70,16 +76,15 @@ export interface TechEntity extends EntityWithCost {
     unlocks: EntityWithCost[];
 }
 
-export interface MapTileEntity extends EntityBase {
-    index: number;
-    naturalResources: NaturalResourceId[];
-    richness: number;
-}
-
 // Team Entity Info
 
 export interface ResourceTeamEntity extends ResourceEntity {
     available: Decimal;
+}
+
+export interface MapTileTeamEntity extends MapTileEntity {
+    buildings: BuildingId[]
+    building_upgrades: BuildingUpgradeId[]
 }
 
 export interface VyrobaTeamEntity extends VyrobaEntity {

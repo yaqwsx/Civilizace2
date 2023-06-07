@@ -368,11 +368,13 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                tile.entity.id: {
-                    "entity": serializeEntity(tile.entity),
-                    "buildings": [x.id for x in tile.buildings],
-                    "richness": tile.richness,
-                }
+                tile.entity.id: serializeEntity(
+                    tile.entity,
+                    {
+                        "buildings": [x.id for x in tile.buildings],
+                        "building_upgrades": [x.id for x in tile.building_upgrades],
+                    },
+                )
                 for tile in reachableTiles
             }
         )

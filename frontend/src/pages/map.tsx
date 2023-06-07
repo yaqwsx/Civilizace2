@@ -225,7 +225,7 @@ export function BuildingAgenda(props: { team: Team }) {
                 actionName={`Stavba budovy týmu ${props.team.name}`}
                 actionArgs={{
                     team: props.team.id,
-                    tile: tile?.entity.id,
+                    tile: tile?.id,
                     building: building?.id,
                 }}
                 argsValid={(a: any) => (a?.building && a?.tile) || false}

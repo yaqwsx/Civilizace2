@@ -1,8 +1,6 @@
-import useSWR from "swr";
 import { classNames, LoadingOrError } from ".";
-import { Team, TeamAttributeEntity } from "../types";
-import { fetcher } from "../utils/axios";
-import { useEntities } from "./entities";
+import { MapTileTeamEntity, Team, TeamAttributeEntity } from "../types";
+import { useEntities, useTeamEntities } from "./entities";
 
 export function TileSelect(props: {
     value?: any;
@@ -40,13 +38,13 @@ export function TileSelect(props: {
 
 export function TeamTileSelect(props: {
     team: Team;
-    value?: any;
-    onChange: (tile: any) => void;
+    value?: MapTileTeamEntity;
+    onChange: (tile?: MapTileTeamEntity) => void;
     className?: string;
 }) {
-    const { data: tiles, error } = useSWR<Record<string, any>>(
-        `game/teams/${props.team.id}/tiles`,
-        fetcher
+    const { data: tiles, error } = useTeamEntities<MapTileTeamEntity>(
+        "tiles",
+        props.team
     );
 
     if (!tiles) {
@@ -56,20 +54,20 @@ export function TeamTileSelect(props: {
     }
 
     const sortedTiles = Object.values(tiles).sort((a, b) =>
-        a.entity.name.localeCompare(b.entity.name)
+        a.name.localeCompare(b.name)
     );
 
     let className = classNames("select field", props.className);
     return (
         <select
             className={className}
-            value={props?.value?.entity.id}
+            value={props?.value?.id}
             onChange={(e) => props.onChange(tiles[e.target.value])}
         >
-            <option>Žádné políčko</option>
-            {sortedTiles.map((t: any) => (
-                <option key={t.entity.id} value={t.entity.id}>
-                    {t.entity.name}
+            <option value="">Žádné políčko</option>
+            {sortedTiles.map((t) => (
+                <option key={t.id} value={t.id}>
+                    {t.name}
                 </option>
             ))}
         </select>
