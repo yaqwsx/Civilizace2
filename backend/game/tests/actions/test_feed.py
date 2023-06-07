@@ -138,9 +138,10 @@ def test_highlevelFood():
     entities = TEST_ENTITIES
     state = createTestInitState()
     state.world.turn = 1
+    teamState = state.teamStates[teamEntity]
 
-    state.teamStates[teamEntity].employees = Decimal(20)
-    state.teamStates[teamEntity].resources[entities.obyvatel] = Decimal(80)
+    teamState.population = Decimal(100)
+    teamState.obyvatels = Decimal(80)
     assert state.teamStates[teamEntity].resources[entities.work] == 100
     assert state.teamStates[teamEntity].population == 100
 
@@ -169,15 +170,14 @@ def test_highlevelLuxury():
     entities = TEST_ENTITIES
     state = createTestInitState()
     state.world.turn = 10
+    teamState = state.teamStates[teamEntity]
 
-    state.teamStates[teamEntity].resources = {}
-    state.teamStates[teamEntity].granary = {}
-    state.teamStates[teamEntity].resources[entities.work] = Decimal(200)
-    state.teamStates[teamEntity].resources[entities.obyvatel] = Decimal(400)
-    state.teamStates[teamEntity].resources[entities.resources["res-kultura"]] = Decimal(
-        50
-    )
-    state.teamStates[teamEntity].employees = Decimal(600)
+    teamState.resources = {}
+    teamState.granary = {}
+    teamState.resources[entities.work] = Decimal(200)
+    teamState.resources[entities.obyvatel] = Decimal(400)
+    teamState.resources[entities.resources["res-kultura"]] = Decimal(50)
+    teamState.population = teamState.obyvatels + Decimal(600)
 
     action = FeedAction.makeAction(
         state=state,

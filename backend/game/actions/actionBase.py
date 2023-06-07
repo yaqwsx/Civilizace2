@@ -173,12 +173,6 @@ class TeamActionBase(ActionCommonBase):
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
                 continue
-            if resource == self.entities.obyvatel:
-                value, denom = amount.as_integer_ratio()
-                assert (
-                    denom == 1
-                ), "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
-                team.addEmployees(-value)
             if instantWithdraw and resource.isWithdrawable:
                 withdrawing[resource] = Decimal(amount)
             else:
@@ -350,17 +344,10 @@ class TeamInteractionActionBase(TeamActionBase):
             if amount == 0:
                 continue
 
-            assert self.entities.obyvatel.isTracked
             if not resource.isTracked:
                 tokens[resource] = amount
                 continue
 
-            if resource == self.entities.obyvatel:
-                value, denom = amount.as_integer_ratio()
-                assert (
-                    denom == 1
-                ), "Nelze porcovat obyvatele ({amount} = {value}/{denom})"
-                teamState.addEmployees(value)
             if resource not in teamState.resources:
                 teamState.resources[resource] = Decimal(0)
             teamState.resources[resource] -= amount

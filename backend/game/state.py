@@ -258,7 +258,7 @@ class TeamState(StateModel):
 
     resources: Dict[Resource, Decimal]
     granary: Dict[Resource, int] = {}
-    employees: Decimal = Decimal(0)
+    population: Decimal
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
@@ -267,8 +267,16 @@ class TeamState(StateModel):
         stickers.update(self.buildings)
         return stickers
 
-    def addEmployees(self, amount: int) -> None:
-        self.employees += amount
+    def add_newborns(self, amount: int) -> None:
+        assert amount >= 0
+        self.population += amount
+        self.obyvatels += amount
+
+    def kill_obyvatels(self, amount: int) -> None:
+        assert amount >= 0
+        real_amount = min(amount, self.obyvatels)
+        self.population -= real_amount
+        self.obyvatels -= real_amount
 
     @property
     def storage(self) -> Dict[Resource, Decimal]:
@@ -323,10 +331,6 @@ class TeamState(StateModel):
         set_by_entity_id(RESOURCE_VILLAGER, self.resources, value)
 
     @property
-    def population(self) -> Decimal:
-        return self.obyvatels + self.employees
-
-    @property
     def culture(self) -> Decimal:
         return get_by_entity_id(RESOURCE_CULTURE, self.resources, Decimal(0))
 
@@ -351,6 +355,7 @@ class TeamState(StateModel):
                 entities.obyvatel: Decimal(100),
                 entities.work: Decimal(100),
             },
+            population=Decimal(100),
         )
 
 

@@ -59,11 +59,6 @@ class FeedAction(TeamInteractionActionBase):
     def cost(self) -> Dict[Resource, int]:
         return self.args.materials
 
-    def _adjustObyvatels(self, diff_amount: int) -> None:
-        teamState = self.teamState
-        teamState.obyvatels += diff_amount
-        teamState.obyvatels = max(Decimal(0), teamState.obyvatels)
-
     @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
@@ -81,7 +76,7 @@ class FeedAction(TeamInteractionActionBase):
             newborns += 10
         else:
             starved = (req.tokensRequired - paid) * 5
-            self._adjustObyvatels(-starved)
+            self.teamState.kill_obyvatels(starved)
             self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, uhynulo vám {starved} obyvatel."
 
         automated = {prod: amount for prod, amount in req.automated}
@@ -93,7 +88,7 @@ class FeedAction(TeamInteractionActionBase):
             if amount >= req.tokensPerCaste:
                 saturated.add(resource)
 
-        self._adjustObyvatels(newborns)
+        self.teamState.add_newborns(newborns)
 
         self._info += (
             f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."

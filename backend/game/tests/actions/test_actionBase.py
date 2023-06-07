@@ -62,7 +62,7 @@ def test_payResources():
         entities.productions["pro-kuze"]: 1,
     }
     assert teamState.population == 100
-    assert teamState.employees == 10
+    assert teamState.obyvatels == 90
 
     result = action._payResources(
         {
@@ -100,7 +100,7 @@ def test_payResources():
         entities.productions["pro-kuze"]: 1,
     }
     assert teamState.population == 100
-    assert teamState.employees == 15
+    assert teamState.obyvatels == 85
 
     with pytest.raises(ActionFailed) as einfo:
         action._payResources({entities.productions["pro-bobule"]: 10})
