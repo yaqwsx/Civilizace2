@@ -260,8 +260,6 @@ class TeamState(StateModel):
     granary: Dict[Resource, int] = {}
     employees: Decimal = Decimal(0)
 
-    discoveredTiles: Set[MapTileEntity] = set()
-
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
         stickers.update(self.techs)

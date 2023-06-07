@@ -45,7 +45,6 @@ enum MapActionType {
     buildRoad,
     addAttribute,
     trade,
-    discoverTile,
     addCulture,
 }
 
@@ -66,7 +65,6 @@ function MapActionColorClassNames(action: MapActionType): string {
             return "bg-red-500 hover:bg-red-600";
         case MapActionType.trade:
             return "bg-yellow-500 hover:bg-yellow-600";
-        case MapActionType.discoverTile:
         case MapActionType.addCulture:
             return "bg-blue-500 hover:bg-blue-600";
         default:
@@ -93,8 +91,6 @@ function MapActionName(action: MapActionType): string {
             return "Získat vlastnost";
         case MapActionType.trade:
             return "Obchodovat";
-        case MapActionType.discoverTile:
-            return "Objevit dílek";
         case MapActionType.addCulture:
             return "Přidat kulturu";
         default:
@@ -124,8 +120,6 @@ function MapActionAgenda(props: {
             return <AddAttributeAgenda team={props.team} />;
         case MapActionType.trade:
             return <TradeAgenda team={props.team} />;
-        case MapActionType.discoverTile:
-            return <DiscoverAgenda team={props.team} />;
         case MapActionType.addCulture:
             return <CultureAgenda team={props.team} />;
         default:
@@ -182,32 +176,6 @@ export function MapAgenda() {
                 </>
             ) : null}
         </>
-    );
-}
-
-export function DiscoverAgenda(props: { team: Team }) {
-    const [tile, setTile] = useState<any>(undefined);
-    const setAction = useSetAtom(urlMapActionAtom);
-
-    return (
-        <PerformAction
-            actionId="DiscoverTileAction"
-            actionName={`Objevit dílek mapy týmem ${props.team.name}`}
-            argsValid={(a: any) => a?.team && a?.tile}
-            actionArgs={{
-                team: props.team.id,
-                tile: tile?.id,
-            }}
-            onFinish={() => setAction(RESET)}
-            onBack={() => {}}
-            extraPreview={
-                <>
-                    <FormRow label="Vyberte dílek">
-                        <TileSelect value={tile} onChange={setTile} />
-                    </FormRow>
-                </>
-            }
-        />
     );
 }
 
