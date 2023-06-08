@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import inspect
 import itertools
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Type, TypeVar
@@ -22,6 +23,21 @@ class StateModel(BaseModel):
         if isinstance(value, cls):
             return value  # This is the changed behavior
         return super().validate(value)
+
+    # Workaround for using pydantic model with properties with setters
+    def __setattr__(self, name: str, value: Any):
+        try:
+            super().__setattr__(name, value)
+        except ValueError as e:
+            setters = inspect.getmembers(
+                self.__class__,
+                predicate=lambda x: isinstance(x, property) and x.fset is not None,
+            )
+            for setter_name, func in setters:
+                if setter_name == name:
+                    object.__setattr__(self, name, value)
+                    return
+            raise e
 
 
 class ArmyMode(enum.Enum):
