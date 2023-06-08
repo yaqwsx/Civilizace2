@@ -184,6 +184,7 @@ function DeleteDialog(props: {
                 );
             })
             .catch((error) => {
+                console.error(error);
                 if (error?.response?.status === "403") {
                     toast.error(error.response.data.detail);
                 } else {
@@ -261,6 +262,7 @@ function TaskEdit() {
                 }
             })
             .catch((e) => {
+                console.error(e);
                 if (e.response.status == 400) {
                     setErrors(
                         objectMap(e.response.data, (errors) =>

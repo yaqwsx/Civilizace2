@@ -199,6 +199,7 @@ function DeleteDialog(props: {
                 toast.success("Smazáno");
             })
             .catch((error) => {
+                console.error(error);
                 if (error?.response?.status === "403") {
                     toast.error(error.response.data.detail);
                 } else {
@@ -275,6 +276,7 @@ function AnnouncementEdit() {
                 toast.success("Oznámení uloženo");
             })
             .catch((e) => {
+                console.error(e);
                 if (e.response.status == 400) {
                     setErrors(
                         objectMap(e.response.data, (errors) =>

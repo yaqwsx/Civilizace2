@@ -37,6 +37,7 @@ function Login() {
                 navigate("/", { replace: true });
             })
             .catch((err) => {
+                console.error(err);
                 setLoading(false);
                 if (err.response && err.response.status === 401) {
                     setMessage("Nesprávné jméno nebo heslo");

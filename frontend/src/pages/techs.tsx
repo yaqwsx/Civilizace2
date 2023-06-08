@@ -457,6 +457,7 @@ function ChangeTaskDialog(props: {
                 props.onClose();
             })
             .catch((error) => {
+                console.error(error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });

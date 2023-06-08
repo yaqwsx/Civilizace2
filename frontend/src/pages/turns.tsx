@@ -102,6 +102,7 @@ function TurnComp(props: { turn: Turn; turnsMutate: any }) {
                 props.turnsMutate();
             })
             .catch((error) => {
+                console.error(error);
                 setSubmitting(false);
                 toast.error(`Došlo k neočekávané chybě: ${error}`);
             });

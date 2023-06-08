@@ -71,6 +71,7 @@ const refreshAuthLogic = async (failedRequest) => {
                 );
             })
             .catch((err) => {
+                console.error(err);
                 if (err.response && err.response.status === 401) {
                     store.dispatch(authSlice.actions.logout());
                 }

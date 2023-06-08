@@ -102,6 +102,7 @@ export function PrintStickers(props: {
                         toast.success(`Samolepka ${sticker.id} vytištěna`);
                     })
                     .catch((error) => {
+                        console.error(error);
                         toast.error(
                             `Samolepka ${sticker.id}: neočekávaná chyba: ${error}`
                         );

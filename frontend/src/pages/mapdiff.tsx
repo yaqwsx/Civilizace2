@@ -65,6 +65,7 @@ function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
                 setDeleted(true);
             })
             .catch((error) => {
+                console.error(error);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             })
             .finally(() => {

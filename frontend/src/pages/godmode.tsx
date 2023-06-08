@@ -119,6 +119,7 @@ export function GodMode() {
                 setState(data);
             })
             .catch((error) => {
+                console.error(error);
                 setError(error);
             });
     };

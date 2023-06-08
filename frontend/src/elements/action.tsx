@@ -125,6 +125,7 @@ export function useActionPreview<TArgs>(props: {
                 setPreviewResponse(data.data);
             })
             .catch((error) => {
+                console.error(error);
                 setPreviewResponse(undefined);
                 setError(error);
             });
@@ -524,6 +525,7 @@ function ActionPreviewPhase<TArgs>(props: {
                 }
             })
             .catch((error) => {
+                console.error(error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -599,6 +601,7 @@ export function IgnoreActionDicePhase(props: {
             props.changePhase(ActionPhase.finish, result);
         })
         .catch((error) => {
+            console.error(error);
             toast.error(`Nastala neočekávaná chyba: ${error}`);
         });
 
@@ -668,6 +671,7 @@ export function ActionDicePhase(props: {
                 props.changePhase(ActionPhase.finish, result);
             })
             .catch((error) => {
+                console.error(error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -690,6 +694,7 @@ export function ActionDicePhase(props: {
                     props.changePhase(ActionPhase.finish, result);
                 })
                 .catch((error) => {
+                    console.error(error);
                     setSubmitting(false);
                     toast.error(`Nastala neočekávaná chyba: ${error}`);
                 });
