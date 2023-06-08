@@ -141,11 +141,11 @@ function SelectVyroba(props: SelectVyrobaProps) {
             <h2>Vyberte výrobu</h2>
             <FormRow label="Vyber výrobu:" className="my-8">
                 <select
-                    value={String(vyrobaId)}
+                    value={vyrobaId ?? undefined}
                     onChange={handleChange}
                     className="select"
                 >
-                    <option value={String(undefined)}>Vyber výrobu</option>
+                    <option value="">Vyber výrobu</option>
                     {vyrobasArray.map((v) => {
                         return (
                             <option key={v.id} value={v.id}>
@@ -202,7 +202,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
     const { data: entities, error: eError } = useEntities<ResourceEntity>();
     const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
 
-    const [amount, setAmount] = useState(1);
+    const [count, setCount] = useState(1);
     const [tile, setTile] = useState<string>();
     const [plunder, setPlunder] = useState(false);
 
@@ -238,33 +238,32 @@ function PerformVyroba(props: PerformVyrobaProps) {
         );
     }
 
-    const handleAmountChange = (x: number) => {
-        if (x < 0) setAmount(0);
-        else setAmount(x);
+    const handleCountChange = (x: number) => {
+        setCount(x >= 0 ? x : 0);
     };
 
     let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return (
         <PerformAction
-            actionName={`Výroba ${amount}× ${vyroba.name} pro tým ${props.team.name}`}
+            actionName={`Výroba ${count}× ${vyroba.name} pro tým ${props.team.name}`}
             actionId="VyrobaAction"
             actionArgs={{
                 team: props.team.id,
+                tile,
                 vyroba: props.vyroba.id,
-                count: amount,
-                tile: tile,
-                plunder: plunder,
+                count,
+                plunder,
             }}
-            argsValid={(a) => a.tile}
+            argsValid={(a) => Boolean(a.tile)}
             onFinish={() => props.onReset()}
             onBack={() => props.onReset()}
             extraPreview={
                 <>
                     <FormRow label="Zadejte počet výrob:">
                         <SpinboxInput
-                            value={amount}
-                            onChange={handleAmountChange}
+                            value={count}
+                            onChange={handleCountChange}
                         />
                     </FormRow>
                     <FormRow label="Vyberte pole mapy pro výrobu:">
@@ -297,8 +296,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
                         />
                     </FormRow>
                     <h2>
-                        {amount}× {vyroba.name} →{" "}
-                        {amount * Number(vyroba.reward[1])}×{" "}
+                        {count}× {vyroba.name} →{" "}
+                        {count * Number(vyroba.reward[1])}×{" "}
                         <EntityTag id={vyroba.reward[0]} />
                     </h2>
                 </>

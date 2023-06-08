@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-    ActionCommitResponse,
+    ActionDiceRequirementsResponse,
     ActionResponse,
     UnfinishedAction,
 } from "../types";
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import {
     Button,
     CiviMarkdown,
+    InlineSpinner,
     LoadingOrError,
     SpinboxInput,
     useFocus,
@@ -49,12 +50,9 @@ export function useUnfinishedActions(refreshInterval?: number) {
     const [activeAction] = useAtom(activeActionIdAtom);
     const [finishedAction] = useAtom(finishedActionIdAtom);
     return {
-        actions: actions
-            ? actions.filter(
-                  (a: UnfinishedAction) =>
-                      a.id != activeAction && a.id != finishedAction
-              )
-            : undefined,
+        actions: actions?.filter(
+            (a) => a.id !== activeAction && a.id !== finishedAction
+        ),
         ...other,
     };
 }
@@ -81,16 +79,16 @@ export function UnfinishedActionBar() {
     );
 }
 
-export function useActionPreview(props: {
+export function useActionPreview<TArgs>(props: {
     actionId: string;
-    actionArgs: any;
-    argsValid: (args: any) => boolean;
+    actionArgs: TArgs;
+    argsValid: (args: TArgs) => boolean;
     ignoreGameStop?: boolean;
     ignoreCost?: boolean;
     ignoreThrows?: boolean;
     isNoInit?: boolean;
 }) {
-    const [preview, setPreview] = useState<ActionResponse>();
+    const [previewResponse, setPreviewResponse] = useState<ActionResponse>();
     const [error, setError] = useState<any>();
 
     const debounced = useDebounceDeep(
@@ -105,17 +103,14 @@ export function useActionPreview(props: {
 
     useEffect(() => {
         setError(undefined);
-        setPreview(undefined);
+        setPreviewResponse(undefined);
 
-        if (
-            !props.actionArgs ||
-            !debounced.args ||
-            !props.argsValid(debounced.args)
-        )
+        if (!props.argsValid(debounced.args)) {
             return;
+        }
 
         axiosService
-            .post<any, any>(
+            .post<ActionResponse>(
                 `/game/actions/${props.isNoInit ? "noinit" : "team"}/dry/`,
                 {
                     action: props.actionId,
@@ -126,43 +121,44 @@ export function useActionPreview(props: {
                 }
             )
             .then((data) => {
-                setTimeout(() => {
-                    setError(undefined);
-                    setPreview(data.data);
-                }, 0);
+                setError(undefined);
+                setPreviewResponse(data.data);
             })
             .catch((error) => {
-                setPreview(undefined);
+                setPreviewResponse(undefined);
                 setError(error);
             });
     }, [props.actionId, debounced]);
 
     return {
-        preview,
+        previewResponse,
         error,
         debouncedArgs: debounced.args,
     };
 }
 
-export enum ActionPhase {
+enum ActionPhase {
     initiatePhase = 0,
     diceThrowPhase = 1,
     finish = 2,
 }
 
-export function PerformAction(props: {
-    actionName: any;
+export function PerformAction<TArgs>(props: {
+    actionName: string | JSX.Element;
     actionId: string;
-    actionArgs: any;
-    argsValid?: (args: any) => boolean;
-    extraPreview?: any;
+    actionArgs: TArgs;
+    argsValid?: (args: TArgs) => boolean;
+    extraPreview?: JSX.Element;
     onFinish: () => void;
     onBack: () => void;
     ignoreCost?: boolean;
     ignoreGameStop?: boolean;
     ignoreThrows?: boolean;
 }) {
-    const [phase, setPhase] = useState<{ phase: ActionPhase; data?: any }>({
+    const [phase, setPhase] = useState<{
+        phase: ActionPhase;
+        data?: ActionResponse;
+    }>({
         phase: ActionPhase.initiatePhase,
     });
     const setActiveAction = useSetAtom(activeActionIdAtom);
@@ -173,9 +169,7 @@ export function PerformAction(props: {
         };
     }, []);
 
-    let argsValid = props.argsValid ?? (() => true);
-
-    let changePhase = (phase: ActionPhase, data: any) => {
+    let changePhase = (phase: ActionPhase, data: ActionResponse) => {
         setPhase({
             phase,
             data,
@@ -185,14 +179,14 @@ export function PerformAction(props: {
     if (phase.phase == ActionPhase.initiatePhase) {
         return (
             <>
-                {props.extraPreview ?? null}
+                {props.extraPreview}
                 <ActionPreviewPhase
                     actionName={props.actionName}
                     actionId={props.actionId}
                     actionArgs={props.actionArgs}
                     onAbort={props.onBack}
                     changePhase={changePhase}
-                    argsValid={argsValid}
+                    argsValid={props.argsValid ?? (() => true)}
                     ignoreGameStop={props.ignoreGameStop}
                     ignoreCost={props.ignoreCost}
                     ignoreThrows={props.ignoreThrows}
@@ -202,12 +196,20 @@ export function PerformAction(props: {
         );
     }
     if (phase.phase == ActionPhase.diceThrowPhase) {
+        if (!phase.data || _.isNil(phase.data.action)) {
+            console.error("Empty data in dice throw phase", phase);
+            return (
+                <LoadingOrError
+                    error={phase || true}
+                    message="Cannot load commit data in dice throw phase"
+                />
+            );
+        }
         if (props.ignoreThrows) {
             return (
                 <>
                     <IgnoreActionDicePhase
                         actionNumber={phase.data.action}
-                        message={phase.data.message}
                         actionName={props.actionName}
                         changePhase={changePhase}
                     />
@@ -230,6 +232,15 @@ export function PerformAction(props: {
     }
 
     if (phase.phase == ActionPhase.finish) {
+        if (!phase.data) {
+            console.error("Empty data in finish phase", phase);
+            return (
+                <LoadingOrError
+                    error={phase || true}
+                    message={`Cannot load commit data in finish phase`}
+                />
+            );
+        }
         return (
             <>
                 <ActionFinishPhase
@@ -242,6 +253,7 @@ export function PerformAction(props: {
         );
     }
 
+    const exhaustiveCheck: never = phase.phase;
     return (
         <ErrorMessage>
             Toto nemělo nastat. Není to nic vážného, ale až budeš mít chvíli,
@@ -250,17 +262,17 @@ export function PerformAction(props: {
     );
 }
 
-export function PerformNoInitAction(props: {
-    actionName: any;
+export function PerformNoInitAction<TArgs>(props: {
+    actionName: string | JSX.Element;
     actionId: string;
-    actionArgs: any;
-    argsValid?: (args: any) => boolean;
-    extraPreview?: any;
+    actionArgs: TArgs;
+    argsValid?: (args: TArgs) => boolean;
+    extraPreview?: JSX.Element;
     onFinish: () => void;
     onBack: () => void;
     ignoreGameStop?: boolean;
 }) {
-    const [completedData, setCompletedData] = useState<any>();
+    const [actionResponse, setActionResponse] = useState<ActionResponse>();
     const setActiveAction = useSetAtom(activeActionIdAtom);
 
     useEffect(() => {
@@ -269,22 +281,24 @@ export function PerformNoInitAction(props: {
         };
     }, []);
 
-    let argsValid =
-        props.argsValid === undefined ? () => true : props.argsValid;
-
-    if (completedData === undefined) {
+    if (_.isNil(actionResponse)) {
         return (
             <>
-                {props.extraPreview ? props.extraPreview : undefined}
+                {props.extraPreview}
                 <NoInitActionPreviewPhase
                     actionName={props.actionName}
                     actionId={props.actionId}
                     actionArgs={props.actionArgs}
                     onAbort={props.onBack}
-                    changePhase={(_, data) =>
-                        setCompletedData(data === undefined ? {} : data)
-                    }
-                    argsValid={argsValid}
+                    changePhase={(phase, data) => {
+                        console.assert(
+                            phase === ActionPhase.finish && data,
+                            "Expected finish phase with data",
+                            { phase, data }
+                        );
+                        setActionResponse(data);
+                    }}
+                    argsValid={props.argsValid ?? (() => true)}
                     ignoreGameStop={props.ignoreGameStop}
                 />
                 <div className="my-8 h-1 w-full" />
@@ -292,52 +306,46 @@ export function PerformNoInitAction(props: {
         );
     }
 
-    if (completedData !== undefined) {
-        return (
-            <>
-                <ActionFinishPhase
-                    response={completedData}
-                    actionName={props.actionName}
-                    onFinish={props.onFinish}
-                />
-                <div className="my-8 h-1 w-full" />
-            </>
-        );
-    }
-
     return (
-        <ErrorMessage>
-            Toto nemělo nastat. Není to nic vážného, ale až budeš mít chvíli,
-            řekni o tom Honzovi
-        </ErrorMessage>
+        <>
+            <ActionFinishPhase
+                response={actionResponse}
+                actionName={props.actionName}
+                onFinish={props.onFinish}
+            />
+            <div className="my-8 h-1 w-full" />
+        </>
     );
 }
 
-function NoInitActionPreviewPhase(props: {
-    actionName: any;
+function NoInitActionPreviewPhase<TArgs>(props: {
+    actionName: string | JSX.Element;
     actionId: string;
-    actionArgs: any;
+    actionArgs: TArgs;
     onAbort: () => void;
-    changePhase: (phase: ActionPhase, data: any) => void;
-    argsValid: (args: any) => boolean;
+    changePhase: (phase: ActionPhase, data: ActionResponse) => void;
+    argsValid: (args: TArgs) => boolean;
     ignoreGameStop?: boolean;
 }) {
-    const { preview, error, debouncedArgs } = useActionPreview({
+    const { previewResponse, error, debouncedArgs } = useActionPreview({
         actionId: props.actionId,
         actionArgs: props.actionArgs,
         argsValid: props.argsValid,
         ignoreGameStop: props.ignoreGameStop,
         isNoInit: true,
     });
-    const [lastArgs, setLastArgs] = useState<[string, any]>();
+    const [lastArgs, setLastArgs] = useState<[string, TArgs]>();
     const [submitting, setSubmitting] = useState(false);
     const [commitResult, setCommitResult] = useState<ActionResponse>();
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
+    const { mutate } = useSWRConfig();
     const setActiveAction = useSetAtom(activeActionIdAtom);
     const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
-    if (height != 0 && height != loaderHeight) setLoaderHeight(height);
+    if (height != 0 && height != loaderHeight) {
+        setLoaderHeight(height);
+    }
 
     if (!_.isEqual(lastArgs, [props.actionId, props.actionArgs])) {
         setLastArgs([props.actionId, props.actionArgs]);
@@ -347,7 +355,7 @@ function NoInitActionPreviewPhase(props: {
     let handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<any, any>("/game/actions/noinit/commit/", {
+            .post<ActionResponse>("/game/actions/noinit/commit/", {
                 action: props.actionId,
                 args: props.actionArgs,
                 ignore_game_stop: props.ignoreGameStop,
@@ -357,8 +365,9 @@ function NoInitActionPreviewPhase(props: {
                 let result = data.data;
                 setActiveAction(result?.action ?? RESET);
                 if (result.success) {
-                    props.changePhase(ActionPhase.finish, result);
                     setFinishedAction(result?.action ?? RESET);
+                    mutate("/game/actions/team/unfinished");
+                    props.changePhase(ActionPhase.finish, result);
                 } else {
                     setCommitResult(result);
                     toast.error(
@@ -367,11 +376,12 @@ function NoInitActionPreviewPhase(props: {
                 }
             })
             .catch((error) => {
+                console.error(error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
-    const actionPreview = commitResult ?? preview;
+    const actionPreview = commitResult ?? previewResponse;
     return (
         <>
             <h1>Náhled efektu akce {props.actionName}</h1>
@@ -407,7 +417,7 @@ function NoInitActionPreviewPhase(props: {
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
                     disabled={
                         submitting ||
-                        !preview?.success ||
+                        !previewResponse?.success ||
                         !props.argsValid(debouncedArgs)
                     }
                     onClick={handleSubmit}
@@ -431,18 +441,18 @@ export function ActionMessage(props: { response: ActionResponse }) {
     );
 }
 
-function ActionPreviewPhase(props: {
-    actionName: any;
+function ActionPreviewPhase<TArgs>(props: {
+    actionName: string | JSX.Element;
     actionId: string;
-    actionArgs: any;
+    actionArgs: TArgs;
     onAbort: () => void;
-    changePhase: (phase: ActionPhase, data: any) => void;
-    argsValid: (args: any) => boolean;
+    changePhase: (phase: ActionPhase, data: ActionResponse) => void;
+    argsValid: (args: TArgs) => boolean;
     ignoreGameStop?: boolean;
     ignoreCost?: boolean;
     ignoreThrows?: boolean;
 }) {
-    const { preview, error, debouncedArgs } = useActionPreview({
+    const { previewResponse, error, debouncedArgs } = useActionPreview({
         actionId: props.actionId,
         actionArgs: props.actionArgs,
         argsValid: props.argsValid,
@@ -452,7 +462,7 @@ function ActionPreviewPhase(props: {
     });
     const [lastArgs, setLastArgs] = useState<{
         actionId: string;
-        args: any;
+        args: TArgs;
         ignoreCost?: boolean;
         ignoreGameStop?: boolean;
     }>();
@@ -460,6 +470,7 @@ function ActionPreviewPhase(props: {
     const [initiateResult, setInitiateResult] = useState<ActionResponse>();
     const [loaderHeight, setLoaderHeight] = useState(0);
     const [messageRef, { height }] = useElementSize();
+    const { mutate } = useSWRConfig();
     const setActiveAction = useSetAtom(activeActionIdAtom);
     const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
@@ -469,7 +480,9 @@ function ActionPreviewPhase(props: {
         return <Navigate to={`/actions/team/${actions[0].id}`} />;
     }
 
-    if (height != 0 && height != loaderHeight) setLoaderHeight(height);
+    if (height != 0 && height != loaderHeight) {
+        setLoaderHeight(height);
+    }
 
     const currentArgs = {
         actionId: props.actionId,
@@ -485,7 +498,7 @@ function ActionPreviewPhase(props: {
     let handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<any, any>("/game/actions/team/initiate/", {
+            .post<ActionResponse>("/game/actions/team/initiate/", {
                 action: props.actionId,
                 args: props.actionArgs,
                 ignore_cost: props.ignoreCost,
@@ -497,8 +510,9 @@ function ActionPreviewPhase(props: {
                 setActiveAction(result?.action ?? RESET);
                 if (result.success) {
                     if (result.committed) {
-                        props.changePhase(ActionPhase.finish, result);
                         setFinishedAction(result?.action ?? RESET);
+                        mutate("/game/actions/team/unfinished");
+                        props.changePhase(ActionPhase.finish, result);
                     } else {
                         props.changePhase(ActionPhase.diceThrowPhase, result);
                     }
@@ -514,7 +528,7 @@ function ActionPreviewPhase(props: {
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
     };
-    const actionPreview = initiateResult ?? preview;
+    const actionPreview = initiateResult ?? previewResponse;
     return (
         <>
             <h1>Náhled efektu akce {props.actionName}</h1>
@@ -550,7 +564,7 @@ function ActionPreviewPhase(props: {
                     label={submitting ? "Odesílám data" : "Zahájit akci"}
                     disabled={
                         submitting ||
-                        !preview?.success ||
+                        !previewResponse?.success ||
                         !props.argsValid(debouncedArgs)
                     }
                     onClick={handleSubmit}
@@ -563,38 +577,24 @@ function ActionPreviewPhase(props: {
 
 export function IgnoreActionDicePhase(props: {
     actionNumber: number;
-    message: string;
-    actionName: any;
-    changePhase: (phase: ActionPhase, data: any) => void;
+    actionName: string | JSX.Element;
+    changePhase: (phase: ActionPhase, data: ActionResponse) => void;
 }) {
-    const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
-        `/game/actions/team/${props.actionNumber}/commit`,
-        fetcher
-    );
     const { mutate } = useSWRConfig();
-
-    const header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
-
-    if (!action) {
-        return (
-            <>
-                {header}
-                <LoadingOrError
-                    error={actionErr}
-                    message="Nemůžu načíst házení kostkou pro akci. Dejte o tom vědět Honzovi a Maarovi"
-                />
-            </>
-        );
-    }
+    const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
     axiosService
-        .post<any, any>(`/game/actions/team/${props.actionNumber}/commit/`, {
-            throws: 0,
-            dots: 0,
-            ignore_throws: true,
-        })
+        .post<ActionResponse>(
+            `/game/actions/team/${props.actionNumber}/commit/`,
+            {
+                throws: 0,
+                dots: 0,
+                ignore_throws: true,
+            }
+        )
         .then((data) => {
             let result = data.data;
+            setFinishedAction(data.data.action ?? RESET);
             mutate("/game/actions/team/unfinished");
             props.changePhase(ActionPhase.finish, result);
         })
@@ -604,10 +604,8 @@ export function IgnoreActionDicePhase(props: {
 
     return (
         <>
-            {header}
-            <NeutralMessage className="my-0">
-                Ignoruje se házení kostkou...
-            </NeutralMessage>
+            <h1>Ignoruje se házení kostkou pro akci {props.actionName}</h1>
+            <InlineSpinner />
         </>
     );
 }
@@ -615,24 +613,18 @@ export function IgnoreActionDicePhase(props: {
 export function ActionDicePhase(props: {
     actionNumber: number;
     message: string;
-    actionName: any;
-    changePhase: (phase: ActionPhase, data: any) => void;
+    actionName: string | JSX.Element;
+    changePhase: (phase: ActionPhase, data: ActionResponse) => void;
 }) {
-    const { data: action, error: actionErr } = useSWR<ActionCommitResponse>(
-        `/game/actions/team/${props.actionNumber}/commit`,
-        fetcher
-    );
+    const { data: action, error: actionErr } =
+        useSWR<ActionDiceRequirementsResponse>(
+            `/game/actions/team/${props.actionNumber}/commit`,
+            fetcher
+        );
     const [throwInfo, setThrowInfo] = useState({ throws: 0, dots: 0 });
     const [submitting, setSubmitting] = useState(false);
     const { mutate } = useSWRConfig();
-    const setActiveAction = useSetAtom(activeActionIdAtom);
     const setFinishedAction = useSetAtom(finishedActionIdAtom);
-
-    useEffect(() => {
-        return () => {
-            setActiveAction(RESET);
-        };
-    }, [props.actionNumber]);
 
     let header = <h1>Házení kostkou pro akci {props.actionName}</h1>;
 
@@ -661,7 +653,7 @@ export function ActionDicePhase(props: {
             return;
         setSubmitting(true);
         axiosService
-            .post<any, any>(
+            .post<ActionResponse>(
                 `/game/actions/team/${props.actionNumber}/commit/`,
                 {
                     throws: throwInfo.throws,
@@ -671,7 +663,7 @@ export function ActionDicePhase(props: {
             .then((data) => {
                 setSubmitting(false);
                 let result = data.data;
-                setFinishedAction(props.actionNumber);
+                setFinishedAction(data.data.action ?? RESET);
                 mutate("/game/actions/team/unfinished");
                 props.changePhase(ActionPhase.finish, result);
             })
@@ -687,7 +679,7 @@ export function ActionDicePhase(props: {
         ) {
             setSubmitting(true);
             axiosService
-                .post<any, any>(
+                .post<ActionResponse>(
                     `/game/actions/team/${props.actionNumber}/revert/`
                 )
                 .then((data) => {
@@ -705,11 +697,9 @@ export function ActionDicePhase(props: {
     };
 
     let handleUpdate = (dots: number, throws: number) => {
-        if (dots < 0) dots = 0;
-        if (throws < 0) throws = 0;
         setThrowInfo({
-            throws: throws,
-            dots: dots,
+            throws: throws >= 0 ? throws : 0,
+            dots: dots >= 0 ? dots : 0,
         });
     };
 
@@ -756,7 +746,7 @@ function DiceThrowForm(props: {
     update: (dots: number, throws: number) => void;
     enabled: boolean;
 }) {
-    const [otherInput, setOtherInput] = useState<number | string>("");
+    const [otherInput, setOtherInput] = useState<number>();
     const [otherInputRef, setOtherInputFocus] = useFocus();
     const { teamWork } = useTeamWork(props.teamId);
 
@@ -764,25 +754,16 @@ function DiceThrowForm(props: {
         props.update(props.dots + amount, props.throws + 1);
     };
     const handleArbitraryThrow = () => {
-        // @ts-ignore
-        if (!isNaN(otherInput))
-            // @ts-ignore
-            props.update(props.dots + otherInput, props.throws + 1);
-        setOtherInput("");
-        setOtherInputFocus();
-    };
-    const handleKeyDown = (event: any) => {
-        if (event.key === "Enter") {
-            handleArbitraryThrow();
+        if (!_.isNil(otherInput)) {
+            handleThrow(otherInput);
+            setOtherInput(undefined);
+            setOtherInputFocus();
         }
     };
 
-    let throwsLeft =
+    const throwsLeft =
         !_.isNil(teamWork) && _.isFinite(Number(teamWork))
-            ? Math.floor(
-                  (Number(teamWork) - props.throws * props.throwCost) /
-                      props.throwCost
-              )
+            ? Math.floor(Number(teamWork) / props.throwCost - props.throws)
             : "??";
 
     return (
@@ -834,8 +815,8 @@ function DiceThrowForm(props: {
                     {Array.from(Array(20).keys()).map((i) => {
                         return (
                             <Button
-                                key={i}
-                                label={`${i + 1}`}
+                                key={i + 1}
+                                label={String(i + 1)}
                                 onClick={() => handleThrow(i + 1)}
                                 className="mx-1 px-0 text-center md:py-2"
                                 disabled={!props.enabled}
@@ -849,16 +830,28 @@ function DiceThrowForm(props: {
                     type="number"
                     ref={otherInputRef}
                     className="numberinput mx-0 w-full text-right md:mx-3 md:flex-1"
-                    value={otherInput}
-                    onChange={(e) => setOtherInput(parseInt(e.target.value))}
-                    onKeyDown={handleKeyDown}
+                    value={otherInput ?? ""}
+                    onChange={(e) => {
+                        if (e.target.checkValidity()) {
+                            setOtherInput(
+                                e.target.value !== ""
+                                    ? parseInt(e.target.value)
+                                    : undefined
+                            );
+                        }
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            handleArbitraryThrow();
+                        }
+                    }}
                     disabled={!props.enabled}
                 />
                 <Button
                     label="Hod"
                     className="my-2 mx-0 w-full bg-blue-500 hover:bg-blue-600 md:my-0 md:mx-3 md:w-60"
                     onClick={handleArbitraryThrow}
-                    disabled={!props.enabled}
+                    disabled={!props.enabled || _.isNil(otherInput)}
                 />
             </div>
         </div>
@@ -867,14 +860,17 @@ function DiceThrowForm(props: {
 
 export function ActionFinishPhase(props: {
     response: ActionResponse;
-    actionName: any;
+    actionName: string | JSX.Element;
     onFinish: () => void;
 }) {
     const [canQuit, setCanQuit] = useState(false);
+    const setActiveAction = useSetAtom(activeActionIdAtom);
 
     useEffect(() => {
-        if (!props.response?.stickers || props.response.stickers.length == 0)
+        setActiveAction(RESET);
+        if (!props.response?.stickers || props.response.stickers.length == 0) {
             setCanQuit(true);
+        }
     }, [props.response]);
 
     return (

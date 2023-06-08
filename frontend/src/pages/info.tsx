@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import QRCode from "react-qr-code";
+import { toast } from "react-toastify";
 import useSWR from "swr";
 import { Dialog, LoadingOrError } from "../elements";
-import { SuccessMessage } from "../elements/messages";
+import { ActionMessage, useActionPreview } from "../elements/action";
 import { useCurrentTurn } from "../elements/turns";
+import { ActionResponse } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { AnnouncementList } from "./dashboard";
 import { useScanner } from "./scanner";
-import QRCode from "react-qr-code";
-import { ActionMessage, useActionPreview } from "../elements/action";
-import { toast } from "react-toastify";
-import produce from "immer";
 
 export function InfoScreen() {
     return (
@@ -147,7 +146,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
     const actionArgs = useMemo(() => {
         return { team: props.teamId, materials: {} };
     }, [props.teamId]);
-    const { preview, error } = useActionPreview({
+    const { previewResponse, error } = useActionPreview({
         actionId: "FeedAction",
         actionArgs,
         argsValid: () => true,
@@ -159,10 +158,10 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
         if (items[0] == "ans-no") {
             props.onClose();
         }
-        if (items[0] == "ans-yes" && preview && preview.success) {
+        if (items[0] == "ans-yes" && previewResponse?.success) {
             setSubmitting(true);
             axiosService
-                .post<any, any>("/game/actions/team/initiate/", {
+                .post<ActionResponse>("/game/actions/team/initiate/", {
                     action: "FeedAction",
                     args: actionArgs,
                 })
@@ -180,7 +179,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
         }
     });
 
-    if (!preview)
+    if (!previewResponse)
         return (
             <LoadingOrError
                 error={error}
@@ -192,7 +191,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
         <div className="text-left">
             <h1>Automatické krmení</h1>
 
-            <ActionMessage response={preview} />
+            <ActionMessage response={previewResponse} />
             {submitting ? (
                 <div className="w-full py-14 text-center text-2xl">
                     Odesílám
@@ -202,7 +201,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
                     <h2>Přejete si pokračovat?</h2>
                     <div className="my-6 flex w-full">
                         <div className="mx-0 w-1/2 p-3 text-center">
-                            {preview.success && (
+                            {previewResponse.success && (
                                 <>
                                     <h1>ANO</h1>
                                     <QRCode

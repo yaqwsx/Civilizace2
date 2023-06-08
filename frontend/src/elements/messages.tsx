@@ -1,7 +1,7 @@
 import { classNames } from ".";
 
 type MessageProps = {
-    children: any;
+    children: {};
     className?: string;
 };
 

@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import * as Yup from "yup";
-import { useFormik } from "formik";
-import { useDispatch } from "react-redux";
 import axios from "axios";
-import { useNavigate } from "react-router";
-import authSlice from "../store/slices/auth";
+import { useFormik } from "formik";
+import { useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
+import * as Yup from "yup";
 import { ErrorMessage } from "../elements/messages";
+import authSlice from "../store/slices/auth";
+import { AccountResponse } from "../types";
 
 function Login() {
     const [message, setMessage] = useState("");
@@ -16,10 +17,13 @@ function Login() {
 
     const handleLogin = (username: string, password: string) => {
         axios
-            .post(`${process.env.REACT_APP_API_URL}/auth/login/`, {
-                username,
-                password,
-            })
+            .post<AccountResponse>(
+                `${process.env.REACT_APP_API_URL}/auth/login/`,
+                {
+                    username,
+                    password,
+                }
+            )
             .then((res) => {
                 dispatch(
                     authSlice.actions.setAuthTokens({

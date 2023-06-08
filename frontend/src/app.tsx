@@ -1,60 +1,57 @@
-import { useState } from "react";
-import {
-    BrowserRouter as Router,
-    Routes,
-    Route,
-    NavLink,
-    Link,
-} from "react-router-dom";
-import { Navigate } from "react-router";
-import { Login } from "./pages";
-import store, { persistor } from "./store";
-import authSlice from "./store/slices/auth";
-import { PersistGate } from "redux-persist/integration/react";
-import { Provider } from "react-redux";
-import { useSelector } from "react-redux";
-import { RootState } from "./store";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import {
-    faCity,
+    faBook,
     faChartLine,
+    faCity,
+    faCubesStacked,
+    faFlask,
     faHistory,
     faIndustry,
-    faFlask,
-    faCubesStacked,
-    faStickyNote,
     faMountainCity,
     faSkullCrossbones,
+    faStickyNote,
     faTimeline,
-    faBook,
 } from "@fortawesome/free-solid-svg-icons";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { ScannerDispatcher, useScanner } from "./pages/scanner";
-import { DashboardMenu, Dashboard } from "./pages/dashboard";
-import { Turns, TurnsMenu } from "./pages/turns";
-import { VyrobaMenu, Vyroba } from "./pages/vyrobas";
-import { MapMenu, MapAgenda } from "./pages/map";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import { Navigate } from "react-router";
+import {
+    Link,
+    NavLink,
+    Route,
+    BrowserRouter as Router,
+    Routes,
+    useNavigate,
+} from "react-router-dom";
+import { PersistGate } from "redux-persist/integration/react";
 import "./index.css";
+import { Login } from "./pages";
+import { Dashboard, DashboardMenu } from "./pages/dashboard";
+import { MapAgenda, MapMenu } from "./pages/map";
+import { ScannerDispatcher, useScanner } from "./pages/scanner";
+import { Turns, TurnsMenu } from "./pages/turns";
+import { Vyroba, VyrobaMenu } from "./pages/vyrobas";
+import store, { RootState, persistor } from "./store";
+import authSlice from "./store/slices/auth";
 
-import { Forbidden } from "./pages/forbidden";
-import { Tech, TechMenu } from "./pages/techs";
-import { Tasks, TasksMenu } from "./pages/tasks";
-import { Announcements, AnnouncementsMenu } from "./pages/announcements";
-import { ToastProvider } from "./elements/toast";
-import { useTeamIdFromUrl } from "./elements/team";
-import { InfoScreen } from "./pages/info";
-import { RequireOrg, RequireAuth, RequireSuperOrg } from "./elements";
-import { GodMode, GodModeMenu } from "./pages/godmode";
-import { ScanTest } from "./pages/scanTest";
 import { useAtom } from "jotai";
-import { menuShownAtom } from "./pages/atoms";
+import { RequireAuth, RequireOrg, RequireSuperOrg } from "./elements";
 import { UnfinishedActionBar } from "./elements/action";
+import { useTeamIdFromUrl } from "./elements/team";
+import { ToastProvider } from "./elements/toast";
 import { FinishAction } from "./pages/action";
-import { MapDiff } from "./pages/mapdiff";
 import { ActionLog } from "./pages/actionlog";
+import { Announcements, AnnouncementsMenu } from "./pages/announcements";
 import { AnyAction } from "./pages/anyaction";
+import { menuShownAtom } from "./pages/atoms";
+import { Forbidden } from "./pages/forbidden";
+import { GodMode, GodModeMenu } from "./pages/godmode";
+import { InfoScreen } from "./pages/info";
+import { MapDiff } from "./pages/mapdiff";
+import { ScanTest } from "./pages/scanTest";
+import { Tasks, TasksMenu } from "./pages/tasks";
+import { Tech, TechMenu } from "./pages/techs";
 
 function IconHamburger() {
     return (
@@ -142,10 +139,7 @@ function UserMenu() {
     );
 }
 
-type MenuRowProps = {
-    children?: any;
-};
-function MenuRow(props: MenuRowProps) {
+function MenuRow(props: JSX.ElementChildrenAttribute) {
     return (
         <ul className="list-reset w-full flex-1 items-center border-b-2 border-gray-600 px-4 md:px-0 lg:flex lg:border-none">
             {props.children}

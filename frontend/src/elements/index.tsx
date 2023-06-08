@@ -1,22 +1,16 @@
-import { ChangeEvent, Children, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
-import { Team, UserResponse } from "../types";
-import { fetcher } from "../utils/axios";
-import { ThreeDots } from "react-loader-spinner";
 import classNamesOriginal from "classnames";
+import { ChangeEvent, useEffect, useRef } from "react";
+import { ThreeDots } from "react-loader-spinner";
 import ReactMarkdown from "react-markdown";
 import { overrideTailwindClasses } from "tailwind-override";
 
-import React from "react";
-import { EntityMdTag } from "./entities";
-import { nodeModuleNameResolver } from "typescript";
 import { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../store";
 import { Navigate } from "react-router-dom";
-import AceEditor from "react-ace";
-import _ from "lodash";
+import { RootState } from "../store";
+import { EntityMdTag } from "./entities";
 
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -158,7 +152,7 @@ export function SpinboxInput(props: SpinboxInputType) {
                 type="number"
                 disabled={props.disabled}
                 onChange={handleChange}
-                value={String(props.value ?? "")}
+                value={props.value ?? ""}
                 className="numberinput mx-3 flex-1"
             />
             <button className={buttonClassName} onClick={() => incValue(1)}>

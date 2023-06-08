@@ -14,14 +14,17 @@
             ],
             "django": true,
             "justMyCode": false
-        }
+        },
         {
             "name": "Python: Sticker",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
-                "gensticker", "tec-start", "regular", "test.png"
+                "gensticker",
+                "tec-start",
+                "regular",
+                "test.png"
             ],
             "django": true,
             "justMyCode": false

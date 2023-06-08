@@ -1,12 +1,11 @@
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import useSWR from "swr";
-import { Printer, Sticker } from "../types";
 import { useLocalStorage } from "usehooks-ts";
 import { Button, FormRow, LoadingOrError } from ".";
-import { useEffect, useState } from "react";
-import { EntityTag } from "./entities";
+import { Printer, Sticker } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
-import { useStore } from "react-redux";
-import { toast } from "react-toastify";
+import { EntityTag } from "./entities";
 import { useTeams } from "./team";
 
 export function usePrinters() {
@@ -38,7 +37,7 @@ function PrinterSelect(props: {
             value={props.value?.name}
             onChange={(e) => handleChange(e.target.value)}
         >
-            <option>—— Nice nevybráno ——</option>
+            <option value="">—— Nic nevybráno ——</option>
             {props.printers.map((p) => (
                 <option key={p.name} value={p.name}>
                     {p.name} ({p.printsStickers ? "SAMOLEPKA" : "PAPÍR"})
@@ -89,9 +88,9 @@ export function PrintStickers(props: {
     const handlePrint = () => {
         setIsPrinting(true);
         Promise.all(
-            props.stickers.map((sticker) => {
+            props.stickers.map(async (sticker) => {
                 return axiosService
-                    .post<any, any>(`/game/stickers/${sticker.id}/print/`, {
+                    .post<{}>(`/game/stickers/${sticker.id}/print/`, {
                         printerId:
                             sticker.entityId.startsWith("tec-") ||
                             sticker.entityId.startsWith("bui-") ||
@@ -99,7 +98,7 @@ export function PrintStickers(props: {
                                 ? stickerPrinterObj?.id
                                 : paperPrinterObj?.id,
                     })
-                    .then((data) => {
+                    .then(() => {
                         toast.success(`Samolepka ${sticker.id} vytištěna`);
                     })
                     .catch((error) => {

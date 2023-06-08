@@ -1,4 +1,4 @@
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
 import { useState } from "react";
 import {
     Link,
@@ -239,12 +239,13 @@ function TaskEdit() {
 
     const handleSubmit = (
         data: Task,
-        { setErrors, setStatus, setSubmitting }: any
+        { setErrors, setStatus, setSubmitting }: FormikHelpers<Task>
     ) => {
         setSubmitting(true);
         let submit = taskId
-            ? (data: any) => axiosService.put(`game/tasks/${taskId}/`, data)
-            : (data: any) => axiosService.post(`game/tasks/`, data);
+            ? (data: Task) =>
+                  axiosService.put<Task>(`game/tasks/${taskId}/`, data)
+            : (data: Task) => axiosService.post<Task>(`game/tasks/`, data);
         submit(data)
             .then((response) => {
                 let data = response.data;

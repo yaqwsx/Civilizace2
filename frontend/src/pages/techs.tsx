@@ -386,7 +386,7 @@ function SelectTaskForTechForm(props: {
                     onChange={handleChange}
                     className="select"
                 >
-                    <option>Nevybráno</option>
+                    <option value="">Nevybráno</option>
                     {recommendedTechs
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((t) => (
@@ -404,7 +404,7 @@ function SelectTaskForTechForm(props: {
                     onChange={handleChange}
                     className="select"
                 >
-                    <option>Nevybráno</option>
+                    <option value="">Nevybráno</option>
                     {Object.values(tasks)
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((t) => (
@@ -446,7 +446,7 @@ function ChangeTaskDialog(props: {
     let handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<any, any>(`/game/teams/${props.team.id}/changetask/`, {
+            .post<{}>(`/game/teams/${props.team.id}/changetask/`, {
                 tech: props.tech.id,
                 newTask: selectedTask?.id,
             })

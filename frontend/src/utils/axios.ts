@@ -2,6 +2,7 @@ import axios from "axios";
 import createAuthRefreshInterceptor from "axios-auth-refresh";
 import store from "../store";
 import authSlice from "../store/slices/auth";
+import { AccountResponse } from "../types";
 
 const axiosService = axios.create({
     baseURL: process.env.REACT_APP_API_URL,
@@ -49,7 +50,7 @@ const refreshAuthLogic = async (failedRequest) => {
     const { refreshToken } = store.getState().auth;
     if (refreshToken !== null) {
         return axios
-            .post(
+            .post<AccountResponse>(
                 "/auth/refresh/",
                 {
                     refresh: refreshToken,

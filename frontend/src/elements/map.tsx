@@ -26,7 +26,7 @@ export function TileSelect(props: {
             value={props?.value?.id}
             onChange={(e) => props.onChange(tiles[e.target.value])}
         >
-            <option>Žádné políčko</option>
+            <option value="">Žádné políčko</option>
             {sortedTiles.map((t: any) => (
                 <option key={t.id} value={t.id}>
                     {t.name}
@@ -93,7 +93,7 @@ export function BuildingSelect(props: {
             value={props?.value?.id}
             onChange={(e) => props.onChange(buildings[e.target.value])}
         >
-            <option>Žádná budova</option>
+            <option value="">Žádná budova</option>
             {Object.values(buildings)
                 .filter(
                     (b) =>

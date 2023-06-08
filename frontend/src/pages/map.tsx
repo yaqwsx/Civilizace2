@@ -14,13 +14,12 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import { EntityTag, useEntities } from "../elements/entities";
+import { EntityTag, useEntities, useTeamEntities } from "../elements/entities";
 import {
     BuildingSelect,
     BuildingUpgradeSelect,
     TeamAttributeSelect,
     TeamTileSelect,
-    TileSelect,
 } from "../elements/map";
 import { ErrorMessage } from "../elements/messages";
 import {
@@ -31,6 +30,9 @@ import {
 import {
     Army,
     ArmyMode,
+    BuildingEntity,
+    BuildingUpgradeTeamEntity,
+    MapTileTeamEntity,
     ResourceEntity,
     Team,
     TeamAttributeTeamEntity,
@@ -211,15 +213,12 @@ export function CultureAgenda(props: { team: Team }) {
 }
 
 export function BuildingAgenda(props: { team: Team }) {
-    const { data: availableBuildings, error } = useSWR<any>(
-        `game/teams/${props.team.id}/buildings`,
-        fetcher
-    );
+    const { data: buildings, error } = useTeamEntities("buildings", props.team);
     const setAction = useSetAtom(urlMapActionAtom);
-    const [building, setBuilding] = useState<any>();
-    const [tile, setTile] = useState<any>();
+    const [building, setBuilding] = useState<BuildingEntity>();
+    const [tile, setTile] = useState<MapTileTeamEntity>();
 
-    if (!availableBuildings) {
+    if (!buildings) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
     }
 
@@ -234,7 +233,7 @@ export function BuildingAgenda(props: { team: Team }) {
                     tile: tile?.id,
                     building: building?.id,
                 }}
-                argsValid={(a: any) => (a?.building && a?.tile) || false}
+                argsValid={(a) => Boolean(a?.building && a?.tile)}
                 onBack={() => {}}
                 onFinish={() => {
                     setAction(RESET);
@@ -248,7 +247,7 @@ export function BuildingAgenda(props: { team: Team }) {
                             <BuildingSelect
                                 value={building}
                                 onChange={setBuilding}
-                                allowed={availableBuildings}
+                                allowed={buildings}
                             />
                         </FormRow>
                         <FormRow
@@ -270,7 +269,7 @@ export function BuildingAgenda(props: { team: Team }) {
 
 export function BuildRoadAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<any>();
+    const [tile, setTile] = useState<MapTileTeamEntity>();
 
     return (
         <PerformAction
@@ -278,7 +277,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
             actionName={`Postavit cestu týmem ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                tile: tile?.entity?.id,
+                tile: tile?.id,
             }}
             argsValid={(a: any) => a?.tile || false}
             onBack={() => {}}
@@ -310,8 +309,8 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
         fetcher
     );
     const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<any>();
-    const [upgrade, setUpgrade] = useState<any>();
+    const [tile, setTile] = useState<MapTileTeamEntity>();
+    const [upgrade, setUpgrade] = useState<BuildingUpgradeTeamEntity>();
 
     if (!availableUpgrades) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
@@ -325,7 +324,7 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
                 actionName={`Stavba vylepšení budovy pro tým ${props.team.name}`}
                 actionArgs={{
                     team: props.team.id,
-                    tile: tile?.entity.id,
+                    tile: tile?.id,
                     upgrade: upgrade?.id,
                 }}
                 argsValid={(a: any) => (a?.upgrade && a?.tile) || false}
@@ -369,7 +368,7 @@ export function AddAttributeAgenda(props: { team: Team }) {
         Record<string, TeamAttributeTeamEntity>
     >(`game/teams/${props.team.id}/attributes`, fetcher);
     const setAction = useSetAtom(urlMapActionAtom);
-    const [attribute, setAttribute] = useState<any>();
+    const [attribute, setAttribute] = useState<TeamAttributeTeamEntity>();
 
     if (!teamAttributes) {
         return (

@@ -210,7 +210,7 @@ function GetArgForm(props: ArgFormProps) {
             return (p: ArgumentFormProps) => (
                 <select
                     className="select field"
-                    value={p.value ?? ""}
+                    value={p.value}
                     onChange={(e) =>
                         p.onChange(
                             e.target.value ? Number(e.target.value) : undefined
@@ -277,7 +277,7 @@ function GetArgForm(props: ArgFormProps) {
                 return (p: ArgumentFormProps) => (
                     <select
                         className="select field"
-                        value={p.value ?? ""}
+                        value={p.value}
                         onChange={(e) =>
                             p.onChange(e.target.value || undefined)
                         }
@@ -577,7 +577,7 @@ export function AnyAction() {
                 className="my-8"
             >
                 <select
-                    value={String(action?.id ?? "")}
+                    value={action?.id}
                     onChange={(event) =>
                         handleActionIdChange(event.target.value)
                     }

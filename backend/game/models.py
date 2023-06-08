@@ -384,7 +384,7 @@ class DbTaskAssignment(models.Model):
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     task = models.ForeignKey(
-        DbTask, on_delete=models.CASCADE, related_name="assignments"
+        DbTask, on_delete=models.RESTRICT, related_name="assignments"
     )
     techId = models.CharField(max_length=32)
     assignedAt = models.DateTimeField(auto_now_add=True)

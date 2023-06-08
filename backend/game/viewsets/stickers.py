@@ -1,15 +1,18 @@
 from typing import NamedTuple
-from django.shortcuts import get_object_or_404
+
 import requests
-from game.entities import Entity, TeamEntity
-from game.models import DbSticker, Printer
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
-from rest_framework.response import Response
 from rest_framework.request import Request
-from django.http import FileResponse
+from rest_framework.response import Response
 
+from core.serializers.announcement import TeamIdSerializer
+from core.serializers.fields import TextEnumSerializer
+from game.entities import Entity, TeamEntity
+from game.models import DbSticker, Printer, StickerType
 from game.stickers import getStickerFile
 
 
@@ -31,6 +34,8 @@ class PrinterError(APIException):
 
 
 class DbStickerSerializer(serializers.ModelSerializer):
+    team = TeamIdSerializer()
+
     class Meta:
         model = DbSticker
         fields = "__all__"
@@ -53,7 +58,7 @@ class StickerViewSet(viewsets.ViewSet):
         return Response(DbStickerSerializer(sticker).data)
 
     @action(detail=True, methods=["POST"])
-    def upgrade(self, request: Request, pk) -> Response:
+    def autoupdate(self, request: Request, pk) -> Response:
         sticker = self._getSticker(request.user, pk)
         sticker.update()
         sticker.save()

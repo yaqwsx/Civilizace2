@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
+import _ from "lodash";
 import { useState } from "react";
 import DateTime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -237,11 +238,7 @@ function AnnouncementEdit() {
     const { data: announcement, error: announcementError } =
         useSWR<Announcement>(
             () => (announcementId ? `/announcements/${announcementId}` : null),
-            (url) =>
-                fetcher(url).then((a) => {
-                    a.appearDatetime = new Date(a.appearDatetime);
-                    return a;
-                })
+            fetcher
         );
 
     if ((announcementId && !announcement) || !teams)
@@ -253,26 +250,27 @@ function AnnouncementEdit() {
         );
 
     const handleSubmit = (
-        data: Announcement,
-        { setErrors, setStatus, setSubmitting }: any
+        data: Omit<Announcement, "id">,
+        {
+            setErrors,
+            setStatus,
+            setSubmitting,
+        }: FormikHelpers<Omit<Announcement, "id">>
     ) => {
         console.log(data);
         setSubmitting(true);
 
-        const preparedData = {
-            appearDatetime: data.appearDatetime.toISOString(),
-            content: data.content,
-            type: data.type,
-            teams: data.teams,
-        };
-        console.log(preparedData);
         let submit = announcementId
-            ? (data: any) =>
-                  axiosService.put(`/announcements/${announcementId}/`, data)
-            : (data: any) => axiosService.post(`/announcements/`, data);
-        submit(preparedData)
+            ? (data: Omit<Announcement, "id">) =>
+                  axiosService.put<Announcement>(
+                      `/announcements/${announcementId}/`,
+                      data
+                  )
+            : (data: Omit<Announcement, "id">) =>
+                  axiosService.post<Announcement>(`/announcements/`, data);
+        submit(data)
             .then((response) => {
-                let data = response.data;
+                console.log("Ozn resp", response, typeof response);
                 navigate("/announcements");
                 toast.success("Oznámení uloženo");
             })
@@ -296,8 +294,7 @@ function AnnouncementEdit() {
             });
     };
 
-    const initialValues: Announcement = {
-        id: -1,
+    const initialValues: Omit<Announcement, "id"> = {
         author: undefined,
         type: AnnouncementType.Normal,
         content: "",
@@ -321,8 +318,8 @@ function AnnouncementEdit() {
                     />
                 </Link>
             </Row>
-            <Formik<Announcement>
-                initialValues={announcement ? announcement : initialValues}
+            <Formik<Omit<Announcement, "id">>
+                initialValues={announcement ?? initialValues}
                 onSubmit={handleSubmit}
             >
                 {(props) => (
@@ -330,6 +327,7 @@ function AnnouncementEdit() {
                         values={props.values}
                         setFieldValue={props.setFieldValue}
                         teams={teams}
+                        creatingNew={_.isNil(announcementId)}
                         submitting={props.isSubmitting}
                     />
                 )}
@@ -339,9 +337,10 @@ function AnnouncementEdit() {
 }
 
 function AnnouncementEditForm(props: {
-    values: Announcement;
+    values: Omit<Announcement, "id">;
     setFieldValue: (field: string, value: any, validate: boolean) => void;
     teams: Team[];
+    creatingNew: boolean;
     submitting: boolean;
 }) {
     const allTeams = () => {
@@ -458,9 +457,9 @@ function AnnouncementEditForm(props: {
                     label={
                         props.submitting
                             ? "Odesílám..."
-                            : props.values.id
-                            ? "Uložit změny"
-                            : "Založit nové oznámení"
+                            : props.creatingNew
+                            ? "Založit nové oznámení"
+                            : "Uložit změny"
                     }
                 />
             </Form>

@@ -1,8 +1,10 @@
-from game.models import DbTask, DbTaskAssignment
-from ..serializers import DbTaskSerializer
 from rest_framework import viewsets
-
 from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAuthenticated
+
+from game.models import DbTask, DbTaskAssignment
+from game.serializers import DbTaskSerializer
+from game.viewsets.permissions import IsOrg
 
 
 class TaskUsedError(APIException):
@@ -12,7 +14,7 @@ class TaskUsedError(APIException):
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    # permission_classes = (IsAuthenticated, IsOrg)
+    permission_classes = (IsAuthenticated, IsOrg)
 
     queryset = DbTask.objects.all()
     serializer_class = DbTaskSerializer

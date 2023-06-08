@@ -545,8 +545,8 @@ function Announcement(props: {
     let handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<any, any>(`/announcements/${props.id}/read/`)
-            .then((data) => {
+            .post<{}>(`/announcements/${props.id}/read/`)
+            .then(() => {
                 setSubmitting(false);
                 if (props.deletable) setDeleted(true);
             })
@@ -660,8 +660,8 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
         if (!props.sticker) return;
         setIsUpdating(true);
         axiosService
-            .post<any, any>(`/game/stickers/${props.sticker.id}/upgrade/`)
-            .then((data) => {
+            .post<{}>(`/game/stickers/${props.sticker.id}/autoupdate/`)
+            .then(() => {
                 setIsUpdating(false);
                 toast.success(`Samolepka ${props.sticker.id} aktualizována`);
                 props.mutate();

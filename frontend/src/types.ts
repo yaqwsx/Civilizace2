@@ -83,8 +83,8 @@ export interface ResourceTeamEntity extends ResourceEntity {
 }
 
 export interface MapTileTeamEntity extends MapTileEntity {
-    buildings: BuildingId[]
-    building_upgrades: BuildingUpgradeId[]
+    buildings: BuildingId[];
+    building_upgrades: BuildingUpgradeId[];
 }
 
 export interface VyrobaTeamEntity extends VyrobaEntity {
@@ -224,17 +224,18 @@ export enum ActionStatus {
 
 export interface ActionResponse {
     success: boolean;
-    expected: boolean;
     message: string;
-    action?: Number;
-    stickers: Sticker[];
+    expected?: boolean;
+    action?: number;
+    committed?: boolean;
+    stickers?: Sticker[];
 }
 
-export interface ActionCommitResponse {
+export interface ActionDiceRequirementsResponse {
     requiredDots: number;
     throwCost: number;
-    description: string;
-    team: string;
+    description?: string;
+    team: TeamId;
 }
 
 // AnyAction
@@ -265,13 +266,19 @@ export interface Turn {
     next?: Turn;
 }
 
+export enum StickerType {
+    regular = 0,
+    techSmall = 1,
+    techFirst = 2,
+}
+
 export interface Sticker {
     id: number;
-    entityId: string;
+    team: TeamId;
+    entityId: EntityId;
     entityRevision: number;
-    type: number;
-    awardedAt: string;
-    team: string;
+    type: StickerType;
+    awardedAt: Date;
 }
 
 export interface Printer {
