@@ -396,7 +396,7 @@ function TeamOverview() {
                         color={team.color}
                         icon={faShieldAlt}
                     >
-                        <ArmyDescription army={a} orgView={false} />
+                        <ArmyDescription army={a} />
                     </Card>
                 ))}
             </CardSection>

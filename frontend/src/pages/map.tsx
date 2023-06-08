@@ -28,7 +28,13 @@ import {
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
-import { ResourceEntity, Team, TeamAttributeTeamEntity } from "../types";
+import {
+    Army,
+    ArmyMode,
+    ResourceEntity,
+    Team,
+    TeamAttributeTeamEntity,
+} from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
@@ -525,32 +531,41 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
     );
 }
 
-export function ArmyDescription(props: { army: any; orgView: boolean }) {
-    let modeMapping = {
-        Idle: "čeká na rozkazy",
-        Marching: "přesun",
-        Occupying: "okupace",
+export function ArmyDescription(props: { army: Army }) {
+    const modeString = function (mode: ArmyMode) {
+        switch (mode) {
+            case ArmyMode.Idle:
+                return "čeká na rozkazy";
+            case ArmyMode.Marching:
+                return "přesun";
+            case ArmyMode.Occupying:
+                return "okupace";
+            default:
+                const exhaustiveCheck: never = mode;
+                return String(mode); // For invalid Enum value
+        }
     };
 
-    let attributes = {
-        // Úroveň: props.army.level,
-        "Stojí na": props.army.tile ? (
-            <EntityTag id={props.army.tile} />
-        ) : (
-            "domovském políčku"
-        ),
-        // @ts-ignore
-        Stav: modeMapping[props.army.mode],
-    };
+    let attributes: [string, JSX.Element][] = [
+        ["Úroveň", <>{props.army.level}</>],
+        [
+            "Stojí na",
+            props.army.tile ? (
+                <EntityTag id={props.army.tile} />
+            ) : (
+                <>domovském políčku</>
+            ),
+        ],
+        ["Stav", <>{modeString(props.army.mode)}</>],
+    ];
     if (props.army.mode !== "Idle") {
-        // @ts-ignore
-        attributes["Vybavení"] = props.army.equipment;
+        attributes.push(["Vybavení", <>{props.army.equipment}</>]);
     }
 
     return (
         <table className="w-full table-fixed">
             <tbody>
-                {Object.entries(attributes).map(([k, v]) => (
+                {attributes.map(([k, v]) => (
                     <tr key={k}>
                         <td className="pr-3 text-right font-bold">{k}: </td>
                         <td className="text-left">{v}</td>
@@ -588,7 +603,7 @@ function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
                 Armáda <ArmyName army={props.army} />
             </h3>
             <div className="w-full md:w-2/3">
-                <ArmyDescription army={props.army} orgView={true} />
+                <ArmyDescription army={props.army} />
             </div>
             <div className="w-full px-3 md:w-1/3">
                 <Button
