@@ -1,35 +1,38 @@
 import { useEffect } from "react";
 import useSWR from "swr";
 import { LoadingOrError } from ".";
-import { Team } from "../types";
+import { Army, ArmyGoal, Team } from "../types";
 import { fetcher } from "../utils/axios";
+import _ from "lodash";
 
 export function ArmySelectBox(props: {
     team: Team;
-    value: any;
-    onChange: (army: any) => void;
+    value?: Army;
+    onChange: (army: Army) => void;
 }) {
-    const { data: armies, error: armyError } = useSWR<Record<number, any>>(
+    const { data: armies, error: armyError } = useSWR<Record<number, Army>>(
         `game/teams/${props.team.id}/armies`,
         fetcher
     );
 
     useEffect(() => {
-        if (!props.value && armies) props.onChange(Object.values(armies)[0]);
+        if (!props.value && armies) {
+            props.onChange(Object.values(armies)[0]);
+        }
     }, [armies, props.value]);
 
     if (!armies) {
         return <LoadingOrError error={armyError} message="Něco se pokazilo" />;
     }
 
-    let handleChange = (id: any) => {
-        props.onChange(armies[id]);
+    let handleChange = (index: number) => {
+        props.onChange(armies[index]);
     };
     return (
         <select
             className="field select"
-            onChange={(e) => handleChange(e.target.value)}
-            value={props?.value?.index}
+            onChange={(e) => handleChange(Number(e.target.value))}
+            value={props.value?.index}
         >
             {Object.values(armies).map((a) => (
                 <option key={a.index} value={a.index}>
@@ -40,31 +43,41 @@ export function ArmySelectBox(props: {
     );
 }
 
-export const ARMY_GOALS = {
-    0: "Okupovat",
-    1: "Eliminovat",
-    2: "Zásobování",
-    3: "Nahradit",
-};
+function getArmyGoalStr(goal: ArmyGoal): string {
+    switch (goal) {
+        case ArmyGoal.Occupy:
+            return "Okupovat";
+        case ArmyGoal.Eliminate:
+            return "Eliminovat";
+        case ArmyGoal.Supply:
+            return "Zásobování";
+        case ArmyGoal.Replace:
+            return "Nahradit";
+
+        default:
+            const exhaustiveCheck: never = goal;
+            return "";
+    }
+}
 
 export function ArmyGoalSelect(props: {
-    value: number;
-    onChange: (v: number) => void;
+    value: ArmyGoal;
+    onChange: (v: ArmyGoal) => void;
 }) {
     useEffect(() => {
-        if (!props.value) props.onChange(0);
+        if (!props.value) props.onChange(ArmyGoal.Occupy);
     }, [props.value]);
 
     return (
         <select
             className="field select"
-            onChange={(e) => props.onChange(parseInt(e.target.value))}
+            onChange={(e) => props.onChange(_.get(ArmyGoal, e.target.value))}
             value={props.value}
         >
-            {Object.entries(ARMY_GOALS).map(([k, v]) => {
+            {Object.values(ArmyGoal).map((goal) => {
                 return (
-                    <option key={k} value={k}>
-                        {v}
+                    <option key={goal} value={goal}>
+                        {getArmyGoalStr(goal)}
                     </option>
                 );
             })}
