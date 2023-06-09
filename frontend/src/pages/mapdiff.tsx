@@ -59,7 +59,7 @@ function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
     let handleFinish = () => {
         setDeleting(true);
         axiosService
-            .delete<any, any>(`/game/mapupdates/${props.mapUpdate.id}/`)
+            .delete(`/game/mapupdates/${props.mapUpdate.id}/`)
             .then(() => {
                 props.onUpdate();
                 setDeleted(true);

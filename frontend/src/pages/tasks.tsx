@@ -58,7 +58,7 @@ function TasksOverview() {
             optimisticData: tasks?.filter((x) => x.id != id),
         };
         let fetchNew = async () => {
-            return fetcher("/game/tasks");
+            return fetcher<Task[]>("/game/tasks");
         };
         mutateTasks(fetchNew, options);
     };
@@ -176,7 +176,7 @@ function DeleteDialog(props: {
         setDeleting(true);
         axiosService
             .delete(`game/tasks/${props.task.id}/`)
-            .then((data) => {
+            .then(() => {
                 props.onDelete();
                 props.close();
                 toast.success(

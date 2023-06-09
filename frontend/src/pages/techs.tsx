@@ -417,18 +417,14 @@ function SelectTaskForTechForm(props: {
                 </select>
             </FormRow>
             <FormRow label="Popis pro orga">
-                {props.selectedTask && (
-                    <CiviMarkdown>
-                        {props.selectedTask.orgDescription}
-                    </CiviMarkdown>
-                )}
+                <CiviMarkdown>
+                    {props.selectedTask?.orgDescription}
+                </CiviMarkdown>
             </FormRow>
             <FormRow label="Popis pro účastníky">
-                {props.selectedTask && (
-                    <CiviMarkdown>
-                        {props.selectedTask.teamDescription}
-                    </CiviMarkdown>
-                )}
+                <CiviMarkdown>
+                    {props.selectedTask?.teamDescription}
+                </CiviMarkdown>
             </FormRow>
         </>
     );

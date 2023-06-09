@@ -752,7 +752,7 @@ function DiceThrowForm(props: {
     enabled: boolean;
 }) {
     const [otherInput, setOtherInput] = useState<number>();
-    const [otherInputRef, setOtherInputFocus] = useFocus();
+    const [otherInputRef, setOtherInputFocus] = useFocus<HTMLInputElement>();
     const { teamWork } = useTeamWork(props.teamId);
 
     const handleThrow = (amount: number) => {

@@ -26,6 +26,7 @@ import {
     BuildingUpgradeEntity,
     DieEntity,
     EntityBase,
+    GameState,
     MapTileEntity,
     ResourceEntity,
     ServerActionType,
@@ -164,11 +165,11 @@ function GetArgForm(props: ArgFormProps) {
             );
         case "gamestate": {
             const fetchState = (props: {
-                setState: (state: any) => void;
+                setState: (state: GameState) => void;
                 setError: (error: string) => void;
             }) => {
                 props.setError("Loading current state");
-                fetcher("/game/state/latest")
+                fetcher<GameState>("/game/state/latest")
                     .then((data) => {
                         props.setState(data);
                     })

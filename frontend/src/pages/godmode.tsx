@@ -13,6 +13,7 @@ import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/mode-javascript";
 import { useHideMenu } from "./atoms";
 import _ from "lodash";
+import { GameState } from "../types";
 
 export function GodModeMenu() {
     return null;
@@ -108,13 +109,13 @@ export function GodModeImpl(props: { state: any; onFinish: () => void }) {
 
 export function GodMode() {
     useHideMenu();
-    const [state, setState] = useState<any>();
+    const [state, setState] = useState<GameState>();
     const [error, setError] = useState<any>();
 
     let fetchNew = () => {
         setError(undefined);
-        setState(null);
-        fetcher("/game/state/latest")
+        setState(undefined);
+        fetcher<GameState>("/game/state/latest")
             .then((data) => {
                 setState(data);
             })
@@ -128,7 +129,7 @@ export function GodMode() {
         fetchNew();
     }, []);
 
-    if (!state) {
+    if (_.isNil(state)) {
         return <LoadingOrError error={error} message={"Něco se pokazilo"} />;
     }
 

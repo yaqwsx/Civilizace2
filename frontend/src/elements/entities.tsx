@@ -28,7 +28,7 @@ export function useTeamWork(teamId: string | undefined) {
     );
     return {
         teamWork: data?.work,
-        error: error,
+        error,
     };
 }
 

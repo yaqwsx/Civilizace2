@@ -15,18 +15,12 @@ import { EntityMdTag } from "./entities";
 export const classNames = (...args: any) =>
     overrideTailwindClasses(classNamesOriginal(...args));
 
-type RequireAuthProps = {
-    children: JSX.Element | JSX.Element[];
-};
-export function RequireAuth({ children }: RequireAuthProps) {
+export function RequireAuth({ children }: JSX.ElementChildrenAttribute) {
     const auth = useSelector((state: RootState) => state.auth);
     return auth.account ? <>{children}</> : <Navigate to="/login" />;
 }
 
-type RequireOrgProps = {
-    children: JSX.Element | JSX.Element[];
-};
-export function RequireOrg({ children }: RequireOrgProps) {
+export function RequireOrg({ children }: JSX.ElementChildrenAttribute) {
     const auth = useSelector((state: RootState) => state.auth);
     return auth.account?.user?.is_org ? (
         <>{children}</>
@@ -35,7 +29,7 @@ export function RequireOrg({ children }: RequireOrgProps) {
     );
 }
 
-export function RequireSuperOrg({ children }: RequireOrgProps) {
+export function RequireSuperOrg({ children }: JSX.ElementChildrenAttribute) {
     const auth = useSelector((state: RootState) => state.auth);
     return auth.account?.user?.is_org && auth.account?.user?.is_superuser ? (
         <>{children}</>
@@ -44,22 +38,7 @@ export function RequireSuperOrg({ children }: RequireOrgProps) {
     );
 }
 
-// Avoid purging team background colors
-let teamColorPlaceholder = [
-    "bg-gray-600",
-    "bg-red-600",
-    "bg-orange-500",
-    "bg-yellow-500",
-    "bg-green-600",
-    "bg-blue-600",
-    "bg-purple-500",
-    "bg-pink-600",
-];
-
-type InlineSpinnerProps = {
-    className?: string;
-};
-export function InlineSpinner(props: InlineSpinnerProps) {
+export function InlineSpinner(props: { className?: string }) {
     let className = classNames("inline-block", "mx-auto", "text-gray-600");
     if (props.className) className += " " + props.className;
     return (
@@ -69,21 +48,17 @@ export function InlineSpinner(props: InlineSpinnerProps) {
     );
 }
 
-type ComponentErrorProps = {
-    children: any;
-};
-export function ComponentError(props: ComponentErrorProps) {
+export function ComponentError(props: JSX.ElementChildrenAttribute) {
     return <div className="text-center text-gray-600">{props.children}</div>;
 }
 
-type FormRowProps = {
+export function FormRow(props: {
     label: string | JSX.Element;
     className?: string;
     error?: any;
-    children: any;
-    extra?: any;
-};
-export function FormRow(props: FormRowProps) {
+    extra?: JSX.Element;
+    children: {};
+}) {
     let className = "md:flex md:items-center mb-6";
     if (props.className) className += " " + props.className;
     return (
@@ -93,10 +68,10 @@ export function FormRow(props: FormRowProps) {
                     {props.label}
                 </label>
                 <div className="mb-1 block w-full pr-4 text-red-600 md:mb-0 md:text-right">
-                    {props.error ? props.error : null}
+                    {props.error || undefined}
                 </div>
                 <div className="mb-1 block w-full pr-4 md:mb-0 md:text-right">
-                    {props.extra ? props.extra : null}
+                    {props.extra}
                 </div>
             </div>
             <div className="field flex flex-wrap md:w-3/4">
@@ -119,7 +94,9 @@ export function SpinboxInput(props: SpinboxInputType) {
     };
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        props.onChange(parseInt(event.target.value));
+        if (event.target.checkValidity()) {
+            props.onChange(parseInt(event.target.value));
+        }
     };
 
     let buttonClassName = classNames(
@@ -352,27 +329,12 @@ export function CloseButton(props: {
     );
 }
 
-function stopPropagation(e: any) {
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-}
-
-export function Dialog(props: { children: any; onClose: () => void }) {
+export function Dialog(props: { children: {}; onClose: () => void }) {
     useEffect(() => {
         document.documentElement.style.overflow = "hidden";
         return () => {
             document.documentElement.style.overflow = "scroll";
         };
-        // This doesn't work:
-        // document.body.addEventListener("scroll", stopPropagation);
-        // document.body.addEventListener("mousewheel", stopPropagation);
-        // document.body.addEventListener("touchmove", stopPropagation);
-        // return () => {
-        //     document.body.removeEventListener("scroll", stopPropagation);
-        //     document.body.removeEventListener("mousewheel", stopPropagation);
-        //     document.body.removeEventListener("touchmove", stopPropagation);
-        // }
     });
 
     return (
@@ -402,8 +364,11 @@ export function Dialog(props: { children: any; onClose: () => void }) {
     );
 }
 
-export function useFocus(): any {
-    const htmlElRef = useRef<any>(null);
+export function useFocus<T extends HTMLElement = any>(): [
+    React.RefObject<T>,
+    () => void
+] {
+    const htmlElRef = useRef<T>(null);
 
     const setFocus = () => {
         htmlElRef?.current && htmlElRef.current.focus();
@@ -414,7 +379,7 @@ export function useFocus(): any {
 export function Card(props: {
     color: string;
     label: string;
-    children: any;
+    children?: {};
     icon: IconDefinition;
 }) {
     let bgColor = "bg-" + props.color;

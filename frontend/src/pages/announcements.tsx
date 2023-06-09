@@ -66,7 +66,7 @@ function AnnouncementsOverview() {
             optimisticData: announcements?.filter((x) => x.id != id),
         };
         let fetchNew = async () => {
-            return fetcher("/announcements");
+            return fetcher<Announcement[]>("/announcements");
         };
         mutateAnnouncements(fetchNew, options);
     };
@@ -142,7 +142,7 @@ function AnnouncementItem(props: {
                     </p>
                 </FormRow>
                 <FormRow label="Důležitost:" className="mb-0">
-                    {translateAnnouncementType(props.announcement.type)}
+                    {translateAnnouncementType(props.announcement.type) ?? ""}
                 </FormRow>
                 <FormRow label="Obsah:" className="mb-0">
                     <CiviMarkdown>{props.announcement.content}</CiviMarkdown>
@@ -193,7 +193,7 @@ function DeleteDialog(props: {
         setDeleting(true);
         axiosService
             .delete(`/announcements/${props.announcement.id}/`)
-            .then((data) => {
+            .then(() => {
                 props.onDelete();
                 props.close();
                 toast.success("Smazáno");

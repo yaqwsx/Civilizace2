@@ -15,12 +15,9 @@ export function ErrorMessage(props: MessageProps) {
         "bg-red-100",
         "px-4",
         "py-3",
-        "text-red-700"
+        "text-red-700",
+        props.className
     );
-
-    if (props.className) {
-        className += " " + props.className;
-    }
     return <div className={className}>{props.children}</div>;
 }
 
@@ -34,12 +31,9 @@ export function SuccessMessage(props: MessageProps) {
         "bg-green-100",
         "px-4",
         "py-3",
-        "text-green-700"
+        "text-green-700",
+        props.className
     );
-
-    if (props.className) {
-        className += " " + props.className;
-    }
     return <div className={className}>{props.children}</div>;
 }
 
@@ -53,12 +47,9 @@ export function WarningMessage(props: MessageProps) {
         "bg-orange-100",
         "px-4",
         "py-3",
-        "text-orange-700"
+        "text-orange-700",
+        props.className
     );
-
-    if (props.className) {
-        className += " " + props.className;
-    }
     return <div className={className}>{props.children}</div>;
 }
 
@@ -72,11 +63,8 @@ export function NeutralMessage(props: MessageProps) {
         "bg-blue-100",
         "px-4",
         "py-3",
-        "text-blue-700"
+        "text-blue-700",
+        props.className
     );
-
-    if (props.className) {
-        className += " " + props.className;
-    }
     return <div className={className}>{props.children}</div>;
 }
