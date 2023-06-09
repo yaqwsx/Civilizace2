@@ -70,7 +70,9 @@ export interface BuildingUpgradeEntity extends EntityWithCost {
     building: BuildingId;
 }
 
-export interface TeamAttributeEntity extends EntityWithCost {}
+export interface TeamAttributeEntity extends EntityWithCost {
+    owned: boolean;
+}
 
 export interface TechEntity extends EntityWithCost {
     unlocks: EntityWithCost[];
@@ -83,6 +85,7 @@ export interface ResourceTeamEntity extends ResourceEntity {
 }
 
 export interface MapTileTeamEntity extends MapTileEntity {
+    is_home: boolean;
     buildings: BuildingId[];
     building_upgrades: BuildingUpgradeId[];
 }
@@ -256,14 +259,18 @@ export interface ServerActionType {
 
 // Other
 
+export interface GameState {
+    teamStates: Record<TeamId, Record<string, any>>;
+    map: Record<string, any>;
+    world: Record<string, any>;
+}
+
 export interface Turn {
     id: number;
     startedAt?: Date;
-    shouldStartAt?: Date;
     enabled: boolean;
     duration: number;
-    prev?: Turn;
-    next?: Turn;
+    shouldStartAt?: Date;
 }
 
 export enum StickerType {

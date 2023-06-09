@@ -39,7 +39,7 @@ function InfoScreenContent() {
 }
 
 function Countdown() {
-    const { info, reload, error } = useCurrentTurn();
+    const { info, mutate: reload, error } = useCurrentTurn();
     const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {

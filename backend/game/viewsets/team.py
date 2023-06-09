@@ -371,6 +371,7 @@ class TeamViewSet(viewsets.ViewSet):
                 tile.entity.id: serializeEntity(
                     tile.entity,
                     {
+                        "is_home": tile.entity == stateInfo.teamEntity.homeTile,
                         "buildings": [x.id for x in tile.buildings],
                         "building_upgrades": [x.id for x in tile.building_upgrades],
                     },

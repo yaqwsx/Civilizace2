@@ -14,13 +14,13 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import { EntityTag, useEntities, useTeamEntities } from "../elements/entities";
+import { EntityTag, useEntities, useTeamResources } from "../elements/entities";
 import {
-    BuildingSelect,
-    BuildingUpgradeSelect,
+    BuildingTeamSelect,
+    BuildingUpgradeTeamSelect,
     TeamAttributeSelect,
-    TeamTileSelect,
-} from "../elements/map";
+    TileTeamSelect,
+} from "../elements/entities_select";
 import { ErrorMessage } from "../elements/messages";
 import {
     TeamRowIndicator,
@@ -29,6 +29,7 @@ import {
 } from "../elements/team";
 import {
     Army,
+    ArmyGoal,
     ArmyMode,
     BuildingEntity,
     BuildingUpgradeTeamEntity,
@@ -213,14 +214,9 @@ export function CultureAgenda(props: { team: Team }) {
 }
 
 export function BuildingAgenda(props: { team: Team }) {
-    const { data: buildings, error } = useTeamEntities("buildings", props.team);
     const setAction = useSetAtom(urlMapActionAtom);
     const [building, setBuilding] = useState<BuildingEntity>();
     const [tile, setTile] = useState<MapTileTeamEntity>();
-
-    if (!buildings) {
-        return <LoadingOrError error={error} message="Něco se pokazilo" />;
-    }
 
     return (
         <>
@@ -244,20 +240,21 @@ export function BuildingAgenda(props: { team: Team }) {
                             label="Vyberte budovu"
                             error={!building ? "Je třeba vybrat budovu" : null}
                         >
-                            <BuildingSelect
+                            <BuildingTeamSelect
+                                team={props.team}
                                 value={building}
                                 onChange={setBuilding}
-                                allowed={buildings}
                             />
                         </FormRow>
                         <FormRow
                             label="Vyberte políčko"
                             error={!tile ? "Je třeba vybrat pole" : null}
                         >
-                            <TeamTileSelect
+                            <TileTeamSelect
                                 team={props.team}
                                 value={tile}
                                 onChange={setTile}
+                                sortBy={(tile) => (tile.is_home ? 0 : 1)}
                             />
                         </FormRow>
                     </>
@@ -291,7 +288,7 @@ export function BuildRoadAgenda(props: { team: Team }) {
                         label="Vyberte políčko kam se bude stavět"
                         error={!tile ? "Je třeba vybrat pole" : null}
                     >
-                        <TeamTileSelect
+                        <TileTeamSelect
                             team={props.team}
                             value={tile}
                             onChange={setTile}
@@ -338,10 +335,11 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
                             label="Vyberte políčko"
                             error={!tile ? "Je třeba vybrat pole" : null}
                         >
-                            <TeamTileSelect
+                            <TileTeamSelect
                                 team={props.team}
                                 value={tile}
                                 onChange={setTile}
+                                sortBy={(tile) => (tile.is_home ? 0 : 1)}
                             />
                         </FormRow>
                         <FormRow
@@ -350,10 +348,10 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
                                 !upgrade ? "Je třeba vybrat vylepšení" : null
                             }
                         >
-                            <BuildingUpgradeSelect
+                            <BuildingUpgradeTeamSelect
+                                team={props.team}
                                 value={upgrade}
                                 onChange={setUpgrade}
-                                allowed={availableUpgrades}
                             />
                         </FormRow>
                     </>
@@ -364,20 +362,8 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
 }
 
 export function AddAttributeAgenda(props: { team: Team }) {
-    const { data: teamAttributes, error } = useSWR<
-        Record<string, TeamAttributeTeamEntity>
-    >(`game/teams/${props.team.id}/attributes`, fetcher);
     const setAction = useSetAtom(urlMapActionAtom);
     const [attribute, setAttribute] = useState<TeamAttributeTeamEntity>();
-
-    if (!teamAttributes) {
-        return (
-            <LoadingOrError
-                error={error}
-                message="Nemůžu načíst vlastnosti dostupné týmu"
-            />
-        );
-    }
 
     return (
         <PerformAction
@@ -400,11 +386,9 @@ export function AddAttributeAgenda(props: { team: Team }) {
                         error={!attribute ? "Je třeba vybrat vlastnost" : null}
                     >
                         <TeamAttributeSelect
-                            allowed={Object.entries(teamAttributes)
-                                .filter(([key, value]) => !value.owned)
-                                .map(([key]) => key)}
                             value={attribute}
                             onChange={setAttribute}
+                            filter={(value) => !value.owned}
                         />
                     </FormRow>
                 </>
@@ -418,20 +402,27 @@ export function TradeAgenda(props: { team: Team }) {
     const [recipient, setRecipient] = useState<Team>();
     const [resources, setResources] = useState<Record<string, number>>({});
 
-    const {
-        data: availableProductions,
-        error,
-        mutate,
-    } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
+    const { resources: availableResources, error } = useTeamResources(
+        props.team
+    );
 
-    if (!availableProductions) {
+    if (!availableResources) {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
+    const availableProductions = Object.fromEntries(
+        Object.entries(availableResources).filter(
+            ([id, res]) => !_.isNil(res.produces)
+        )
+    );
+
     let updateResource = (rId: string, v: number) => {
-        if (v < 0) v = 0;
-        if (v > availableProductions[rId].available)
-            v = availableProductions[rId].available;
+        const available = Number(availableProductions[rId].available);
+        if (v < 0) {
+            v = 0;
+        } else if (v > available) {
+            v = available;
+        }
         setResources(
             produce(resources, (orig) => {
                 orig[rId] = v;
@@ -446,7 +437,7 @@ export function TradeAgenda(props: { team: Team }) {
             actionArgs={{
                 team: props.team.id,
                 receiver: recipient?.id,
-                resources: resources,
+                resources,
             }}
             argsValid={(a: any) =>
                 Object.keys(a.resources).length > 0 && a.receiver !== undefined
@@ -467,7 +458,7 @@ export function TradeAgenda(props: { team: Team }) {
                         />
                     </FormRow>
                     {Object.keys(availableProductions).length > 0
-                        ? Object.values(availableProductions).map((a: any) => {
+                        ? Object.values(availableProductions).map((a) => {
                               return (
                                   <FormRow
                                       key={a.id}
@@ -503,7 +494,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
         data: armies,
         error: armyError,
         mutate,
-    } = useSWR<Record<number, any>>(
+    } = useSWR<Record<number, Army>>(
         `game/teams/${props.team.id}/armies`,
         fetcher
     );
@@ -575,7 +566,7 @@ export function ArmyDescription(props: { army: Army }) {
     );
 }
 
-export function ArmyName(props: { army: any }) {
+export function ArmyName(props: { army: Army }) {
     return (
         <>
             {props.army.name} {"✱".repeat(props.army.level)}
@@ -583,14 +574,14 @@ export function ArmyName(props: { army: any }) {
     );
 }
 
-function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
+function ArmyBadge(props: { team: Team; army: Army; mutate: () => void }) {
     const [selectedAction, setSelectedAction] = useState("");
 
     let className = classNames(
         "bg-white rounded p-4 mx-4 my-4 cursor-pointer shadow-lg flex flex-wrap md:flex-1"
     );
 
-    let ActionForm: any = {
+    let ActionForm = {
         armyDeploy: ArmyDeployForm,
         armyRetreat: ArmyRetreatForm,
         armyUpgrade: ArmyUpgradeForm,
@@ -642,30 +633,30 @@ function ArmyBadge(props: { team: Team; army: any; mutate: () => void }) {
 
 function ArmyDeployForm(props: {
     team: Team;
-    army: any;
+    army: Army;
     onFinish: () => void;
 }) {
-    const [tile, setTile] = useState<any>();
-    const [goal, setGoal] = useState<any>(0);
+    const [tile, setTile] = useState<MapTileTeamEntity>();
+    const [goal, setGoal] = useState<ArmyGoal>(ArmyGoal.Occupy);
     const [equipment, setEquipment] = useState(1);
     const [friendlyTeam, setFriendlyTeam] = useState<Team>();
 
     return (
         <Dialog onClose={props.onFinish}>
             <PerformAction
-                actionName={`Vyslat armádu ${props.army.prestige} týmu ${props.team.name}`}
+                actionName={`Vyslat armádu ${props.army.name} týmu ${props.team.name}`}
                 actionId="ArmyDeployAction"
                 actionArgs={{
                     team: props.team.id,
                     armyIndex: props.army.index,
-                    tile: tile?.entity.id,
-                    goal: goal,
-                    equipment: equipment,
+                    tile: tile?.id,
+                    goal,
+                    equipment,
                     friendlyTeam: friendlyTeam?.id,
                 }}
                 onFinish={props.onFinish}
                 onBack={props.onFinish}
-                argsValid={(a: any) => a.tile && a.equipment >= 0}
+                argsValid={(a) => Boolean(a.tile && a.equipment >= 0)}
                 extraPreview={
                     <>
                         <h1>Zadejte extra parametry</h1>
@@ -673,7 +664,7 @@ function ArmyDeployForm(props: {
                             label="Cílová destinace"
                             error={!tile ? "Je třeba vyplnit" : null}
                         >
-                            <TeamTileSelect
+                            <TileTeamSelect
                                 team={props.team}
                                 value={tile}
                                 onChange={setTile}
@@ -686,8 +677,9 @@ function ArmyDeployForm(props: {
                             <SpinboxInput
                                 value={equipment}
                                 onChange={(v) => {
-                                    if (v < 0) return;
-                                    setEquipment(v);
+                                    if (v >= 0) {
+                                        setEquipment(v);
+                                    }
                                 }}
                             />
                         </FormRow>
@@ -707,7 +699,7 @@ function ArmyDeployForm(props: {
 
 function ArmyRetreatForm(props: {
     team: Team;
-    army: any;
+    army: Army;
     onFinish: () => void;
 }) {
     return (
@@ -733,7 +725,7 @@ function ArmyRetreatForm(props: {
 
 function ArmyUpgradeForm(props: {
     team: Team;
-    army: any;
+    army: Army;
     onFinish: () => void;
 }) {
     return (

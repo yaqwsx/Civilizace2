@@ -1,19 +1,11 @@
-import useSWR, { useSWRConfig } from "swr";
-import {
-    Button,
-    classNames,
-    ComponentError,
-    FormRow,
-    LoadingOrError,
-    SpinboxInput,
-} from "../elements";
-import { Turn } from "../types";
-import axiosService, { fetcher } from "../utils/axios";
-import { format as dateFormat } from "date-fns";
-import { ChangeEvent, useState } from "react";
-import { date } from "yup/lib/locale";
+import _ from "lodash";
+import { useState } from "react";
 import { toast } from "react-toastify";
-import { CurrentTurnCountdown } from "../elements/turns";
+import { useSWRConfig } from "swr";
+import { Button, classNames, LoadingOrError, SpinboxInput } from "../elements";
+import { CurrentTurnCountdown, useTurns } from "../elements/turns";
+import { Task, Turn } from "../types";
+import axiosService from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
 export function TurnsMenu() {
@@ -23,29 +15,7 @@ export function TurnsMenu() {
 export function Turns() {
     useHideMenu();
     const { mutate: globalMutate } = useSWRConfig();
-    const { data: turns, error: turnsError } = useSWR<Turn[]>(
-        "game/turns",
-        (url) =>
-            fetcher(url).then((data) => {
-                return data.map((r: Turn, i: number) => {
-                    r.startedAt = r.startedAt
-                        ? new Date(r.startedAt)
-                        : undefined;
-                    r.prev = i == 0 ? undefined : data[i - 1];
-                    r.next = i == data.length - 1 ? undefined : data[i + 1];
-
-                    if (r.startedAt) {
-                        r.shouldStartAt = r.startedAt;
-                    } else if (r.prev?.shouldStartAt && r.prev?.enabled) {
-                        r.shouldStartAt = new Date(
-                            r.prev.shouldStartAt.getTime() +
-                                1000 * r.prev.duration
-                        );
-                    }
-                    return r;
-                });
-            })
-    );
+    const { turns, error } = useTurns();
 
     let turnsMutate = () => {
         globalMutate("game/turns");
@@ -53,7 +23,7 @@ export function Turns() {
     };
 
     if (!turns) {
-        return <LoadingOrError error={turnsError} message="Nastala chyba" />;
+        return <LoadingOrError error={error} message="Nastala chyba" />;
     }
 
     return (
@@ -63,7 +33,7 @@ export function Turns() {
             <CurrentTurnCountdown />
 
             <div className="w-full p-0">
-                {turns.map((t: Turn) => (
+                {turns.map((t) => (
                     <TurnComp key={t.id} turn={t} turnsMutate={turnsMutate} />
                 ))}
             </div>
@@ -71,17 +41,38 @@ export function Turns() {
     );
 }
 
-function TurnComp(props: { turn: Turn; turnsMutate: any }) {
-    const [duration, setDuration] = useState<number>(
+enum TurnState {
+    ended,
+    active,
+    future,
+    disabled,
+}
+
+function getTurnState(turn: Turn): TurnState {
+    if (!turn.enabled) {
+        return TurnState.disabled;
+    }
+    if (_.isNil(turn.startedAt)) {
+        return TurnState.future;
+    }
+    const now = new Date();
+    const endsAt = new Date(turn.startedAt.getTime() + 1000 * turn.duration);
+    if (now < endsAt) {
+        return TurnState.active;
+    }
+    return TurnState.ended;
+}
+
+function TurnComp(props: { turn: Turn; turnsMutate: () => void }) {
+    const [durationMins, setDurationMins] = useState<number>(
         Math.floor(props.turn.duration / 60)
     );
-    const [enabled, setEnabled] = useState<boolean>(props.turn.enabled);
+    const [enabled, setEnabled] = useState(props.turn.enabled);
     const [dirty, setDirty] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    let turn = props.turn;
     let changeDuration = (v: number) => {
-        setDuration(v);
+        setDurationMins(v);
         setDirty(true);
     };
     let changeEnabled = (v: boolean) => {
@@ -92,11 +83,11 @@ function TurnComp(props: { turn: Turn; turnsMutate: any }) {
     let submit = () => {
         setSubmitting(true);
         axiosService
-            .put(`game/turns/${turn.id}/`, {
-                duration: 60 * duration,
-                enabled: enabled,
+            .put<Task>(`game/turns/${props.turn.id}/`, {
+                duration: 60 * durationMins,
+                enabled,
             })
-            .then((data: any) => {
+            .then((data) => {
                 setSubmitting(false);
                 setDirty(false);
                 props.turnsMutate();
@@ -108,44 +99,59 @@ function TurnComp(props: { turn: Turn; turnsMutate: any }) {
             });
     };
 
-    let now = new Date();
-    let endsAt =
-        turn.startedAt && turn?.next?.shouldStartAt
-            ? turn.next.shouldStartAt
-            : undefined;
+    const getTurnBgColor = (turnState: TurnState) => {
+        switch (turnState) {
+            case TurnState.ended:
+                return "bg-blue-300";
+            case TurnState.active:
+                return "bg-green-300";
+            case TurnState.future:
+                return "bg-white";
+            case TurnState.disabled:
+                return "bg-gray-300";
+            default:
+                const exhaustiveCheck: never = turnState;
+                return "";
+        }
+    };
 
-    let bg = !enabled ? "bg-gray-300" : "bg-white";
-    if (turn.startedAt) bg = "bg-blue-300";
-    if (turn.startedAt && endsAt && turn.startedAt < now && now < endsAt)
-        bg = "bg-green-300";
-    let editable = !turn.startedAt;
+    const bgColor = getTurnBgColor(getTurnState({ ...props.turn, enabled }));
+    const editable = _.isNil(props.turn.startedAt);
+    console.assert(
+        _.isNil(props.turn.startedAt) ||
+            props.turn.startedAt === props.turn.shouldStartAt,
+        props.turn
+    );
     return (
         <div
             className={classNames(
                 "row my-2 flex w-full flex-wrap items-center rounded px-0 py-3 align-middle shadow md:flex-nowrap",
-                bg
+                bgColor
             )}
         >
             <div className="w-1/4 border-r-2 border-r-black px-3 text-right align-middle text-lg md:w-1/12">
-                {turn.id}
+                {props.turn.id}
             </div>
             <div className="w-3/4 px-3 align-middle md:w-2/12">
-                {turn.shouldStartAt
-                    ? `Začátek: ${turn.shouldStartAt.toLocaleString("cs-CZ", {
-                          weekday: "long",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })}`
+                {props.turn.shouldStartAt
+                    ? `Začátek: ${props.turn.shouldStartAt.toLocaleString(
+                          "cs-CZ",
+                          {
+                              weekday: "long",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                          }
+                      )}`
                     : "Nelze určit začátek kola"}
             </div>
             <div className="flex- w-full px-3 align-middle md:w-auto">
                 Trvání{" "}
                 {!editable ? (
-                    duration
+                    durationMins
                 ) : (
                     <div className="field inline-block">
                         <SpinboxInput
-                            value={duration}
+                            value={durationMins}
                             className="text-center"
                             onChange={changeDuration}
                         />
