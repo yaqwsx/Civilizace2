@@ -51,8 +51,7 @@ export interface MapTileEntity extends EntityBase {
     richness: number;
 }
 
-export interface TeamGroupEntity extends EntityBase {
-}
+export interface TeamGroupEntity extends EntityBase {}
 
 export interface EntityWithCost extends EntityBase {
     cost: Record<ResourceId, Decimal>;

@@ -76,7 +76,7 @@ function Action(props: { action: any }) {
                                 mode="javascript"
                                 theme="github"
                                 readOnly={true}
-                                name="godmodeeditor"
+                                name="actioneditor"
                                 fontSize={14}
                                 showPrintMargin={true}
                                 showGutter={true}
@@ -122,7 +122,7 @@ function Interaction(props: { interaction: any }) {
                 mode="javascript"
                 theme="github"
                 readOnly={true}
-                name="godmodeeditor"
+                name="interactioneditor"
                 fontSize={14}
                 showPrintMargin={true}
                 showGutter={true}

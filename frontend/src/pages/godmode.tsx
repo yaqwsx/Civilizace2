@@ -1,38 +1,42 @@
 import "jsoneditor-react/es/editor.min.css";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
+import AceEditor from "react-ace";
 import { Button, Dialog, LoadingOrError } from "../elements";
-import { PerformAction, PerformNoInitAction } from "../elements/action";
+import { PerformNoInitAction } from "../elements/action";
 import { fetcher } from "../utils/axios";
 import { objectMap } from "../utils/functional";
-import AceEditor from "react-ace";
 
-import "ace-builds/webpack-resolver";
-import "ace-builds/src-noconflict/theme-github";
+import { Ace } from "ace-builds";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/mode-javascript";
-import { useHideMenu } from "./atoms";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/webpack-resolver";
 import _ from "lodash";
 import { GameState } from "../types";
+import { useHideMenu } from "./atoms";
 
 export function GodModeMenu() {
     return null;
 }
 
-export function GodModeImpl(props: { state: any; onFinish: () => void }) {
+function GodModeImpl(props: { state: GameState; onFinish: () => void }) {
     const [newStateStr, setNewStateStr] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editor, setEditor] = useState<any>();
+    const [editor, setEditor] = useState<Ace.Editor>();
 
     useEffect(() => {
-        setNewStateStr(JSON.stringify(props.state, undefined, 2));
+        setNewStateStr(JSON.stringify(props.state, undefined, 2) ?? "");
     }, []);
 
     useEffect(() => {
         if (editor) editor.execCommand("foldall");
     }, [editor]);
 
-    let diff = {
+    let diff: {
+        add: Record<string, any>;
+        change: Record<string, any>;
+        remove: Record<string, any>;
+    } = {
         add: {},
         change: {},
         remove: {},
