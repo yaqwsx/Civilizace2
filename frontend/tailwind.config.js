@@ -12,6 +12,12 @@ module.exports = {
         },
         extend: {},
     },
+    safelist: [
+        {
+            pattern: /bg-(\w+)-(\d)00/,
+            variants: ["hover", "focus"],
+        },
+    ],
     variants: {
         extend: {},
     },
