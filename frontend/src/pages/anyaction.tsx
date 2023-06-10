@@ -31,6 +31,7 @@ import {
     ResourceEntity,
     ServerActionType,
     ServerArgTypeInfo,
+    ServerTypeInfo,
     Team,
     TeamAttributeEntity,
     TechEntity,
@@ -81,14 +82,14 @@ function UseAllEntitiesByType() {
     };
 }
 
-function PrintArgType(type: ServerArgTypeInfo): string {
+function PrintArgType(type: ServerTypeInfo): string {
     return (
         type.type +
         (type.subtypes ? `[${type.subtypes.map(PrintArgType).join(",")}]` : "")
     );
 }
 
-function UnknownArgTypeForm(serverInfo: ServerArgTypeInfo, error?: string) {
+function UnknownArgTypeForm(serverInfo: ServerTypeInfo, error?: string) {
     return (props: ArgumentFormProps) => (
         <>
             <p>
@@ -239,11 +240,14 @@ function GetArgForm(props: ArgFormProps) {
                 />
             );
         case "dict": {
-            console.assert(
-                !_.isNil(props.serverInfo.subtypes),
-                props.serverInfo
-            );
-            const [keyType, valueType] = props.serverInfo.subtypes ?? [];
+            if (props.serverInfo.subtypes?.length !== 2) {
+                console.error(
+                    "Incorrect subtypes in dict (expected 2 subtypes)",
+                    props.serverInfo
+                );
+                return UnknownArgTypeForm(props.serverInfo);
+            }
+            const [keyType, valueType] = props.serverInfo.subtypes;
 
             const keyInfo = GetArgInfo({
                 serverInfo: { ...keyType, required: true },

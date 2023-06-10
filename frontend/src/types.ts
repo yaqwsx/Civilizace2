@@ -248,12 +248,15 @@ export interface ActionDiceRequirementsResponse {
 
 // AnyAction
 
-export interface ServerArgTypeInfo {
+export interface ServerTypeInfo {
     type: string;
+    subtypes?: ServerTypeInfo[];
+    values?: Record<string, any>;
+}
+
+export interface ServerArgTypeInfo extends ServerTypeInfo {
     required: boolean;
     default?: any;
-    subtypes?: ServerArgTypeInfo[];
-    values?: Record<string, any>;
 }
 
 export interface ServerActionType {
