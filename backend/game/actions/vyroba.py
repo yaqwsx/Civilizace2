@@ -1,7 +1,6 @@
-from collections import defaultdict
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
 from typing_extensions import override
 
@@ -25,11 +24,11 @@ class VyrobaArgs(TeamActionArgs, TileActionArgs):
 
 
 class VyrobaReward(NamedTuple):
-    reward: Dict[Resource, Decimal]
+    reward: dict[Resource, Decimal]
     bonus: Decimal
     plundered: Optional[int]
 
-    def tracked(self) -> Dict[Resource, Decimal]:
+    def tracked(self) -> dict[Resource, Decimal]:
         return {
             reward: amount for reward, amount in self.reward.items() if reward.isTracked
         }
@@ -63,7 +62,7 @@ class VyrobaAction(TeamInteractionActionBase):
         return f"Výroba {self.args.vyroba.reward[1]*self.args.count}× {self.args.vyroba.reward[0].name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         return {
             resource: self.args.count * cost
             for resource, cost in self.args.vyroba.cost.items()

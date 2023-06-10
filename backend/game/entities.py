@@ -1,12 +1,14 @@
 from __future__ import annotations
+
+import os
 from dataclasses import dataclass
 from decimal import Decimal
-from frozendict import frozendict
-from functools import cached_property
-from pydantic import BaseModel
-from typing import Any, Optional, Set, Tuple, Type, TypeVar, Union, Iterable, Dict, List
 from enum import Enum
-import os
+from functools import cached_property
+from typing import Any, Iterable, Optional, Tuple, Type, Union
+
+from frozendict import frozendict
+from pydantic import BaseModel
 
 EntityId = str
 
@@ -37,7 +39,7 @@ RESOURCE_WORK = "res-prace"
 RESOURCE_CULTURE = "res-kultura"
 RESOURCE_WITHDRAW_CAPACITY = "res-withdraw_cap"
 
-GUARANTEED_IDS: Dict[EntityId, Type[Entity]]  # Defined after Entity is defined
+GUARANTEED_IDS: dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
 
 class EntityBase(BaseModel):
@@ -97,38 +99,38 @@ class NaturalResource(TileFeature):
 
 @dataclass(init=False, repr=False, eq=False)
 class EntityWithCost(EntityBase):
-    cost: Dict[Resource, Decimal] = {}
+    cost: dict[Resource, Decimal] = {}
     points: int
     # duplicates: Tech.unlocks
-    unlockedBy: List[Tech] = []
+    unlockedBy: list[Tech] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
 class Tech(EntityWithCost):
-    unlocks: List[EntityWithCost] = []
+    unlocks: list[EntityWithCost] = []
     flavor: str = ""
 
     @property
-    def unlocksVyrobas(self) -> Set[Vyroba]:
+    def unlocksVyrobas(self) -> set[Vyroba]:
         return set(e for e in self.unlocks if isinstance(e, Vyroba))
 
     @property
-    def unlocksTechs(self) -> Set[Tech]:
+    def unlocksTechs(self) -> set[Tech]:
         return set(e for e in self.unlocks if isinstance(e, Tech))
 
     @property
-    def unlocksBuildings(self) -> Set[Building]:
+    def unlocksBuildings(self) -> set[Building]:
         return set(e for e in self.unlocks if isinstance(e, Building))
 
     @property
-    def unlocksTeamAttributes(self) -> Set[TeamAttribute]:
+    def unlocksTeamAttributes(self) -> set[TeamAttribute]:
         return set(e for e in self.unlocks if isinstance(e, TeamAttribute))
 
 
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
-    requiredTileFeatures: List[TileFeature] = []
+    requiredTileFeatures: list[TileFeature] = []
     flavor: str = ""
 
 
@@ -139,9 +141,9 @@ class TeamAttribute(EntityWithCost):
 
 @dataclass(init=False, repr=False, eq=False)
 class Building(EntityWithCost, TileFeature):
-    requiredTileFeatures: List[NaturalResource] = []
+    requiredTileFeatures: list[NaturalResource] = []
     # duplicates: BuildingUpgrade.building
-    upgrades: List[BuildingUpgrade] = []
+    upgrades: list[BuildingUpgrade] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -152,7 +154,7 @@ class BuildingUpgrade(EntityWithCost, TileFeature):
 @dataclass(init=False, repr=False, eq=False)
 class MapTileEntity(EntityBase):
     index: int
-    naturalResources: List[NaturalResource]
+    naturalResources: list[NaturalResource]
     richness: int
 
 
@@ -160,9 +162,9 @@ class MapTileEntity(EntityBase):
 class TeamGroup(EntityBase):
     """Group of teams that can unlock techs, vyrobas, etc."""
 
-    unlocks: List[EntityWithCost] = []
+    unlocks: list[EntityWithCost] = []
     # duplicates: TeamEntity.groups
-    teams: List[TeamEntity] = []
+    teams: list[TeamEntity] = []
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -178,7 +180,7 @@ class TeamEntity(UserEntity):
     visible: bool
     homeTile: MapTileEntity
     hexColor: str = "#000000"
-    groups: List[TeamGroup] = []
+    groups: list[TeamGroup] = []
 
 
 class OrgRole(Enum):

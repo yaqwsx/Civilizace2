@@ -1,7 +1,7 @@
 import importlib
 import inspect
 import pkgutil
-from typing import Dict, List, NamedTuple, Optional, Type
+from typing import NamedTuple, Optional, Type
 
 from game.actions.actionBase import (
     ActionArgs,
@@ -34,14 +34,14 @@ def checkGameAction(action: Type[ActionCommonBase], args: Type[ActionArgs]) -> N
     )
 
 
-def loadActions() -> Dict[str, GameAction]:
-    gameActions: Dict[str, GameAction] = {}
+def loadActions() -> dict[str, GameAction]:
+    gameActions: dict[str, GameAction] = {}
     for pkg in pkgutil.iter_modules(__path__):
         if pkg.name in ["common", "actionBase"]:
             continue
         actionPkg = importlib.import_module(f"game.actions.{pkg.name}")
 
-        actions: List[Type[ActionCommonBase]] = []
+        actions: list[Type[ActionCommonBase]] = []
         args: Optional[Type[ActionArgs]] = None
         for name in dir(actionPkg):
             item = getattr(actionPkg, name)
@@ -77,4 +77,4 @@ def loadActions() -> Dict[str, GameAction]:
     return gameActions
 
 
-GAME_ACTIONS: Dict[str, GameAction] = loadActions()
+GAME_ACTIONS: dict[str, GameAction] = loadActions()

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from itertools import zip_longest
-from typing import Any, Dict, List, Optional, Set, Type
+from typing import Any, Optional, Type
 
 from django.db import transaction
 from django.utils import timezone
@@ -22,9 +22,7 @@ from game.actions.actionBase import (
     TAction,
 )
 from game.actions.common import ActionFailed, MessageBuilder
-from game.entities import Entities, Entity
-from game.entities import TeamEntity
-from game.entities import Tech
+from game.entities import Entities, Entity, TeamEntity, Tech
 from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (
     DbAction,
@@ -68,7 +66,7 @@ class UnexpectedActionTypeError(APIException):
 class ActionViewHelper:
     @staticmethod
     def constructAction(
-        actionType: str, args: Dict[str, Any], entities: Entities, state: GameState
+        actionType: str, args: dict[str, Any], entities: Entities, state: GameState
     ) -> ActionCommonBase:
         Action = GAME_ACTIONS[actionType]
         try:
@@ -80,7 +78,7 @@ class ActionViewHelper:
     @staticmethod
     def constructActionFromType(
         actionType: Type[TAction],
-        args: Dict[str, Any],
+        args: dict[str, Any],
         entities: Entities,
         state: GameState,
     ) -> TAction:
@@ -128,8 +126,8 @@ class ActionViewHelper:
                 a.teams.add(team)
 
     @staticmethod
-    def _computeStickersDiff(*, orig: GameState, new: GameState) -> Set[Sticker]:
-        stickers: defaultdict[TeamEntity, Set[Entity]] = defaultdict(set)
+    def _computeStickersDiff(*, orig: GameState, new: GameState) -> set[Sticker]:
+        stickers: defaultdict[TeamEntity, set[Entity]] = defaultdict(set)
         for team, newTeamState in new.teamStates.items():
             stickers[team].update(newTeamState.collectStickerEntitySet())
         for team, origTeamState in orig.teamStates.items():
@@ -182,12 +180,12 @@ class ActionViewHelper:
 
     @staticmethod
     @transaction.atomic
-    def _awardStickers(stickers: Set[Sticker]) -> List[DbSticker]:
+    def _awardStickers(stickers: set[Sticker]) -> list[DbSticker]:
         if len(stickers) == 0:
             return []
 
         entRevision = DbEntities.objects.latest().id
-        awardedStickers: List[DbSticker] = []
+        awardedStickers: list[DbSticker] = []
         for sticker in stickers:
             dbTeam = Team.objects.get(pk=sticker.team.id)
             if isinstance(sticker.entity, Tech):
@@ -305,7 +303,7 @@ class ActionViewHelper:
     @staticmethod
     def _commitMessage(
         commitResult: ActionResult,
-        scheduled: List[DbScheduledAction],
+        scheduled: list[DbScheduledAction],
     ) -> str:
         b = MessageBuilder("## Efekty", commitResult.message)
 

@@ -1,24 +1,21 @@
-from decimal import Decimal
-import decimal
 import enum
-import json
 import typing
-from typing import Dict, Any, Iterable, Mapping, Optional, Type, TypeVar
+from decimal import Decimal
+from typing import Any, Iterable, Optional, Type
+
 from pydantic import BaseModel
 from pydantic.fields import (
-    SHAPE_SINGLETON,
     MAPPING_LIKE_SHAPES,
     SHAPE_LIST,
     SHAPE_SET,
+    SHAPE_SINGLETON,
     ModelField,
 )
+
 from game.actions.actionBase import ActionArgs
-
-from game.entities import EntityBase, Entities
+from game.entities import Entities, EntityBase
 from game.state import StateModel
-from game.util import unique
-
-TModel = TypeVar("TModel", bound=BaseModel)
+from game.util import TModel, unique
 
 
 class UnexpectedValueType(Exception):
@@ -40,7 +37,7 @@ class UnexpectedValueType(Exception):
         self.allowedTypes = allowedTypes
 
 
-def stateSerialize(model: BaseModel) -> Dict[str, Any]:
+def stateSerialize(model: BaseModel) -> dict[str, Any]:
     """
     Turn the model into a dictionary representation
     """
@@ -76,12 +73,12 @@ def _serialize_any(what: Any):
 
 
 def stateDeserialize(
-    cls: Type[TModel], data: Dict[str, Any], entities: Entities
+    cls: Type[TModel], data: dict[str, Any], entities: Entities
 ) -> TModel:
     """
     Turn dictionary representation into a model
     """
-    source: Dict[str, Any] = {}
+    source: dict[str, Any] = {}
     for field in cls.__fields__.values():
         if field.name in data:
             source[field.name] = _deserialize_any(data[field.name], field, entities)

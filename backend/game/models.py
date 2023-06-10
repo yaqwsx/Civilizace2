@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import math
 from functools import cached_property
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple
 
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
@@ -109,7 +109,7 @@ class DbTurn(models.Model):
 class DbEntitiesManager(models.Manager):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.cache: Dict[int, Entities] = {}
+        self.cache: dict[int, Entities] = {}
 
     def get_queryset(self) -> QuerySet[DbEntities]:
         return super().get_queryset().defer("data")

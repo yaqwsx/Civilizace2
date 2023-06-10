@@ -1,6 +1,5 @@
-from decimal import Decimal
-from typing import Dict
 from typing_extensions import override
+
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.actions.common import MessageBuilder
 from game.entities import Resource
@@ -9,7 +8,7 @@ from game.state import printResourceListForMarkdown
 
 class GranaryArgs(TeamActionArgs):
     # int is here on purpose - it does not make sense to use fractions of food
-    productions: Dict[Resource, int]
+    productions: dict[Resource, int]
 
 
 class GranaryAction(TeamInteractionActionBase):
@@ -25,7 +24,7 @@ class GranaryAction(TeamInteractionActionBase):
         return f"Automatizace krmení ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> dict[Resource, int]:
         return self.args.productions
 
     @override

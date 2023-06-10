@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Dict
 
 from typing_extensions import override
 
@@ -10,7 +9,7 @@ from game.state import printResourceListForMarkdown
 
 
 class WithdrawArgs(TeamActionArgs):
-    resources: Dict[Resource, int]
+    resources: dict[Resource, int]
 
 
 class WithdrawAction(TeamInteractionActionBase):
@@ -26,7 +25,7 @@ class WithdrawAction(TeamInteractionActionBase):
         return f"Výběr materiálů ze skladu ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> dict[Resource, int]:
         tokens = max(0, sum(self.args.resources.values()))
         return {self.entities.work: tokens, self.entities.withdraw_capacity: tokens}
 

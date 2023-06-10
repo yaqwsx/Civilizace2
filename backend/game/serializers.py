@@ -1,7 +1,13 @@
 from rest_framework import serializers
-from .models import DbTask, DbTaskPreference, DbTaskAssignment, DbAction, DbInteraction
 
 from core.serializers.fields import IdRelatedField
+from game.models import (
+    DbAction,
+    DbInteraction,
+    DbTask,
+    DbTaskAssignment,
+    DbTaskPreference,
+)
 
 
 class DbTaskAssignmentSerializer(serializers.ModelSerializer):

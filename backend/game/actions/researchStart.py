@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Optional
 
 from typing_extensions import override
 
@@ -25,7 +25,7 @@ class ResearchStartAction(TeamInteractionActionBase):
         return f"Výzkum technologie {self.args.tech.name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         return self.args.tech.cost
 
     @override

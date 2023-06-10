@@ -7,7 +7,7 @@ import contextlib
 import os
 from collections.abc import Generator
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import qrcode
 from django.conf import settings
@@ -15,15 +15,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from backend.settings import ICON_PATH
 from core.models.team import Team
-from game.entities import (
-    RESOURCE_VILLAGER,
-    RESOURCE_WORK,
-    Building,
-    BuildingUpgrade,
-    Entity,
-    Tech,
-    Vyroba,
-)
+from game.entities import RESOURCE_WORK, Building, BuildingUpgrade, Entity, Tech, Vyroba
 from game.models import DbEntities, DbSticker, StickerType
 from game.util import FileCache
 
@@ -59,7 +51,7 @@ class StickerBuilder:
         self.yPosition = self.yMargin
         self.drawInt = ImageDraw.Draw(self.img)
 
-    def _breakIntoLines(self, text: str, font: ImageFont.FreeTypeFont) -> List[str]:
+    def _breakIntoLines(self, text: str, font: ImageFont.FreeTypeFont) -> list[str]:
         # Let's do it in a stupid way. TBA optimize
         words = text.split(" ")
         lines = []

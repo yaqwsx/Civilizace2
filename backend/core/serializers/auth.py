@@ -3,8 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.settings import api_settings
 
 from core.models.user import User
-
-from .user import UserSerializer
+from core.serializers.user import UserSerializer
 
 
 class LoginSerializer(TokenObtainPairSerializer):

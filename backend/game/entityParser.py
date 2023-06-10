@@ -12,26 +12,22 @@ from os import PathLike
 from typing import (
     Any,
     Callable,
-    Dict,
     ForwardRef,
     Iterable,
-    List,
     Literal,
     Mapping,
     Optional,
-    Set,
     Tuple,
     Type,
-    TypeVar,
     Union,
 )
 
 import pydantic
 from frozendict import frozendict
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
-from . import entities
-from .entities import (
+from game import entities
+from game.entities import (
     GUARANTEED_IDS,
     MAP_SIZE,
     RESOURCE_CULTURE,
@@ -57,9 +53,7 @@ from .entities import (
     UserEntity,
     Vyroba,
 )
-from .util import TEntity, unique
-
-TModel = TypeVar("TModel", bound=BaseModel)
+from game.util import TEntity, TModel, unique
 
 # Aliases duplicate the strings that they appear in
 # Notes:
@@ -69,8 +63,8 @@ TModel = TypeVar("TModel", bound=BaseModel)
 # - They duplicate only in iterables
 # - They duplicate in the OUTER-MOST iterable (NOT in the inner-most)
 #     - (Implementation reason - it's not needed to be otherwise)
-#     - If e.g. Map[_, Set[<Aliasable>]] is required, this will have to be implemented
-ALIASES: List[Tuple[str, Callable[[Mapping[EntityId, Entity]], List[str]]]] = [
+#     - If e.g. Map[_, set[<Aliasable>]] is required, this will have to be implemented
+ALIASES: list[Tuple[str, Callable[[Mapping[EntityId, Entity]], list[str]]]] = [
     (
         "die-any",
         lambda entities: [e.id for e in entities.values() if isinstance(e, Die)],
@@ -115,8 +109,8 @@ class ErrorHandler:
         self.reporter = reporter
         self.max_errs = max_errs
         self.no_warn = no_warn
-        self.error_msgs: List[str] = []
-        self.warn_msgs: List[str] = []
+        self.error_msgs: list[str] = []
+        self.warn_msgs: list[str] = []
         self.context_list = []
 
     def success(self) -> bool:
@@ -204,8 +198,8 @@ class Delims:
     def __init__(
         self,
         *,
-        list_delims: List[str] = [",", ";"],
-        tuple_delims: List[str] = [":", "/"],
+        list_delims: list[str] = [",", ";"],
+        tuple_delims: list[str] = [":", "/"],
     ):
         assert all(delim != "" for delim in list_delims)
         assert all(delim != "" for delim in tuple_delims)
@@ -235,11 +229,11 @@ def value_preprocess(value: str) -> Optional[str]:
 
 
 def transform_lines_to_dicts(
-    lines: List[List[str]],
+    lines: list[list[str]],
     preprocess: Callable[[str], Optional[str]] = value_preprocess,
     *,
     err_handler: ErrorHandler,
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     assert len(lines) >= 1
     header, entity_lines = lines[0], lines[1:]
 
@@ -274,7 +268,7 @@ def fully_resolve_alias(
     values: Iterable[str],
     *,
     alias: str,
-    replacing_values: Callable[[], List[str]],
+    replacing_values: Callable[[], list[str]],
     err_handler: ErrorHandler,
 ) -> Iterable[str]:
     assert len(alias) > 0
@@ -338,7 +332,7 @@ def splitIterableField(
     return fully_resolve_aliases(result, entities=entities, err_handler=err_handler)
 
 
-def parseConstantFromDict(values: Dict[str, Any], arg: str) -> Any:
+def parseConstantFromDict(values: dict[str, Any], arg: str) -> Any:
     assert all(name == name.casefold() for name in values)
     arg_casefold = arg.casefold()
     if arg_casefold in values:
@@ -395,7 +389,7 @@ def parseListField(
     delims: Delims,
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
-) -> List[Any]:
+) -> list[Any]:
     delim = delims.next_list_delim()
     assert delim, f"No available delim to parse list of {tArg!r} from {arg!r}"
     next_delims = delims.without_list_delim()
@@ -416,7 +410,7 @@ def parseDictField(
     delims: Delims,
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
-) -> Dict[Any, Any]:
+) -> dict[Any, Any]:
     delim = delims.next_list_delim()
     assert (
         delim and delims.next_tuple_delim()
@@ -548,14 +542,14 @@ def parseFieldArgs(
     delims: Delims,
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     unknown_fields = tuple(name for name in args if name not in argTypes)
     if len(unknown_fields) > 0:
         err_handler.warn(
             f"There are unknown fields: {unknown_fields} (expected one of {list(argTypes.keys())})"
         )
 
-    parsed_args: Dict[str, Any] = {}
+    parsed_args: dict[str, Any] = {}
     for name, (fieldType, required) in argTypes.items():
         arg = args[name] if name in args else None
 
@@ -639,9 +633,9 @@ def parseModel(
 
 def parseEntity(
     cls: Type[TEntity],
-    args: Dict[str, str],
+    args: dict[str, str],
     *,
-    allowed_prefixes: List[str],
+    allowed_prefixes: list[str],
     entities: Mapping[EntityId, Entity],
     delims: Delims = Delims(),
     err_handler: ErrorHandler,
@@ -664,7 +658,7 @@ def parseEntity(
 
 
 def updateEntityArgs(
-    cls: Type[TEntity], args: Dict[str, str], *, err_handler: ErrorHandler
+    cls: Type[TEntity], args: dict[str, str], *, err_handler: ErrorHandler
 ) -> None:
     for name in list(args):
         if name.startswith("!"):
@@ -739,9 +733,9 @@ def updateEntityArgs(
 
 def parseSheet(
     entity_type: Type[TEntity],
-    data: List[Dict[str, str]],
+    data: list[dict[str, str]],
     *,
-    allowed_prefixes: List[str],
+    allowed_prefixes: list[str],
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
 ) -> Iterable[TEntity]:
@@ -759,7 +753,7 @@ def parseSheet(
 
 def add_tech_unlocks(
     tech: Tech,
-    unlock_args: Dict[str, str],
+    unlock_args: dict[str, str],
     *,
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
@@ -782,7 +776,7 @@ def add_tech_unlocks(
     unlocks_tech = unlock_args.get("unlocks-tech")
     if unlocks_tech is not None:
         tech.unlocks += parseField(
-            List[Tech],
+            list[Tech],
             unlocks_tech,
             entities=entities,
             err_handler=err_handler,
@@ -791,7 +785,7 @@ def add_tech_unlocks(
     unlocks_other = unlock_args.get("unlocks-other")
     if unlocks_other is not None:
         tech.unlocks += parseField(
-            List[EntityWithCost],
+            list[EntityWithCost],
             unlocks_other,
             entities=entities,
             err_handler=err_handler,
@@ -799,7 +793,7 @@ def add_tech_unlocks(
 
 
 def add_hardcoded_values(
-    entities: Dict[str, Entity], *, err_handler: ErrorHandler
+    entities: dict[str, Entity], *, err_handler: ErrorHandler
 ) -> None:
     work = entities[RESOURCE_WORK]
     obyvatel = entities[RESOURCE_VILLAGER]
@@ -869,7 +863,7 @@ def with_productions(
             yield production
 
 
-def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
+def synchronizeUnlocks(entities: dict[str, Entity]) -> None:
     for entity in entities.values():
         if isinstance(entity, EntityWithCost):
             for tech in entity.unlockedBy:
@@ -885,7 +879,7 @@ def synchronizeUnlocks(entities: Dict[str, Entity]) -> None:
                 entity.unlockedBy.append(tech)
 
 
-def synchronizeUpgrades(entities: Dict[str, Entity]) -> None:
+def synchronizeUpgrades(entities: dict[str, Entity]) -> None:
     for building in entities.values():
         if isinstance(building, Building):
             assert (
@@ -914,7 +908,7 @@ def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
     if len(tech_start.unlockedBy) > 0:
         err_handler.warn(f"Tech {tech_start} has unlocking edge, but is START")
 
-    visited_entities: Set[EntityWithCost] = set([tech_start]).union(
+    visited_entities: set[EntityWithCost] = set([tech_start]).union(
         e for group in entities.team_groups.values() for e in group.unlocks
     )
 
@@ -1000,7 +994,7 @@ def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> No
 class EntityParser:
     @staticmethod
     def parse_entities(
-        data: Mapping[str, List[Dict[str, str]]],
+        data: Mapping[str, list[dict[str, str]]],
         *,
         err_handler: ErrorHandler = ErrorHandler(),
         result_reporter: Optional[Callable[[str], None]] = None,
@@ -1010,7 +1004,7 @@ class EntityParser:
         if result_reporter is None:
             result_reporter = err_handler.reporter
 
-        entities_map: Dict[EntityId, Entity] = {}
+        entities_map: dict[EntityId, Entity] = {}
 
         def add_entities(new_entities: Iterable[Entity]) -> None:
             for e in new_entities:
@@ -1193,7 +1187,7 @@ class EntityParser:
 
     @staticmethod
     def parse(
-        gs_data: Dict[str, List[List[str]]],
+        gs_data: dict[str, list[list[str]]],
         *,
         err_handler: ErrorHandler = ErrorHandler(),
         result_reporter: Optional[Callable[[str], None]] = None,
@@ -1213,7 +1207,7 @@ class EntityParser:
         )
 
     @staticmethod
-    def load_gs_data(filename: str | PathLike[str]) -> Dict[str, List[List[str]]]:
+    def load_gs_data(filename: str | PathLike[str]) -> dict[str, list[list[str]]]:
         with open(filename) as file:
             data = json.load(file)
 

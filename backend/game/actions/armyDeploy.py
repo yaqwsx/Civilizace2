@@ -1,6 +1,6 @@
 from decimal import Decimal
 from math import floor
-from typing import Dict, Optional
+from typing import Optional
 
 from typing_extensions import override
 
@@ -38,7 +38,7 @@ class ArmyDeployAction(TeamInteractionActionBase):
         return f"Vyslání armády {self.army.name} na pole {self.args.tile.name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> dict[Resource, int]:
         self._ensureStrong(
             self.army.capacity >= self.args.equipment,
             f"Kapacita armády je {self.army.capacity}",

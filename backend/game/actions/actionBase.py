@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Dict, List, Mapping, NamedTuple, Type, TypeVar, Union
+from typing import Mapping, NamedTuple, Type, TypeVar, Union
 
 from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
@@ -48,8 +48,8 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
     _errors: MessageBuilder = PrivateAttr(MessageBuilder())
     _warnings: MessageBuilder = PrivateAttr(MessageBuilder())
     _info: MessageBuilder = PrivateAttr(MessageBuilder())
-    _notifications: Dict[TeamEntity, List[str]] = PrivateAttr({})
-    _scheduled_actions: List[ScheduledAction] = PrivateAttr([])
+    _notifications: dict[TeamEntity, list[str]] = PrivateAttr({})
+    _scheduled_actions: list[ScheduledAction] = PrivateAttr([])
 
     # Private (and thus non-store args) have to start with underscore. Let's
     # give them normal names
@@ -167,9 +167,9 @@ class TeamActionBase(ActionCommonBase):
         *,
         instantWithdraw: bool = False,
         excludeWork: bool = False,
-    ) -> Dict[Resource, Decimal]:
+    ) -> dict[Resource, Decimal]:
         team = self.teamState
-        withdrawing: Dict[Resource, Decimal] = {}
+        withdrawing: dict[Resource, Decimal] = {}
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
                 continue
@@ -192,7 +192,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     # The following fields are persistent
 
-    paid: Dict[Resource, Decimal] = {}
+    paid: dict[Resource, Decimal] = {}
 
     # Public API
 
@@ -273,7 +273,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     # Methods to be implemented/overriden by concrete actions
 
-    def cost(self) -> Union[Dict[Resource, Decimal], Dict[Resource, int]]:
+    def cost(self) -> Union[dict[Resource, Decimal], dict[Resource, int]]:
         return {}
 
     def pointsCost(self) -> int:
@@ -334,7 +334,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     def _payResources(
         self, resources: Mapping[Resource, Union[Decimal, int]]
-    ) -> Dict[Resource, Decimal]:
+    ) -> dict[Resource, Decimal]:
         teamState = self.teamState
         tokens = {}
         missing = {}
@@ -376,7 +376,7 @@ class TeamInteractionActionBase(TeamActionBase):
 
     def _revertPaidResources(
         self, *, instantWithdraw: bool = False, excludeWork: bool = False
-    ) -> Dict[Resource, Decimal]:
+    ) -> dict[Resource, Decimal]:
         """Gives back `self.paid` resources and empties them."""
         result = self._receiveResources(
             self.paid, instantWithdraw=instantWithdraw, excludeWork=excludeWork
@@ -413,5 +413,5 @@ class ScheduledAction(NamedTuple):
 class ActionResult(BaseModel):
     expected: bool  # Was the result expected or unexpected
     message: str
-    notifications: Dict[TeamEntity, List[str]]
-    scheduledActions: List[ScheduledAction]
+    notifications: dict[TeamEntity, list[str]]
+    scheduledActions: list[ScheduledAction]

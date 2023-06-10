@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Dict, List
 
 from typing_extensions import override
 
@@ -11,7 +10,7 @@ from game.state import printResourceListForMarkdown
 
 class TradeArgs(TeamActionArgs):
     receiver: TeamEntity
-    resources: Dict[Resource, Decimal]
+    resources: dict[Resource, Decimal]
 
 
 class TradeAction(TeamInteractionActionBase):
@@ -27,7 +26,7 @@ class TradeAction(TeamInteractionActionBase):
         return f"Prodej produkce týmu {self.args.receiver.name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         amount = sum(self.args.resources.values(), Decimal(0))
         return {self.entities.resources["mge-obchod"]: amount}
 

@@ -1,6 +1,6 @@
 import typing
 from enum import Enum
-from typing import Any, Dict, Type
+from typing import Any, Type
 
 from pydantic.fields import ModelField
 from rest_framework import viewsets
@@ -21,7 +21,7 @@ class ActionViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated, IsOrg)
 
     @staticmethod
-    def type_info(outer_type: Type[Any]) -> Dict[str, Any]:
+    def type_info(outer_type: Type[Any]) -> dict[str, Any]:
         if isinstance(outer_type, type):
             if issubclass(outer_type, Enum):
                 return {
@@ -43,7 +43,7 @@ class ActionViewSet(viewsets.ViewSet):
         assert False, f"Not expected type {outer_type!r} (check if it's a ForwardRef)"
 
     @staticmethod
-    def field_info(field: ModelField) -> Dict[str, Any]:
+    def field_info(field: ModelField) -> dict[str, Any]:
         info = ActionViewSet.type_info(field.outer_type_)
         info["required"] = bool(field.required)
         if not field.required:

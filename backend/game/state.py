@@ -4,19 +4,7 @@ import enum
 import inspect
 import itertools
 from decimal import Decimal
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Set,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Callable, Iterable, Mapping, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -40,8 +28,7 @@ from game.entities import (
     TileFeature,
     Vyroba,
 )
-
-TModel = TypeVar("TModel", bound="BaseModel")
+from game.util import TModel
 
 
 class StateModel(BaseModel):
@@ -123,8 +110,8 @@ class Army(StateModel):
 
 class MapTile(StateModel):  # Game state element
     entity: MapTileEntity
-    buildings: Set[Building] = set()
-    building_upgrades: Set[BuildingUpgrade] = set()
+    buildings: set[Building] = set()
+    building_upgrades: set[BuildingUpgrade] = set()
     richnessTokens: int
 
     @property
@@ -140,7 +127,7 @@ class MapTile(StateModel):  # Game state element
         return self.entity.richness
 
     @property
-    def features(self) -> List[TileFeature]:
+    def features(self) -> list[TileFeature]:
         return (
             self.entity.naturalResources
             + list[TileFeature](self.buildings)
@@ -160,14 +147,14 @@ class MapTile(StateModel):  # Game state element
         return None
 
     @property
-    def inboundArmies(self) -> List[Army]:
+    def inboundArmies(self) -> list[Army]:
         return []
 
 
 class MapState(StateModel):
     size: int = MAP_SIZE
-    tiles: Dict[int, MapTile]
-    armies: List[Army]
+    tiles: dict[int, MapTile]
+    armies: list[Army]
 
     def getTileById(self, id: str) -> Optional[MapTile]:
         tiles = [tile for tile in self.tiles.values() if tile.id == id]
@@ -197,7 +184,7 @@ class MapState(StateModel):
         self,
         team: TeamEntity,
         tile: MapTileEntity,
-        teamStates: Dict[TeamEntity, TeamState],
+        teamStates: dict[TeamEntity, TeamState],
     ) -> Decimal:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert (
@@ -215,12 +202,12 @@ class MapState(StateModel):
             multiplier -= Decimal(0.5)
         return distance * multiplier
 
-    def getReachableTiles(self, team: TeamEntity) -> List[MapTile]:
+    def getReachableTiles(self, team: TeamEntity) -> list[MapTile]:
         index = self.getHomeOfTeam(team).index
         indexes = [(index + i) % self.size for i in TILE_DISTANCES_RELATIVE]
         return [self.tiles[i] for i in indexes]
 
-    def getTeamArmies(self, team: TeamEntity) -> List[Army]:
+    def getTeamArmies(self, team: TeamEntity) -> list[Army]:
         return [army for army in self.armies if army.team == team]
 
     def getOccupyingArmy(self, tile: MapTileEntity) -> Optional[Army]:
@@ -296,14 +283,14 @@ class TeamState(StateModel):
     turn: int = 0
     throwCost: int = 10
 
-    techs: Set[Tech]
-    researching: Set[Tech] = set()
-    attributes: Set[TeamAttribute] = set()
+    techs: set[Tech]
+    researching: set[Tech] = set()
+    attributes: set[TeamAttribute] = set()
 
-    roadsTo: Set[MapTileEntity] = set()
+    roadsTo: set[MapTileEntity] = set()
 
-    resources: Dict[Resource, Decimal]
-    granary: Dict[Resource, int] = {}
+    resources: dict[Resource, Decimal]
+    granary: dict[Resource, int] = {}
     population: Decimal
 
     def collectStickerEntitySet(self) -> set[Entity]:
@@ -391,9 +378,9 @@ class WorldState(StateModel):
     turn: int = 0
     casteCount: int = 3
     combatRandomness: Decimal = Decimal("0.5")
-    roadCost: Dict[Resource, int]
+    roadCost: dict[Resource, int]
     roadPointsCost: int = 10
-    armyUpgradeCosts: Dict[int, Dict[Resource, Decimal]] = {}  # TODO remove
+    armyUpgradeCosts: dict[int, dict[Resource, Decimal]] = {}  # TODO remove
     withdrawCapacity: int = 20
 
     @staticmethod
@@ -409,7 +396,7 @@ class WorldState(StateModel):
 
 
 class GameState(StateModel):
-    teamStates: Dict[TeamEntity, TeamState]
+    teamStates: dict[TeamEntity, TeamState]
     map: MapState
     world: WorldState
 

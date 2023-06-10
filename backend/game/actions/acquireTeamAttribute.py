@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import Dict
 
 from typing_extensions import override
 
@@ -24,7 +23,7 @@ class AcquireTeamAttributeAction(TeamInteractionActionBase):
         return f"Získání týmové vlastnosti {self.args.attribute} týmem {self.args.team.name}"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         return self.args.attribute.cost
 
     @override

@@ -1,22 +1,15 @@
 from collections import Counter
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Iterable,
-    Mapping,
-    MutableMapping,
-    Optional,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import Any, Callable, Iterable, Mapping, Optional, TypeVar, Union, overload
 
-from game.entities import EntityBase, EntityId, Entity
+from pydantic import BaseModel
+
+from game.entities import Entity, EntityBase, EntityId
 
 T = TypeVar("T")
 U = TypeVar("U")
 TEntity = TypeVar("TEntity", bound=Entity)
+TModel = TypeVar("TModel", bound=BaseModel)
 
 
 class FileCache:

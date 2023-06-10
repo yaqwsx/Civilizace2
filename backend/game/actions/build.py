@@ -1,6 +1,5 @@
 from decimal import Decimal
 from math import ceil
-from typing import Dict
 
 from typing_extensions import override
 
@@ -32,7 +31,7 @@ class BuildAction(TeamInteractionActionBase):
         return f"Stavba budovy {self.args.building.name} na poli {self.args.tile.name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         return self.args.building.cost
 
     @override

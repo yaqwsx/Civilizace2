@@ -1,20 +1,20 @@
 from decimal import Decimal
 from math import ceil, floor
-from typing import Dict, List, Tuple
+from typing import Tuple
 
 from pydantic import BaseModel
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.entities import Entities, Resource, TeamEntity
-from game.state import GameState, TeamState
+from game.state import GameState
 
 
 class FeedRequirements(BaseModel):
     tokensRequired: int
     tokensPerCaste: int
     casteCount: int
-    automated: List[Tuple[Resource, int]]  # sorted in preferred display order
+    automated: list[Tuple[Resource, int]]  # sorted in preferred display order
 
 
 def computeFeedRequirements(
@@ -40,7 +40,7 @@ def computeFeedRequirements(
 
 
 class FeedArgs(TeamActionArgs):
-    materials: Dict[Resource, int]
+    materials: dict[Resource, int]
 
 
 class FeedAction(TeamInteractionActionBase):
@@ -56,7 +56,7 @@ class FeedAction(TeamInteractionActionBase):
         return f"Krmení obyvatelstva ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> dict[Resource, int]:
         return self.args.materials
 
     @override

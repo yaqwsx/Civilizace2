@@ -1,5 +1,4 @@
 from math import ceil
-from typing import Dict
 
 from typing_extensions import override
 
@@ -30,7 +29,7 @@ class BuildRoadAction(TeamInteractionActionBase):
         return f"Stavba cesty na pole {self.args.tile.name} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, int]:
+    def cost(self) -> dict[Resource, int]:
         return self.state.world.roadCost
 
     @override

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict, Optional
+from typing import Optional
 
 from typing_extensions import override
 
@@ -34,7 +34,7 @@ class IncreaseCounterAction(TeamInteractionActionBase):
         return "Zvýšení počitadla"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         return {}
 
     @override

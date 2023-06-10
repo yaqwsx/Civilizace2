@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
+from typing import Any, Iterable, NamedTuple, Optional, Union
 
 from django.db import transaction
 from django.db.models.query import QuerySet
@@ -74,7 +74,7 @@ class TeamViewSet(viewsets.ViewSet):
     @staticmethod
     def serializeArmy(
         a: Army, reachableTiles: Optional[Iterable[MapTile]]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "index": a.index,
             "team": a.team.id,
@@ -114,7 +114,7 @@ class TeamViewSet(viewsets.ViewSet):
         def isTileSuitableFor(vyroba: Vyroba, tile: MapTile) -> bool:
             return set(vyroba.requiredTileFeatures).issubset(tile.features)
 
-        def allowed_tiles(vyroba: Vyroba) -> List[EntityId]:
+        def allowed_tiles(vyroba: Vyroba) -> list[EntityId]:
             return [t.id for t in teamReachableTiles if isTileSuitableFor(vyroba, t)]
 
         return Response(

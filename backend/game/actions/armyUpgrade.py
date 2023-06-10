@@ -1,12 +1,10 @@
 from decimal import Decimal
-from typing import Dict
 
 from typing_extensions import override
 
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.entities import Resource
 from game.state import Army, ArmyMode
-
-from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 
 
 class ArmyUpgradeArgs(TeamActionArgs):
@@ -26,7 +24,7 @@ class ArmyUpgradeAction(TeamInteractionActionBase):
         return f"Vylepšení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
 
     @override
-    def cost(self) -> Dict[Resource, Decimal]:
+    def cost(self) -> dict[Resource, Decimal]:
         army = self.state.map.armies[self.args.armyIndex]
         return self.state.world.armyUpgradeCosts[army.level + 1]
 

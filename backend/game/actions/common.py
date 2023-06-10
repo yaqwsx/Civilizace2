@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 from decimal import Decimal
-from typing import Any, Callable, Dict, Generator, List, Union
+from typing import Callable, Generator, Union
 
 from pydantic import BaseModel
 
@@ -61,11 +61,11 @@ class MessageBuilder(BaseModel):
                     self.add(header)
                 self.addList(lines)
 
-    def addList(self, items: List[str]) -> None:
+    def addList(self, items: list[str]) -> None:
         self.add("\n".join(["- " + x for x in items]))
 
     def addEntityDict(
-        self, header: str, items: Dict[Entity, Union[int, float, Decimal]]
+        self, header: str, items: dict[Entity, Union[int, float, Decimal]]
     ):
         with self.startList(header) as addLine:
             for entity, amount in items.items():
