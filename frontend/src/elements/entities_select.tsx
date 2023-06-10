@@ -33,7 +33,7 @@ function EntitySelectForm<TEntity extends EntityBase>(props: {
     return (
         <select
             className={classNames("select field", props.className)}
-            value={props.value?.id}
+            value={props.value?.id ?? ""}
             onChange={(e) =>
                 props.onChange(
                     props.entities.find((value) => value.id === e.target.value)

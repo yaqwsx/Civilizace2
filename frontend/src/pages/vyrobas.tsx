@@ -141,7 +141,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
             <h2>Vyberte výrobu</h2>
             <FormRow label="Vyber výrobu:" className="my-8">
                 <select
-                    value={vyrobaId ?? undefined}
+                    value={vyrobaId ?? ""}
                     onChange={handleChange}
                     className="select"
                 >
@@ -269,7 +269,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     <FormRow label="Vyberte pole mapy pro výrobu:">
                         <select
                             className="select field"
-                            value={tile}
+                            value={tile ?? ""}
                             onChange={(e) => setTile(e.target.value)}
                         >
                             <option value="">Pole nevybráno</option>

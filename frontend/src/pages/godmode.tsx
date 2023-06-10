@@ -238,11 +238,11 @@ function mergeArrays(...arrays) {
 }
 
 function jsonDiff(newJson: any, originalJson: any) {
-    var newJ = flatten(newJson);
-    var origJ = flatten(originalJson);
-    var add: Record<string, any> = {};
-    var remove: Record<string, any> = {};
-    var change: Record<string, any> = {};
+    const newJ = flatten(newJson);
+    const origJ = flatten(originalJson);
+    const add: Record<string, any> = {};
+    const remove: Record<string, any> = {};
+    const change: Record<string, any> = {};
     mergeArrays(Object.keys(newJ), Object.keys(origJ)).forEach((key: any) => {
         if (!(key in newJ)) {
             remove[key] = [origJ[key]];
@@ -250,12 +250,12 @@ function jsonDiff(newJson: any, originalJson: any) {
             add[key] = [newJ[key]];
         } else if (newJ[key] != origJ[key]) {
             if (Array.isArray(newJ[key])) {
-                var newArr = newJ[key];
-                var origArr = origJ[key];
-                let toAdd = newArr.filter(
+                const newArr = newJ[key];
+                const origArr = origJ[key];
+                const toAdd = newArr.filter(
                     (x: any) => !origArr.some((y: any) => _.isEqual(x, y))
                 );
-                let toRemove = origArr.filter(
+                const toRemove = origArr.filter(
                     (x: any) => !newArr.some((y: any) => _.isEqual(x, y))
                 );
                 if (toAdd.length != 0) {
@@ -271,8 +271,8 @@ function jsonDiff(newJson: any, originalJson: any) {
     });
 
     return {
-        add: add,
-        remove: remove,
-        change: change,
+        add,
+        remove,
+        change,
     };
 }

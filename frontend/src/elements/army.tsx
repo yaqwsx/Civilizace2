@@ -32,7 +32,7 @@ export function ArmySelectBox(props: {
         <select
             className="field select"
             onChange={(e) => handleChange(Number(e.target.value))}
-            value={props.value?.index}
+            value={props.value?.index ?? ""}
         >
             {Object.values(armies).map((a) => (
                 <option key={a.index} value={a.index}>
@@ -72,7 +72,7 @@ export function ArmyGoalSelect(props: {
         <select
             className="field select"
             onChange={(e) => props.onChange(_.get(ArmyGoal, e.target.value))}
-            value={props.value}
+            value={props.value ?? ""}
         >
             {Object.values(ArmyGoal).map((goal) => {
                 return (

@@ -382,7 +382,7 @@ function SelectTaskForTechForm(props: {
         <>
             <FormRow label="Doporučené úkoly">
                 <select
-                    value={props.selectedTask?.id}
+                    value={props.selectedTask?.id ?? ""}
                     onChange={handleChange}
                     className="select"
                 >
@@ -400,7 +400,7 @@ function SelectTaskForTechForm(props: {
             </FormRow>
             <FormRow label="Všechny úkoly (pokud doporučený nevyhovuje)">
                 <select
-                    value={props.selectedTask?.id}
+                    value={props.selectedTask?.id ?? ""}
                     onChange={handleChange}
                     className="select"
                 >

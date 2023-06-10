@@ -34,7 +34,7 @@ function PrinterSelect(props: {
     return (
         <select
             className="select"
-            value={props.value?.name}
+            value={props.value?.name ?? ""}
             onChange={(e) => handleChange(e.target.value)}
         >
             <option value="">—— Nic nevybráno ——</option>

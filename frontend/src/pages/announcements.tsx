@@ -61,11 +61,11 @@ function AnnouncementsOverview() {
             />
         );
 
-    let handleDelete = (id: number) => {
-        let options = {
+    const handleDelete = (id: number) => {
+        const options = {
             optimisticData: announcements?.filter((x) => x.id != id),
         };
-        let fetchNew = async () => {
+        const fetchNew = async () => {
             return fetcher<Announcement[]>("/announcements");
         };
         mutateAnnouncements(fetchNew, options);
@@ -187,9 +187,9 @@ function DeleteDialog(props: {
     announcement: Announcement;
     onDelete: () => void;
 }) {
-    let [deleting, setDeleting] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-    let handleDelete = () => {
+    const handleDelete = () => {
         setDeleting(true);
         axiosService
             .delete(`/announcements/${props.announcement.id}/`)
@@ -355,7 +355,7 @@ function AnnouncementEditForm(props: {
     const noTeams = () => {
         props.setFieldValue("teams", [], false);
     };
-    let { submitting, setFieldValue, ...otherProps } = props;
+    const { submitting, setFieldValue, creatingNew, ...otherProps } = props;
     return (
         <div className="w-full">
             <Form {...otherProps}>
@@ -376,7 +376,7 @@ function AnnouncementEditForm(props: {
                 <FormRow label="Typ:" error={<ErrorMessage name="type" />}>
                     <select
                         className="select"
-                        value={props.values.type}
+                        value={props.values.type ?? ""}
                         onChange={(e) =>
                             props.setFieldValue("type", e.target.value, true)
                         }
