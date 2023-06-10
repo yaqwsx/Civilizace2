@@ -27,8 +27,9 @@ export type VyrobaId = EntityId;
 export type BuildingId = TileFeatureId;
 export type BuildingUpgradeId = TileFeatureId;
 export type TeamAttributeId = EntityId;
+export type TeamGroupId = EntityId;
 export type TechId = EntityId;
-export type MapTileEntityId = EntityId;
+export type MapTileId = EntityId;
 
 export interface EntityBase {
     id: EntityId;
@@ -48,6 +49,9 @@ export interface MapTileEntity extends EntityBase {
     index: number;
     naturalResources: NaturalResourceId[];
     richness: number;
+}
+
+export interface TeamGroupEntity extends EntityBase {
 }
 
 export interface EntityWithCost extends EntityBase {
@@ -181,15 +185,15 @@ export enum ArmyGoal {
 
 export interface Army {
     index: number;
-    team: EntityId;
+    team: TeamId;
     name: string;
     level: number;
     equipment: number;
     boost: number;
-    tile: EntityId | null;
+    tile: MapTileId | null;
     mode: ArmyMode;
     goal: ArmyGoal | null;
-    reachableTiles?: EntityId[] | null;
+    reachableTiles?: MapTileId[] | null;
 }
 
 // Dashboard
@@ -208,14 +212,15 @@ export interface TeamDashboard {
     worldTurn: TurnId;
     teamTurn: TurnId;
     researchingTechs: TechEntity[];
-    productions: [EntityId, Decimal][];
-    storage: [EntityId, Decimal][];
-    granary: [EntityId, number][];
+    productions: [ResourceId, Decimal][];
+    storage: [ResourceId, Decimal][];
+    granary: [ResourceId, number][];
     feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];
     armies: Army[];
-    techs?: EntityId[];
-    attributes?: EntityId[];
+    groups?: TeamGroupId[];
+    techs?: TechId[];
+    attributes?: TeamAttributeId[];
 }
 
 // Action

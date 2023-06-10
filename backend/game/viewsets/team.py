@@ -259,6 +259,7 @@ class TeamViewSet(viewsets.ViewSet):
         entities = stateInfo.entities
 
         orgInfo = {
+            "groups": list(x.id for x in stateInfo.teamEntity.groups),
             "techs": list(x.id for x in teamState.techs),
             "attributes": list(x.id for x in teamState.attributes),
         }

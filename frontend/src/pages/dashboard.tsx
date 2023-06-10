@@ -3,6 +3,7 @@ import {
     faBriefcase,
     faCalendar,
     faCogs,
+    faFlag,
     faMasksTheater,
     faScrewdriverWrench,
     faSeedling,
@@ -230,14 +231,27 @@ function TeamOverview() {
             {account?.user?.is_org ? (
                 <CardSection name="Org menu">
                     <Card
+                        label="Týmové skupiny"
+                        color={team.color}
+                        icon={faFlag}
+                    >
+                        <ul>
+                            {data.groups?.map((id: string) => (
+                                <li key={id}>
+                                    <EntityTag id={id} />
+                                </li>
+                            ))}
+                        </ul>
+                    </Card>
+                    <Card
                         label="Technologie vlastněné týmem"
                         color={team.color}
                         icon={faScrewdriverWrench}
                     >
                         <ul>
-                            {data.techs?.map((tid: string) => (
-                                <li key={tid}>
-                                    <EntityTag id={tid} />
+                            {data.techs?.map((id: string) => (
+                                <li key={id}>
+                                    <EntityTag id={id} />
                                 </li>
                             ))}
                         </ul>
@@ -248,9 +262,9 @@ function TeamOverview() {
                         icon={faTags}
                     >
                         <ul>
-                            {data.attributes?.map((aid: string) => (
-                                <li key={aid}>
-                                    <EntityTag id={aid} />
+                            {data.attributes?.map((id: string) => (
+                                <li key={id}>
+                                    <EntityTag id={id} />
                                 </li>
                             ))}
                         </ul>
