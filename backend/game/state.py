@@ -4,13 +4,42 @@ import enum
 import inspect
 import itertools
 from decimal import Decimal
-from typing import Any, Callable, Dict, List, Mapping, Optional, Set, Type, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from pydantic import BaseModel
 
 from game.actions.common import MessageBuilder
-from game.entities import *
-from game.util import get_by_entity_id, set_by_entity_id
+from game.entities import (
+    MAP_SIZE,
+    TECHNOLOGY_START,
+    TILE_DISTANCES_RELATIVE,
+    TIME_PER_TILE_DISTANCE,
+    Building,
+    BuildingUpgrade,
+    Entities,
+    Entity,
+    EntityId,
+    EntityWithCost,
+    MapTileEntity,
+    Resource,
+    TeamAttribute,
+    TeamEntity,
+    Tech,
+    TileFeature,
+    Vyroba,
+)
 
 TModel = TypeVar("TModel", bound="BaseModel")
 
@@ -282,16 +311,19 @@ class TeamState(StateModel):
         stickers.update(self._unlocked_without_tiles())
         return stickers
 
-    def add_newborns(self, amount: int) -> None:
+    def add_newborns(self, amount: int, entities: Entities) -> None:
         assert amount >= 0
         self.population += amount
-        self.obyvatels += amount
+        self.resources[entities.obyvatel] = (
+            self.resources.get(entities.obyvatel, Decimal(0)) + amount
+        )
 
-    def kill_obyvatels(self, amount: int) -> None:
+    def kill_obyvatels(self, amount: int, entities: Entities) -> None:
         assert amount >= 0
-        real_amount = min(amount, self.obyvatels)
+        obyvatels = self.resources.get(entities.obyvatel, Decimal(0))
+        real_amount = min(amount, obyvatels)
         self.population -= real_amount
-        self.obyvatels -= real_amount
+        self.resources[entities.obyvatel] = obyvatels - real_amount
 
     @property
     def productions(self) -> Mapping[Resource, Decimal]:
@@ -309,38 +341,6 @@ class TeamState(StateModel):
             for resource, amount in self.resources.items()
             if resource.isWithdrawable
         }
-
-    @property
-    def work(self) -> Decimal:
-        return get_by_entity_id(RESOURCE_WORK, self.resources, Decimal(0))
-
-    @work.setter
-    def work(self, value: Decimal) -> None:
-        set_by_entity_id(RESOURCE_WORK, self.resources, value)
-
-    @property
-    def obyvatels(self) -> Decimal:
-        return get_by_entity_id(RESOURCE_VILLAGER, self.resources, Decimal(0))
-
-    @obyvatels.setter
-    def obyvatels(self, value: Decimal) -> None:
-        set_by_entity_id(RESOURCE_VILLAGER, self.resources, value)
-
-    @property
-    def culture(self) -> Decimal:
-        return get_by_entity_id(RESOURCE_CULTURE, self.resources, Decimal(0))
-
-    @culture.setter
-    def culture(self, value: Decimal) -> None:
-        set_by_entity_id(RESOURCE_CULTURE, self.resources, value)
-
-    @property
-    def withdraw_capacity(self) -> Decimal:
-        return get_by_entity_id(RESOURCE_WITHDRAW_CAPACITY, self.resources, Decimal(0))
-
-    @withdraw_capacity.setter
-    def withdraw_capacity(self, value: Decimal) -> None:
-        set_by_entity_id(RESOURCE_WITHDRAW_CAPACITY, self.resources, value)
 
     def _unlocked_without_tiles(self) -> Iterable[EntityWithCost]:
         """Does not return BuildingUpgrades since they depend on the current owned tiles.

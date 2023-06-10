@@ -33,6 +33,7 @@ from pydantic import BaseModel, ValidationError
 from . import entities
 from .entities import (
     GUARANTEED_IDS,
+    MAP_SIZE,
     RESOURCE_CULTURE,
     RESOURCE_VILLAGER,
     RESOURCE_WORK,
@@ -948,9 +949,13 @@ def check_teams_have_different_home_tiles(
 
 
 def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
-    if len(entities.tiles) != 4 * len(entities.teams):
+    if len(entities.tiles) != MAP_SIZE:
         err_handler.error(
-            f"World size is wrong: There are {len(entities.tiles)} tiles and {len(entities.teams)} teams (expecting 4 tiles per team)"
+            f"World size is wrong: There are {len(entities.tiles)} tiles, but (MAP_SIZE={MAP_SIZE})"
+        )
+    elif len(entities.teams) != MAP_SIZE / 4:
+        err_handler.warn(
+            f"Expected 4 tiles per team. Map size is correct, but expected {MAP_SIZE / 4} teams."
         )
 
     expected_index_range = range(len(entities.tiles))

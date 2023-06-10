@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
 
 from django.db import transaction
@@ -210,9 +211,10 @@ class TeamViewSet(viewsets.ViewSet):
     @action(detail=True)
     def work(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
-        teamState = TeamStateInfo.get_latest(pk).teamState
+        stateInfo = TeamStateInfo.get_latest(pk)
 
-        return Response({"work": teamState.work})
+        work = stateInfo.teamState.resources.get(stateInfo.entities.work, Decimal(0))
+        return Response({"work": work})
 
     @action(detail=True, methods=["POST"], permission_classes=[IsOrg])
     @transaction.atomic()
@@ -254,6 +256,7 @@ class TeamViewSet(viewsets.ViewSet):
         team = get_object_or_404(Team.objects.all(), pk=pk)
         stateInfo = TeamStateInfo.get_latest(pk)
         teamState = stateInfo.teamState
+        entities = stateInfo.entities
 
         orgInfo = {
             "techs": list(x.id for x in teamState.techs),
@@ -263,12 +266,14 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 "population": {
-                    "nospec": teamState.obyvatels,
+                    "nospec": teamState.resources.get(entities.obyvatel, Decimal(0)),
                     "all": teamState.population,
                 },
-                "work": teamState.work,
-                "culture": teamState.culture,
-                "withdraw_capacity": teamState.withdraw_capacity,
+                "work": teamState.resources.get(entities.work, Decimal(0)),
+                "culture": teamState.resources.get(entities.culture, Decimal(0)),
+                "withdraw_capacity": teamState.resources.get(
+                    entities.withdraw_capacity, Decimal(0)
+                ),
                 "worldTurn": stateInfo.state.world.turn,
                 "teamTurn": teamState.turn,
                 "researchingTechs": [serializeEntity(x) for x in teamState.researching],
@@ -277,7 +282,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "granary": [(r.id, a) for r, a in teamState.granary.items()],
                 "feeding": stateSerialize(
                     computeFeedRequirements(
-                        stateInfo.state, stateInfo.entities, stateInfo.teamEntity
+                        stateInfo.state, entities, stateInfo.teamEntity
                     )
                 ),
                 "announcements": [

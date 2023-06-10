@@ -76,7 +76,7 @@ class FeedAction(TeamInteractionActionBase):
             newborns += 10
         else:
             starved = (req.tokensRequired - paid) * 5
-            self.teamState.kill_obyvatels(starved)
+            self.teamState.kill_obyvatels(starved, self.entities)
             self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, uhynulo vám {starved} obyvatel."
 
         automated = {prod: amount for prod, amount in req.automated}
@@ -88,15 +88,20 @@ class FeedAction(TeamInteractionActionBase):
             if amount >= req.tokensPerCaste:
                 saturated.add(resource)
 
-        self.teamState.add_newborns(newborns)
+        self.teamState.add_newborns(newborns, self.entities)
 
         self._info += (
             f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."
         )
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
-        self.teamState.work //= 2
-        self.teamState.withdraw_capacity = Decimal(self.state.world.withdrawCapacity)
+        if self.entities.work not in self.teamState.resources:
+            self.teamState.resources[self.entities.work] = Decimal(0)
+
+        self.teamState.resources[self.entities.work] //= 2
+        self.teamState.resources[self.entities.withdraw_capacity] = Decimal(
+            self.state.world.withdrawCapacity
+        )
 
         self._receiveResources(
             {

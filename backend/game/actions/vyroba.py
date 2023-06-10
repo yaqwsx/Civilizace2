@@ -64,7 +64,6 @@ class VyrobaAction(TeamInteractionActionBase):
 
     @override
     def cost(self) -> Dict[Resource, Decimal]:
-        result: Dict[Resource, Decimal] = defaultdict(Decimal)
         return {
             resource: self.args.count * cost
             for resource, cost in self.args.vyroba.cost.items()

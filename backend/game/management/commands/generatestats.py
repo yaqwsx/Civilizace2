@@ -1,6 +1,10 @@
+from decimal import Decimal
+from typing import Any
 from django.core.management import BaseCommand
 
 from pathlib import Path
+from game.entities import Entities, TeamEntity
+from game.state import GameState
 
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -40,8 +44,8 @@ def isRoundEnd(prevState, state):
     return prevState.world.turn != state.world.turn
 
 
-def teamStat(team, states):
-    stat = []
+def teamStat(team: TeamEntity, states: list[GameState], entities: Entities):
+    stat: list[dict[str, Decimal | int]] = []
     prodSum = 0
     weightedSum = 0
     for prevState, state in zip(states, states[1:]):
@@ -60,7 +64,7 @@ def teamStat(team, states):
             prodSum += prod
             stat.append(
                 {
-                    "obyvatele": tState.obyvatels,
+                    "obyvatele": tState.resources.get(entities.obyvatel, Decimal(0)),
                     "populace": tState.population,
                     "techy": len(tState.techs),
                     "productions": prod,
@@ -371,7 +375,7 @@ class Command(BaseCommand):
             fname = outputDir / f"{team.name}.csv"
             print(fname)
             with open(fname, "w") as f:
-                stat = teamStat(team, states)
+                stat = teamStat(team, states, entities)
                 f.write("populace, obvyatele, techy, produkce, materialy\n")
                 for l in stat:
                     f.write(

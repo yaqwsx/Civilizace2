@@ -167,6 +167,7 @@ def _deserialize_singleton(
             raise RuntimeError("Unexpected type of field name")
         return stateDeserialize(expectedType, data, entities)
     if issubclass(expectedType, EntityBase):
+        assert expectedType != EntityBase, "Don't deserialize EntityBase"
         if not isinstance(data, str):
             raise UnexpectedValueType(data, expectedType, [str])
         if data in entities:
