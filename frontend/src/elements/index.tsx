@@ -6,6 +6,7 @@ import { overrideTailwindClasses } from "tailwind-override";
 
 import { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AxiosError, AxiosResponse } from "axios";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
@@ -142,16 +143,29 @@ export function SpinboxInput(props: SpinboxInputType) {
     );
 }
 
-export function PrettyAxiosError(props: { error: any }) {
-    let response = props.error.response;
+export function tryStringify(value: any, space?: number): string | undefined {
+    if (typeof value === "string") {
+        return value;
+    }
+    try {
+        return JSON.stringify(value, null, space);
+    } catch {}
+    return;
+}
+
+function isAxiosError(error: any): error is AxiosError {
+    return Boolean(error.isAxiosError);
+}
+
+function PrettyAxiosError(props: { errorResp: AxiosResponse }) {
     return (
         <div className="w-full">
             <h3>
-                {response.status} ({response.status_text}):
+                {props.errorResp.status} ({props.errorResp.statusText}):
             </h3>
             <code className="w-full overflow-hidden">
                 <pre className="w-full overflow-hidden">
-                    {JSON.stringify(response.data, null, 2)}
+                    {tryStringify(props.errorResp.data, 2)}
                 </pre>
             </code>
         </div>
@@ -163,17 +177,20 @@ export function LoadingOrError(props: { error?: any; message: string }) {
         return <InlineSpinner />;
     }
 
-    console.error(props.message, props.error);
+    console.error("LoadingOrError:", props.message, {
+        desc: String(props.error),
+        data: props.error,
+    });
     return (
         <ComponentError>
             <p>{props.message}</p>
-            {props.error.isAxiosError ? (
-                <PrettyAxiosError error={props.error} />
+            {isAxiosError(props.error) && props.error.response ? (
+                <PrettyAxiosError errorResp={props.error.response} />
             ) : (
                 <>
-                    <p>{props.error.toString()}</p>
+                    <p>{String(props.error)}</p>
                     <p>
-                        {JSON.stringify(props.error?.response?.data).substring(
+                        {tryStringify(props.error?.response?.data)?.substring(
                             0,
                             400
                         )}
@@ -397,7 +414,7 @@ export function Card(props: {
                         </div>
                     </div>
 
-                    <div className="h-full flex-1 text-right px-4 md:text-center">
+                    <div className="h-full flex-1 px-4 text-right md:text-center">
                         <h5 className="mt-0 font-bold uppercase text-gray-500">
                             {props.label}
                         </h5>
