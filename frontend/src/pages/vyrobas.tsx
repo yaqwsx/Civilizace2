@@ -18,6 +18,7 @@ import {
     urlEntityAtom,
     useEntities,
     useTeamResources,
+    useTeamSpecialResources,
     useTeamVyrobas,
 } from "../elements/entities";
 import {
@@ -28,6 +29,7 @@ import {
 import {
     Decimal,
     ResourceEntity,
+    ResourceId,
     ResourceTeamEntity,
     Team,
     VyrobaTeamEntity,
@@ -297,53 +299,73 @@ function WithdrawStorage(props: { team: Team }) {
         data: storage,
         error,
         mutate,
-    } = useSWR<any>(`game/teams/${props.team.id}/storage`, fetcher);
-    const [toWithdraw, setToWithdraw] = useState<any>({});
+    } = useSWR<Record<ResourceId, Decimal>>(
+        `game/teams/${props.team.id}/storage`,
+        fetcher
+    );
+    const [toWithdraw, setToWithdraw] = useState<Record<ResourceId, number>>(
+        {}
+    );
+    const { data: specialres } = useTeamSpecialResources(props.team.id);
     const setVyrobaAction = useSetAtom(urlVyrobaActionAtom);
 
-    if (!storage)
+    if (!storage) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
+    }
 
-    let isEmpty = Object.keys(storage).length === 0;
+    const isEmpty = Object.keys(storage).length === 0;
+
+    const toWithdrawSum = _.sum(Object.values(toWithdraw));
+    const sumClassName =
+        !_.isNil(specialres) &&
+        toWithdrawSum > Number(specialres.withdraw_capacity)
+            ? "text-red-500"
+            : undefined;
 
     return (
         <>
-            <h2>Zadejte kolik vybrat ze skladu</h2>
+            <h2>
+                Zadejte kolik vybrat ze skladu (
+                <span className={sumClassName}>{toWithdrawSum}</span>/
+                {specialres?.withdraw_capacity ?? "??"})
+            </h2>
 
-            {Object.entries(storage).map(([r, maxV]: any) => (
-                <FormRow
-                    label={
-                        <>
-                            <span
-                                className="cursor-pointer"
-                                onClick={() => {
-                                    setToWithdraw(
-                                        produce(toWithdraw, (next: any) => {
-                                            next[r] = maxV;
-                                        })
-                                    );
-                                }}
-                            >
-                                <EntityTag id={r} /> (max {maxV}):
-                            </span>
-                        </>
-                    }
-                    key={r}
-                >
-                    <SpinboxInput
-                        value={_.get(toWithdraw, r, 0)}
-                        onChange={(v) => {
-                            setToWithdraw(
-                                produce(toWithdraw, (next: any) => {
-                                    if (v < 0) v = 0;
-                                    if (v > maxV) v = maxV;
-                                    next[r] = v;
-                                })
-                            );
-                        }}
-                    />
-                </FormRow>
-            ))}
+            {Object.entries(storage).map(([resId, decMaxValue]) => {
+                const maxValue = _.floor(Number(decMaxValue));
+                return (
+                    <FormRow
+                        key={resId}
+                        label={
+                            <>
+                                <span
+                                    className="cursor-pointer"
+                                    onClick={() => {
+                                        setToWithdraw(
+                                            produce(toWithdraw, (next) => {
+                                                next[resId] = maxValue;
+                                            })
+                                        );
+                                    }}
+                                >
+                                    <EntityTag id={resId} /> (max {maxValue}
+                                    ):
+                                </span>
+                            </>
+                        }
+                    >
+                        <SpinboxInput
+                            value={_.get(toWithdraw, resId, 0)}
+                            onChange={(v) => {
+                                setToWithdraw(
+                                    produce(toWithdraw, (next) => {
+                                        next[resId] = _.clamp(v, 0, maxValue);
+                                    })
+                                );
+                            }}
+                        />
+                    </FormRow>
+                );
+            })}
 
             <Button
                 label={!isEmpty ? "Vybrat" : "Tým nemá nic ve skladu"}
