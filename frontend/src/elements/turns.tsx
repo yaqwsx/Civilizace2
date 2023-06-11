@@ -30,12 +30,15 @@ export function useTurns() {
             turns.forEach((turn, i) => {
                 const prevTurn = i > 0 ? turns[i - 1] : undefined;
                 turn.shouldStartAt ??=
-                    prevTurn?.enabled && !_.isNil(prevTurn.shouldStartAt)
+                    !_.isNil(prevTurn) && !_.isNil(prevTurn?.shouldStartAt)
                         ? new Date(
-                              prevTurn.shouldStartAt.getTime() +
-                                  1000 * prevTurn.duration
+                              Math.max(
+                                  prevTurn.shouldStartAt.getTime() +
+                                      1000 * prevTurn.duration,
+                                  Date.now()
+                              )
                           )
-                        : undefined;
+                        : new Date();
             });
             return turns;
         })
