@@ -37,11 +37,12 @@ function Login() {
                 navigate("/", { replace: true });
             })
             .catch((err) => {
-                console.error(err);
                 setLoading(false);
                 if (err.response && err.response.status === 401) {
+                    console.warn("Incorrect login:", err);
                     setMessage("Nesprávné jméno nebo heslo");
                 } else {
+                    console.error("Login:", err);
                     setMessage("Neočekávaná chyba: " + err.toString());
                 }
             });

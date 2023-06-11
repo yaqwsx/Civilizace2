@@ -184,10 +184,11 @@ function DeleteDialog(props: {
                 );
             })
             .catch((error) => {
-                console.error(error);
                 if (error?.response?.status === "403") {
+                    console.warn("Delete task:", error);
                     toast.error(error.response.data.detail);
                 } else {
+                    console.error("Delete task:", error);
                     toast.error(`Nastala neočekávaná chyba: ${error}`);
                 }
             })
@@ -262,8 +263,8 @@ function TaskEdit() {
                 }
             })
             .catch((e) => {
-                console.error(e);
                 if (e.response.status == 400) {
+                    console.warn(taskId ? "Update task:" : "Create task:", e);
                     setErrors(
                         objectMap(e.response.data, (errors) =>
                             errors.join(", ")
@@ -273,6 +274,7 @@ function TaskEdit() {
                         "Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte."
                     );
                 } else {
+                    console.error(taskId ? "Update task:" : "Create task:", e);
                     setStatus(e.toString());
                     toast.error(e.toString());
                 }

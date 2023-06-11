@@ -169,7 +169,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
                     toast.success("Akce provedena");
                 })
                 .catch((error) => {
-                    console.error(error);
+                    console.error("Initiate feeding:", error);
                     setSubmitting(false);
                     toast.error(`Nastala neočekávaná chyba: ${error}`);
                 })

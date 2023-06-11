@@ -37,9 +37,11 @@ export function useTeamFromUrl() {
     const [teamId, setTeamId] = useTeamIdFromUrl();
     const { teams: allTeams, error } = useTeams();
 
-    console.assert(!error, "Error loading teams", error);
+    console.assert(!error, "Error loading teams:", error);
 
-    let team = !_.isNil(teamId) ? allTeams?.find((t) => t.id === teamId) : null;
+    const team = !_.isNil(teamId)
+        ? allTeams?.find((t) => t.id === teamId)
+        : null;
 
     return {
         team,

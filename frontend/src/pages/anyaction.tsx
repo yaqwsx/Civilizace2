@@ -175,7 +175,7 @@ function GetArgForm(props: ArgFormProps) {
                         props.setState(data);
                     })
                     .catch((error) => {
-                        console.error("Couldn't fetch state", error);
+                        console.error("Couldn't fetch state:", error);
                         props.setError(String(error));
                     });
             };
@@ -208,7 +208,10 @@ function GetArgForm(props: ArgFormProps) {
             );
         }
         case "enum":
-            console.assert(!_.isNil(props.serverInfo.values), props.serverInfo);
+            if (_.isNil(props.serverInfo.values)) {
+                console.error("Empty values in enum:", props.serverInfo);
+                return UnknownArgTypeForm(props.serverInfo);
+            }
             return (p: ArgumentFormProps) => (
                 <select
                     className="select field"
@@ -242,7 +245,7 @@ function GetArgForm(props: ArgFormProps) {
         case "dict": {
             if (props.serverInfo.subtypes?.length !== 2) {
                 console.error(
-                    "Incorrect subtypes in dict (expected 2 subtypes)",
+                    "Incorrect subtypes in dict (expected 2 subtypes):",
                     props.serverInfo
                 );
                 return UnknownArgTypeForm(props.serverInfo);
@@ -266,7 +269,7 @@ function GetArgForm(props: ArgFormProps) {
                 ) {
                     console.assert(
                         _.isNil(keyType.values),
-                        "Didn't expect values with entity type",
+                        "Unexpect values with entity type",
                         keyType
                     );
                     return <EntityTag id={key} />;
@@ -320,8 +323,8 @@ function GetArgForm(props: ArgFormProps) {
                 );
             }
 
-            console.log(
-                "Unknown arg type",
+            console.warn(
+                "Unknown arg type:",
                 props.serverInfo.type.toLowerCase(),
                 props.serverInfo
             );
@@ -350,8 +353,8 @@ function DictArgForm(props: {
     const [newKeyError, setNewKeyError] = useState<string>();
 
     const valueDict = props.value ?? {};
-    console.assert(_.isObject(valueDict));
     if (!_.isObject(valueDict)) {
+        console.error("Value dict is not object or nil:", valueDict);
         props.onChange(undefined);
     }
 
@@ -373,7 +376,7 @@ function DictArgForm(props: {
     const updateKeyValue = (key: any, value: any) => {
         console.assert(
             _.isString(key),
-            "Key has to be string (the dict will be converted to json)",
+            "Key has to be string (the dict will be converted to json):",
             typeof key,
             key
         );
@@ -725,7 +728,11 @@ function PerformAnyAction(props: {
     };
 
     const handleArgError = (name: string, error?: string) => {
-        console.assert(_.isObject(argErrors));
+        console.assert(
+            _.isObject(argErrors),
+            "Arg errors are not object:",
+            argErrors
+        );
         setArgErrors(
             produce(_.isObject(argErrors) ? argErrors : {}, (orig) => {
                 if (error) {
@@ -737,7 +744,7 @@ function PerformAnyAction(props: {
         );
     };
     const handleArgChange = (name: string, value?: any) => {
-        console.assert(_.isObject(args));
+        console.assert(_.isObject(args), "Args are not object:", args);
         if (args[name] !== value) {
             setArgs(
                 produce(args, (orig) => {
@@ -796,8 +803,12 @@ function PerformAnyAction(props: {
             />
         );
     } else {
-        console.assert(_.isObject(args));
-        console.assert(_.isObject(argErrors));
+        console.assert(_.isObject(args), "Args are not object:", args);
+        console.assert(
+            _.isObject(argErrors),
+            "Arg errors are not object:",
+            argErrors
+        );
 
         extraPreview = (
             <>

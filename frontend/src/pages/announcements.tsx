@@ -199,10 +199,15 @@ function DeleteDialog(props: {
                 toast.success("Smazáno");
             })
             .catch((error) => {
-                console.error(error);
                 if (error?.response?.status === "403") {
+                    console.warn(
+                        "Delete announcement:",
+                        error.response.data,
+                        error
+                    );
                     toast.error(error.response.data.detail);
                 } else {
+                    console.error("Delete announcement:", error);
                     toast.error(`Nastala neočekávaná chyba: ${error}`);
                 }
             })
@@ -258,7 +263,7 @@ function AnnouncementEdit() {
             setSubmitting,
         }: FormikHelpers<Omit<Announcement, "id">>
     ) => {
-        console.log(data);
+        console.log("Submit:", data);
         setSubmitting(true);
 
         let submit = announcementId
@@ -271,13 +276,12 @@ function AnnouncementEdit() {
                   axiosService.post<Announcement>(`/announcements/`, data);
         submit(data)
             .then((response) => {
-                console.log("Ozn resp", response, typeof response);
                 navigate("/announcements");
                 toast.success("Oznámení uloženo");
             })
             .catch((e) => {
-                console.error(e);
                 if (e.response.status == 400) {
+                    console.warn("Announcement - chyba ve formuláři:", e);
                     setErrors(
                         objectMap(e.response.data, (errors) =>
                             errors.join(", ")
@@ -287,6 +291,7 @@ function AnnouncementEdit() {
                         "Formulář obsahuje chyby, založení úkolu se nezdařilo. Opravte chyby a opakujte."
                     );
                 } else {
+                    console.error("Announcement:", e);
                     setStatus(e.toString());
                     toast.error(e.toString());
                 }

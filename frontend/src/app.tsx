@@ -335,7 +335,7 @@ function ScannerNavigator() {
     const navigate = useNavigate();
 
     useScanner((items: string[]) => {
-        console.log("Scanner navigator", items);
+        console.log("Scanner navigator:", items);
         let args: string[] = [];
         let page = null;
         items.forEach((item) => {

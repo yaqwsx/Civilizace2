@@ -124,7 +124,7 @@ export function GodMode() {
                 setState(data);
             })
             .catch((error) => {
-                console.error(error);
+                console.error("GodMode - fetch latest state:", error);
                 setError(error);
             });
     };

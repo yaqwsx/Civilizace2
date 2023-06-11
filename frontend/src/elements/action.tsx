@@ -125,7 +125,10 @@ export function useActionPreview<TArgs>(props: {
                 setPreviewResponse(data.data);
             })
             .catch((error) => {
-                console.error(error);
+                console.error(
+                    `Dry ${props.isNoInit ? "noinit" : "team"} action:`,
+                    error
+                );
                 setPreviewResponse(undefined);
                 setError(error);
             });
@@ -377,7 +380,7 @@ function NoInitActionPreviewPhase<TArgs>(props: {
                 }
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Commit noinit action:", error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -525,7 +528,7 @@ function ActionPreviewPhase<TArgs>(props: {
                 }
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Initiate team action:", error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -601,7 +604,7 @@ export function IgnoreActionDicePhase(props: {
             props.changePhase(ActionPhase.finish, result);
         })
         .catch((error) => {
-            console.error(error);
+            console.error("Commit team action:", error);
             toast.error(`Nastala neočekávaná chyba: ${error}`);
         });
 
@@ -671,7 +674,7 @@ export function ActionDicePhase(props: {
                 props.changePhase(ActionPhase.finish, result);
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Commit team action:", error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -694,7 +697,7 @@ export function ActionDicePhase(props: {
                     props.changePhase(ActionPhase.finish, result);
                 })
                 .catch((error) => {
-                    console.error(error);
+                    console.error("Revert team action:", error);
                     setSubmitting(false);
                     toast.error(`Nastala neočekávaná chyba: ${error}`);
                 });

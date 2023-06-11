@@ -177,9 +177,8 @@ export function LoadingOrError(props: { error?: any; message: string }) {
         return <InlineSpinner />;
     }
 
-    console.error("LoadingOrError:", props.message, {
-        desc: String(props.error),
-        data: props.error,
+    console.warn("Loading error:", props.message, {
+        error: props.error,
     });
     return (
         <ComponentError>

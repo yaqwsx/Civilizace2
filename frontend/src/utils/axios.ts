@@ -46,7 +46,7 @@ axiosService.interceptors.response.use(
 
 // @ts-ignore
 const refreshAuthLogic = async (failedRequest) => {
-    console.log(store.getState().auth);
+    console.log("Auth:", store.getState().auth);
     const { refreshToken } = store.getState().auth;
     if (refreshToken !== null) {
         return axios
@@ -71,7 +71,7 @@ const refreshAuthLogic = async (failedRequest) => {
                 );
             })
             .catch((err) => {
-                console.error(err);
+                console.error("Auth refresh:", err);
                 if (err.response && err.response.status === 401) {
                     store.dispatch(authSlice.actions.logout());
                 }

@@ -47,7 +47,7 @@ function Action(props: { action: any }) {
     const action = props.action;
     const [expanded, setExpanded] = useState(false);
 
-    console.log(action);
+    console.log("Action log:", action);
     let author = action.interactions[0].author;
     let entryDate = new Date(
         action.interactions[action.interactions.length - 1].created

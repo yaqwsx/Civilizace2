@@ -565,7 +565,7 @@ function Announcement(props: {
                 if (props.deletable) setDeleted(true);
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Announcement read:", error);
                 setSubmitting(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });
@@ -682,7 +682,7 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
                 props.mutate();
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Autoupdate sticker:", error);
                 setIsUpdating(false);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             });

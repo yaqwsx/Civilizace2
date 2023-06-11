@@ -93,7 +93,7 @@ function TurnComp(props: { turn: Turn; turnsMutate: () => void }) {
                 props.turnsMutate();
             })
             .catch((error) => {
-                console.error(error);
+                console.error(`Update turn ${props.turn.id}:`, error);
                 setSubmitting(false);
                 toast.error(`Došlo k neočekávané chybě: ${error}`);
             });
@@ -120,6 +120,7 @@ function TurnComp(props: { turn: Turn; turnsMutate: () => void }) {
     console.assert(
         _.isNil(props.turn.startedAt) ||
             props.turn.startedAt === props.turn.shouldStartAt,
+        "Incorrect shouldStartAt after turn already started:",
         props.turn
     );
     return (

@@ -29,7 +29,7 @@ export function ScannerDispatcher(props: { children: any }) {
     const [items, setItems] = useState<string[]>([]);
 
     const handleCodes = (code: string) => {
-        console.log("Scanned " + code);
+        console.log("Scanned:", code);
         const items = code.split(" ").map((x) => x.trim());
         setItems(items);
     };

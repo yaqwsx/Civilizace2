@@ -210,23 +210,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     useEffect(() => {
         if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
-        console.log(vyroba);
-        let homeTile = tiles.find((t) => t?.homeTeam === props.team.id);
+        const homeTile = tiles.find((t) => t?.homeTeam === props.team.id);
         setTile(homeTile.entity);
-        return;
-        // if (!homeTile)
-        //     return
-        // if (props.vyroba.allowedTiles.includes(homeTile.entity)) {
-        //     setTile(homeTile.entity);
-        //     return
-        // }
-        // for (let t of tiles) {
-        //     if (vyroba.allowedTiles.includes(t.entity)) {
-        //         setTile(t.entity);
-        //         return;
-        //     }
-        // }
-        // setTile(homeTile.entity);
     }, [tiles, props.team, vyroba]);
 
     if (!entities || !tiles) {

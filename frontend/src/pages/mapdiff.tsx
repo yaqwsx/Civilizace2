@@ -65,7 +65,7 @@ function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
                 setDeleted(true);
             })
             .catch((error) => {
-                console.error(error);
+                console.error("Delete map updates:", error);
                 toast.error(`Nastala neočekávaná chyba: ${error}`);
             })
             .finally(() => {
@@ -150,7 +150,7 @@ function MapState() {
         }
     );
 
-    console.log(armies);
+    console.log("Armies:", armies);
 
     if (!tiles || !armies) {
         return (
