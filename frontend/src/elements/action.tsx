@@ -29,7 +29,7 @@ import { Link, Navigate } from "react-router-dom";
 import useSWR, { useSWRConfig } from "swr";
 import { useElementSize } from "usehooks-ts";
 import { useDebounceDeep } from "../utils/react";
-import { useTeamWork } from "./entities";
+import { useTeamSpecialResources } from "./entities";
 import { PrintStickers } from "./printing";
 
 export const activeActionIdAtom = atomWithHash<number | null>(
@@ -756,7 +756,7 @@ function DiceThrowForm(props: {
 }) {
     const [otherInput, setOtherInput] = useState<number>();
     const [otherInputRef, setOtherInputFocus] = useFocus<HTMLInputElement>();
-    const { teamWork } = useTeamWork(props.teamId);
+    const { data: specialres } = useTeamSpecialResources(props.teamId);
 
     const handleThrow = (amount: number) => {
         props.update(props.dots + amount, props.throws + 1);
@@ -770,8 +770,10 @@ function DiceThrowForm(props: {
     };
 
     const throwsLeft =
-        !_.isNil(teamWork) && _.isFinite(Number(teamWork))
-            ? Math.floor(Number(teamWork) / props.throwCost - props.throws)
+        !_.isNil(specialres) && _.isFinite(Number(specialres.work))
+            ? Math.floor(
+                  Number(specialres.work) / props.throwCost - props.throws
+              )
             : "??";
 
     return (

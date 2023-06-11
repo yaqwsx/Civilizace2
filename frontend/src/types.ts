@@ -203,23 +203,32 @@ export interface FeedingRequirements {
     tokensRequired: number;
 }
 
-export interface TeamDashboard {
-    population: { nospec: Decimal; all: Decimal };
+export interface SpecialResources {
     work: Decimal;
+    obyvatels: Decimal;
+    population: Decimal;
     culture: Decimal;
     withdraw_capacity: Decimal;
+}
+
+export interface OrgDashboardInfo {
+    groups: TeamGroupId[];
+    techs: TechId[];
+    attributes: TeamAttributeId[];
+}
+
+export interface TeamDashboard {
+    specialres: SpecialResources;
     worldTurn: TurnId;
     teamTurn: TurnId;
-    researchingTechs: TechEntity[];
+    researching: TechEntity[];
     productions: [ResourceId, Decimal][];
     storage: [ResourceId, Decimal][];
     granary: [ResourceId, number][];
     feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];
     armies: Army[];
-    groups?: TeamGroupId[];
-    techs?: TechId[];
-    attributes?: TeamAttributeId[];
+    orginfo?: OrgDashboardInfo;
 }
 
 // Action

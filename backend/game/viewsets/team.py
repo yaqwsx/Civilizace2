@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, Iterable, NamedTuple, Optional, Union
+from typing import Any, Iterable, NamedTuple, Optional, TypedDict, Union
 
 from django.db import transaction
 from django.db.models.query import QuerySet
@@ -34,6 +34,14 @@ class ChangeTaskSerializer(serializers.Serializer):
     newTask = serializers.CharField(allow_blank=True, allow_null=True)
 
 
+class SpecialResources(TypedDict):
+    work: Decimal
+    obyvatels: Decimal
+    population: Decimal
+    culture: Decimal
+    withdraw_capacity: Decimal
+
+
 class TeamStateInfo(NamedTuple):
     state: GameState
     teamEntity: TeamEntity
@@ -42,6 +50,18 @@ class TeamStateInfo(NamedTuple):
     @property
     def teamState(self) -> TeamState:
         return self.state.teamStates[self.teamEntity]
+
+    def getTeamSpecialResources(self) -> SpecialResources:
+        resources = self.teamState.resources
+        return {
+            "work": resources.get(self.entities.work, Decimal(0)),
+            "obyvatels": resources.get(self.entities.obyvatel, Decimal(0)),
+            "population": self.teamState.population,
+            "culture": resources.get(self.entities.culture, Decimal(0)),
+            "withdraw_capacity": resources.get(
+                self.entities.withdraw_capacity, Decimal(0)
+            ),
+        }
 
     @staticmethod
     def get_latest(teamId: TeamId) -> TeamStateInfo:
@@ -209,12 +229,10 @@ class TeamViewSet(viewsets.ViewSet):
         )
 
     @action(detail=True)
-    def work(self, request: Request, pk: TeamId) -> Response:
+    def special_resources(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         stateInfo = TeamStateInfo.get_latest(pk)
-
-        work = stateInfo.teamState.resources.get(stateInfo.entities.work, Decimal(0))
-        return Response({"work": work})
+        return Response(stateInfo.getTeamSpecialResources())
 
     @action(detail=True, methods=["POST"], permission_classes=[IsOrg])
     @transaction.atomic()
@@ -266,18 +284,10 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                "population": {
-                    "nospec": teamState.resources.get(entities.obyvatel, Decimal(0)),
-                    "all": teamState.population,
-                },
-                "work": teamState.resources.get(entities.work, Decimal(0)),
-                "culture": teamState.resources.get(entities.culture, Decimal(0)),
-                "withdraw_capacity": teamState.resources.get(
-                    entities.withdraw_capacity, Decimal(0)
-                ),
+                "specialres": stateInfo.getTeamSpecialResources(),
                 "worldTurn": stateInfo.state.world.turn,
                 "teamTurn": teamState.turn,
-                "researchingTechs": [serializeEntity(x) for x in teamState.researching],
+                "researching": [serializeEntity(x) for x in teamState.researching],
                 "productions": [(r.id, a) for r, a in teamState.productions.items()],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
                 "granary": [(r.id, a) for r, a in teamState.granary.items()],
@@ -300,7 +310,7 @@ class TeamViewSet(viewsets.ViewSet):
                     self.serializeArmy(army, None)
                     for army in stateInfo.state.map.getTeamArmies(stateInfo.teamEntity)
                 ],
-                **(orgInfo if request.user.is_org else {}),
+                **({"orginfo": orgInfo} if request.user.is_org else {}),
             }
         )
 

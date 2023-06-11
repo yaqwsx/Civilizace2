@@ -13,6 +13,7 @@ import {
     faWarehouse,
     faWheatAwn,
 } from "@fortawesome/free-solid-svg-icons";
+import _ from "lodash";
 import { useState } from "react";
 import QRCode from "react-qr-code";
 import { useSelector } from "react-redux";
@@ -228,7 +229,7 @@ function TeamOverview() {
                 </>
             ) : null}
 
-            {account?.user?.is_org ? (
+            {account?.user?.is_org && !_.isNil(data.orginfo) ? (
                 <CardSection name="Org menu">
                     <Card
                         label="Týmové skupiny"
@@ -236,7 +237,7 @@ function TeamOverview() {
                         icon={faFlag}
                     >
                         <ul>
-                            {data.groups?.map((id: string) => (
+                            {data.orginfo.groups.map((id: string) => (
                                 <li key={id}>
                                     <EntityTag id={id} />
                                 </li>
@@ -249,7 +250,7 @@ function TeamOverview() {
                         icon={faScrewdriverWrench}
                     >
                         <ul>
-                            {data.techs?.map((id: string) => (
+                            {data.orginfo.techs.map((id: string) => (
                                 <li key={id}>
                                     <EntityTag id={id} />
                                 </li>
@@ -262,7 +263,7 @@ function TeamOverview() {
                         icon={faTags}
                     >
                         <ul>
-                            {data.attributes?.map((id: string) => (
+                            {data.orginfo.attributes.map((id: string) => (
                                 <li key={id}>
                                     <EntityTag id={id} />
                                 </li>
@@ -274,7 +275,7 @@ function TeamOverview() {
 
             <CardSection name="Souhrnné informace">
                 <Card label="Populace" color={team.color} icon={faUsers}>
-                    {data.population.nospec}/{data.population.all}
+                    {data.specialres.obyvatels}/{data.specialres.population}
                     <div className="w-full text-center text-sm text-gray-400">
                         (nespecializovaných/celkem)
                     </div>
@@ -285,7 +286,7 @@ function TeamOverview() {
                     color={team.color}
                     icon={faBriefcase}
                 >
-                    {data.work}
+                    {data.specialres.work}
                 </Card>
 
                 <Card label="Kolo" color={team.color} icon={faCalendar}>
@@ -300,7 +301,7 @@ function TeamOverview() {
                     color={team.color}
                     icon={faMasksTheater}
                 >
-                    {data.culture}
+                    {data.specialres.culture}
                 </Card>
             </CardSection>
 
@@ -310,9 +311,9 @@ function TeamOverview() {
                     color={team.color}
                     icon={faCogs}
                 >
-                    {data.researchingTechs.length ? (
+                    {data.researching.length ? (
                         <ul className="list-disc text-left">
-                            {data.researchingTechs.map((t: any) => (
+                            {data.researching.map((t: any) => (
                                 <li key={t.id}>{t.name}</li>
                             ))}
                         </ul>

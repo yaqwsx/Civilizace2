@@ -2,9 +2,9 @@ import _ from "lodash";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {
-    Decimal,
     EntityBase,
     ResourceTeamEntity,
+    SpecialResources,
     Team,
     TechTeamEntity,
     VyrobaTeamEntity,
@@ -21,15 +21,11 @@ export function useEntities<T>(entityType?: string) {
     );
 }
 
-export function useTeamWork(teamId: string | undefined) {
-    const { data, error } = useSWR<{ work: Decimal }>(
-        () => (teamId ? `game/teams/${teamId}/work` : null),
+export function useTeamSpecialResources(teamId: string | undefined) {
+    return useSWR<SpecialResources>(
+        () => (teamId ? `game/teams/${teamId}/special_resources` : null),
         fetcher
     );
-    return {
-        teamWork: data?.work,
-        error,
-    };
 }
 
 export function useTeamEntities<T>(entityType: string, team: Team | undefined) {

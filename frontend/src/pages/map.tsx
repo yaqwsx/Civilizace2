@@ -198,7 +198,7 @@ export function CultureAgenda(props: { team: Team }) {
             actionName={`Udělit kulturu týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                culture: culture,
+                culture,
             }}
             onFinish={() => setAction(RESET)}
             onBack={() => {}}
