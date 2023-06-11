@@ -607,7 +607,6 @@ export function AnyAction() {
                 label={`Vyber ${
                     !noInit ? "Team Interaction" : "No Init"
                 } akci:`}
-                className="my-8"
             >
                 <select
                     value={action?.id ?? ""}

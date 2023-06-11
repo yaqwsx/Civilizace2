@@ -195,7 +195,6 @@ export function PerformAction<TArgs>(props: {
                     ignoreCost={props.ignoreCost}
                     ignoreThrows={props.ignoreThrows}
                 />
-                <div className="my-8 h-1 w-full" />
             </>
         );
     }
@@ -211,26 +210,20 @@ export function PerformAction<TArgs>(props: {
         }
         if (props.ignoreThrows) {
             return (
-                <>
-                    <IgnoreActionDicePhase
-                        actionNumber={phase.data.action}
-                        actionName={props.actionName}
-                        changePhase={changePhase}
-                    />
-                    <div className="my-8 h-1 w-full" />
-                </>
+                <IgnoreActionDicePhase
+                    actionNumber={phase.data.action}
+                    actionName={props.actionName}
+                    changePhase={changePhase}
+                />
             );
         } else {
             return (
-                <>
-                    <ActionDicePhase
-                        actionNumber={phase.data.action}
-                        message={phase.data.message}
-                        actionName={props.actionName}
-                        changePhase={changePhase}
-                    />
-                    <div className="my-8 h-1 w-full" />
-                </>
+                <ActionDicePhase
+                    actionNumber={phase.data.action}
+                    message={phase.data.message}
+                    actionName={props.actionName}
+                    changePhase={changePhase}
+                />
             );
         }
     }
@@ -246,14 +239,11 @@ export function PerformAction<TArgs>(props: {
             );
         }
         return (
-            <>
-                <ActionFinishPhase
-                    response={phase.data}
-                    actionName={props.actionName}
-                    onFinish={props.onFinish}
-                />
-                <div className="my-8 h-1 w-full" />
-            </>
+            <ActionFinishPhase
+                response={phase.data}
+                actionName={props.actionName}
+                onFinish={props.onFinish}
+            />
         );
     }
 
@@ -305,20 +295,16 @@ export function PerformNoInitAction<TArgs>(props: {
                     argsValid={props.argsValid ?? (() => true)}
                     ignoreGameStop={props.ignoreGameStop}
                 />
-                <div className="my-8 h-1 w-full" />
             </>
         );
     }
 
     return (
-        <>
-            <ActionFinishPhase
-                response={actionResponse}
-                actionName={props.actionName}
-                onFinish={props.onFinish}
-            />
-            <div className="my-8 h-1 w-full" />
-        </>
+        <ActionFinishPhase
+            response={actionResponse}
+            actionName={props.actionName}
+            onFinish={props.onFinish}
+        />
     );
 }
 
@@ -499,7 +485,7 @@ function ActionPreviewPhase<TArgs>(props: {
         setInitiateResult(undefined);
     }
 
-    let handleSubmit = () => {
+    const handleSubmit = () => {
         setSubmitting(true);
         axiosService
             .post<ActionResponse>("/game/actions/team/initiate/", {

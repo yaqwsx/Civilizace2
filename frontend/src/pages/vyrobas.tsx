@@ -141,7 +141,7 @@ function SelectVyroba(props: SelectVyrobaProps) {
     return (
         <>
             <h2>Vyberte výrobu</h2>
-            <FormRow label="Vyber výrobu:" className="my-8">
+            <FormRow label="Vyber výrobu:">
                 <select
                     value={vyrobaId ?? ""}
                     onChange={handleChange}

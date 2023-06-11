@@ -317,7 +317,7 @@ function AppFrame(props: AppFrameProps) {
                 >
                     <div
                         id="mainContent"
-                        className="mb-16 w-full px-2 leading-normal text-gray-800 md:mt-2 md:px-0"
+                        className="mb-32 w-full px-2 leading-normal text-gray-800 md:mt-2 md:px-0"
                     >
                         {props.children}
                     </div>
