@@ -40,10 +40,15 @@ export function RequireSuperOrg({ children }: JSX.ElementChildrenAttribute) {
 }
 
 export function InlineSpinner(props: { className?: string }) {
-    let className = classNames("inline-block", "mx-auto", "text-gray-600");
-    if (props.className) className += " " + props.className;
     return (
-        <div className={className}>
+        <div
+            className={classNames(
+                "inline-block",
+                "mx-auto",
+                "text-gray-600",
+                props.className
+            )}
+        >
             <ThreeDots height="100%" />
         </div>
     );
@@ -60,10 +65,15 @@ export function FormRow(props: {
     extra?: JSX.Element;
     children: {};
 }) {
-    let className = "md:flex md:items-center mb-6";
-    if (props.className) className += " " + props.className;
     return (
-        <div className={className}>
+        <div
+            className={classNames(
+                "md:flex",
+                "md:items-center",
+                "my-6",
+                props.className
+            )}
+        >
             <div className="py-1 md:w-1/4">
                 <label className="mb-1 block w-full pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
                     {props.label}
@@ -100,7 +110,7 @@ export function SpinboxInput(props: SpinboxInputType) {
         }
     };
 
-    let buttonClassName = classNames(
+    const buttonClassName = classNames(
         "inline-block",
         "shadow",
         "text-center",
