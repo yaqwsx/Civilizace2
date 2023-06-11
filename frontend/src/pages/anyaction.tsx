@@ -15,7 +15,7 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
-import { useEntities } from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -258,11 +258,34 @@ function GetArgForm(props: ArgFormProps) {
                 entities: props.entities,
             });
 
+            const keyDisplay = (key: any) => {
+                const keyTypeName = keyType.type.toLowerCase();
+                if (
+                    !_.isNil(props.entities[keyTypeName]) ||
+                    keyTypeName === "teamentity"
+                ) {
+                    console.assert(
+                        _.isNil(keyType.values),
+                        "Didn't expect values with entity type",
+                        keyType
+                    );
+                    return <EntityTag id={key} />;
+                }
+                if (!_.isNil(keyType.values)) {
+                    return keyType.values[key];
+                }
+                if (keyTypeName in ["str", "int", "decimal", "bool"]) {
+                    return key;
+                }
+                return;
+            };
+
             return (p: ArgumentFormProps) => (
                 <DictArgForm
                     value={p.value}
                     keyInfo={keyInfo}
                     valueInfo={valueInfo}
+                    keyDisplay={keyDisplay}
                     onChange={p.onChange}
                 />
             );
@@ -319,6 +342,7 @@ function DictArgForm(props: {
     keyInfo: ArgumentInfo;
     valueInfo: ArgumentInfo;
     value: any;
+    keyDisplay: (key: any) => any;
     onChange: (value: any) => void;
 }) {
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -343,12 +367,13 @@ function DictArgForm(props: {
         );
     };
 
-    const addNewKey = (key: any) =>
+    const addNewKey = (key: any) => {
         updateKeyValue(key, props.valueInfo.default);
+    };
     const updateKeyValue = (key: any, value: any) => {
         console.assert(
             _.isString(key),
-            "Key has to be string",
+            "Key has to be string (the dict will be converted to json)",
             typeof key,
             key
         );
@@ -369,27 +394,27 @@ function DictArgForm(props: {
 
     return (
         <div className="w-full">
-            {Object.entries(valueDict).map(([name, value]) => (
+            {Object.entries(valueDict).map(([key, value]) => (
                 <FormRow
-                    key={name}
-                    label={`${name}:`}
-                    error={errors[name] ?? ""}
+                    key={key}
+                    label={<>{props.keyDisplay(key) || key}:</>}
+                    error={errors[key] ?? ""}
                     className="mb-1 flex md:mb-1 md:items-center"
                 >
                     <div className="field flex flex-wrap md:w-3/4">
                         {props.valueInfo.form({
-                            value: valueDict[name],
+                            value: valueDict[key],
                             onChange: (newValue) =>
-                                updateKeyValue(name, newValue),
+                                updateKeyValue(key, newValue),
                             onError: (error) => {
-                                updateArgError(name, error);
+                                updateArgError(key, error);
                             },
                         })}
                     </div>
                     <Button
                         label="-"
                         onClick={() => {
-                            removeKey(name);
+                            removeKey(key);
                         }}
                         className="m-1 bg-red-700 hover:bg-red-800"
                     />
