@@ -67,16 +67,10 @@ class NoInitActionViewSet(viewsets.ViewSet):
         state = dbState.toIr()
         sourceState = dbState.toIr()
 
-        msgBuilder = MessageBuilder()
-
         try:
             if not ignoreGameStop:
                 ActionViewHelper._ensureGameIsRunning(data["action"])
-        except ActionFailed as e:
-            msgBuilder += str(e)
-            msgBuilder += "Ignoruje se zastavení hry pro preview."
 
-        try:
             action = ActionViewHelper.constructAction(
                 data["action"], data["args"], entities, state
             )
