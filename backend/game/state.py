@@ -295,7 +295,7 @@ class TeamState(StateModel):
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
-        stickers.update(self._unlocked_without_tiles())
+        stickers.update(self._unlocked())
         return stickers
 
     def add_newborns(self, amount: int, entities: Entities) -> None:
@@ -329,37 +329,27 @@ class TeamState(StateModel):
             if resource.isWithdrawable
         }
 
-    def _unlocked_without_tiles(self) -> Iterable[EntityWithCost]:
-        """Does not return BuildingUpgrades since they depend on the current owned tiles.
-
-        Will return multiple copies, so it should be collected into a set/dict.
-        """
+    def _unlocked(self) -> Iterable[EntityWithCost]:
+        """Will return multiple copies, so it should be collected into a set/dict."""
         return itertools.chain(
             (e for group in self.team.groups for e in group.unlocks),
             (e for tech in self.techs for e in tech.unlocks),
         )
 
     def unlocked_techs(self) -> set[Tech]:
-        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Tech))
+        return set(e for e in self._unlocked() if isinstance(e, Tech))
 
     def unlocked_vyrobas(self) -> set[Vyroba]:
-        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Vyroba))
+        return set(e for e in self._unlocked() if isinstance(e, Vyroba))
 
     def unlocked_buildings(self) -> set[Building]:
-        return set(e for e in self._unlocked_without_tiles() if isinstance(e, Building))
+        return set(e for e in self._unlocked() if isinstance(e, Building))
 
     def unlocked_attributes(self) -> set[TeamAttribute]:
-        return set(
-            e for e in self._unlocked_without_tiles() if isinstance(e, TeamAttribute)
-        )
+        return set(e for e in self._unlocked() if isinstance(e, TeamAttribute))
 
     def unlocked_building_upgrades(self) -> set[BuildingUpgrade]:
-        return set(
-            upgrade
-            for building in self._unlocked_without_tiles()
-            if isinstance(building, Building)
-            for upgrade in building.upgrades
-        )
+        return set(e for e in self._unlocked() if isinstance(e, BuildingUpgrade))
 
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:
