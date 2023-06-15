@@ -20,7 +20,6 @@ def test_initiate():
         vyroba=entities.vyrobas["vyr-drevo1Mat"],
         count=1,
         tile=team.homeTile.entity,
-        plunder=False,
         team=teamEntity,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -64,7 +63,6 @@ def test_simple():
         vyroba=entities.vyrobas["vyr-drevo1Mat"],
         count=1,
         tile=team.homeTile.entity,
-        plunder=False,
         team=teamEntity,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -91,7 +89,6 @@ def test_production():
         vyroba=entities.vyrobas["vyr-drevo1Pro"],
         count=1,
         tile=team.homeTile.entity,
-        plunder=False,
         team=teamEntity,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -118,7 +115,6 @@ def test_distance():
         vyroba=entities.vyrobas["vyr-drevo1Mat"],
         count=1,
         tile=entities.tiles["map-tile06"],
-        plunder=False,
         team=teamEntity,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -140,7 +136,6 @@ def test_richnessMaterial():
         vyroba=entities.vyrobas["vyr-drevoLes"],
         count=2,
         tile=tile.entity,
-        plunder=False,
         team=team.team,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -175,7 +170,6 @@ def test_richnessProduction():
         vyroba=entities.vyrobas["vyr-drevoProdLes"],
         count=2,
         tile=tile.entity,
-        plunder=False,
         team=team.team,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
@@ -198,76 +192,6 @@ def test_richnessProduction():
     assert tile.richnessTokens == 8
 
 
-def test_plunderMaterial():
-    entities = TEST_ENTITIES
-    state = createTestInitState()
-    team = state.teamStates[entities.teams["tym-zluti"]]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
-    tile = state.map.tiles[27]
-    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
-
-    args = VyrobaArgs(
-        vyroba=entities.vyrobas["vyr-drevoLes"],
-        count=2,
-        tile=tile.entity,
-        plunder=True,
-        team=team.team,
-    )
-    action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
-
-    initResult = action.applyInitiate()
-    commitResult = action.commitThrows(throws=1, dots=20)
-    assert len(commitResult.scheduledActions) == 1
-    scheduled = commitResult.scheduledActions[0]
-    delayedResult = scheduled.actionType.makeAction(
-        state, entities, scheduled.args
-    ).commit()
-
-    assert team.resources == {
-        entities.work: 70,
-        entities.obyvatel: 100,
-        entities.productions["pro-drevo"]: 20,
-    }
-    assert "+80%" in delayedResult.message
-    assert "[[mat-drevo|5]]" in delayedResult.message
-    assert tile.richnessTokens == 6
-
-
-def test_plunderProduction():
-    entities = TEST_ENTITIES
-    state = createTestInitState()
-    team = state.teamStates[entities.teams["tym-zluti"]]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
-    tile = state.map.tiles[27]
-    sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
-
-    args = VyrobaArgs(
-        vyroba=entities.vyrobas["vyr-drevoProdLes"],
-        count=4,
-        tile=tile.entity,
-        plunder=True,
-        team=team.team,
-    )
-    action = VyrobaAction.makeAction(state=state, entities=entities, args=args)
-
-    initResult = action.applyInitiate()
-    commitResult = action.commitThrows(throws=1, dots=20)
-    assert len(commitResult.scheduledActions) == 1
-    scheduled = commitResult.scheduledActions[0]
-    delayedResult = scheduled.actionType.makeAction(
-        state, entities, scheduled.args
-    ).commit()
-
-    assert team.resources == {
-        entities.work: 50,
-        entities.obyvatel: 96,
-        entities.productions["pro-drevo"]: Decimal("31.2"),
-    }
-    assert "+80%" in delayedResult.message
-    assert "[[pro-drevo|11.2]]" in delayedResult.message
-    assert tile.richnessTokens == 4
-
-
 def test_featureMissing():
     entities = TEST_ENTITIES
     state = createTestInitState()
@@ -279,7 +203,6 @@ def test_featureMissing():
         vyroba=entities.vyrobas["vyr-drevoProdLes"],
         count=2,
         tile=tile.entity,
-        plunder=False,
         team=team.team,
     )
     action = VyrobaAction.makeAction(state=state, entities=entities, args=args)

@@ -206,7 +206,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
     const [count, setCount] = useState(1);
     const [tile, setTile] = useState<string>();
-    const [plunder, setPlunder] = useState(false);
 
     const vyroba = props.vyroba;
 
@@ -240,7 +239,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                 tile,
                 vyroba: props.vyroba.id,
                 count,
-                plunder,
             }}
             argsValid={(a) => Boolean(a.tile)}
             onFinish={() => props.onReset()}
@@ -273,14 +271,6 @@ function PerformVyroba(props: PerformVyrobaProps) {
                                     </option>
                                 ))}
                         </select>
-                    </FormRow>
-                    <FormRow label="Chcete pole drancovat? (+50%)">
-                        <input
-                            className="checkboxinput"
-                            type="checkbox"
-                            checked={plunder}
-                            onChange={(e) => setPlunder(e.target.checked)}
-                        />
                     </FormRow>
                     <h2>
                         {count}× {vyroba.name} →{" "}

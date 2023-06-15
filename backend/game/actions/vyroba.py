@@ -19,13 +19,11 @@ from game.entities import Resource, Vyroba
 class VyrobaArgs(TeamActionArgs, TileActionArgs):
     vyroba: Vyroba
     count: int
-    plunder: bool
 
 
 class VyrobaReward(NamedTuple):
     reward: dict[Resource, Decimal]
     bonus: Decimal
-    plundered: Optional[int]
 
     def tracked(self) -> dict[Resource, Decimal]:
         return {
@@ -37,15 +35,8 @@ def computeVyrobaReward(args: VyrobaArgs, tileState: state.MapTile) -> VyrobaRew
     resource, amount = args.vyroba.reward
 
     bonus = Decimal(tileState.richnessTokens) / 10
-    if args.plunder:
-        plundered = min(tileState.richnessTokens, args.count)
-        tileState.richnessTokens -= plundered
-        assert tileState.richnessTokens >= 0
-    else:
-        plundered = None
-
-    reward = {resource: amount * (1 + bonus) * (args.count + (plundered or 0))}
-    return VyrobaReward(reward=reward, bonus=bonus, plundered=plundered)
+    reward = {resource: amount * (1 + bonus) * args.count}
+    return VyrobaReward(reward=reward, bonus=bonus)
 
 
 class VyrobaAction(TeamInteractionActionBase):
@@ -115,8 +106,6 @@ class VyrobaAction(TeamInteractionActionBase):
             )
             if reward.bonus != 0:
                 self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
-            if reward.plundered is not None:
-                self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
 
 class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
@@ -144,8 +133,6 @@ class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
         )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
-        if reward.plundered is not None:
-            self._info += f"Odebráno {reward.plundered} jednotek úrody"
 
         msgBuilder = MessageBuilder()
         if not self._warnings.empty:
