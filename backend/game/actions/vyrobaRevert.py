@@ -12,7 +12,7 @@ class VyrobaRevertArgs(TeamActionArgs):
     count: int
 
 
-class VyrobaRevert(TeamInteractionActionBase):
+class VyrobaRevertAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> VyrobaRevertArgs:
@@ -39,7 +39,7 @@ class VyrobaRevert(TeamInteractionActionBase):
         )
         teamState = self.teamState
         self._ensureStrong(
-            self.args.vyroba not in teamState.employees,
+            self.args.vyroba in teamState.employees,
             f"Tým nemá [[{self.args.vyroba.id}]]",
         )
         self._ensureStrong(
@@ -59,12 +59,12 @@ class VyrobaRevert(TeamInteractionActionBase):
         self.teamState.employees.setdefault(self.args.vyroba, 0)
         self.teamState.employees[self.args.vyroba] -= self.args.count
         assert self.teamState.employees[self.args.vyroba] >= 0
-        self._info += f"{self.args.count}× [[{self.args.vyroba.id}]] přestal pracovat"
+        self._info += f"Obyvatelé přestali být specializovaní: {self.args.count}× [[{self.args.vyroba.id}]]"
 
         revertedRes, revertedAmount = self.getRevertedResources()
         tokens = self._payResources({revertedRes: revertedAmount})
         assert len(tokens) == 0
-        self._info += f"Tým přišel o výrobu {revertedAmount}× [[{revertedRes}]]"
+        self._info += f"Tým přišel o výrobu {revertedAmount}× [[{revertedRes.id}]]"
 
         return_obyvatel_count = self.getReturnObyvatelCount()
         self._receiveResources({self.entities.obyvatel: return_obyvatel_count})

@@ -390,7 +390,7 @@ export function RevertVyrobaAgenda(props: { team: Team }) {
     return (
         <PerformAction
             actionName={`Vrácení výroby${
-                vyroba ? ` ${count}× [[${vyroba.id}]]` : ""
+                vyroba ? ` ${count}× ${vyroba.name}` : ""
             } pro tým ${props.team.name}`}
             actionId="VyrobaRevertAction"
             actionArgs={{
@@ -398,7 +398,7 @@ export function RevertVyrobaAgenda(props: { team: Team }) {
                 vyroba: vyroba?.id,
                 count,
             }}
-            argsValid={(a) => Boolean(a.vyroba && count > 0)}
+            argsValid={(a) => !_.isNil(a.vyroba)}
             onFinish={() => setAction(RESET)}
             onBack={() => setAction(RESET)}
             extraPreview={
@@ -408,18 +408,21 @@ export function RevertVyrobaAgenda(props: { team: Team }) {
                             value={vyroba}
                             team={props.team}
                             onChange={setVyroba}
-                            filter={(value) => employees[value.id] > 0}
+                            filter={(value) => (employees[value.id] ?? 0) > 0}
                         />
                     </FormRow>
-                    <FormRow label="Zadejte počet výrob k vrácení:">
+                    <FormRow
+                        label={`Zadejte počet výrob k vrácení${
+                            !_.isNil(vyroba)
+                                ? ` (max ${employees[vyroba.id] ?? 0})`
+                                : ""
+                        }:`}
+                    >
                         <SpinboxInput
                             value={count}
                             onChange={(v) => setCount(v >= 0 ? v : 0)}
                         />
                     </FormRow>
-                    <h2>
-                        Vrácení {count}× <EntityTag id={vyroba?.id ?? ""} />
-                    </h2>
                 </>
             }
         />

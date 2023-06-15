@@ -38,12 +38,12 @@ function EntitySelectForm<TEntity extends EntityBase>(props: {
             value={props.value?.id ?? ""}
             onChange={(e) =>
                 props.onChange(
-                    props.entities.find((value) => value.id === e.target.value)
+                    entities.find((value) => value.id === e.target.value)
                 )
             }
         >
             <option value="">{props.emptyLabel}</option>
-            {props.entities.map((e) => (
+            {entities.map((e) => (
                 <option key={e.id} value={e.id}>
                     {e.name}
                 </option>
