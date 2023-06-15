@@ -11,6 +11,8 @@ import {
     Team,
     TeamAttributeEntity,
     TeamAttributeTeamEntity,
+    VyrobaEntity,
+    VyrobaTeamEntity,
 } from "../types";
 import { useEntities, useTeamEntities } from "./entities";
 
@@ -117,7 +119,7 @@ function TeamEntitySelect<TEntity extends EntityBase>(props: {
 }
 export function TileSelect(props: {
     value?: MapTileEntity;
-    onChange: (tile?: MapTileEntity) => void;
+    onChange: (value?: MapTileEntity) => void;
     filter?: (value: MapTileEntity) => boolean;
     sortBy?: _.Many<_.ListIteratee<MapTileEntity>>;
     className?: string;
@@ -134,7 +136,7 @@ export function TileSelect(props: {
 export function TileTeamSelect(props: {
     team: Team;
     value?: MapTileTeamEntity;
-    onChange: (tile?: MapTileTeamEntity) => void;
+    onChange: (value?: MapTileTeamEntity) => void;
     filter?: (value: MapTileTeamEntity) => boolean;
     sortBy?: _.Many<_.ListIteratee<MapTileTeamEntity>>;
     className?: string;
@@ -143,6 +145,39 @@ export function TileTeamSelect(props: {
         <TeamEntitySelect<MapTileTeamEntity>
             entityType="tiles"
             emptyLabel="Žádné políčko"
+            {...props}
+        />
+    );
+}
+
+export function VyrobaSelect(props: {
+    value?: VyrobaEntity;
+    onChange: (value?: VyrobaEntity) => void;
+    filter?: (value: VyrobaEntity) => boolean;
+    sortBy?: _.Many<_.ListIteratee<VyrobaEntity>>;
+    className?: string;
+}) {
+    return (
+        <EntitySelect<VyrobaEntity>
+            entityType="vyrobas"
+            emptyLabel="Žádná výroba"
+            {...props}
+        />
+    );
+}
+
+export function VyrobaTeamSelect(props: {
+    team: Team;
+    value?: VyrobaTeamEntity;
+    onChange: (value?: VyrobaTeamEntity) => void;
+    filter?: (value: VyrobaTeamEntity) => boolean;
+    sortBy?: _.Many<_.ListIteratee<VyrobaTeamEntity>>;
+    className?: string;
+}) {
+    return (
+        <TeamEntitySelect<VyrobaTeamEntity>
+            entityType="vyrobas"
+            emptyLabel="Žádná výroba"
             {...props}
         />
     );

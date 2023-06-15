@@ -20,6 +20,7 @@ import {
     BuildingUpgradeTeamSelect,
     TeamAttributeSelect,
     TileTeamSelect,
+    VyrobaTeamSelect,
 } from "../elements/entities_select";
 import { ErrorMessage } from "../elements/messages";
 import {
@@ -37,6 +38,8 @@ import {
     ResourceEntity,
     Team,
     TeamAttributeTeamEntity,
+    VyrobaId,
+    VyrobaTeamEntity,
 } from "../types";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
@@ -52,6 +55,7 @@ enum MapActionType {
     building,
     buildingUpgrade,
     addAttribute,
+    revertVyroba,
     trade,
     addCulture,
 }
@@ -67,8 +71,9 @@ function MapActionColorClassNames(action: MapActionType): string {
             return "bg-orange-600 hover:bg-orange-700";
         case MapActionType.building:
         case MapActionType.buildingUpgrade:
-            return "bg-purple-600 hover:bg-purple-700";
         case MapActionType.addAttribute:
+            return "bg-purple-600 hover:bg-purple-700";
+        case MapActionType.revertVyroba:
             return "bg-red-500 hover:bg-red-600";
         case MapActionType.trade:
             return "bg-yellow-500 hover:bg-yellow-600";
@@ -94,6 +99,8 @@ function MapActionName(action: MapActionType): string {
             return "Vylepšit budovu";
         case MapActionType.addAttribute:
             return "Získat vlastnost";
+        case MapActionType.revertVyroba:
+            return "Vrátit výrobu";
         case MapActionType.trade:
             return "Obchodovat";
         case MapActionType.addCulture:
@@ -121,6 +128,8 @@ function MapActionAgenda(props: {
             return <BuildingUpgradeAgenda team={props.team} />;
         case MapActionType.addAttribute:
             return <AddAttributeAgenda team={props.team} />;
+        case MapActionType.revertVyroba:
+            return <RevertVyrobaAgenda team={props.team} />;
         case MapActionType.trade:
             return <TradeAgenda team={props.team} />;
         case MapActionType.addCulture:
@@ -349,6 +358,66 @@ export function AddAttributeAgenda(props: { team: Team }) {
                             filter={(value) => !value.owned}
                         />
                     </FormRow>
+                </>
+            }
+        />
+    );
+}
+
+export function RevertVyrobaAgenda(props: { team: Team }) {
+    const setAction = useSetAtom(urlMapActionAtom);
+    const { data: employees, error } = useSWR<Record<VyrobaId, number>>(
+        `game/teams/${props.team.id}/employees`,
+        fetcher
+    );
+    const [vyroba, setVyroba] = useState<VyrobaTeamEntity>();
+    const [count, setCount] = useState<number>(1);
+
+    if (!employees) {
+        return <LoadingOrError error={error} message="Něco se pokazilo" />;
+    }
+
+    if (Object.keys(employees).length === 0) {
+        return (
+            <ErrorMessage>
+                Tým nemá žádné výroby, které by mohl vrátit
+            </ErrorMessage>
+        );
+    }
+
+    return (
+        <PerformAction
+            actionName={`Vrácení výroby${
+                vyroba ? ` ${count}× [[${vyroba.id}]]` : ""
+            } pro tým ${props.team.name}`}
+            actionId="VyrobaRevertAction"
+            actionArgs={{
+                team: props.team.id,
+                vyroba: vyroba?.id,
+                count,
+            }}
+            argsValid={(a) => Boolean(a.vyroba && count > 0)}
+            onFinish={() => setAction(RESET)}
+            onBack={() => setAction(RESET)}
+            extraPreview={
+                <>
+                    <FormRow label="Vyber výrobu na vrácení:">
+                        <VyrobaTeamSelect
+                            value={vyroba}
+                            team={props.team}
+                            onChange={setVyroba}
+                            filter={(value) => employees[value.id] > 0}
+                        />
+                    </FormRow>
+                    <FormRow label="Zadejte počet výrob k vrácení:">
+                        <SpinboxInput
+                            value={count}
+                            onChange={(v) => setCount(v >= 0 ? v : 0)}
+                        />
+                    </FormRow>
+                    <h2>
+                        Vrácení {count}× <EntityTag id={vyroba?.id ?? ""} />
+                    </h2>
                 </>
             }
         />
