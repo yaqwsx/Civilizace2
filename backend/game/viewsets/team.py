@@ -291,6 +291,7 @@ class TeamViewSet(viewsets.ViewSet):
                 "productions": [(r.id, a) for r, a in teamState.productions.items()],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
                 "granary": [(r.id, a) for r, a in teamState.granary.items()],
+                "employees": [(e.id, a) for e, a in teamState.employees.items()],
                 "feeding": stateSerialize(
                     computeFeedRequirements(
                         stateInfo.state, entities, stateInfo.teamEntity
@@ -371,11 +372,7 @@ class TeamViewSet(viewsets.ViewSet):
     def employees(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
-        employees = teamState.employees
-        assert all(amount >= 0 for amount in employees.values())
-        return Response(
-            {res.id: amount for res, amount in employees.items() if amount > 0}
-        )
+        return Response({res.id: amount for res, amount in teamState.employees.items()})
 
     @action(detail=True)
     def feeding(self, request: Request, pk: TeamId) -> Response:

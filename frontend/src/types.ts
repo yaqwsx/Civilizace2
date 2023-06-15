@@ -225,6 +225,7 @@ export interface TeamDashboard {
     productions: [ResourceId, Decimal][];
     storage: [ResourceId, Decimal][];
     granary: [ResourceId, number][];
+    employees: [VyrobaId, number][];
     feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];
     armies: Army[];

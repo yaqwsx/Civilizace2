@@ -2,6 +2,7 @@ import _ from "lodash";
 import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {
+    Decimal,
     EntityBase,
     ResourceTeamEntity,
     SpecialResources,
@@ -65,7 +66,7 @@ export function useTeamTechs(team: Team | undefined) {
     };
 }
 
-export function EntityTag(props: { id: string; quantity?: number }) {
+export function EntityTag(props: { id: string; quantity?: Decimal }) {
     const { data } = useEntities();
     let isProduction = String(props.id).startsWith("pro-");
     let name = props.id;

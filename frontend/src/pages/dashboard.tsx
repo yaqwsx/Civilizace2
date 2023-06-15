@@ -9,6 +9,7 @@ import {
     faSeedling,
     faShieldAlt,
     faTags,
+    faUserGraduate,
     faUsers,
     faWarehouse,
     faWheatAwn,
@@ -313,8 +314,8 @@ function TeamOverview() {
                 >
                     {data.researching.length ? (
                         <ul className="list-disc text-left">
-                            {data.researching.map((t: any) => (
-                                <li key={t.id}>{t.name}</li>
+                            {data.researching.map((tech) => (
+                                <li key={tech.id}>{tech.name}</li>
                             ))}
                         </ul>
                     ) : (
@@ -329,9 +330,9 @@ function TeamOverview() {
                 >
                     {data.productions.length ? (
                         <ul className="list-disc text-left">
-                            {data.productions.map((p: any) => (
-                                <li key={p[0]}>
-                                    <EntityTag id={p[0]} quantity={p[1]} />
+                            {data.productions.map(([id, amount]) => (
+                                <li key={id}>
+                                    <EntityTag id={id} quantity={amount} />
                                 </li>
                             ))}
                         </ul>
@@ -347,9 +348,9 @@ function TeamOverview() {
                 >
                     {data.storage.length ? (
                         <ul className="list-disc text-left">
-                            {data.storage.map((p: any) => (
-                                <li key={p[0]}>
-                                    <EntityTag id={p[0]} quantity={p[1]} />
+                            {data.storage.map(([id, amount]) => (
+                                <li key={id}>
+                                    <EntityTag id={id} quantity={amount} />
                                 </li>
                             ))}
                         </ul>
@@ -399,6 +400,23 @@ function TeamOverview() {
                         </>
                     ) : (
                         <span>Zatím nezásobujete centrum</span>
+                    )}
+                </Card>
+                <Card
+                    label="Specializovaní obyvatelé"
+                    color={team.color}
+                    icon={faUserGraduate}
+                >
+                    {data.employees.length ? (
+                        <ul className="list-disc text-left">
+                            {data.employees.map(([id, amount]) => (
+                                <li key={id}>
+                                    <EntityTag id={id} quantity={amount} />
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <span>Žádní specializovaní obyvatelé</span>
                     )}
                 </Card>
             </CardSection>
