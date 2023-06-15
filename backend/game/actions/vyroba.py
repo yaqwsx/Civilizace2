@@ -12,9 +12,8 @@ from game.actions.actionBase import (
     TeamInteractionActionBase,
     TileActionArgs,
 )
-from game.actions.common import MessageBuilder
+from game.actions.common import MessageBuilder, printResourceListForMarkdown
 from game.entities import Resource, Vyroba
-from game.state import printResourceListForMarkdown
 
 
 class VyrobaArgs(TeamActionArgs, TileActionArgs):

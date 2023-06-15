@@ -1,9 +1,8 @@
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.actions.common import MessageBuilder
+from game.actions.common import MessageBuilder, printResourceListForMarkdown
 from game.entities import Resource
-from game.state import printResourceListForMarkdown
 
 
 class GranaryArgs(TeamActionArgs):

@@ -406,19 +406,3 @@ class GameState(StateModel):
             team.granary = {
                 res: amount for res, amount in team.granary.items() if amount > 0
             }
-
-
-def printResourceListForMarkdown(
-    resources: Mapping[Resource, Union[Decimal, int]],
-    roundFunction: Callable[[Decimal], Any] = lambda x: x,
-    *,
-    header: str = "",
-    emptyHeader: str = "",
-) -> str:
-    if len(resources) == 0:
-        return emptyHeader
-    message = MessageBuilder()
-    with message.startList(header=header) as addLine:
-        for resource, amount in resources.items():
-            addLine(f"[[{resource.id}|{roundFunction(Decimal(amount))}]]")
-    return message.message

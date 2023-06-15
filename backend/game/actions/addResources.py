@@ -3,8 +3,8 @@ from decimal import Decimal
 from typing_extensions import override
 
 from game.actions.actionBase import NoInitActionBase, TeamActionArgs, TeamActionBase
+from game.actions.common import printResourceListForMarkdown
 from game.entities import Resource
-from game.state import printResourceListForMarkdown
 
 
 class AddResourcesArgs(TeamActionArgs):

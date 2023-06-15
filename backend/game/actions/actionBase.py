@@ -8,9 +8,13 @@ from typing import Mapping, NamedTuple, Type, TypeVar, Union
 from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
 
-from game.actions.common import ActionFailed, MessageBuilder
+from game.actions.common import (
+    ActionFailed,
+    MessageBuilder,
+    printResourceListForMarkdown,
+)
 from game.entities import Entities, MapTileEntity, Resource, TeamEntity
-from game.state import GameState, MapTile, TeamState, printResourceListForMarkdown
+from game.state import GameState, MapTile, TeamState
 
 
 class ActionArgs(BaseModel):

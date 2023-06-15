@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import contextlib
 from decimal import Decimal
-from typing import Callable, Generator, Union
+from typing import Any, Callable, Generator, Mapping, Union
 
 from pydantic import BaseModel
 
-from game.entities import Entity
+from game.entities import Entity, Resource
 
 
 class ActionFailed(Exception):
@@ -74,3 +74,19 @@ class MessageBuilder(BaseModel):
     @property
     def empty(self) -> bool:
         return len(self.message) == 0
+
+
+def printResourceListForMarkdown(
+    resources: Mapping[Resource, Union[Decimal, int]],
+    roundFunction: Callable[[Decimal], Any] = lambda x: x,
+    *,
+    header: str = "",
+    emptyHeader: str = "",
+) -> str:
+    if len(resources) == 0:
+        return emptyHeader
+    message = MessageBuilder()
+    with message.startList(header=header) as addLine:
+        for resource, amount in resources.items():
+            addLine(f"[[{resource.id}|{roundFunction(Decimal(amount))}]]")
+    return message.message
