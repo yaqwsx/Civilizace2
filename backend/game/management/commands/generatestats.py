@@ -227,10 +227,6 @@ def plotTeamGraph(team, overview, outputdir):
                         <td>Postaveno budov</td>
                         <td>{overview.get("buildings", 0)}</td>
                     </tr>
-                     <tr>
-                        <td>Postaveno cest</td>
-                        <td>{overview.get("roads", 0)}</td>
-                    </tr>
                     <tr>
                         <td>Technologií vyzkoumáno jako první</td>
                         <td>{max(0, overview.get("techsFirst", 0) - 7)}</td>
@@ -393,8 +389,6 @@ class Command(BaseCommand):
                 overview[t]["attacks"] = overview[t].get("attacks", 0) + 1
             if action.actionType == "BuildAction":
                 overview[t]["buildings"] = overview[t].get("buildings", 0) + 1
-            if action.actionType == "BuildRoadAction":
-                overview[t]["roads"] = overview[t].get("roads", 0) + 1
 
         techStickers = list(DbSticker.objects.filter(type=StickerType.techFirst))
         for t, o in overview.items():

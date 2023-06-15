@@ -51,7 +51,6 @@ enum MapActionType {
     army,
     building,
     buildingUpgrade,
-    buildRoad,
     addAttribute,
     trade,
     addCulture,
@@ -68,7 +67,6 @@ function MapActionColorClassNames(action: MapActionType): string {
             return "bg-orange-600 hover:bg-orange-700";
         case MapActionType.building:
         case MapActionType.buildingUpgrade:
-        case MapActionType.buildRoad:
             return "bg-purple-600 hover:bg-purple-700";
         case MapActionType.addAttribute:
             return "bg-red-500 hover:bg-red-600";
@@ -94,8 +92,6 @@ function MapActionName(action: MapActionType): string {
             return "Stavět budovu";
         case MapActionType.buildingUpgrade:
             return "Vylepšit budovu";
-        case MapActionType.buildRoad:
-            return "Postavit cestu";
         case MapActionType.addAttribute:
             return "Získat vlastnost";
         case MapActionType.trade:
@@ -123,8 +119,6 @@ function MapActionAgenda(props: {
             return <BuildingAgenda team={props.team} />;
         case MapActionType.buildingUpgrade:
             return <BuildingUpgradeAgenda team={props.team} />;
-        case MapActionType.buildRoad:
-            return <BuildRoadAgenda team={props.team} />;
         case MapActionType.addAttribute:
             return <AddAttributeAgenda team={props.team} />;
         case MapActionType.trade:
@@ -261,42 +255,6 @@ export function BuildingAgenda(props: { team: Team }) {
                 }
             />
         </>
-    );
-}
-
-export function BuildRoadAgenda(props: { team: Team }) {
-    const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<MapTileTeamEntity>();
-
-    return (
-        <PerformAction
-            actionId="BuildRoadAction"
-            actionName={`Postavit cestu týmem ${props.team.name}`}
-            actionArgs={{
-                team: props.team.id,
-                tile: tile?.id,
-            }}
-            argsValid={(a: any) => a?.tile || false}
-            onBack={() => {}}
-            onFinish={() => {
-                setAction(RESET);
-            }}
-            extraPreview={
-                <>
-                    <h1>Postavit cestu týmem {props.team.name}</h1>
-                    <FormRow
-                        label="Vyberte políčko kam se bude stavět"
-                        error={!tile ? "Je třeba vybrat pole" : null}
-                    >
-                        <TileTeamSelect
-                            team={props.team}
-                            value={tile}
-                            onChange={setTile}
-                        />
-                    </FormRow>
-                </>
-            }
-        />
     );
 }
 

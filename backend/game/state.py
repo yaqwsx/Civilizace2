@@ -195,9 +195,6 @@ class MapState(StateModel):
         if relativeIndex != tile.index - home.index:
             distance *= Decimal(0.8)  # Tiles are around the map
         multiplier = Decimal(1)
-        teamState = teamStates[team]
-        if tile in teamState.roadsTo:
-            multiplier -= Decimal(0.5)
         if self.getOccupyingTeam(tile, teamStates) == team:
             multiplier -= Decimal(0.5)
         return distance * multiplier
@@ -286,8 +283,6 @@ class TeamState(StateModel):
     techs: set[Tech]
     researching: set[Tech] = set()
     attributes: set[TeamAttribute] = set()
-
-    roadsTo: set[MapTileEntity] = set()
 
     resources: dict[Resource, Decimal]
     granary: dict[Resource, int] = {}
