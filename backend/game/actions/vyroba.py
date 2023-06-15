@@ -62,13 +62,6 @@ class VyrobaAction(TeamInteractionActionBase):
     def pointsCost(self) -> int:
         return ceil(self.args.vyroba.points * (1 + self.args.count) / 2)
 
-    def travelTime(self) -> int:
-        return ceil(
-            self.state.map.getActualDistance(
-                self.args.team, self.args.tile, self.state.teamStates
-            )
-        )
-
     @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
@@ -84,60 +77,19 @@ class VyrobaAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        if travelTime := self.travelTime() > 0:
-            scheduled = self._scheduleAction(
-                VyrobaCompletedAction, self.args, travelTime
-            )
-            self._info += f"Zadání výroby bylo úspěšné. Akce se vyhodnotí za {ceil(scheduled.delay_s / 60)} minut."
-        else:
-            self._info += f"Zadání výroby bylo úspěšné."
-            reward = computeVyrobaReward(self.args, self.args.tileState(self.state))
-
-            instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
-            self._info += printResourceListForMarkdown(
-                instantReward,
-                floor,
-                header="Dejte týmu materiály:",
-                emptyHeader="Nedávejte týmu žádné materiály",
-            )
-
-            self._info += printResourceListForMarkdown(
-                reward.tracked(), header="Tým obdržel v systému:"
-            )
-            if reward.bonus != 0:
-                self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
-
-
-class VyrobaCompletedAction(TeamActionBase, NoInitActionBase):
-    @property
-    @override
-    def args(self) -> VyrobaArgs:
-        assert isinstance(self._generalArgs, VyrobaArgs)
-        return self._generalArgs
-
-    @property
-    @override
-    def description(self) -> str:
-        return f"Dokončení výroby {self.args.vyroba.name} na poli {self.args.tile.name} ({self.args.team.name})"
-
-    @override
-    def _commitImpl(self) -> None:
+        self._info += f"Zadání výroby bylo úspěšné."
         reward = computeVyrobaReward(self.args, self.args.tileState(self.state))
 
-        self._receiveResources(reward.reward)
+        instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
+        self._info += printResourceListForMarkdown(
+            instantReward,
+            floor,
+            header="Dejte týmu materiály:",
+            emptyHeader="Nedávejte týmu žádné materiály",
+        )
 
         self._info += printResourceListForMarkdown(
-            reward.reward,
-            header="Obdrželi jste v systému:",
-            emptyHeader="Neobdrželi jste žádné materiály",
+            reward.tracked(), header="Tým obdržel v systému:"
         )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
-
-        msgBuilder = MessageBuilder()
-        if not self._warnings.empty:
-            msgBuilder += f"Výroba [[{self.args.vyroba.id}]] na poli [[{self.args.tile.id}]] se nezdařila:"
-            msgBuilder += self._warnings
-
-        msgBuilder += self._info
-        self._addNotification(self.args.team, msgBuilder.message)
