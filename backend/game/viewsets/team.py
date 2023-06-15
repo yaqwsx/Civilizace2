@@ -364,6 +364,16 @@ class TeamViewSet(viewsets.ViewSet):
         )
 
     @action(detail=True)
+    def employees(self, request: Request, pk: TeamId) -> Response:
+        self.validateAccess(request.user, pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
+        employees = teamState.employees
+        assert all(amount >= 0 for amount in employees.values())
+        return Response(
+            {res.id: amount for res, amount in employees.items() if amount > 0}
+        )
+
+    @action(detail=True)
     def feeding(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         stateInfo = TeamStateInfo.get_latest(pk)

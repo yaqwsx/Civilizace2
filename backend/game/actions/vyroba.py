@@ -1,18 +1,16 @@
 from decimal import Decimal
 from math import ceil, floor
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 
 from typing_extensions import override
 
 from game import state
 from game.actions.actionBase import (
-    NoInitActionBase,
     TeamActionArgs,
-    TeamActionBase,
     TeamInteractionActionBase,
     TileActionArgs,
 )
-from game.actions.common import MessageBuilder, printResourceListForMarkdown
+from game.actions.common import printResourceListForMarkdown
 from game.entities import Resource, Vyroba
 
 
@@ -64,6 +62,7 @@ class VyrobaAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        self._ensureStrong(self.args.count > 0, f"Počet výrob musí být kladný")
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
             == self.args.team,
@@ -74,6 +73,14 @@ class VyrobaAction(TeamInteractionActionBase):
                 feature in self.args.tileState(self.state).features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",
             )
+
+    def revertible(self) -> bool:
+        reward, amount = self.args.vyroba.reward
+        return (
+            reward.isProduction
+            and not reward.nontradable
+            and self.args.vyroba.cost.get(self.entities.obyvatel, 0) > 0
+        )
 
     @override
     def _commitSuccessImpl(self) -> None:
@@ -93,3 +100,8 @@ class VyrobaAction(TeamInteractionActionBase):
         )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
+
+        if self.revertible():
+            self.teamState.employees.setdefault(self.args.vyroba, 0)
+            self.teamState.employees[self.args.vyroba] += self.args.count
+            self._info += f"Tým dostal v systému zaměstnance {self.args.count}× [[{self.args.vyroba.id}]]"

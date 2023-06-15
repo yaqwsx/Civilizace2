@@ -286,6 +286,7 @@ class TeamState(StateModel):
 
     resources: dict[Resource, Decimal]
     granary: dict[Resource, int] = {}
+    employees: dict[Vyroba, int] = {}
     population: Decimal
 
     def collectStickerEntitySet(self) -> set[Entity]:
