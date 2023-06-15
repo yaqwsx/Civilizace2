@@ -15,7 +15,7 @@ import { fetcher } from "../utils/axios";
 
 export const urlEntityAtom = stringAtomWithHash("entity");
 
-export function useEntities<T>(entityType?: string) {
+export function useEntities<T = EntityBase>(entityType?: string) {
     return useSWRImmutable<Record<string, T & EntityBase>>(
         () => (entityType ? `game/entities/${entityType}` : "game/entities"),
         fetcher
@@ -68,29 +68,27 @@ export function useTeamTechs(team: Team | undefined) {
 
 export function EntityTag(props: { id: string; quantity?: Decimal }) {
     const { data } = useEntities();
-    let isProduction = String(props.id).startsWith("pro-");
-    let name = props.id;
-    if (data && data[props.id]?.name) name = data[props.id].name;
 
-    let icon = data && data[props.id]?.icon;
+    const entity = !_.isNil(data) ? data[props.id] : undefined;
+    const isProduction =
+        String(props.id).startsWith("pro-") ||
+        String(props.id).startsWith("pge-");
+    const nameClassNames = isProduction ? "underline" : "";
 
-    let iconMarkup = icon ? (
-        <img
-            className="mx-1 inline-block h-8 w-8 align-middle"
-            src={`/assets/icons/${icon}`}
-        />
+    const iconMarkup = entity?.icon ? (
+        <>
+            <img
+                className="mx-1 inline-block h-8 w-8 align-middle"
+                src={`/assets/icons/${entity.icon}`}
+            />{" "}
+        </>
     ) : null;
-
-    let nameMarkup = isProduction ? (
-        <span className="underline">{name}</span>
-    ) : (
-        <span>{name}</span>
-    );
 
     return (
         <span>
             {!_.isNil(props.quantity) ? `${props.quantity}× ` : null}
-            {iconMarkup} {nameMarkup}
+            {iconMarkup}
+            <span className={nameClassNames}>{entity?.name || props.id}</span>
         </span>
     );
 }
