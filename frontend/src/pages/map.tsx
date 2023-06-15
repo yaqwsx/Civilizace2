@@ -14,7 +14,7 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import { EntityTag, useEntities, useTeamResources } from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import {
     BuildingTeamSelect,
     BuildingUpgradeTeamSelect,
@@ -34,8 +34,10 @@ import {
     ArmyMode,
     BuildingEntity,
     BuildingUpgradeTeamEntity,
+    Decimal,
     MapTileTeamEntity,
     ResourceEntity,
+    ResourceId,
     Team,
     TeamAttributeTeamEntity,
     VyrobaId,
@@ -427,35 +429,38 @@ export function RevertVyrobaAgenda(props: { team: Team }) {
 export function TradeAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
     const [recipient, setRecipient] = useState<Team>();
-    const [resources, setResources] = useState<Record<string, number>>({});
+    const [resources, setResources] = useState<Record<ResourceId, number>>({});
 
-    const { resources: availableResources, error } = useTeamResources(
-        props.team
+    const { data: productions, error } = useSWR<Record<ResourceId, Decimal>>(
+        `game/teams/${props.team.id}/productions`,
+        fetcher
     );
 
-    if (!availableResources) {
+    if (!productions) {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
-    const availableProductions = Object.fromEntries(
-        Object.entries(availableResources).filter(
-            ([id, res]) => !_.isNil(res.produces)
-        )
-    );
-
-    let updateResource = (rId: string, v: number) => {
-        const available = Number(availableProductions[rId].available);
-        if (v < 0) {
-            v = 0;
-        } else if (v > available) {
-            v = available;
+    const updateResources = (prodId: string, amount: number) => {
+        const available = Number(productions[prodId]);
+        if (amount < 0) {
+            amount = 0;
+        } else if (amount > available) {
+            amount = available;
         }
         setResources(
             produce(resources, (orig) => {
-                orig[rId] = v;
+                orig[prodId] = amount;
             })
         );
     };
+
+    if (Object.keys(productions).length === 0) {
+        return (
+            <ErrorMessage>
+                Tým nemá žádné produkce, které by mohl obchodovat
+            </ErrorMessage>
+        );
+    }
 
     return (
         <PerformAction
@@ -467,7 +472,7 @@ export function TradeAgenda(props: { team: Team }) {
                 resources,
             }}
             argsValid={(a: any) =>
-                Object.keys(a.resources).length > 0 && a.receiver !== undefined
+                Object.keys(a.resources).length > 0 && !_.isNil(a.receiver)
             }
             onBack={() => {}}
             onFinish={() => {
@@ -484,32 +489,23 @@ export function TradeAgenda(props: { team: Team }) {
                             ignoredTeam={props.team}
                         />
                     </FormRow>
-                    {Object.keys(availableProductions).length > 0
-                        ? Object.values(availableProductions).map((a) => {
-                              return (
-                                  <FormRow
-                                      key={a.id}
-                                      label={
-                                          <>
-                                              <EntityTag id={a.id} /> (max{" "}
-                                              {
-                                                  availableProductions[a.id]
-                                                      .available
-                                              }
-                                              )
-                                          </>
-                                      }
-                                  >
-                                      <SpinboxInput
-                                          value={_.get(resources, a.id, 0)}
-                                          onChange={(v) =>
-                                              updateResource(a.id, v)
-                                          }
-                                      />
-                                  </FormRow>
-                              );
-                          })
-                        : "Tým nemá žádné produkce které by mohl obchodovat"}
+                    {Object.entries(productions).map(([prodId, max]) => {
+                        return (
+                            <FormRow
+                                key={prodId}
+                                label={
+                                    <>
+                                        <EntityTag id={prodId} /> (max {max})
+                                    </>
+                                }
+                            >
+                                <SpinboxInput
+                                    value={resources[prodId] ?? 0}
+                                    onChange={(v) => updateResources(prodId, v)}
+                                />
+                            </FormRow>
+                        );
+                    })}
                 </>
             }
         />

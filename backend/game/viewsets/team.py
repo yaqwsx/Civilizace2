@@ -354,14 +354,18 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(DbStickerSerializer(stickers, many=True).data)
 
     @action(detail=True)
+    def productions(self, request: Request, pk: TeamId) -> Response:
+        self.validateAccess(request.user, pk)
+        teamState = TeamStateInfo.get_latest(pk).teamState
+        return Response(
+            {res.id: amount for res, amount in teamState.productions.items()}
+        )
+
+    @action(detail=True)
     def storage(self, request: Request, pk: TeamId) -> Response:
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
-        storage = teamState.storage
-        assert all(amount >= 0 for amount in storage.values())
-        return Response(
-            {res.id: amount for res, amount in storage.items() if amount > 0}
-        )
+        return Response({res.id: amount for res, amount in teamState.storage.items()})
 
     @action(detail=True)
     def employees(self, request: Request, pk: TeamId) -> Response:
