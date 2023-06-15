@@ -401,9 +401,13 @@ class GameState(StateModel):
         for team in self.teamStates.values():
             assert all(amount >= 0 for amount in team.resources.values())
             assert all(amount >= 0 for amount in team.granary.values())
+            assert all(amount >= 0 for amount in team.employees.values())
             team.resources = {
                 res: amount for res, amount in team.resources.items() if amount > 0
             }
             team.granary = {
                 res: amount for res, amount in team.granary.items() if amount > 0
+            }
+            team.employees = {
+                emp: amount for emp, amount in team.employees.items() if amount > 0
             }
