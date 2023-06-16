@@ -95,6 +95,11 @@ function translateAnnouncementType(type: AnnouncementType) {
             return "Důležité";
         case AnnouncementType.Normal:
             return "Normání";
+        case AnnouncementType.Game:
+            return "Systémové";
+        default:
+            const exhaustiveCheck: never = type;
+            return ""; // For invalid Enum value
     }
 }
 
@@ -142,7 +147,7 @@ function AnnouncementItem(props: {
                     </p>
                 </FormRow>
                 <FormRow label="Důležitost:" className="mb-0">
-                    {translateAnnouncementType(props.announcement.type) ?? ""}
+                    {translateAnnouncementType(props.announcement.type)}
                 </FormRow>
                 <FormRow label="Obsah:" className="mb-0">
                     <CiviMarkdown>{props.announcement.content}</CiviMarkdown>
@@ -386,13 +391,13 @@ function AnnouncementEditForm(props: {
                             props.setFieldValue("type", e.target.value, true)
                         }
                     >
-                        {Object.values(AnnouncementType).map((t) => (
-                            <option key={t} value={t}>
-                                {translateAnnouncementType(
-                                    t as AnnouncementType
-                                )}
-                            </option>
-                        ))}
+                        {Object.values(AnnouncementType)
+                            .filter((t) => t != AnnouncementType.Game)
+                            .map((t) => (
+                                <option key={t} value={t}>
+                                    {translateAnnouncementType(t)}
+                                </option>
+                            ))}
                     </select>
                 </FormRow>
                 <FormRow
