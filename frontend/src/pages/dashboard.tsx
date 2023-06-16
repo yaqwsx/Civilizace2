@@ -35,7 +35,7 @@ import { PrintStickers } from "../elements/printing";
 import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
 import { TurnCountdownSticker } from "../elements/turns";
 import { RootState } from "../store";
-import { Army, Sticker as StickerT, Team, TeamDashboard } from "../types";
+import { Sticker as StickerT, Team, TeamDashboard } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
@@ -422,7 +422,7 @@ function TeamOverview() {
             </CardSection>
 
             <CardSection name="Armády">
-                {data.armies.map((a: Army) => (
+                {data.armies.map((a) => (
                     <Card
                         key={a.index}
                         label={`Armáda ${a.name} ${"✱".repeat(a.level)}`}

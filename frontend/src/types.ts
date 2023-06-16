@@ -182,7 +182,7 @@ export enum ArmyGoal {
     Replace = "Replace",
 }
 
-export interface Army {
+export interface TeamArmy {
     index: number;
     team: TeamId;
     name: string;
@@ -228,7 +228,7 @@ export interface TeamDashboard {
     employees: [VyrobaId, number][];
     feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];
-    armies: Army[];
+    armies: TeamArmy[];
     orginfo?: OrgDashboardInfo;
 }
 

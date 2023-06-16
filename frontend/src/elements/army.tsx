@@ -1,16 +1,16 @@
+import _ from "lodash";
 import { useEffect } from "react";
 import useSWR from "swr";
 import { LoadingOrError } from ".";
-import { Army, ArmyGoal, Team } from "../types";
+import { ArmyGoal, Team, TeamArmy } from "../types";
 import { fetcher } from "../utils/axios";
-import _ from "lodash";
 
 export function ArmySelectBox(props: {
     team: Team;
-    value?: Army;
-    onChange: (army: Army) => void;
+    value?: TeamArmy;
+    onChange: (army: TeamArmy) => void;
 }) {
-    const { data: armies, error: armyError } = useSWR<Record<number, Army>>(
+    const { data: armies, error: armyError } = useSWR<Record<number, TeamArmy>>(
         `game/teams/${props.team.id}/armies`,
         fetcher
     );

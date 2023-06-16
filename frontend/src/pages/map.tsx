@@ -29,7 +29,6 @@ import {
     useTeamFromUrl,
 } from "../elements/team";
 import {
-    Army,
     ArmyGoal,
     ArmyMode,
     BuildingEntity,
@@ -39,6 +38,7 @@ import {
     ResourceEntity,
     ResourceId,
     Team,
+    TeamArmy,
     TeamAttributeTeamEntity,
     VyrobaId,
     VyrobaTeamEntity,
@@ -520,7 +520,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
         data: armies,
         error: armyError,
         mutate,
-    } = useSWR<Record<number, Army>>(
+    } = useSWR<Record<number, TeamArmy>>(
         `game/teams/${props.team.id}/armies`,
         fetcher
     );
@@ -547,7 +547,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
     );
 }
 
-export function ArmyDescription(props: { army: Army }) {
+export function ArmyDescription(props: { army: TeamArmy }) {
     const modeString = function (mode: ArmyMode) {
         switch (mode) {
             case ArmyMode.Idle:
@@ -592,7 +592,7 @@ export function ArmyDescription(props: { army: Army }) {
     );
 }
 
-export function ArmyName(props: { army: Army }) {
+export function ArmyName(props: { army: TeamArmy }) {
     return (
         <>
             {props.army.name} {"✱".repeat(props.army.level)}
@@ -600,7 +600,7 @@ export function ArmyName(props: { army: Army }) {
     );
 }
 
-function ArmyBadge(props: { team: Team; army: Army; mutate: () => void }) {
+function ArmyBadge(props: { team: Team; army: TeamArmy; mutate: () => void }) {
     const [selectedAction, setSelectedAction] = useState("");
 
     let className = classNames(
@@ -659,7 +659,7 @@ function ArmyBadge(props: { team: Team; army: Army; mutate: () => void }) {
 
 function ArmyDeployForm(props: {
     team: Team;
-    army: Army;
+    army: TeamArmy;
     onFinish: () => void;
 }) {
     const [tile, setTile] = useState<MapTileTeamEntity>();
@@ -725,7 +725,7 @@ function ArmyDeployForm(props: {
 
 function ArmyRetreatForm(props: {
     team: Team;
-    army: Army;
+    army: TeamArmy;
     onFinish: () => void;
 }) {
     return (
@@ -751,7 +751,7 @@ function ArmyRetreatForm(props: {
 
 function ArmyUpgradeForm(props: {
     team: Team;
-    army: Army;
+    army: TeamArmy;
     onFinish: () => void;
 }) {
     return (
