@@ -264,9 +264,10 @@ export interface TeamArmy {
 // Dashboard
 
 export interface FeedingRequirements {
-    casteCount: number;
-    tokensPerCaste: number;
     tokensRequired: number;
+    tokensPerCaste: number;
+    casteCount: number;
+    automated: [ResourceId, number][];
 }
 
 export interface SpecialResources {

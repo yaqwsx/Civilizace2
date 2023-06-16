@@ -56,7 +56,7 @@ function getArmyGoalStr(goal: ArmyGoal): string {
 
         default:
             const exhaustiveCheck: never = goal;
-            return "";
+            return ""; // For invalid Enum value
     }
 }
 

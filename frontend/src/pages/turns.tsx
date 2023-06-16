@@ -111,7 +111,7 @@ function TurnComp(props: { turn: Turn; turnsMutate: () => void }) {
                 return "bg-gray-300";
             default:
                 const exhaustiveCheck: never = turnState;
-                return "";
+                return ""; // For invalid Enum value
         }
     };
 

@@ -34,6 +34,7 @@ import {
     BuildingEntity,
     BuildingUpgradeTeamEntity,
     Decimal,
+    FeedingRequirements,
     MapTileTeamEntity,
     ResourceEntity,
     ResourceId,
@@ -293,7 +294,7 @@ export function BuildingUpgradeAgenda(props: { team: Team }) {
                     tile: tile?.id,
                     upgrade: upgrade?.id,
                 }}
-                argsValid={(a: any) => (a?.upgrade && a?.tile) || false}
+                argsValid={(a) => Boolean(a?.upgrade && a?.tile)}
                 onBack={() => {}}
                 onFinish={() => {
                     setAction(RESET);
@@ -474,7 +475,7 @@ export function TradeAgenda(props: { team: Team }) {
                 receiver: recipient?.id,
                 resources,
             }}
-            argsValid={(a: any) =>
+            argsValid={(a) =>
                 Object.keys(a.resources).length > 0 && !_.isNil(a.receiver)
             }
             onBack={() => {}}
@@ -780,7 +781,7 @@ function FeedingForm(props: {
     feeding: Record<string, number>;
     updateResource: (resId: string, value: number) => void;
 }) {
-    const { data: feedReq, error: fError } = useSWR<any>(
+    const { data: feedReq, error: fError } = useSWR<FeedingRequirements>(
         `/game/teams/${props.team.id}/feeding`,
         fetcher
     );
@@ -794,22 +795,19 @@ function FeedingForm(props: {
         );
     }
 
-    let automatedResIds = feedReq.automated.map((x: any) => x[0]);
-    // @ts-ignore
-    let automatedRes = feedReq.automated.map(([rId, recommended]) => [
-        entities[rId],
-        recommended,
-    ]);
-    let remaingRes = Object.values(entities)
+    const automatedResIds = feedReq.automated.map(([rId]) => rId);
+    const automatedRes: [ResourceEntity, number][] = feedReq.automated.map(
+        ([rId, amount]) => [entities[rId], amount]
+    );
+    const remaingRes = Object.values(entities)
         .filter(
-            (e: any) =>
-                e.id.startsWith("mat-") && !automatedResIds.includes(e.id)
+            (e) => e.id.startsWith("mat-") && !automatedResIds.includes(e.id)
         )
         .sort((a, b) => a.name.localeCompare(b.name));
 
-    let missing =
-        Object.values(props.feeding).reduce((a, b) => a + b, 0) -
-        feedReq.tokensRequired;
+    const missing =
+        feedReq.tokensRequired -
+        Object.values(props.feeding).reduce((a, b) => a + b, 0);
 
     return (
         <>
@@ -818,9 +816,9 @@ function FeedingForm(props: {
                 <span className="mx-3">Kast: {feedReq.casteCount}, </span>
                 <span className="mx-3">
                     Vyžadováno žetonů: {feedReq.tokensRequired}{" "}
-                    {missing < 0 && (
+                    {missing > 0 && (
                         <span className="font-bold text-red-500">
-                            (chybí {-missing})
+                            (chybí {missing})
                         </span>
                     )}
                     ,{" "}
@@ -830,7 +828,7 @@ function FeedingForm(props: {
                 </span>
             </FormRow>
             <div>
-                {automatedRes.map(([r, recommended]: any) => (
+                {automatedRes.map(([r, recommended]) => (
                     <FormRow
                         key={r.id}
                         label={
@@ -867,9 +865,9 @@ function FeedingForm(props: {
                 ))}
             </div>
 
-            {missing < 0 && (
+            {missing > 0 && (
                 <ErrorMessage>
-                    Nemáš dost žetonů, aby nikdo neumřel (chybí {-missing}).
+                    Nemáš dost žetonů, aby nikdo neumřel (chybí {missing}).
                     Opravdu takovou akci chceš zadat?
                     <div style={{ fontSize: "8px" }}>
                         (a Maara si myslí, že je tě třeba ještě varovat extra a
@@ -951,7 +949,7 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
                 team: props.team.id,
                 productions: productions,
             }}
-            argsValid={(a: any) => Object.keys(a.productions).length > 0}
+            argsValid={(a) => Object.keys(a.productions).length > 0}
             extraPreview={
                 <>
                     {Object.keys(food).length > 0
