@@ -1,3 +1,6 @@
+import { useAtom } from "jotai";
+import { atomWithHash } from "jotai/utils";
+import _ from "lodash";
 import { useState } from "react";
 import AceEditor from "react-ace";
 import useSWR from "swr";
@@ -5,37 +8,103 @@ import { Button, CiviMarkdown, LoadingOrError } from "../elements";
 import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
+export const pageAtom = atomWithHash<number>("page", 1);
+export const pageSizeAtom = atomWithHash<number>("page_size", 100);
+
+enum InteractionType {
+    initiate = "initiate",
+    commit = "commit",
+    revert = "revert",
+}
+
+interface Interaction {
+    id: number;
+    phase: InteractionType;
+    author?: string;
+    created: Date | string;
+    action: number;
+    actionObject: any;
+    trace: string;
+    new_state: number;
+}
+
+interface Action {
+    id: number;
+    actionType: string;
+    entitiesRevision: number;
+    description?: string;
+    args: any;
+    interactions: Interaction[];
+}
+
 export function ActionLog() {
     useHideMenu();
 
-    const [page, setPage] = useState(0);
-    const { data, error } = useSWR<any>(`game/actions/logs?${page}`, fetcher);
+    const [page, setPage] = useAtom(pageAtom);
+    const [pageSize, setPageSize] = useAtom(pageSizeAtom);
+    const { data: actions, error } = useSWR<{
+        count: number;
+        results: Action[];
+        next?: string;
+        previous?: string;
+    }>(`game/actions/logs?page=${page}&page_size=${pageSize}`, fetcher);
 
-    if (!data) {
+    if (_.isNil(actions)) {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
-    const { count: pageCount, results: actions } = data;
+    const pageCount = _.ceil(actions.count / pageSize);
 
     return (
         <>
-            {actions.map((a: any) => (
-                <Action action={a} key={a.id} />
+            <div className="my-2 justify-between md:flex md:items-center">
+                <div className="mx-4">
+                    <h1 className="my-2">Log akcí</h1>
+                    <div className="mx-2 w-full text-sm text-gray-400">
+                        zobrazeno {actions.results.length} z {actions.count}{" "}
+                        akcí
+                    </div>
+                </div>
+                <div className="mx-4 md:flex md:items-center">
+                    <div className="py-1">
+                        <label className="mb-1 block w-full pr-4 md:mb-0 md:text-right">
+                            Počet akcí na stránku:
+                        </label>
+                    </div>
+                    <div className="field flex flex-wrap">
+                        <select
+                            className="select"
+                            value={pageSize}
+                            onChange={(e) =>
+                                setPageSize(parseInt(e.target.value))
+                            }
+                        >
+                            {[20, 50, 100, 200].map((size, i) => (
+                                <option key={i} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>{" "}
+                    </div>
+                </div>
+            </div>
+            {actions.results.map((a, i) => (
+                <ActionView action={a} key={i} />
             ))}
             <div className="flex w-full align-middle">
                 <Button
                     className="w-1/3"
                     label="Novější akce"
-                    disabled={page <= 0}
+                    disabled={_.isNil(actions.previous)}
                     onClick={() => setPage(page - 1)}
                 />
-                <div className="w-1/3 text-center align-middle">
-                    Aktuální strana {page + 1}/{pageCount}
+                <div className="m-auto w-1/3 text-center align-middle">
+                    Aktuální strana {page}/{pageCount}
                 </div>
                 <Button
                     className="w-1/3"
                     label="Starší akce"
-                    disabled={page + 1 >= pageCount}
+                    disabled={_.isNil(actions.next)}
                     onClick={() => setPage(page + 1)}
                 />
             </div>
@@ -43,7 +112,7 @@ export function ActionLog() {
     );
 }
 
-function Action(props: { action: any }) {
+function ActionView(props: { action: Action }) {
     const action = props.action;
     const [expanded, setExpanded] = useState(false);
 
@@ -95,8 +164,8 @@ function Action(props: { action: any }) {
                         </div>
                         <div className="w-1/2">
                             <h4 className="font-bold">Interakce</h4>
-                            {action.interactions.map((i: any, k: any) => (
-                                <Interaction interaction={i} key={k} />
+                            {action.interactions.map((i, k) => (
+                                <InteractionView interaction={i} key={k} />
                             ))}
                         </div>
                     </div>
@@ -106,18 +175,10 @@ function Action(props: { action: any }) {
     );
 }
 
-function interactionName(id: number) {
-    const NAMES = ["initiate", "commit", "revert"];
-
-    if (id < 0 || id >= NAMES.length) return `Unknown interaction id ${id}`;
-    return NAMES[id];
-}
-
-function Interaction(props: { interaction: any }) {
-    const intr = props.interaction;
+function InteractionView(props: { interaction: Interaction }) {
     return (
         <div className="row my-1 rounded bg-gray-200 p-2">
-            <div>Typ: {interactionName(intr.phase)}</div>
+            <div>Typ: {props.interaction.phase}</div>
             <AceEditor
                 mode="javascript"
                 theme="github"
@@ -127,7 +188,7 @@ function Interaction(props: { interaction: any }) {
                 showPrintMargin={true}
                 showGutter={true}
                 highlightActiveLine={true}
-                value={JSON.stringify(intr.actionObject, null, 4)}
+                value={JSON.stringify(props.interaction.actionObject, null, 4)}
                 className="w-full"
                 maxLines={10}
                 setOptions={{
@@ -138,7 +199,7 @@ function Interaction(props: { interaction: any }) {
                     tabSize: 4,
                 }}
             />
-            <CiviMarkdown>{intr.trace}</CiviMarkdown>
+            <CiviMarkdown>{props.interaction.trace}</CiviMarkdown>
         </div>
     );
 }
