@@ -1,11 +1,14 @@
-from game.models import DbMapDiff
-from game.viewsets.permissions import IsOrg
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import serializers
+
+from core.serializers.fields import TextEnumSerializer
+from game.models import DbMapDiff, DiffType
+from game.viewsets.permissions import IsOrg
 
 
 class DbMapDiffSerializer(serializers.ModelSerializer):
+    type = TextEnumSerializer(DiffType)
+
     class Meta:
         model = DbMapDiff
         fields = "__all__"

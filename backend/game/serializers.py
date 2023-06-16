@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
-from core.serializers.fields import IdRelatedField
+from core.serializers.fields import IdRelatedField, TextEnumSerializer
 from game.models import (
     DbAction,
     DbInteraction,
     DbTask,
     DbTaskAssignment,
     DbTaskPreference,
+    InteractionType,
 )
 
 
@@ -62,6 +63,8 @@ class PlayerDbTaskSerializer(DbTaskSerializer):
 
 
 class DbInteractionSerializer(serializers.ModelSerializer):
+    phase = TextEnumSerializer(InteractionType)
+
     class Meta:
         model = DbInteraction
         fields = "__all__"

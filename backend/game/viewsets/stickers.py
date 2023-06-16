@@ -35,6 +35,7 @@ class PrinterError(APIException):
 
 class DbStickerSerializer(serializers.ModelSerializer):
     team = TeamIdSerializer()
+    type = TextEnumSerializer(StickerType)
 
     class Meta:
         model = DbSticker

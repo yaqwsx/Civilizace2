@@ -5,7 +5,6 @@ from core.models.announcement import Announcement, AnnouncementType
 from core.models.team import Team
 from core.models.user import User
 from core.serializers.fields import TextEnumSerializer
-from core.serializers.user import UserSerializer
 
 
 class TeamIdSerializer(serializers.ModelSerializer):
