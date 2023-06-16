@@ -62,9 +62,6 @@ class ArmyDeployAction(TeamInteractionActionBase):
     @override
     def _commitSuccessImpl(self) -> None:
         army = self.army
-        assert (
-            army in self.state.map.armies
-        ), "Army should be selected from armies by armyIndex"
         self._ensureStrong(
             army.team == self.args.team, f"Nelze vyslat armádu cizího týmu."
         )
