@@ -141,6 +141,72 @@ export interface TechOrgTeamEntity extends TechTeamEntity {
     assignedTask?: Task;
 }
 
+// States
+
+export interface ArmyState {
+    team: TeamId;
+    index: number;
+    name: string;
+    level: number;
+    equipment: number;
+    boost: number;
+    tile: MapTileId | null;
+    mode: ArmyMode;
+    goal: ArmyGoal | null;
+}
+
+export interface MapTileState {
+    entity: MapTileId;
+    buildings: BuildingId[];
+    building_upgrades: BuildingUpgradeId[];
+    richnessTokens: number;
+}
+
+export interface MapState {
+    size: number;
+    tiles: Record<number, MapTileState>;
+    armies: ArmyState[];
+}
+
+export interface TeamState {
+    team: TeamId;
+    redCounter: Decimal;
+    blueCounter: Decimal;
+
+    turn: number;
+    throwCost: number;
+
+    techs: TechId[];
+    researching: TechId;
+    attributes: TeamAttributeId[];
+
+    resources: Record<ResourceId, Decimal>;
+    granary: Record<ResourceId, number>;
+    employees: Record<VyrobaId, number>;
+    population: Decimal;
+}
+
+export interface WorldState {
+    turn: number;
+    casteCount: number;
+    combatRandomness: Decimal;
+    roadCost: Record<ResourceId, number>;
+    roadPointsCost: number;
+    armyUpgradeCosts: Record<number, Record<ResourceId, Decimal>>;
+    withdrawCapacity: number;
+}
+
+export interface GameState {
+    teamStates: Record<TeamId, TeamState>;
+    map: MapState;
+    world: WorldState;
+}
+
+export interface MapTileViewState extends MapTileState {
+    name: string;
+    homeTeam?: TeamId;
+}
+
 // Announcement
 
 export enum AnnouncementType {
@@ -275,12 +341,6 @@ export interface ServerActionType {
 }
 
 // Other
-
-export interface GameState {
-    teamStates: Record<TeamId, Record<string, any>>;
-    map: Record<string, any>;
-    world: Record<string, any>;
-}
 
 export interface Turn {
     id: number;

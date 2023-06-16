@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import useSWR from "swr";
 import { Button, LoadingOrError } from "../elements";
 import { EntityTag } from "../elements/entities";
+import { useArmyStates, useMapTileStates } from "../elements/states";
 import axiosService, { fetcher } from "../utils/axios";
 import { ArmyName } from "./map";
 
@@ -135,20 +136,11 @@ function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
 }
 
 function MapState() {
-    const { data: tiles, error: tError } = useSWR<any[]>(
-        "/game/map/",
-        fetcher,
-        {
-            refreshInterval: 10 * 1000,
-        }
-    );
-    const { data: armies, error: aError } = useSWR<any[]>(
-        "/game/armies/",
-        fetcher,
-        {
-            refreshInterval: 10 * 1000,
-        }
-    );
+    const config = {
+        refreshInterval: 10 * 1000,
+    };
+    const { tiles, error: tError } = useMapTileStates(config);
+    const { armies, error: aError } = useArmyStates(config);
 
     console.log("Armies:", armies);
 
@@ -197,7 +189,7 @@ function MapState() {
                                     <EntityTag id={t.entity} />
                                 </th>
                                 <td className="px-6 py-4 text-center">
-                                    <EntityTag id={t.richnessTokens} />
+                                    {t.richnessTokens}
                                 </td>
                                 <td className="px-6 py-4">
                                     <ul className="list-disc">

@@ -21,6 +21,7 @@ import {
     useTeamSpecialResources,
     useTeamVyrobas,
 } from "../elements/entities";
+import { useMapTileStates } from "../elements/states";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -202,7 +203,7 @@ type PerformVyrobaProps = {
 };
 function PerformVyroba(props: PerformVyrobaProps) {
     const { data: entities, error: eError } = useEntities<ResourceEntity>();
-    const { data: tiles, error: tError } = useSWR<any[]>("/game/map", fetcher);
+    const { tiles, error: tError } = useMapTileStates();
 
     const [count, setCount] = useState(1);
     const [tile, setTile] = useState<string>();
@@ -212,7 +213,8 @@ function PerformVyroba(props: PerformVyrobaProps) {
     useEffect(() => {
         if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
         const homeTile = tiles.find((t) => t?.homeTeam === props.team.id);
-        setTile(homeTile.entity);
+        console.assert(!_.isNil(homeTile), "No home tile");
+        setTile(homeTile?.entity);
     }, [tiles, props.team, vyroba]);
 
     if (!entities || !tiles) {
