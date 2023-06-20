@@ -16,6 +16,7 @@ from rest_framework.response import Response
 
 from core.models import Team, User
 from core.models.announcement import Announcement
+from core.serializers.announcement import team_serialize_announcement
 from core.serializers.team import TeamSerializer
 from game.actions.feed import computeFeedRequirements
 from game.entities import Entities, EntityId, TeamEntity, Vyroba
@@ -298,13 +299,7 @@ class TeamViewSet(viewsets.ViewSet):
                     )
                 ),
                 "announcements": [
-                    {
-                        "id": announcement.id,
-                        "type": announcement.type.name,
-                        "content": announcement.content,
-                        "read": False,
-                        "appearDatetime": announcement.appearDatetime,
-                    }
+                    team_serialize_announcement(announcement, read=False)
                     for announcement in self.unreadAnnouncements(request.user, team)
                 ],
                 "armies": [
@@ -321,16 +316,11 @@ class TeamViewSet(viewsets.ViewSet):
         team = get_object_or_404(Team.objects.all(), pk=pk)
         return Response(
             [
-                {
-                    "id": announcement.id,
-                    "type": announcement.type.name,
-                    "content": announcement.content,
-                    "read": request.user in announcement.read.all(),
-                    "appearDatetime": announcement.appearDatetime,
-                    "readBy": set([x.team.name for x in announcement.read.all()])
-                    if request.user.is_org
-                    else None,
-                }
+                team_serialize_announcement(
+                    announcement,
+                    read=request.user in announcement.read.all(),
+                    org_info=request.user.is_org,
+                )
                 for announcement in Announcement.objects.get_team(team)
             ]
         )

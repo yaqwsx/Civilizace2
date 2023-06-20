@@ -71,3 +71,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         self._setAuthor(announcement)
         announcement.save()
         return announcement
+
+
+def team_serialize_announcement(
+    announcement: Announcement, *, read: bool, org_info: bool = False
+):
+    orgInfo = {"readBy": set([a.team.name for a in announcement.read.all()])}
+    return {
+        "id": announcement.id,
+        "type": announcement.type.name,
+        "content": announcement.content,
+        "read": read,
+        "appearDatetime": announcement.appearDatetime,
+        **(orgInfo if org_info else {}),
+    }
