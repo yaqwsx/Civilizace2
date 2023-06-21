@@ -29,7 +29,7 @@ import { Link, Navigate } from "react-router-dom";
 import useSWR, { useSWRConfig } from "swr";
 import { useElementSize } from "usehooks-ts";
 import { useDebounceDeep } from "../utils/react";
-import { useTeamSpecialResources } from "./entities";
+import { useTeamSpecialResources } from "./team_view";
 import { PrintStickers } from "./printing";
 
 export const activeActionIdAtom = atomWithHash<number | null>(

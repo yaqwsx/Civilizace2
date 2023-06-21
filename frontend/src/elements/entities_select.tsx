@@ -14,7 +14,8 @@ import {
     VyrobaEntity,
     VyrobaTeamEntity,
 } from "../types";
-import { useEntities, useTeamEntities } from "./entities";
+import { useEntities } from "./entities";
+import { useTeamEntities } from "./team_view";
 
 function EntitySelectForm<TEntity extends EntityBase>(props: {
     emptyLabel: string;

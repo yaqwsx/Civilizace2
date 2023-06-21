@@ -4,7 +4,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
 import _ from "lodash";
 import { useState } from "react";
-import useSWR from "swr";
 import {
     Button,
     Dialog,
@@ -14,12 +13,7 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import {
-    EntityTag,
-    useEntities,
-    useTeamProductions,
-    useTeamResources,
-} from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import {
     BuildingTeamSelect,
     BuildingUpgradeTeamSelect,
@@ -34,11 +28,17 @@ import {
     useTeamFromUrl,
 } from "../elements/team";
 import {
+    useTeamArmies,
+    useTeamEmployees,
+    useTeamFeeding,
+    useTeamProductions,
+    useTeamResources,
+} from "../elements/team_view";
+import {
     ArmyGoal,
     ArmyMode,
     BuildingEntity,
     BuildingUpgradeTeamEntity,
-    FeedingRequirements,
     MapTileTeamEntity,
     ResourceEntity,
     ResourceId,
@@ -46,10 +46,8 @@ import {
     Team,
     TeamArmy,
     TeamAttributeTeamEntity,
-    VyrobaId,
     VyrobaTeamEntity,
 } from "../types";
-import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
 export function MapMenu() {
@@ -366,10 +364,7 @@ export function AddAttributeAgenda(props: { team: Team }) {
 
 export function RevertVyrobaAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const { data: employees, error } = useSWR<Record<VyrobaId, number>>(
-        `game/teams/${props.team.id}/employees`,
-        fetcher
-    );
+    const { data: employees, error } = useTeamEmployees(props.team);
     const [vyroba, setVyroba] = useState<VyrobaTeamEntity>();
     const [count, setCount] = useState<number>(1);
 
@@ -432,7 +427,7 @@ export function TradeAgenda(props: { team: Team }) {
     const [recipient, setRecipient] = useState<Team>();
     const [resources, setResources] = useState<Record<ResourceId, number>>({});
 
-    const { productions, error } = useTeamProductions(props.team);
+    const { data: productions, error } = useTeamProductions(props.team);
 
     if (!productions) {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
@@ -509,10 +504,7 @@ export function ArmyManipulation(props: { team: Team; onFinish?: () => void }) {
         data: armies,
         error: armyError,
         mutate,
-    } = useSWR<Record<number, TeamArmy>>(
-        `game/teams/${props.team.id}/armies`,
-        fetcher
-    );
+    } = useTeamArmies(props.team);
 
     if (!armies) {
         return (
@@ -769,10 +761,7 @@ function FeedingForm(props: {
     feeding: Record<string, number>;
     updateResource: (resId: string, value: number) => void;
 }) {
-    const { data: feedReq, error: fError } = useSWR<FeedingRequirements>(
-        `/game/teams/${props.team.id}/feeding`,
-        fetcher
-    );
+    const { data: feedReq, error: fError } = useTeamFeeding(props.team);
     const { data: entities, error: eError } = useEntities<ResourceEntity>();
     if (!feedReq || !entities) {
         return (
@@ -905,9 +894,10 @@ export function FeedingAgenda(props: { team: Team }) {
 
 export function AutomateFeedingAgenda(props: { team: Team }) {
     const [productions, setProductions] = useState<Record<string, number>>({});
-    const { resources, error: rError } = useTeamResources(props.team);
-    const { productions: availableProductions, error: pError } =
-        useTeamProductions(props.team);
+    const { data: resources, error: rError } = useTeamResources(props.team);
+    const { data: availableProductions, error: pError } = useTeamProductions(
+        props.team
+    );
     const setAction = useSetAtom(urlMapActionAtom);
 
     if (!resources || !availableProductions) {

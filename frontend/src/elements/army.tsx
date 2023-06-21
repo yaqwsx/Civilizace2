@@ -1,19 +1,15 @@
 import _ from "lodash";
 import { useEffect } from "react";
-import useSWR from "swr";
 import { LoadingOrError } from ".";
 import { ArmyGoal, Team, TeamArmy } from "../types";
-import { fetcher } from "../utils/axios";
+import { useTeamArmies } from "./team_view";
 
 export function ArmySelectBox(props: {
     team: Team;
     value?: TeamArmy;
     onChange: (army: TeamArmy) => void;
 }) {
-    const { data: armies, error: armyError } = useSWR<Record<number, TeamArmy>>(
-        `game/teams/${props.team.id}/armies`,
-        fetcher
-    );
+    const { data: armies, error } = useTeamArmies(props.team);
 
     useEffect(() => {
         if (!props.value && armies) {
@@ -22,7 +18,7 @@ export function ArmySelectBox(props: {
     }, [armies, props.value]);
 
     if (!armies) {
-        return <LoadingOrError error={armyError} message="Něco se pokazilo" />;
+        return <LoadingOrError error={error} message="Něco se pokazilo" />;
     }
 
     let handleChange = (index: number) => {

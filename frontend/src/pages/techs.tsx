@@ -1,6 +1,5 @@
 import { ChangeEvent, useState } from "react";
 import { toast } from "react-toastify";
-import useSWR from "swr";
 import {
     Button,
     CiviMarkdown,
@@ -9,12 +8,16 @@ import {
     LoadingOrError,
 } from "../elements";
 import { PerformAction } from "../elements/action";
-import { useTeamEntities } from "../elements/entities";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
+import {
+    changeTeamTask,
+    useTeamEntities,
+    useTeamTasks,
+} from "../elements/team_view";
 import {
     Task,
     Team,
@@ -22,7 +25,6 @@ import {
     TechOrgTeamEntity,
     TechTeamEntity,
 } from "../types";
-import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
 export function TechMenu() {
@@ -352,10 +354,7 @@ function SelectTaskForTechForm(props: {
     selectedTask?: Task;
     onChange: (t: Task) => void;
 }) {
-    const { data: tasks, error: taskError } = useSWR<Record<string, Task>>(
-        `/game/teams/${props.team.id}/tasks`,
-        fetcher
-    );
+    const { data: tasks, error: taskError } = useTeamTasks(props.team);
 
     if (!tasks) {
         return (
@@ -441,11 +440,10 @@ function ChangeTaskDialog(props: {
 
     let handleSubmit = () => {
         setSubmitting(true);
-        axiosService
-            .post<{}>(`/game/teams/${props.team.id}/changetask/`, {
-                tech: props.tech.id,
-                newTask: selectedTask?.id,
-            })
+        changeTeamTask(props.team, {
+            tech: props.tech.id,
+            newTask: selectedTask?.id,
+        })
             .then(() => {
                 setSubmitting(false);
                 toast.success("Úkol změněn");

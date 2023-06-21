@@ -20,7 +20,6 @@ import QRCode from "react-qr-code";
 import { useSelector } from "react-redux";
 import { NavLink, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import useSWR from "swr";
 import {
     Button,
     Card,
@@ -30,19 +29,19 @@ import {
     RequireOrg,
     classNames,
 } from "../elements";
-import { EntityTag, useEntities, useTeamTechs } from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import { PrintStickers } from "../elements/printing";
 import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
+import {
+    useTeamAnnouncements,
+    useTeamDashboard,
+    useTeamStickers,
+    useTeamTechs,
+} from "../elements/team_view";
 import { TurnCountdownSticker } from "../elements/turns";
 import { RootState } from "../store";
-import {
-    Announcement,
-    Sticker as StickerT,
-    Team,
-    TeamAnnouncement,
-    TeamDashboard,
-} from "../types";
-import axiosService, { fetcher } from "../utils/axios";
+import { Sticker as StickerT, Team, TeamAnnouncement } from "../types";
+import axiosService from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
 import { sortTechs } from "./techs";
@@ -207,10 +206,7 @@ function CardSection(props: { name: string; children?: {} }) {
 function TeamOverview() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const { data, error: dataError } = useSWR<TeamDashboard>(
-        () => (teamId ? `game/teams/${teamId}/dashboard` : null),
-        fetcher
-    );
+    const { data, error: dataError } = useTeamDashboard(teamId);
     const account = useSelector((state: RootState) => state.auth.account);
 
     if (!team || !data) {
@@ -456,7 +452,7 @@ function TeamOverview() {
 function TeamTasks() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const { techs, error: techsError } = useTeamTechs(team);
+    const { data: techs, error: techsError } = useTeamTechs(team);
 
     if (!team) {
         return (
@@ -512,10 +508,7 @@ function TeamTasks() {
 function TeamMessages() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const { data, error: dataError } = useSWR<TeamAnnouncement[]>(
-        () => (teamId ? `game/teams/${teamId}/announcements` : null),
-        fetcher
-    );
+    const { data, error: dataError } = useTeamAnnouncements(teamId);
 
     if (!team || !data) {
         return (
@@ -654,14 +647,7 @@ export function AnnouncementList(props: {
 function TeamStickers() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const {
-        data,
-        error: dataError,
-        mutate,
-    } = useSWR<StickerT[]>(
-        () => (teamId ? `game/teams/${teamId}/stickers` : null),
-        fetcher
-    );
+    const { data, error: dataError, mutate } = useTeamStickers(teamId);
 
     if (!team || !data) {
         return (

@@ -1,86 +1,13 @@
 import _ from "lodash";
-import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
-import {
-    Decimal,
-    EntityBase,
-    EntityId,
-    ResourceTeamEntity,
-    SpecialResources,
-    Team,
-    TechTeamEntity,
-    VyrobaTeamEntity,
-} from "../types";
-import { stringAtomWithHash } from "../utils/atoms";
+import { Decimal, EntityBase, EntityId } from "../types";
 import { fetcher } from "../utils/axios";
-
-export const urlEntityAtom = stringAtomWithHash("entity");
 
 export function useEntities<T = EntityBase>(entityType?: string) {
     return useSWRImmutable<Record<EntityId, T & EntityBase>>(
         () => (entityType ? `game/entities/${entityType}` : "game/entities"),
         fetcher
     );
-}
-
-export function useTeamSpecialResources(teamId: string | undefined) {
-    return useSWR<SpecialResources>(
-        () => (teamId ? `game/teams/${teamId}/special_resources` : null),
-        fetcher
-    );
-}
-
-export function useTeamEntities<T>(entityType: string, team: Team | undefined) {
-    return useSWR<Record<EntityId, T>>(
-        () => (team ? `game/teams/${team.id}/${entityType}` : null),
-        fetcher
-    );
-}
-
-export function useTeamVyrobas(team: Team | undefined) {
-    const { data, ...rest } = useTeamEntities<VyrobaTeamEntity>(
-        "vyrobas",
-        team
-    );
-    return {
-        vyrobas: data,
-        ...rest,
-    };
-}
-
-export function useTeamResources(team: Team | undefined) {
-    const { data, ...rest } = useTeamEntities<ResourceTeamEntity>(
-        "resources",
-        team
-    );
-    return {
-        resources: data,
-        ...rest,
-    };
-}
-
-export function useTeamProductions(team: Team | undefined) {
-    const { data, ...rest } = useTeamEntities<Decimal>("productions", team);
-    return {
-        productions: data,
-        ...rest,
-    };
-}
-
-export function useTeamStorage(team: Team | undefined) {
-    const { data, ...rest } = useTeamEntities<Decimal>("storage", team);
-    return {
-        storage: data,
-        ...rest,
-    };
-}
-
-export function useTeamTechs(team: Team | undefined) {
-    const { data, ...rest } = useTeamEntities<TechTeamEntity>("techs", team);
-    return {
-        techs: data,
-        ...rest,
-    };
 }
 
 export function EntityTag(props: { id: string; quantity?: Decimal }) {

@@ -12,21 +12,19 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction } from "../elements/action";
-import {
-    EntityTag,
-    urlEntityAtom,
-    useEntities,
-    useTeamResources,
-    useTeamSpecialResources,
-    useTeamStorage,
-    useTeamVyrobas,
-} from "../elements/entities";
+import { EntityTag, useEntities } from "../elements/entities";
 import { useMapTileStates } from "../elements/states";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
+import {
+    useTeamResources,
+    useTeamSpecialResources,
+    useTeamStorage,
+    useTeamVyrobas,
+} from "../elements/team_view";
 import {
     Decimal,
     ResourceEntity,
@@ -38,6 +36,7 @@ import {
 import { stringAtomWithHash } from "../utils/atoms";
 import { useHideMenu } from "./atoms";
 
+export const urlEntityAtom = stringAtomWithHash("entity");
 export const urlVyrobaActionAtom = stringAtomWithHash("vyrobaAction");
 
 export function VyrobaMenu() {
@@ -112,8 +111,8 @@ type SelectVyrobaProps = {
     active?: VyrobaTeamEntity;
 };
 function SelectVyroba(props: SelectVyrobaProps) {
-    const { vyrobas, error: vError } = useTeamVyrobas(props.team);
-    const { resources, error: rError } = useTeamResources(props.team);
+    const { data: vyrobas, error: vError } = useTeamVyrobas(props.team);
+    const { data: resources, error: rError } = useTeamResources(props.team);
     const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
 
     if (!vyrobas) {
@@ -286,7 +285,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
 function WithdrawStorage(props: { team: Team }) {
     const [submitting, setSubmitting] = useState(false);
-    const { storage, error, mutate } = useTeamStorage(props.team);
+    const { data: storage, error, mutate } = useTeamStorage(props.team);
     const [toWithdraw, setToWithdraw] = useState<Record<ResourceId, number>>(
         {}
     );
