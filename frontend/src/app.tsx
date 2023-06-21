@@ -48,7 +48,7 @@ import { menuShownAtom } from "./pages/atoms";
 import { Forbidden } from "./pages/forbidden";
 import { GodMode, GodModeMenu } from "./pages/godmode";
 import { InfoScreen } from "./pages/info";
-import { MapDiff } from "./pages/mapdiff";
+import { MapDiffView } from "./pages/mapdiff";
 import { ScanTest } from "./pages/scanTest";
 import { Tasks, TasksMenu } from "./pages/tasks";
 import { Tech, TechMenu } from "./pages/techs";
@@ -471,7 +471,7 @@ export default function App() {
                                 path="/mapdiff"
                                 element={
                                     <RequireOrg>
-                                        <MapDiff />
+                                        <MapDiffView />
                                     </RequireOrg>
                                 }
                             />

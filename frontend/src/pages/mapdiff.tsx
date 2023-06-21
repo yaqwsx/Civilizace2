@@ -3,11 +3,31 @@ import { toast } from "react-toastify";
 import useSWR from "swr";
 import { Button, LoadingOrError } from "../elements";
 import { EntityTag } from "../elements/entities";
+import { NeutralMessage } from "../elements/messages";
 import { useArmyStates, useMapTileStates } from "../elements/states";
+import { MapTileId, TeamId } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { ArmyName } from "./map";
 
-export function MapDiff() {
+enum DiffType {
+    richness = "richness",
+    armyLevel = "armyLevel",
+    armyMove = "armyMove",
+    armyCreate = "armyCreate",
+}
+
+export interface MapDiff {
+    id: number;
+    createdAt: string | Date;
+    type: DiffType;
+    tile?: MapTileId;
+    newRichness?: number;
+    newLevel?: number;
+    team?: TeamId;
+    armyName?: string;
+}
+
+export function MapDiffView() {
     return (
         <>
             <div className="flex min-h-screen flex-col bg-gray-100 font-sans leading-normal tracking-normal">
@@ -27,12 +47,12 @@ export function MapDiff() {
     );
 }
 
-export function MapDiffContent() {
+function MapDiffContent() {
     const {
         data: pendingUpdates,
         error,
         mutate,
-    } = useSWR<any[]>("/game/mapupdates/", fetcher, {
+    } = useSWR<MapDiff[]>("/game/mapupdates/", fetcher, {
         refreshInterval: 10 * 1000,
     });
     if (!pendingUpdates)
@@ -41,7 +61,7 @@ export function MapDiffContent() {
         <>
             <h1>Aktualizace mapy</h1>
             {pendingUpdates.length == 0 ? (
-                <>Nejsou žádné aktualizace mapy</>
+                <NeutralMessage>Nejsou žádné aktualizace mapy</NeutralMessage>
             ) : (
                 pendingUpdates.map((u) => (
                     <MapUpdate mapUpdate={u} key={u.id} onUpdate={mutate} />
@@ -53,11 +73,62 @@ export function MapDiffContent() {
     );
 }
 
-function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
+function UpdateInstructions(props: { mapUpdate: MapDiff }) {
+    switch (props.mapUpdate.type) {
+        case DiffType.richness:
+            return (
+                <div>
+                    Změň úrodnost pole{" "}
+                    <EntityTag id={props.mapUpdate.tile ?? "-"} /> na{" "}
+                    {props.mapUpdate.newRichness ?? "-"}.
+                </div>
+            );
+
+        case DiffType.armyLevel:
+            return (
+                <div>
+                    Zvyš úroveň armády {props.mapUpdate.armyName ?? "-"} týmu{" "}
+                    <EntityTag id={props.mapUpdate.team ?? "-"} /> na{" "}
+                    {props.mapUpdate.newLevel ?? "-"}.
+                </div>
+            );
+        case DiffType.armyMove:
+            return (
+                <div>
+                    Přesuň armádu <EntityTag id={props.mapUpdate.team ?? "-"} />
+                    -{props.mapUpdate.armyName ?? "-"} na{" "}
+                    {props.mapUpdate.tile ? (
+                        <EntityTag id={props.mapUpdate.tile} />
+                    ) : (
+                        "domovské pole"
+                    )}
+                    .
+                </div>
+            );
+        case DiffType.armyCreate:
+            return (
+                <div>
+                    Vytvoř armádu {props.mapUpdate.armyName ?? "-"} týmu{" "}
+                    <EntityTag id={props.mapUpdate.team ?? "-"} /> na{" "}
+                    {props.mapUpdate.tile ? (
+                        <EntityTag id={props.mapUpdate.tile} />
+                    ) : (
+                        "domovském poli"
+                    )}{" "}
+                    s úrovní {props.mapUpdate.newLevel ?? "-"}.
+                </div>
+            );
+        default:
+            const exhaustiveCheck: never = props.mapUpdate.type;
+            return <></>; // For invalid Enum value
+    }
+}
+
+function MapUpdate(props: { mapUpdate: MapDiff; onUpdate: () => void }) {
     const [deleting, setDeleting] = useState(false);
     const [deleted, setDeleted] = useState(false);
 
-    let handleFinish = () => {
+    const handleFinish = () => {
         setDeleting(true);
         axiosService
             .delete(`/game/mapupdates/${props.mapUpdate.id}/`)
@@ -74,49 +145,14 @@ function MapUpdate(props: { mapUpdate: any; onUpdate: () => void }) {
             });
     };
 
-    if (deleted) return null;
+    if (deleted) {
+        return null;
+    }
 
     return (
         <div className="orange-500 mb-4 flex w-full rounded-b border-t-4 border-orange-500 bg-orange-200 px-4 py-3 shadow-md">
             <div className="flex-1 text-lg">
-                {props.mapUpdate.type == 0 && (
-                    <div>
-                        Změň úrodnost pole{" "}
-                        <EntityTag id={props.mapUpdate.tile} /> na{" "}
-                        {props.mapUpdate.newRichness}.
-                    </div>
-                )}
-                {props.mapUpdate.type == 1 && (
-                    <div>
-                        Zvyš úroveň armády {props.mapUpdate.armyName} týmu{" "}
-                        <EntityTag id={props.mapUpdate.team} /> na{" "}
-                        {props.mapUpdate.newLevel}.
-                    </div>
-                )}
-                {props.mapUpdate.type == 2 && (
-                    <div>
-                        Přesuň armádu <EntityTag id={props.mapUpdate.team} />-
-                        {props.mapUpdate.armyName} na{" "}
-                        {props.mapUpdate.tile ? (
-                            <EntityTag id={props.mapUpdate.tile} />
-                        ) : (
-                            "domovské pole"
-                        )}
-                        .
-                    </div>
-                )}
-                {props.mapUpdate.type == 3 && (
-                    <div>
-                        Vytvoř armádu {props.mapUpdate.armyName} týmu{" "}
-                        <EntityTag id={props.mapUpdate.team} /> na{" "}
-                        {props.mapUpdate.tile ? (
-                            <EntityTag id={props.mapUpdate.tile} />
-                        ) : (
-                            "domovském poli"
-                        )}{" "}
-                        s úrovní {props.mapUpdate.newLevel}.
-                    </div>
-                )}
+                <UpdateInstructions mapUpdate={props.mapUpdate} />
             </div>
             <div className="flex-none align-middle text-sm">
                 {new Date(props.mapUpdate.createdAt).toLocaleString("cs-CZ", {
@@ -153,7 +189,7 @@ function MapState() {
         );
     }
 
-    let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
+    const sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -176,7 +212,9 @@ function MapState() {
                 </thead>
                 <tbody>
                     {sortedTiles.map((t) => {
-                        let army = armies.find((x) => x.tile === t.entity);
+                        const tileArmies = armies.find(
+                            (x) => x.tile === t.entity
+                        );
                         return (
                             <tr
                                 key={t.entity}
@@ -193,7 +231,7 @@ function MapState() {
                                 </td>
                                 <td className="px-6 py-4">
                                     <ul className="list-disc">
-                                        {t.buildings.map((b: string) => (
+                                        {t.buildings.map((b) => (
                                             <li>
                                                 <EntityTag id={b} />
                                             </li>
@@ -201,12 +239,18 @@ function MapState() {
                                     </ul>
                                 </td>
                                 <td className="px-6 py-4">
-                                    {army && (
-                                        <>
-                                            Armáda <ArmyName army={army} /> týmu{" "}
-                                            <EntityTag id={army.team} />
-                                        </>
-                                    )}
+                                    {armies
+                                        .filter((x) => x.tile === t.entity)
+                                        .map((army) => {
+                                            return (
+                                                <div className="mx-1">
+                                                    Armáda{" "}
+                                                    <ArmyName army={army} />{" "}
+                                                    týmu{" "}
+                                                    <EntityTag id={army.team} />
+                                                </div>
+                                            );
+                                        })}
                                 </td>
                             </tr>
                         );
