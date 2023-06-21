@@ -24,10 +24,13 @@ function EntitySelectForm<TEntity extends EntityBase>(props: {
     onChange: (id?: TEntity) => void;
     filter?: (value: TEntity) => boolean;
     sortBy?: _.Many<_.ListIteratee<TEntity>>;
+    display?: (value: TEntity) => string;
     className?: string;
 }): JSX.Element {
+    const display = props.display ?? ((entity) => entity.name);
     let entities = _.filter(props.entities, props.filter).sort(
-        (a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)
+        (a, b) =>
+            display(a).localeCompare(display(b)) || a.id.localeCompare(b.id)
     );
     if (!_.isNil(props.sortBy)) {
         entities = _.sortBy(entities, props.sortBy);
@@ -46,7 +49,7 @@ function EntitySelectForm<TEntity extends EntityBase>(props: {
             <option value="">{props.emptyLabel}</option>
             {entities.map((e) => (
                 <option key={e.id} value={e.id}>
-                    {e.name}
+                    {display(e)}
                 </option>
             ))}
         </select>
@@ -60,6 +63,7 @@ function EntitySelect<TEntity extends EntityBase>(props: {
     onChange: (newValue?: TEntity) => void;
     filter?: (value: TEntity) => boolean;
     sortBy?: _.Many<_.ListIteratee<TEntity>>;
+    display?: (value: TEntity) => string;
     className?: string;
 }): JSX.Element {
     const { data, error } = useEntities<TEntity>(props.entityType);
@@ -79,6 +83,7 @@ function EntitySelect<TEntity extends EntityBase>(props: {
             onChange={props.onChange}
             filter={props.filter}
             sortBy={props.sortBy}
+            display={props.display}
             className={props.className}
         />
     );
@@ -92,6 +97,7 @@ function TeamEntitySelect<TEntity extends EntityBase>(props: {
     onChange: (newValue?: TEntity) => void;
     filter?: (value: TEntity) => boolean;
     sortBy?: _.Many<_.ListIteratee<TEntity>>;
+    display?: (value: TEntity) => string;
     className?: string;
 }): JSX.Element {
     const { data, error } = useTeamEntities<TEntity>(
@@ -114,6 +120,7 @@ function TeamEntitySelect<TEntity extends EntityBase>(props: {
             onChange={props.onChange}
             filter={props.filter}
             sortBy={props.sortBy}
+            display={props.display}
             className={props.className}
         />
     );
@@ -129,6 +136,7 @@ export function TileSelect(props: {
         <EntitySelect<MapTileEntity>
             entityType="tiles"
             emptyLabel="Žádné políčko"
+            display={(tile) => `Pole ${tile.name}`}
             {...props}
         />
     );
@@ -146,6 +154,9 @@ export function TileTeamSelect(props: {
         <TeamEntitySelect<MapTileTeamEntity>
             entityType="tiles"
             emptyLabel="Žádné políčko"
+            display={(tile) =>
+                `${tile.is_home ? "Domácí pole" : "Pole"} ${tile.name}`
+            }
             {...props}
         />
     );
