@@ -1,4 +1,4 @@
-import classNamesOriginal from "classnames";
+import classNamesOriginal, { Argument } from "classnames";
 import { ChangeEvent, useEffect, useRef } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import ReactMarkdown from "react-markdown";
@@ -7,13 +7,14 @@ import { overrideTailwindClasses } from "tailwind-override";
 import { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AxiosError, AxiosResponse } from "axios";
+import _ from "lodash";
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { RootState } from "../store";
-import { EntityMdTag } from "./entities";
+import { EntityTag } from "./entities";
 
-export const classNames = (...args: any) =>
+export const classNames = (...args: Argument[]) =>
     overrideTailwindClasses(classNamesOriginal(...args));
 
 export function RequireAuth({ children }: JSX.ElementChildrenAttribute) {
@@ -164,7 +165,7 @@ export function tryStringify(value: any, space?: number): string | undefined {
 }
 
 function isAxiosError(error: any): error is AxiosError {
-    return Boolean(error.isAxiosError);
+    return _.isObjectLike(error) && Boolean(error.isAxiosError);
 }
 
 function PrettyAxiosError(props: { errorResp: AxiosResponse }) {
@@ -210,7 +211,7 @@ export function LoadingOrError(props: { error?: any; message: string }) {
     );
 }
 
-export function Row(props: { children: any; className?: string }) {
+export function Row(props: { children?: {}; className?: string }) {
     return (
         <div className={classNames("w-full", props.className)}>
             {props.children}
@@ -255,16 +256,34 @@ export function Button(props: {
     );
 }
 
-function reconstructCiviMark(tree: any) {
+type TreeNode = TextNode | ElementNode;
+interface TextNode {
+    type: "text";
+    value: string;
+    children: TreeNode[];
+}
+interface ElementNode {
+    type: "element";
+    tagName: string;
+    value: string[];
+    children: TreeNode[];
+}
+
+export function EntityMdTag({ node }: { node: any }) {
+    const [id, quantity = undefined] = node.value;
+    return <EntityTag id={id} quantity={quantity} />;
+}
+
+function reconstructCiviMark(tree?: TreeNode) {
     const tagRe = /\[\[(.*?)\]\]/g;
 
     if (!tree?.children) return;
-    for (var i = 0; i < tree.children.length; i++) {
+    for (let i = 0; i < tree.children.length; i++) {
         reconstructCiviMark(tree.children[i]);
     }
-    let newChildren = [];
-    for (var i = 0; i < tree.children.length; i++) {
-        let node = tree.children[i];
+    const newChildren: TreeNode[] = [];
+    for (let i = 0; i < tree.children.length; i++) {
+        const node = tree.children[i];
         if (node.type == "text") {
             let isText = true;
             for (const x of node.value.split(tagRe)) {
@@ -278,7 +297,7 @@ function reconstructCiviMark(tree: any) {
                     newChildren.push({
                         type: "element",
                         tagName: "EntityMdTag",
-                        value: x.split("|").map((x: any) => x.trim()),
+                        value: x.split("|").map((x) => x.trim()),
                         children: [],
                     });
                 }
@@ -291,20 +310,14 @@ function reconstructCiviMark(tree: any) {
     tree.children = newChildren;
 }
 
-export function civiMdPlugin() {
-    // @ts-ignore
-    return (tree, file) => {
-        reconstructCiviMark(tree);
+export function CiviMarkdown(props: { children: string; className?: string }) {
+    const components: any = {
+        EntityMdTag,
     };
-}
-
-export function CiviMarkdown(props: any) {
     return (
         <ReactMarkdown
-            rehypePlugins={[civiMdPlugin]}
-            components={{
-                EntityMdTag,
-            }}
+            rehypePlugins={[() => reconstructCiviMark]}
+            components={components}
             {...props}
         />
     );
@@ -390,7 +403,7 @@ export function Dialog(props: { children: {}; onClose: () => void }) {
     );
 }
 
-export function useFocus<T extends HTMLElement = any>(): [
+export function useFocus<T extends HTMLElement>(): [
     React.RefObject<T>,
     () => void
 ] {
