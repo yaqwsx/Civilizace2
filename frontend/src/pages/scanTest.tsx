@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useScanner } from "./scanner";
+import { useScanner } from "../elements/scanner";
 
 export function ScanTest() {
     const [codes, setCodes] = useState<string[][]>([]);

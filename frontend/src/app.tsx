@@ -25,11 +25,11 @@ import {
     useNavigate,
 } from "react-router-dom";
 import { PersistGate } from "redux-persist/integration/react";
+import { ScannerDispatcher, ScannerNavigator } from "./elements/scanner";
 import "./index.css";
 import { Login } from "./pages";
 import { Dashboard, DashboardMenu } from "./pages/dashboard";
 import { MapAgenda, MapMenu } from "./pages/map";
-import { ScannerDispatcher, useScanner } from "./pages/scanner";
 import { Turns, TurnsMenu } from "./pages/turns";
 import { Vyroba, VyrobaMenu } from "./pages/vyrobas";
 import store, { RootState, persistor } from "./store";
@@ -329,39 +329,6 @@ function AppFrame(props: AppFrameProps) {
             </div>
         </>
     );
-}
-
-function ScannerNavigator() {
-    const navigate = useNavigate();
-
-    useScanner((items: string[]) => {
-        console.log("Scanner navigator:", items);
-        let args: string[] = [];
-        let page = null;
-        items.forEach((item) => {
-            if (item.startsWith("tym-")) {
-                args.push(`team=${item}`);
-                return;
-            }
-            if (item.startsWith("vyr-")) {
-                args.push(`entity=${item}`);
-                args.push("vyrobaAction=vyroba");
-                page = "vyrobas";
-                return;
-            }
-            if (item.startsWith("tec-")) {
-                args.push(`entity=${item}`);
-                page = "techs";
-                return;
-            }
-        });
-        if (page) {
-            console.log(`Navigating to ${page}#${args.join("&")}`);
-            navigate(page);
-            window.location.hash = `#${args.join("&")}`;
-        }
-    });
-    return null;
 }
 
 function Error404() {

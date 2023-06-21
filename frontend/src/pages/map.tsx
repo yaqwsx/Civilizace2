@@ -54,7 +54,7 @@ export function MapMenu() {
     return null;
 }
 
-enum MapActionType {
+export enum MapActionType {
     feeding,
     automateFeeding,
     army,

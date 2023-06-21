@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 import useSWR from "swr";
 import { Dialog, LoadingOrError } from "../elements";
 import { ActionMessage, useActionPreview } from "../elements/action";
+import { useScanner } from "../elements/scanner";
 import { useCurrentTurn } from "../elements/turns";
 import { ActionResponse, TeamAnnouncement } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { AnnouncementList } from "./dashboard";
-import { useScanner } from "./scanner";
 
 export function InfoScreen() {
     return (
