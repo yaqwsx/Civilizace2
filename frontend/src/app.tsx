@@ -8,6 +8,7 @@ import {
     faHistory,
     faIndustry,
     faMountainCity,
+    faQrcode,
     faSkullCrossbones,
     faStickyNote,
     faTimeline,
@@ -49,6 +50,7 @@ import { Forbidden } from "./pages/forbidden";
 import { GodMode, GodModeMenu } from "./pages/godmode";
 import { InfoScreen } from "./pages/info";
 import { MapDiffView } from "./pages/mapdiff";
+import { QrReader } from "./pages/qr_reader";
 import { ScanTest } from "./pages/scanTest";
 import { Tasks, TasksMenu } from "./pages/tasks";
 import { Tech, TechMenu } from "./pages/techs";
@@ -212,6 +214,7 @@ function OrgMenu() {
                 icon={faStickyNote}
                 path="announcements/"
             />
+            <MenuItemT name="QR čtečka" icon={faQrcode} path="qrreader/" />
             {account.user.is_superuser ? (
                 <>
                     <MenuItemT
@@ -251,6 +254,7 @@ function ApplicationMenu() {
                     path="/announcements/*"
                     element={<AnnouncementsMenu />}
                 />
+                <Route path="/qrreader" element={null} />
             </Routes>
         </>
     );
@@ -374,6 +378,7 @@ function OrgPages() {
             <Route path="/announcements/*" element={<Announcements />} />
             <Route path="/turns" element={<Turns />} />
             <Route path="/actions/team/:actionId" element={<FinishAction />} />
+            <Route path="/qrreader" element={<QrReader />} />
             <Route
                 path="*"
                 element={
