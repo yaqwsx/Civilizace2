@@ -35,7 +35,13 @@ import { PrintStickers } from "../elements/printing";
 import { useTeam, useTeamIdFromUrl, useTeams } from "../elements/team";
 import { TurnCountdownSticker } from "../elements/turns";
 import { RootState } from "../store";
-import { Sticker as StickerT, Team, TeamDashboard } from "../types";
+import {
+    Announcement,
+    Sticker as StickerT,
+    Team,
+    TeamAnnouncement,
+    TeamDashboard,
+} from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
@@ -187,7 +193,7 @@ export function Dashboard() {
     );
 }
 
-function CardSection(props: { name: string; children?: any }) {
+function CardSection(props: { name: string; children?: {} }) {
     return (
         <div className="section w-full">
             <h2 className="text-xl" id="section-1">
@@ -491,7 +497,7 @@ function TeamTasks() {
                                 {t.name}'
                             </h3>
                             <CiviMarkdown>
-                                {t.assignedTask?.teamDescription}
+                                {t.assignedTask?.teamDescription ?? ""}
                             </CiviMarkdown>
                         </div>
                     ))}
@@ -506,7 +512,7 @@ function TeamTasks() {
 function TeamMessages() {
     const { teamId } = useParams();
     const { team, error: teamError } = useTeam(teamId);
-    const { data, error: dataError } = useSWR<any>(
+    const { data, error: dataError } = useSWR<TeamAnnouncement[]>(
         () => (teamId ? `game/teams/${teamId}/announcements` : null),
         fetcher
     );
@@ -552,36 +558,35 @@ export function announcementPalette(type: string) {
     }[type];
 }
 
-function Announcement(props: {
-    type: string;
-    id: number;
-    content: string;
-    read: boolean;
+function AnnouncementView(props: {
     deletable: boolean;
-    appearDatetime: string;
-    readBy?: string[];
+    announcement: TeamAnnouncement;
 }) {
     const user = useSelector((state: RootState) => state.auth.account?.user);
     const [submitting, setSubmitting] = useState(false);
     const [deleted, setDeleted] = useState(false);
 
-    if (!user || deleted || !props.type) return null;
+    if (!user || deleted) {
+        return null;
+    }
 
-    let colors = announcementPalette(props.type);
+    const colors = announcementPalette(props.announcement.type);
 
-    let className = classNames(
+    const className = classNames(
         "mb-4 rounded-b border-t-4 px-4 py-3 shadow-md",
         colors?.border,
         colors?.bg
     );
 
-    let handleSubmit = () => {
+    const handleSubmit = () => {
         setSubmitting(true);
         axiosService
-            .post<{}>(`/announcements/${props.id}/read/`)
+            .post<{}>(`/announcements/${props.announcement.id}/read/`)
             .then(() => {
                 setSubmitting(false);
-                if (props.deletable) setDeleted(true);
+                if (props.deletable) {
+                    setDeleted(true);
+                }
             })
             .catch((error) => {
                 console.error("Announcement read:", error);
@@ -590,30 +595,27 @@ function Announcement(props: {
             });
     };
 
-    let datetime = new Date(props.appearDatetime);
+    const appearDatetime = new Date(props.announcement.appearDatetime);
 
     return (
         <div className={className}>
             <p className="mx-2 mt-2 w-full text-xs font-bold uppercase text-gray-600">
-                {datetime.toLocaleString("cs-CZ", {
+                {appearDatetime.toLocaleString("cs-CZ", {
                     weekday: "long",
                     hour: "2-digit",
                     minute: "2-digit",
                 })}
             </p>
-            {props.readBy ? (
+            {props.announcement.readBy ? (
                 <p className="mx-2 text-xs uppercase text-gray-600">
-                    Četl:{" "}
-                    {(props.readBy.length ? props.readBy : ["Nikdo"]).join(
-                        ", "
-                    )}
+                    Četl: {props.announcement.readBy.join(", ") || "Nikdo"}
                 </p>
             ) : null}
             <div className="w-full md:flex">
                 <div className="m-2 inline-block w-full md:w-auto md:flex-grow">
-                    <CiviMarkdown>{props.content}</CiviMarkdown>
+                    <CiviMarkdown>{props.announcement.content}</CiviMarkdown>
                 </div>
-                {!props.read && !user.is_org ? (
+                {!props.announcement.read && !user.is_org ? (
                     <div className="inline-block w-full md:w-auto">
                         <Button
                             label={
@@ -633,13 +635,17 @@ function Announcement(props: {
 }
 
 export function AnnouncementList(props: {
-    announcements: any;
+    announcements: TeamAnnouncement[];
     deletable: boolean;
 }) {
     return (
         <>
-            {props.announcements.map((a: any) => (
-                <Announcement key={a.id} deletable={props.deletable} {...a} />
+            {props.announcements.map((a) => (
+                <AnnouncementView
+                    key={a.id}
+                    announcement={a}
+                    deletable={props.deletable}
+                />
             ))}
         </>
     );
@@ -684,13 +690,13 @@ function TeamStickers() {
 
 function Sticker(props: { sticker: StickerT; mutate: () => void }) {
     const auth = useSelector((state: RootState) => state.auth);
-    const { data: entities } = useEntities<any>();
+    const { data: entities } = useEntities();
     const [isUpdating, setIsUpdating] = useState(false);
     const [isPrinting, setIsPrinting] = useState(false);
 
-    let awardedAt = new Date(props.sticker.awardedAt);
+    const awardedAt = new Date(props.sticker.awardedAt);
 
-    let handleUpdate = () => {
+    const handleUpdate = () => {
         if (!props.sticker) return;
         setIsUpdating(true);
         axiosService
@@ -707,7 +713,7 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
             });
     };
 
-    let imgUrl = `${process.env.REACT_APP_API_URL}/game/stickers/${props.sticker.id}/image`;
+    const imgUrl = `${process.env.REACT_APP_API_URL}/game/stickers/${props.sticker.id}/image`;
     return (
         <div className="m-2 flex flex flex-auto flex-col items-stretch rounded bg-white p-2 shadow">
             <div className="self-stretch">
@@ -723,8 +729,9 @@ function Sticker(props: { sticker: StickerT; mutate: () => void }) {
                 <div className="w-full text-center">
                     {entities && (
                         <>
-                            {entities[props.sticker.entityId].name} varianta{" "}
-                            {props.sticker.type}
+                            {entities[props.sticker.entityId]?.name ??
+                                props.sticker.entityId}{" "}
+                            varianta {props.sticker.type}
                         </>
                     )}
                 </div>

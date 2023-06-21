@@ -220,7 +220,7 @@ export interface TeamAnnouncement {
     type: AnnouncementType;
     content: string;
     read: boolean;
-    appearDatetime: Date;
+    appearDatetime: Date | string;
     readBy?: string[];
 }
 

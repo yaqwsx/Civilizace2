@@ -378,7 +378,7 @@ function AnnouncementEditForm(props: {
                         dateFormat="D. M."
                         timeFormat="H:mm"
                         value={props.values.appearDatetime}
-                        onChange={(date: any) =>
+                        onChange={(date) =>
                             props.setFieldValue("appearDatetime", date, true)
                         }
                     />

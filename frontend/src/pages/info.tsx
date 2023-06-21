@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "react-toastify";
@@ -5,7 +6,7 @@ import useSWR from "swr";
 import { Dialog, LoadingOrError } from "../elements";
 import { ActionMessage, useActionPreview } from "../elements/action";
 import { useCurrentTurn } from "../elements/turns";
-import { ActionResponse } from "../types";
+import { ActionResponse, TeamAnnouncement } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { AnnouncementList } from "./dashboard";
 import { useScanner } from "./scanner";
@@ -103,11 +104,17 @@ function Countdown() {
 }
 
 function PublicAnnouncements() {
-    const { data } = useSWR<any>("/announcements/public", fetcher, {
-        refreshInterval: 20000,
-    });
+    const { data } = useSWR<TeamAnnouncement[]>(
+        "/announcements/public",
+        fetcher,
+        {
+            refreshInterval: 20000,
+        }
+    );
 
-    if (!data || data.length == 0) return null;
+    if (_.isNil(data) || data.length === 0) {
+        return null;
+    }
 
     return (
         <div className="container mx-auto">

@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -8,13 +9,13 @@ import {
     useUnfinishedActions,
 } from "../elements/action";
 import { ErrorMessage, SuccessMessage } from "../elements/messages";
+import { ActionResponse } from "../types";
 
 export function FinishAction() {
     const navigate = useNavigate();
     const { actionId } = useParams();
     const { actions, error, mutate } = useUnfinishedActions();
-    const [finished, setFinished] = useState(false);
-    const [response, setResponse] = useState<any>();
+    const [response, setResponse] = useState<ActionResponse>();
 
     if (!actionId)
         return <ErrorMessage>Nastala neočekávaná chyba</ErrorMessage>;
@@ -22,7 +23,7 @@ export function FinishAction() {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
-    let action = actions.find((x) => x.id === parseInt(actionId));
+    const action = actions.find((x) => x.id === parseInt(actionId));
     if (!action)
         return (
             <SuccessMessage>
@@ -30,7 +31,7 @@ export function FinishAction() {
             </SuccessMessage>
         );
 
-    let actionName = `Dokončení akce ${action.id}: ${action?.description}`;
+    const actionName = `Dokončení akce ${action.id}: ${action?.description}`;
 
     return (
         <>
@@ -38,13 +39,17 @@ export function FinishAction() {
                 Máte nedokončenou akci {actionId}, je třeba ji dokončit než
                 můžete zadávat další akce.
             </h1>
-            {!finished ? (
+            {_.isNil(response) ? (
                 <ActionDicePhase
                     actionNumber={action.id}
                     message={""}
                     changePhase={(p, d) => {
+                        console.assert(
+                            !_.isNil(d),
+                            "Empty ActionResponse in",
+                            p
+                        );
                         setResponse(d);
-                        setFinished(true);
                     }}
                     actionName={actionName}
                 />
