@@ -12,8 +12,8 @@ import {
     SpinboxInput,
 } from "../elements";
 import { PerformAction } from "../elements/action";
-import { EntityTag, useEntities } from "../elements/entities";
-import { useMapTileStates } from "../elements/states";
+import { EntityTag } from "../elements/entities";
+import { TileTeamSelect } from "../elements/entities_select";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -23,10 +23,12 @@ import {
     useTeamResources,
     useTeamSpecialResources,
     useTeamStorage,
+    useTeamTiles,
     useTeamVyrobas,
 } from "../elements/team_view";
 import {
     Decimal,
+    MapTileTeamEntity,
     ResourceEntity,
     ResourceId,
     ResourceTeamEntity,
@@ -112,7 +114,6 @@ type SelectVyrobaProps = {
 };
 function SelectVyroba(props: SelectVyrobaProps) {
     const { data: vyrobas, error: vError } = useTeamVyrobas(props.team);
-    const { data: resources, error: rError } = useTeamResources(props.team);
     const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
 
     if (!vyrobas) {
@@ -121,11 +122,6 @@ function SelectVyroba(props: SelectVyrobaProps) {
                 error={vError}
                 message="Nemohu načíst výroby týmu."
             />
-        );
-    }
-    if (!resources) {
-        return (
-            <LoadingOrError error={rError} message="Nemohu načíst zdroje." />
         );
     }
     let vyroba = vyrobaId ? vyrobas[vyrobaId] : null;
@@ -160,7 +156,6 @@ function SelectVyroba(props: SelectVyrobaProps) {
                 <PerformVyroba
                     vyroba={vyroba}
                     team={props.team}
-                    resources={resources}
                     onReset={() => setVyrobaId(RESET)}
                 />
             ) : null}
@@ -193,50 +188,50 @@ function isProduction(e: ResourceEntity) {
     return e.id.startsWith("pro-") || e.id.startsWith("pge-");
 }
 
+function useTeamHomeTile(team: Team): {
+    homeTile?: MapTileTeamEntity;
+    error: any;
+} {
+    const { data: tiles, error } = useTeamTiles(team);
+
+    if (_.isNil(tiles) || error) {
+        return { error };
+    }
+
+    const homeTile = Object.values(tiles).find((t) => t.is_home);
+    if (_.isNil(homeTile)) {
+        console.error("No home tile of team", team, tiles);
+        return { error: `No home tile of team ${team.name}` };
+    }
+
+    return { homeTile, error };
+}
+
 type PerformVyrobaProps = {
     vyroba: VyrobaTeamEntity;
-    resources: Record<string, ResourceTeamEntity>;
     team: Team;
     onReset: () => void;
 };
 function PerformVyroba(props: PerformVyrobaProps) {
-    const { data: entities, error: eError } = useEntities<ResourceEntity>();
-    const { tiles, error: tError } = useMapTileStates();
-
     const [count, setCount] = useState(1);
-    const [tile, setTile] = useState<string>();
+    const [tile, setTile] = useState<MapTileTeamEntity>();
 
-    const vyroba = props.vyroba;
+    const { homeTile } = useTeamHomeTile(props.team);
 
     useEffect(() => {
-        if (!tiles || tile || !vyroba || !vyroba?.allowedTiles) return;
-        const homeTile = tiles.find((t) => t?.homeTeam === props.team.id);
-        console.assert(!_.isNil(homeTile), "No home tile");
-        setTile(homeTile?.entity);
-    }, [tiles, props.team, vyroba]);
-
-    if (!entities || !tiles) {
-        return (
-            <LoadingOrError
-                error={eError || tError}
-                message="Nepodařilo se načíst entity"
-            />
-        );
-    }
-
-    const handleCountChange = (x: number) => {
-        setCount(x >= 0 ? x : 0);
-    };
-
-    let sortedTiles = tiles.sort((a, b) => a.name.localeCompare(b.name));
+        if (!homeTile || !props.vyroba || !props.vyroba?.allowedTiles) {
+            return;
+        }
+        setTile(homeTile);
+    }, [props.team, homeTile, props.vyroba]);
 
     return (
         <PerformAction
-            actionName={`Výroba ${count}× ${vyroba.name} pro tým ${props.team.name}`}
+            actionName={`Výroba ${count}× ${props.vyroba.name} pro tým ${props.team.name}`}
             actionId="VyrobaAction"
             actionArgs={{
                 team: props.team.id,
-                tile,
+                tile: tile?.id,
                 vyroba: props.vyroba.id,
                 count,
             }}
@@ -248,34 +243,21 @@ function PerformVyroba(props: PerformVyrobaProps) {
                     <FormRow label="Zadejte počet výrob:">
                         <SpinboxInput
                             value={count}
-                            onChange={handleCountChange}
+                            onChange={(v) => setCount(Math.max(v, 1))}
                         />
                     </FormRow>
                     <FormRow label="Vyberte pole mapy pro výrobu:">
-                        <select
-                            className="select field"
-                            value={tile ?? ""}
-                            onChange={(e) => setTile(e.target.value)}
-                        >
-                            <option value="">Pole nevybráno</option>
-                            {sortedTiles
-                                // .filter((t) =>
-                                //     vyroba.allowedTiles.includes(t.entity)
-                                // )
-                                .map((t) => (
-                                    <option key={t.entity} value={t.entity}>
-                                        {t.name}{" "}
-                                        {t.homeTeam
-                                            ? `(domovské ${t.homeTeam})`
-                                            : null}
-                                    </option>
-                                ))}
-                        </select>
+                        <TileTeamSelect
+                            team={props.team}
+                            value={tile}
+                            onChange={setTile}
+                            sortBy={"-is_home"}
+                        />
                     </FormRow>
                     <h2>
-                        {count}× {vyroba.name} →{" "}
-                        {count * Number(vyroba.reward[1])}×{" "}
-                        <EntityTag id={vyroba.reward[0]} />
+                        {count}× {props.vyroba.name} →{" "}
+                        {count * Number(props.vyroba.reward[1])}×{" "}
+                        <EntityTag id={props.vyroba.reward[0]} />
                     </h2>
                 </>
             }
