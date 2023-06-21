@@ -19,6 +19,4 @@ class MapViewSet(viewsets.ViewSet):
         tilesRep = [stateSerialize(tiles[i]) for i in range(state.map.size)]
         for i in range(state.map.size):
             tilesRep[i]["name"] = tiles[i].entity.name
-        for team in entities.teams.values():
-            tilesRep[state.map.getHomeOfTeam(team).index]["homeTeam"] = team.id
         return Response(tilesRep)

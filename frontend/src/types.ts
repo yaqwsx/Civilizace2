@@ -204,7 +204,6 @@ export interface GameState {
 
 export interface MapTileViewState extends MapTileState {
     name: string;
-    homeTeam?: TeamId;
 }
 
 // Announcement
