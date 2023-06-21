@@ -2,7 +2,7 @@ import { produce } from "immer";
 import { useAtom, useSetAtom } from "jotai";
 import { RESET } from "jotai/utils";
 import _ from "lodash";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     ComponentError,
@@ -13,32 +13,28 @@ import {
 } from "../elements";
 import { PerformAction } from "../elements/action";
 import { EntityTag } from "../elements/entities";
-import { TileTeamSelect } from "../elements/entities_select";
+import { TileTeamSelect, VyrobaTeamSelect } from "../elements/entities_select";
 import {
     TeamRowIndicator,
     TeamSelector,
     useTeamFromUrl,
 } from "../elements/team";
 import {
-    useTeamResources,
     useTeamSpecialResources,
     useTeamStorage,
     useTeamTiles,
-    useTeamVyrobas,
 } from "../elements/team_view";
 import {
     Decimal,
     MapTileTeamEntity,
     ResourceEntity,
     ResourceId,
-    ResourceTeamEntity,
     Team,
     VyrobaTeamEntity,
 } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
 import { useHideMenu } from "./atoms";
 
-export const urlEntityAtom = stringAtomWithHash("entity");
 export const urlVyrobaActionAtom = stringAtomWithHash("vyrobaAction");
 
 export function VyrobaMenu() {
@@ -49,7 +45,6 @@ export function Vyroba() {
     useHideMenu();
 
     const { team, setTeam, error, success } = useTeamFromUrl();
-    const setVyrobaId = useSetAtom(urlEntityAtom);
     const [vyrobaAction, setVyrobaAction] = useAtom(urlVyrobaActionAtom);
 
     if (!success) {
@@ -69,11 +64,6 @@ export function Vyroba() {
         );
     }
 
-    const handleTeamChange = (t?: Team) => {
-        setTeam(t);
-        setVyrobaId(RESET);
-    };
-
     return (
         <>
             <h1>
@@ -81,7 +71,7 @@ export function Vyroba() {
                 {team ? ` pro tým ${team.name}` : null}
             </h1>
             <FormRow label="Vyber tým:">
-                <TeamSelector onChange={handleTeamChange} activeId={team?.id} />
+                <TeamSelector onChange={setTeam} activeId={team?.id} />
             </FormRow>
             <TeamRowIndicator team={team ?? undefined} />
             <FormRow label="Vyberte akci:">
@@ -108,55 +98,28 @@ export function Vyroba() {
     );
 }
 
-type SelectVyrobaProps = {
-    team: Team;
-    active?: VyrobaTeamEntity;
-};
-function SelectVyroba(props: SelectVyrobaProps) {
-    const { data: vyrobas, error: vError } = useTeamVyrobas(props.team);
-    const [vyrobaId, setVyrobaId] = useAtom(urlEntityAtom);
+function SelectVyroba(props: { team: Team }) {
+    const [vyroba, setVyroba] = useState<VyrobaTeamEntity>();
 
-    if (!vyrobas) {
-        return (
-            <LoadingOrError
-                error={vError}
-                message="Nemohu načíst výroby týmu."
-            />
-        );
-    }
-    let vyroba = vyrobaId ? vyrobas[vyrobaId] : null;
-
-    const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setVyrobaId(event.target.value || RESET);
-    };
-
-    let vyrobasArray = Object.values(vyrobas);
-    vyrobasArray.sort((a, b) => (a.name > b.name ? 1 : -1));
+    useEffect(() => {
+        setVyroba(undefined);
+    }, [props.team]);
 
     return (
         <>
             <h2>Vyberte výrobu</h2>
             <FormRow label="Vyber výrobu:">
-                <select
-                    value={vyrobaId ?? ""}
-                    onChange={handleChange}
-                    className="select"
-                >
-                    <option value="">Vyber výrobu</option>
-                    {vyrobasArray.map((v) => {
-                        return (
-                            <option key={v.id} value={v.id}>
-                                {v.name}
-                            </option>
-                        );
-                    })}
-                </select>
+                <VyrobaTeamSelect
+                    team={props.team}
+                    value={vyroba}
+                    onChange={setVyroba}
+                />
             </FormRow>
             {vyroba ? (
                 <PerformVyroba
                     vyroba={vyroba}
                     team={props.team}
-                    onReset={() => setVyrobaId(RESET)}
+                    onReset={() => setVyroba(undefined)}
                 />
             ) : null}
         </>
