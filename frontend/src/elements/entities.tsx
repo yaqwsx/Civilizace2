@@ -4,6 +4,7 @@ import useSWRImmutable from "swr/immutable";
 import {
     Decimal,
     EntityBase,
+    EntityId,
     ResourceTeamEntity,
     SpecialResources,
     Team,
@@ -16,7 +17,7 @@ import { fetcher } from "../utils/axios";
 export const urlEntityAtom = stringAtomWithHash("entity");
 
 export function useEntities<T = EntityBase>(entityType?: string) {
-    return useSWRImmutable<Record<string, T & EntityBase>>(
+    return useSWRImmutable<Record<EntityId, T & EntityBase>>(
         () => (entityType ? `game/entities/${entityType}` : "game/entities"),
         fetcher
     );
@@ -30,7 +31,7 @@ export function useTeamSpecialResources(teamId: string | undefined) {
 }
 
 export function useTeamEntities<T>(entityType: string, team: Team | undefined) {
-    return useSWR<Record<string, T>>(
+    return useSWR<Record<EntityId, T>>(
         () => (team ? `game/teams/${team.id}/${entityType}` : null),
         fetcher
     );
@@ -54,6 +55,22 @@ export function useTeamResources(team: Team | undefined) {
     );
     return {
         resources: data,
+        ...rest,
+    };
+}
+
+export function useTeamProductions(team: Team | undefined) {
+    const { data, ...rest } = useTeamEntities<Decimal>("productions", team);
+    return {
+        productions: data,
+        ...rest,
+    };
+}
+
+export function useTeamStorage(team: Team | undefined) {
+    const { data, ...rest } = useTeamEntities<Decimal>("storage", team);
+    return {
+        storage: data,
         ...rest,
     };
 }

@@ -3,7 +3,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { RESET } from "jotai/utils";
 import _ from "lodash";
 import { ChangeEvent, useEffect, useState } from "react";
-import useSWR from "swr";
 import {
     Button,
     ComponentError,
@@ -19,6 +18,7 @@ import {
     useEntities,
     useTeamResources,
     useTeamSpecialResources,
+    useTeamStorage,
     useTeamVyrobas,
 } from "../elements/entities";
 import { useMapTileStates } from "../elements/states";
@@ -36,7 +36,6 @@ import {
     VyrobaTeamEntity,
 } from "../types";
 import { stringAtomWithHash } from "../utils/atoms";
-import { fetcher } from "../utils/axios";
 import { useHideMenu } from "./atoms";
 
 export const urlVyrobaActionAtom = stringAtomWithHash("vyrobaAction");
@@ -287,14 +286,7 @@ function PerformVyroba(props: PerformVyrobaProps) {
 
 function WithdrawStorage(props: { team: Team }) {
     const [submitting, setSubmitting] = useState(false);
-    const {
-        data: storage,
-        error,
-        mutate,
-    } = useSWR<Record<ResourceId, Decimal>>(
-        `game/teams/${props.team.id}/storage`,
-        fetcher
-    );
+    const { storage, error, mutate } = useTeamStorage(props.team);
     const [toWithdraw, setToWithdraw] = useState<Record<ResourceId, number>>(
         {}
     );

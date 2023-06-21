@@ -269,7 +269,7 @@ interface ElementNode {
     children: TreeNode[];
 }
 
-export function EntityMdTag({ node }: { node: any }) {
+export function EntityMdTag({ node }: { node: ElementNode }) {
     const [id, quantity = undefined] = node.value;
     return <EntityTag id={id} quantity={quantity} />;
 }

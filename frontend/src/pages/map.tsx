@@ -14,7 +14,12 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import { EntityTag, useEntities } from "../elements/entities";
+import {
+    EntityTag,
+    useEntities,
+    useTeamProductions,
+    useTeamResources,
+} from "../elements/entities";
 import {
     BuildingTeamSelect,
     BuildingUpgradeTeamSelect,
@@ -33,11 +38,11 @@ import {
     ArmyMode,
     BuildingEntity,
     BuildingUpgradeTeamEntity,
-    Decimal,
     FeedingRequirements,
     MapTileTeamEntity,
     ResourceEntity,
     ResourceId,
+    ResourceTeamEntity,
     Team,
     TeamArmy,
     TeamAttributeTeamEntity,
@@ -271,17 +276,9 @@ export function BuildingAgenda(props: { team: Team }) {
 }
 
 export function BuildingUpgradeAgenda(props: { team: Team }) {
-    const { data: availableUpgrades, error } = useSWR<any>(
-        `game/teams/${props.team.id}/building_upgrades`,
-        fetcher
-    );
     const setAction = useSetAtom(urlMapActionAtom);
     const [tile, setTile] = useState<MapTileTeamEntity>();
     const [upgrade, setUpgrade] = useState<BuildingUpgradeTeamEntity>();
-
-    if (!availableUpgrades) {
-        return <LoadingOrError error={error} message="Něco se pokazilo" />;
-    }
 
     return (
         <>
@@ -435,25 +432,16 @@ export function TradeAgenda(props: { team: Team }) {
     const [recipient, setRecipient] = useState<Team>();
     const [resources, setResources] = useState<Record<ResourceId, number>>({});
 
-    const { data: productions, error } = useSWR<Record<ResourceId, Decimal>>(
-        `game/teams/${props.team.id}/productions`,
-        fetcher
-    );
+    const { productions, error } = useTeamProductions(props.team);
 
     if (!productions) {
         return <LoadingOrError error={error} message="Něco se nepovedlo" />;
     }
 
     const updateResources = (prodId: string, amount: number) => {
-        const available = Number(productions[prodId]);
-        if (amount < 0) {
-            amount = 0;
-        } else if (amount > available) {
-            amount = available;
-        }
         setResources(
             produce(resources, (orig) => {
-                orig[prodId] = amount;
+                orig[prodId] = _.clamp(amount, 0, Number(productions[prodId]));
             })
         );
     };
@@ -917,26 +905,29 @@ export function FeedingAgenda(props: { team: Team }) {
 
 export function AutomateFeedingAgenda(props: { team: Team }) {
     const [productions, setProductions] = useState<Record<string, number>>({});
-    const {
-        data: availableProductions,
-        error,
-        mutate,
-    } = useSWR<any>(`game/teams/${props.team.id}/resources`, fetcher);
+    const { resources, error: rError } = useTeamResources(props.team);
+    const { productions: availableProductions, error: pError } =
+        useTeamProductions(props.team);
     const setAction = useSetAtom(urlMapActionAtom);
 
-    if (!availableProductions) {
-        return <LoadingOrError error={error} message="Něco se nepovedlo" />;
+    if (!resources || !availableProductions) {
+        return (
+            <LoadingOrError
+                error={rError || pError}
+                message="Něco se nepovedlo"
+            />
+        );
     }
 
-    let food = Object.values(availableProductions);
+    // TODO
+    const automatizable = Object.values(resources).filter(
+        (res) => Number(availableProductions[res.id]) > 0
+    );
 
-    let updateResource = (rId: string, v: number) => {
-        if (v < 0) v = 0;
-        if (v > availableProductions[rId].available)
-            v = availableProductions[rId].available;
+    const updateResource = (res: ResourceTeamEntity, v: number) => {
         setProductions(
             produce(productions, (orig) => {
-                orig[rId] = v;
+                orig[res.id] = _.clamp(v, 0, _.floor(Number(res.available)));
             })
         );
     };
@@ -947,29 +938,28 @@ export function AutomateFeedingAgenda(props: { team: Team }) {
             actionName={`Automatizace krmení ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                productions: productions,
+                productions,
             }}
             argsValid={(a) => Object.keys(a.productions).length > 0}
             extraPreview={
                 <>
-                    {Object.keys(food).length > 0
-                        ? food.map((a: any) => (
+                    {Object.keys(automatizable).length > 0
+                        ? automatizable.map((a) => {
                               <FormRow
                                   key={a.id}
                                   label={
                                       <>
                                           <EntityTag id={a.id} /> (max{" "}
-                                          {availableProductions[a.id].available}
-                                          )
+                                          {resources[a.id].available})
                                       </>
                                   }
                               >
                                   <SpinboxInput
-                                      value={_.get(productions, a.id, 0)}
-                                      onChange={(v) => updateResource(a.id, v)}
+                                      value={productions[a.id] ?? 0}
+                                      onChange={(v) => updateResource(a, v)}
                                   />
-                              </FormRow>
-                          ))
+                              </FormRow>;
+                          })
                         : "Tým nemá žádné produkce jídla či luxusu. Není možné automatizovat."}
                 </>
             }
