@@ -25,7 +25,7 @@ export const ScannerContext = createContext<ScannerContextType>({
     items: [],
 });
 
-export function ScannerDispatcher(props: { children: any }) {
+export function ScannerDispatcher(props: JSX.ElementChildrenAttribute) {
     const [items, setItems] = useState<string[]>([]);
 
     const handleCodes = (code: string) => {
@@ -51,7 +51,7 @@ export function ScannerDispatcher(props: { children: any }) {
     return (
         <ScannerContext.Provider
             value={{
-                items: items,
+                items,
             }}
         >
             {props.children}
