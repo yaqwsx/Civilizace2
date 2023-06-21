@@ -3,6 +3,9 @@ import { MapActionType } from "../pages/map";
 
 import onScan from "onscan.js";
 import { createContext, useContext, useEffect, useState } from "react";
+import { stringAtomWithHash } from "../utils/atoms";
+
+export const urlReaderEntityAtom = stringAtomWithHash("entity");
 
 function decodeKeyEvent(event: KeyboardEvent) {
     if (event.code === "Space") return " ";

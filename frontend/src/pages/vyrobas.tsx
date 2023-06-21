@@ -14,6 +14,7 @@ import {
 import { PerformAction } from "../elements/action";
 import { EntityTag } from "../elements/entities";
 import { TileTeamSelect, VyrobaTeamSelect } from "../elements/entities_select";
+import { urlReaderEntityAtom } from "../elements/scanner";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -23,6 +24,7 @@ import {
     useTeamSpecialResources,
     useTeamStorage,
     useTeamTiles,
+    useTeamVyrobas,
 } from "../elements/team_view";
 import {
     Decimal,
@@ -104,6 +106,15 @@ function SelectVyroba(props: { team: Team }) {
     useEffect(() => {
         setVyroba(undefined);
     }, [props.team]);
+
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    const { data: vyrobas } = useTeamVyrobas(props.team);
+    useEffect(() => {
+        if (vyrobas && entity) {
+            setVyroba(vyrobas[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, vyrobas]);
 
     return (
         <>

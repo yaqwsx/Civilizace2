@@ -3,7 +3,7 @@ import produce from "immer";
 import { useAtom, useSetAtom } from "jotai";
 import { RESET, atomWithHash } from "jotai/utils";
 import _ from "lodash";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     Dialog,
@@ -22,6 +22,7 @@ import {
     VyrobaTeamSelect,
 } from "../elements/entities_select";
 import { ErrorMessage } from "../elements/messages";
+import { urlReaderEntityAtom } from "../elements/scanner";
 import {
     TeamRowIndicator,
     TeamSelector,
@@ -29,15 +30,19 @@ import {
 } from "../elements/team";
 import {
     useTeamArmies,
+    useTeamBuildingUpgrades,
+    useTeamBuildings,
     useTeamEmployees,
     useTeamFeeding,
     useTeamProductions,
     useTeamResources,
+    useTeamTeamAttributes,
+    useTeamVyrobas,
 } from "../elements/team_view";
 import {
     ArmyGoal,
     ArmyMode,
-    BuildingEntity,
+    BuildingTeamEntity,
     BuildingUpgradeTeamEntity,
     MapTileTeamEntity,
     ResourceEntity,
@@ -224,8 +229,17 @@ export function CultureAgenda(props: { team: Team }) {
 
 export function BuildingAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const [building, setBuilding] = useState<BuildingEntity>();
+    const [building, setBuilding] = useState<BuildingTeamEntity>();
     const [tile, setTile] = useState<MapTileTeamEntity>();
+
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    const { data: buildings } = useTeamBuildings(props.team);
+    useEffect(() => {
+        if (buildings && entity) {
+            setBuilding(buildings[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, buildings]);
 
     return (
         <>
@@ -275,8 +289,17 @@ export function BuildingAgenda(props: { team: Team }) {
 
 export function BuildingUpgradeAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
-    const [tile, setTile] = useState<MapTileTeamEntity>();
     const [upgrade, setUpgrade] = useState<BuildingUpgradeTeamEntity>();
+    const [tile, setTile] = useState<MapTileTeamEntity>();
+
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    const { data: upgrades } = useTeamBuildingUpgrades(props.team);
+    useEffect(() => {
+        if (upgrades && entity) {
+            setUpgrade(upgrades[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, upgrades]);
 
     return (
         <>
@@ -330,6 +353,15 @@ export function AddAttributeAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
     const [attribute, setAttribute] = useState<TeamAttributeTeamEntity>();
 
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    const { data: attributes } = useTeamTeamAttributes(props.team);
+    useEffect(() => {
+        if (attributes && entity) {
+            setAttribute(attributes[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, attributes]);
+
     return (
         <PerformAction
             actionId="AcquireTeamAttributeAction"
@@ -367,6 +399,15 @@ export function RevertVyrobaAgenda(props: { team: Team }) {
     const { data: employees, error } = useTeamEmployees(props.team);
     const [vyroba, setVyroba] = useState<VyrobaTeamEntity>();
     const [count, setCount] = useState<number>(1);
+
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    const { data: vyrobas } = useTeamVyrobas(props.team);
+    useEffect(() => {
+        if (vyrobas && entity) {
+            setVyroba(vyrobas[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, vyrobas]);
 
     if (!employees) {
         return <LoadingOrError error={error} message="Něco se pokazilo" />;
