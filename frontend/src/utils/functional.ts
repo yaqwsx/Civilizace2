@@ -1,10 +1,12 @@
-export function objectMap(object: Record<string, any>, mapFn: (v: any) => any) {
-    return Object.keys(object).reduce(function (
-        result: Record<string, any>,
-        key: string
-    ) {
-        result[key] = mapFn(object[key]);
-        return result;
-    },
-    {});
+export function objectMap<T = any, R = T>(
+    object: Record<string, T>,
+    mapFn: (v: T) => R
+) {
+    return Object.entries(object).reduce<Record<string, R>>(
+        (result, [key, value]) => {
+            result[key] = mapFn(value);
+            return result;
+        },
+        {}
+    );
 }

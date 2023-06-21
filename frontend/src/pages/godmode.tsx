@@ -87,15 +87,9 @@ function GodModeImpl(props: { state: GameState; onFinish: () => void }) {
                         actionArgs={{
                             original: props.state,
                             new: JSON.parse(newStateStr),
-                            change: objectMap(diff.change, (v: any) =>
-                                JSON.stringify(v)
-                            ),
-                            add: objectMap(diff.add, (v: any) =>
-                                JSON.stringify(v)
-                            ),
-                            remove: objectMap(diff.remove, (v: any) =>
-                                JSON.stringify(v)
-                            ),
+                            change: objectMap(diff.change, JSON.stringify),
+                            add: objectMap(diff.add, JSON.stringify),
+                            remove: objectMap(diff.remove, JSON.stringify),
                         }}
                         onFinish={() => {
                             setIsSubmitting(false);
