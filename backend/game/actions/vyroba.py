@@ -23,9 +23,11 @@ class VyrobaReward(NamedTuple):
     reward: dict[Resource, Decimal]
     bonus: Decimal
 
-    def tracked(self) -> dict[Resource, Decimal]:
+    def non_withdrawable(self) -> dict[Resource, Decimal]:
         return {
-            reward: amount for reward, amount in self.reward.items() if reward.isTracked
+            reward: amount
+            for reward, amount in self.reward.items()
+            if not reward.isWithdrawable
         }
 
 
@@ -77,8 +79,7 @@ class VyrobaAction(TeamInteractionActionBase):
     def revertible(self) -> bool:
         reward, amount = self.args.vyroba.reward
         return (
-            reward.isProduction
-            and not reward.nontradable
+            reward.isTradableProduction
             and self.args.vyroba.cost.get(self.entities.obyvatel, 0) > 0
         )
 
@@ -96,7 +97,7 @@ class VyrobaAction(TeamInteractionActionBase):
         )
 
         self._info += printResourceListForMarkdown(
-            reward.tracked(), header="Tým obdržel v systému:"
+            reward.non_withdrawable(), header="Tým obdržel v systému:"
         )
         if reward.bonus != 0:
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"

@@ -34,8 +34,8 @@ class GranaryAction(TeamInteractionActionBase):
             if amount == 0:
                 continue
             self._ensure(
-                resource.isProduction,
-                f"Nelze automatizovat [[{resource.id}]] - není produkce",
+                resource.isTradableProduction,
+                f"Nelze automatizovat [[{resource.id}]] - není obchodovatelná produkce",
             )
             self._ensure(
                 amount >= 0,

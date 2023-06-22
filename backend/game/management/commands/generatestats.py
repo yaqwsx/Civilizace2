@@ -53,13 +53,10 @@ def teamStat(team: TeamEntity, states: list[GameState], entities: Entities):
             tState = state.teamStates[team]
             prod = 0
             for resource, amount in tState.resources.items():
-                if resource.isProduction and resource.id not in [
-                    "res-obyvatel",
-                    "res-prace",
-                ]:
+                if resource.isTradableProduction:
                     prod += amount
             for resource, amount in tState.granary.items():
-                if resource.isProduction:
+                if resource.isTradableProduction:
                     prod += amount
             prodSum += prod
             stat.append(

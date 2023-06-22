@@ -350,7 +350,7 @@ class TeamInteractionActionBase(TeamActionBase):
             if amount == 0:
                 continue
 
-            if not resource.isTracked:
+            if resource.isWithdrawable:
                 tokens[resource] = amount
                 continue
 

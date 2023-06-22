@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 )
 
     def print_resource_usage(self, entities: Entities, material: Resource):
-        if material.isProduction:
+        if material.isTradableProduction:
             assert material.produces is not None
             raise RuntimeError(
                 f"Resource is a production, use '{material.produces.id}' instead"

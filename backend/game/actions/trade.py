@@ -39,7 +39,7 @@ class TradeAction(TeamInteractionActionBase):
         with self._errors.startList("Obchod nelze provést") as err:
             teamState = self.teamState
             for resource, amount in self.args.resources.items():
-                if not resource.isProduction or resource.nontradable:
+                if not resource.isTradableProduction:
                     err(f"Nelze obchodovat [[{resource.id}]]")
                     continue
 

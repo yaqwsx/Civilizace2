@@ -228,8 +228,7 @@ def sortedCost(items):
 
 def resourceName(resource):
     n = resource.name.replace(" ", " ")
-    # TODO: replace with `isProduction`
-    if resource.id.startswith("pro-") or resource.id.startswith("pge-"):
+    if resource.isTradableProduction:
         return underline(n)
     return n
 

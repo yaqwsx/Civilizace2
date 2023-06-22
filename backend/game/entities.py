@@ -71,8 +71,12 @@ class Resource(EntityBase):
     nontradable: bool = False
 
     @property
-    def isProduction(self) -> bool:
-        return self.produces != None
+    def tradable(self) -> bool:
+        return not self.nontradable
+
+    @property
+    def isTradableProduction(self) -> bool:
+        return self.tradable and self.produces is not None
 
     @property
     def isGeneric(self) -> bool:
@@ -80,11 +84,7 @@ class Resource(EntityBase):
 
     @property
     def isWithdrawable(self) -> bool:
-        return not self.isProduction and not self.nontradable
-
-    @property
-    def isTracked(self) -> bool:
-        return not self.id.startswith("mat-") and not self.id.startswith("mge-")
+        return self.tradable and self.produces is None
 
 
 @dataclass(init=False, repr=False, eq=False)

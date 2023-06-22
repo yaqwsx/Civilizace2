@@ -313,8 +313,7 @@ class TeamState(StateModel):
         return {
             resource: amount
             for resource, amount in self.resources.items()
-            if resource.isProduction
-            if not resource.nontradable
+            if resource.isTradableProduction
         }
 
     @property
