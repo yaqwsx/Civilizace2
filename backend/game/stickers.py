@@ -6,8 +6,9 @@ if __name__ == "__main__":
 import contextlib
 import os
 from collections.abc import Generator
+from decimal import Decimal
 from pathlib import Path
-from typing import Optional
+from typing import Mapping, Optional, Tuple
 
 import qrcode
 from django.conf import settings
@@ -215,15 +216,20 @@ def makeStickerFooter(e: Entity, builder: StickerBuilder) -> None:
     builder.hline(3, 0)
 
 
-def sortedCost(items):
-    def keyFn(item):
+def sortedCost(cost: Mapping[Resource, Decimal]) -> list[Tuple[Resource, Decimal]]:
+    def keyFn(item: Tuple[Resource, Decimal]):
         r, a = item
-        idx = 10
         if r.id == RESOURCE_WORK:
-            idx = 0
-        return (idx, r.name)
+            index = 0
+        elif not r.tradable:
+            index = 1
+        elif r.isTradableProduction:
+            index = 2
+        else:
+            index = 3
+        return (index, r.name, r.id)
 
-    return sorted(items, key=keyFn)
+    return sorted(((r, a) for r, a in cost.items() if a != 0), key=keyFn)
 
 
 def resourceName(resource):
@@ -273,7 +279,7 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
         with b.withOffset(10):
             for t in uTechs:
                 costText = ", ".join(
-                    [f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost.items())]
+                    [f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost)]
                 )
                 diceText = f"Kostka: {t.points}"
                 b.addText(f"• {t.name}: ", FONT_BOLD)
@@ -305,7 +311,7 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
-        for r, a in sortedCost(e.cost.items()):
+        for r, a in sortedCost(e.cost):
             b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
     if len(e.upgrades) > 0:
@@ -338,7 +344,7 @@ def makeBuildingUpgradeSticker(
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
-        for r, a in sortedCost(e.cost.items()):
+        for r, a in sortedCost(e.cost):
             b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
     icon = e.icon
@@ -371,7 +377,7 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Vstupy:", FONT_BOLD)
     with b.withOffset(10):
-        for r, a in sortedCost(e.cost.items()):
+        for r, a in sortedCost(e.cost):
             b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
     b.addBulletLine(
@@ -384,6 +390,8 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
         b.addText("Další výstupy:", FONT_BOLD)
         with b.withOffset(10):
             for r, a in e.otherRewards:
+                if a == 0:
+                    continue
                 b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
     icon = e.reward[0].icon
