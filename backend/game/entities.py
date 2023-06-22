@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import os
 from dataclasses import dataclass
 from decimal import Decimal
@@ -130,8 +131,12 @@ class Tech(EntityWithCost):
 @dataclass(init=False, repr=False, eq=False)
 class Vyroba(EntityWithCost):
     reward: Tuple[Resource, Decimal]
+    otherRewards: list[Tuple[Resource, Decimal]] = []
     requiredTileFeatures: list[TileFeature] = []
     flavor: str = ""
+
+    def all_rewards(self) -> Iterable[Tuple[Resource, Decimal]]:
+        return itertools.chain([self.reward], self.otherRewards)
 
 
 @dataclass(init=False, repr=False, eq=False)

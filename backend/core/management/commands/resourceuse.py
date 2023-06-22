@@ -58,6 +58,8 @@ class Command(BaseCommand):
                 reward_str = ""
                 if isinstance(entity, Vyroba):
                     reward_str = f" => {self.res_amount_to_str(entity.reward)}"
+                    for other_reward in entity.otherRewards:
+                        reward_str += ", " + self.res_amount_to_str(other_reward)
                 print(
                     f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"
                 )
@@ -129,6 +131,17 @@ class Command(BaseCommand):
                 print(
                     f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
                 )
+        print()
+        print("MATERIAL additionally created by:")
+        for vyroba in entities.vyrobas.values():
+            for reward_res, reward_amount in vyroba.otherRewards:
+                if material == reward_res:
+                    print(
+                        f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
+                    )
+                    print(
+                        f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                    )
 
         for prod in productions:
             print(f"PRODUCTION {self.entity_to_str(prod)} created by:")
@@ -141,3 +154,13 @@ class Command(BaseCommand):
                     print(
                         f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
                     )
+            print(f"PRODUCTION {self.entity_to_str(prod)} additionally created by:")
+            for vyroba in entities.vyrobas.values():
+                for reward_res, reward_amount in vyroba.otherRewards:
+                    if prod == reward_res:
+                        print(
+                            f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
+                        )
+                        print(
+                            f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                        )

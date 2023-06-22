@@ -374,17 +374,22 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
         for r, a in sortedCost(e.cost.items()):
             b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
-    rRes = e.reward[0]
     b.addBulletLine(
         "Výstup: ",
-        f"{e.reward[1]}× {resourceName(rRes)}",
+        f"{e.reward[1]}× {resourceName(e.reward[0])}",
         FONT_NORMAL,
         bulletFont=FONT_BOLD,
     )
+    if len(e.otherRewards) > 0:
+        b.addText("Další výstupy:", FONT_BOLD)
+        with b.withOffset(10):
+            for r, a in e.otherRewards:
+                b.addBulletLine("• ", f"{a}× {resourceName(r)}", FONT_NORMAL)
 
-    icon = rRes.icon
+    icon = e.reward[0].icon
     if icon is not None:
         icon = os.path.splitext(icon)[0] + "-md.png"
+        b.skip(10)
         try:
             b.addIcon(icon)
         except Exception:

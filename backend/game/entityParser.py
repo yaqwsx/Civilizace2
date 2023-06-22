@@ -942,6 +942,16 @@ def check_teams_have_different_home_tiles(
         err_handler.error("There are multiple teams with the same home tile")
 
 
+def check_unique_vyroba_rewards(
+    entities: Entities, *, err_handler: ErrorHandler
+) -> None:
+    for vyroba in entities.values():
+        if not isinstance(vyroba, Vyroba):
+            continue
+        if not unique(res for res, amount in vyroba.all_rewards()):
+            err_handler.error(f"There are multiple same rewards in vyroba {vyroba}")
+
+
 def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
     if len(entities.tiles) != MAP_SIZE:
         err_handler.error(
@@ -1177,6 +1187,7 @@ class EntityParser:
         entities = Entities(entities_map.values())
         with err_handler.add_context("final checks"):
             check_teams_have_different_home_tiles(entities, err_handler=err_handler)
+            check_unique_vyroba_rewards(entities, err_handler=err_handler)
             checkUnreachableByTech(entities, err_handler=err_handler)
             checkMap(entities, err_handler=err_handler)
             checkUsersHaveLogins(entities, err_handler=err_handler)

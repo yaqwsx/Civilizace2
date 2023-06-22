@@ -12,6 +12,7 @@ from game.actions.actionBase import (
 )
 from game.actions.common import printResourceListForMarkdown
 from game.entities import Resource, Vyroba
+from game.util import sum_dict
 
 
 class VyrobaArgs(TeamActionArgs, TileActionArgs):
@@ -19,24 +20,12 @@ class VyrobaArgs(TeamActionArgs, TileActionArgs):
     count: int
 
 
-class VyrobaReward(NamedTuple):
-    reward: dict[Resource, Decimal]
-    bonus: Decimal
-
-    def non_withdrawable(self) -> dict[Resource, Decimal]:
-        return {
-            reward: amount
-            for reward, amount in self.reward.items()
-            if not reward.isWithdrawable
-        }
-
-
-def computeVyrobaReward(args: VyrobaArgs, tileState: state.MapTile) -> VyrobaReward:
-    resource, amount = args.vyroba.reward
-
-    bonus = Decimal(tileState.richnessTokens) / 10
-    reward = {resource: amount * (1 + bonus) * args.count}
-    return VyrobaReward(reward=reward, bonus=bonus)
+def computeVyrobaReward(
+    vyroba: Vyroba, count: int, *, bonus: Decimal
+) -> dict[Resource, Decimal]:
+    return sum_dict(
+        (res, amount * (1 + bonus) * count) for res, amount in vyroba.all_rewards()
+    )
 
 
 class VyrobaAction(TeamInteractionActionBase):
@@ -49,7 +38,7 @@ class VyrobaAction(TeamInteractionActionBase):
     @property
     @override
     def description(self) -> str:
-        return f"Výroba {self.args.vyroba.reward[1]*self.args.count}× {self.args.vyroba.reward[0].name} ({self.args.team.name})"
+        return f"Výroba {self.args.vyroba.name} ({self.args.vyroba.reward[1]*self.args.count}× {self.args.vyroba.reward[0].name}, {self.args.team.name})"
 
     @override
     def cost(self) -> dict[Resource, Decimal]:
@@ -86,9 +75,10 @@ class VyrobaAction(TeamInteractionActionBase):
     @override
     def _commitSuccessImpl(self) -> None:
         self._info += f"Zadání výroby bylo úspěšné."
-        reward = computeVyrobaReward(self.args, self.args.tileState(self.state))
+        bonus = self.args.tileState(self.state).richnessTokens / Decimal(10)
+        reward = computeVyrobaReward(self.args.vyroba, self.args.count, bonus=bonus)
 
-        instantReward = self._receiveResources(reward.reward, instantWithdraw=True)
+        instantReward = self._receiveResources(reward, instantWithdraw=True)
         self._info += printResourceListForMarkdown(
             instantReward,
             floor,
@@ -97,10 +87,11 @@ class VyrobaAction(TeamInteractionActionBase):
         )
 
         self._info += printResourceListForMarkdown(
-            reward.non_withdrawable(), header="Tým obdržel v systému:"
+            {res: amount for res, amount in reward.items() if not res.isWithdrawable},
+            header="Tým obdržel v systému:",
         )
-        if reward.bonus != 0:
-            self._info += f"Bonus za úrodnost výroby: {ceil(100 * reward.bonus):+}%"
+        if bonus != 0:
+            self._info += f"Bonus za úrodnost výroby: {ceil(100 * bonus):+}%"
 
         if self.revertible():
             self.teamState.employees.setdefault(self.args.vyroba, 0)

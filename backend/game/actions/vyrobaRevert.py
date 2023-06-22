@@ -1,10 +1,10 @@
 from decimal import Decimal
-from typing import Tuple
 
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Resource, Vyroba
+from game.actions.vyroba import computeVyrobaReward
+from game.entities import Vyroba
 
 
 class VyrobaRevertArgs(TeamActionArgs):
@@ -28,9 +28,9 @@ class VyrobaRevertAction(TeamInteractionActionBase):
         obyvatel_cost = self.args.vyroba.cost.get(self.entities.obyvatel, Decimal(0))
         return self.args.count * obyvatel_cost
 
-    def getRevertedResources(self) -> Tuple[Resource, Decimal]:
-        reward, amount = self.args.vyroba.reward
-        return reward, self.args.count * amount
+    @override
+    def cost(self):
+        return computeVyrobaReward(self.args.vyroba, self.args.count, bonus=Decimal(0))
 
     @override
     def _initiateCheck(self) -> None:
@@ -47,24 +47,12 @@ class VyrobaRevertAction(TeamInteractionActionBase):
             f"Tým má jenom {teamState.employees.get(self.args.vyroba, 0)}× [[{self.args.vyroba.id}]]",
         )
 
-        revertedRes, revertedAmount = self.getRevertedResources()
-        availableAmount = self.teamState.resources.get(revertedRes, 0)
-        self._ensureStrong(
-            availableAmount >= revertedAmount,
-            f"Tým nemá dostatečné zdroje na vrácení {self.args.count}× [[{self.args.vyroba.id}]] (chybí {revertedAmount - availableAmount}× [[{revertedRes.id}]])",
-        )
-
     @override
     def _commitSuccessImpl(self) -> None:
         self.teamState.employees.setdefault(self.args.vyroba, 0)
         self.teamState.employees[self.args.vyroba] -= self.args.count
         assert self.teamState.employees[self.args.vyroba] >= 0
         self._info += f"Obyvatelé přestali být specializovaní: {self.args.count}× [[{self.args.vyroba.id}]]"
-
-        revertedRes, revertedAmount = self.getRevertedResources()
-        tokens = self._payResources({revertedRes: revertedAmount})
-        assert len(tokens) == 0
-        self._info += f"Tým přišel o výrobu {revertedAmount}× [[{revertedRes.id}]]"
 
         return_obyvatel_count = self.getReturnObyvatelCount()
         self._receiveResources({self.entities.obyvatel: return_obyvatel_count})
