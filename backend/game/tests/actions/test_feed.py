@@ -36,8 +36,8 @@ def test_feedRequirements_some():
 
     teamState.resources[entities.obyvatel] = Decimal(201)
     teamState.granary = {
-        entities.productions["pro-maso"]: 2,
-        entities.productions["pro-bobule"]: 1,
+        entities.resources["pro-maso"]: 2,
+        entities.resources["pro-bobule"]: 1,
     }
 
     expected = FeedRequirements(
@@ -64,11 +64,11 @@ def test_feedRequirements_order():
 
     teamState.resources[entities.obyvatel] = Decimal(201)
     teamState.granary = {
-        entities.productions["pro-maso"]: 1,
-        entities.productions["pro-bobule"]: 3,
-        entities.productions["pro-kuze"]: 2,
-        entities.productions["pro-keramika"]: 2,
-        entities.productions["pro-cukr"]: 1,
+        entities.resources["pro-maso"]: 1,
+        entities.resources["pro-bobule"]: 3,
+        entities.resources["pro-kuze"]: 2,
+        entities.resources["pro-keramika"]: 2,
+        entities.resources["pro-cukr"]: 1,
     }
 
     expected = FeedRequirements(
@@ -243,17 +243,17 @@ def test_productions():
         entities.resources["res-kultura"]: Decimal(20),
         entities.resources["res-prace"]: Decimal(200),
         entities.resources["res-obyvatel"]: Decimal(400),
-        entities.productions["pro-bobule"]: Decimal(20),
-        entities.productions["pro-kuze"]: Decimal(5),
-        entities.productions["pro-drevo"]: Decimal(3),
+        entities.resources["pro-bobule"]: Decimal(20),
+        entities.resources["pro-kuze"]: Decimal(5),
+        entities.resources["pro-drevo"]: Decimal(3),
         entities.resources["mat-bobule"]: Decimal(8),
         entities.resources["mat-drevo"]: Decimal(3),
         entities.resources["mat-cukr"]: Decimal(6),
     }
     state.teamStates[teamEntity].granary = {
-        entities.productions["pro-bobule"]: 20,
-        entities.productions["pro-kuze"]: 10,
-        entities.productions["pro-maso"]: 8,
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 10,
+        entities.resources["pro-maso"]: 8,
     }
 
     action = FeedAction.makeAction(
@@ -267,16 +267,16 @@ def test_productions():
         entities.resources["res-kultura"]: 20,
         entities.resources["res-prace"]: 100 + 417,
         entities.resources["res-obyvatel"]: 410 + 20 + 7,
-        entities.productions["pro-bobule"]: 20,
-        entities.productions["pro-kuze"]: 5,
-        entities.productions["pro-drevo"]: 3,
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 5,
+        entities.resources["pro-drevo"]: 3,
         entities.resources["mat-bobule"]: 10,
         entities.resources["mat-drevo"]: 6,
         entities.resources["mat-cukr"]: 6,
         entities.resources["mat-kuze"]: 5,
     }
     assert state.teamStates[teamEntity].granary == {
-        entities.productions["pro-bobule"]: 20,
-        entities.productions["pro-kuze"]: 10,
-        entities.productions["pro-maso"]: 8,
+        entities.resources["pro-bobule"]: 20,
+        entities.resources["pro-kuze"]: 10,
+        entities.resources["pro-maso"]: 8,
     }

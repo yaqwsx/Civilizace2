@@ -20,9 +20,9 @@ def test_cost():
     state = createTestInitState()
 
     team = state.teamStates[basicTeamEntity]
-    team.resources[entities.productions["pro-bobule"]] = Decimal(3)
-    team.resources[entities.productions["pro-cukr"]] = Decimal(2)
-    team.resources[entities.productions["pro-drevo"]] = Decimal(5)
+    team.resources[entities.resources["pro-bobule"]] = Decimal(3)
+    team.resources[entities.resources["pro-cukr"]] = Decimal(2)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(5)
 
     cost = TradeAction.makeAction(
         state=state,
@@ -30,7 +30,7 @@ def test_cost():
         args=TradeArgs(
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
-            resources={entities.productions["pro-bobule"]: Decimal(2)},
+            resources={entities.resources["pro-bobule"]: Decimal(2)},
         ),
     ).cost()
     assert cost == {entities.resources["mge-obchod-2"]: 2}
@@ -41,7 +41,7 @@ def test_cost():
         args=TradeArgs(
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
-            resources={entities.productions["pro-cukr"]: Decimal(1)},
+            resources={entities.resources["pro-cukr"]: Decimal(1)},
         ),
     ).cost()
     assert cost == {entities.resources["mge-obchod-6"]: 1}
@@ -52,7 +52,7 @@ def test_cost():
         args=TradeArgs(
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
-            resources={entities.productions["pro-drevo"]: Decimal(3)},
+            resources={entities.resources["pro-drevo"]: Decimal(3)},
         ),
     ).cost()
     assert cost == {entities.resources["mge-obchod-3"]: 3}
@@ -64,8 +64,8 @@ def test_cost():
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
             resources={
-                entities.productions["pro-drevo"]: Decimal(3),
-                entities.productions["pro-maso"]: Decimal(2),
+                entities.resources["pro-drevo"]: Decimal(3),
+                entities.resources["pro-maso"]: Decimal(2),
             },
         ),
     ).cost()
@@ -78,8 +78,8 @@ def test_cost():
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
             resources={
-                entities.productions["pro-drevo"]: Decimal(3),
-                entities.productions["pro-cukr"]: Decimal(2),
+                entities.resources["pro-drevo"]: Decimal(3),
+                entities.resources["pro-cukr"]: Decimal(2),
             },
         ),
     ).cost()
@@ -96,8 +96,8 @@ def test_success():
     other = state.teamStates[advancedTeamEntity]
 
     team.resources = {
-        entities.productions["pro-bobule"]: Decimal(10),
-        entities.productions["pro-drevo"]: Decimal(5),
+        entities.resources["pro-bobule"]: Decimal(10),
+        entities.resources["pro-drevo"]: Decimal(5),
     }
     other.resources = {}
 
@@ -107,15 +107,15 @@ def test_success():
         args=TradeArgs(
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
-            resources={entities.productions["pro-bobule"]: Decimal(2)},
+            resources={entities.resources["pro-bobule"]: Decimal(2)},
         ),
     ).commitThrows(throws=0, dots=0)
 
     assert team.resources == {
-        entities.productions["pro-bobule"]: 8,
-        entities.productions["pro-drevo"]: 5,
+        entities.resources["pro-bobule"]: 8,
+        entities.resources["pro-drevo"]: 5,
     }
-    assert other.resources == {entities.productions["pro-bobule"]: 2}
+    assert other.resources == {entities.resources["pro-bobule"]: 2}
     assert len(result.notifications[advancedTeamEntity]) == 1
 
     result = TradeAction.makeAction(
@@ -125,19 +125,19 @@ def test_success():
             team=basicTeamEntity,
             receiver=advancedTeamEntity,
             resources={
-                entities.productions["pro-bobule"]: Decimal(2),
-                entities.productions["pro-drevo"]: Decimal(2),
+                entities.resources["pro-bobule"]: Decimal(2),
+                entities.resources["pro-drevo"]: Decimal(2),
             },
         ),
     ).commitThrows(throws=0, dots=0)
 
     assert team.resources == {
-        entities.productions["pro-bobule"]: 6,
-        entities.productions["pro-drevo"]: 3,
+        entities.resources["pro-bobule"]: 6,
+        entities.resources["pro-drevo"]: 3,
     }
     assert other.resources == {
-        entities.productions["pro-bobule"]: 4,
-        entities.productions["pro-drevo"]: 2,
+        entities.resources["pro-bobule"]: 4,
+        entities.resources["pro-drevo"]: 2,
     }
     assert len(result.notifications[advancedTeamEntity]) == 1
 
@@ -149,8 +149,8 @@ def test_invalidResource():
     other = state.teamStates[advancedTeamEntity]
 
     team.resources = {
-        entities.productions["pro-bobule"]: Decimal(10),
-        entities.productions["pro-drevo"]: Decimal(5),
+        entities.resources["pro-bobule"]: Decimal(10),
+        entities.resources["pro-drevo"]: Decimal(5),
     }
 
     with pytest.raises(ActionFailed) as einfo:
@@ -172,8 +172,8 @@ def test_insufficient():
     other = state.teamStates[advancedTeamEntity]
 
     team.resources = {
-        entities.productions["pro-bobule"]: Decimal(10),
-        entities.productions["pro-drevo"]: Decimal(5),
+        entities.resources["pro-bobule"]: Decimal(10),
+        entities.resources["pro-drevo"]: Decimal(5),
     }
 
     with pytest.raises(ActionFailed) as einfo:
@@ -183,7 +183,7 @@ def test_insufficient():
             args=TradeArgs(
                 team=basicTeamEntity,
                 receiver=advancedTeamEntity,
-                resources={entities.productions["pro-bobule"]: Decimal(20)},
+                resources={entities.resources["pro-bobule"]: Decimal(20)},
             ),
         ).commitThrows(throws=0, dots=0)
 
@@ -195,8 +195,8 @@ def test_unknownResource():
     other = state.teamStates[advancedTeamEntity]
 
     team.resources = {
-        entities.productions["pro-bobule"]: Decimal(10),
-        entities.productions["pro-drevo"]: Decimal(5),
+        entities.resources["pro-bobule"]: Decimal(10),
+        entities.resources["pro-drevo"]: Decimal(5),
     }
 
     with pytest.raises(ActionFailed) as einfo:
@@ -206,6 +206,6 @@ def test_unknownResource():
             args=TradeArgs(
                 team=basicTeamEntity,
                 receiver=advancedTeamEntity,
-                resources={entities.productions["pro-kuze"]: Decimal(2)},
+                resources={entities.resources["pro-kuze"]: Decimal(2)},
             ),
         ).commitThrows(throws=0, dots=0)

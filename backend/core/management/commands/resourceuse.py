@@ -73,7 +73,7 @@ class Command(BaseCommand):
             )
 
         productions = [
-            prod for prod in entities.productions.values() if prod.produces == material
+            prod for prod in entities.resources.values() if prod.produces == material
         ]
 
         print()

@@ -274,14 +274,6 @@ class Entities(frozendict[EntityId, Entity]):
         return frozendict({k: v for k, v in self.items() if isinstance(v, Resource)})
 
     @cached_property
-    def not_tracked_resources(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.resources.items() if not v.isTracked})
-
-    @cached_property
-    def productions(self) -> frozendict[EntityId, Resource]:
-        return frozendict({k: v for k, v in self.resources.items() if v.isProduction})
-
-    @cached_property
     def vyrobas(self) -> frozendict[EntityId, Vyroba]:
         return frozendict({k: v for k, v in self.items() if isinstance(v, Vyroba)})
 

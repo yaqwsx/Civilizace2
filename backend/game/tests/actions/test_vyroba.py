@@ -56,7 +56,7 @@ def test_simple():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamEntity]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
     originalResources = team.resources.copy()
 
     args = VyrobaArgs(
@@ -73,7 +73,7 @@ def test_simple():
     assert team.resources == {
         entities.work: 80,
         entities.obyvatel: 100,
-        entities.productions["pro-drevo"]: 20,
+        entities.resources["pro-drevo"]: 20,
     }
     assert "Vydejte týmu" in commitResult.message
     assert "Tým obdržel" in commitResult.message
@@ -83,7 +83,7 @@ def test_production():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamEntity]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
 
     args = VyrobaArgs(
         vyroba=entities.vyrobas["vyr-drevo1Pro"],
@@ -99,7 +99,7 @@ def test_production():
     assert team.resources == {
         entities.work: 80,
         entities.obyvatel: 98,
-        entities.productions["pro-drevo"]: 21,
+        entities.resources["pro-drevo"]: 21,
     }
     assert "Vydejte týmu" not in commitResult.message
     assert "Tým obdržel" in commitResult.message
@@ -109,7 +109,7 @@ def test_distance():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[teamEntity]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
 
     args = VyrobaArgs(
         vyroba=entities.vyrobas["vyr-drevo1Mat"],
@@ -128,7 +128,7 @@ def test_richnessMaterial():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities.teams["tym-zluti"]]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
@@ -151,7 +151,7 @@ def test_richnessMaterial():
     assert team.resources == {
         entities.work: 70,
         entities.obyvatel: 100,
-        entities.productions["pro-drevo"]: 20,
+        entities.resources["pro-drevo"]: 20,
     }
     assert "+80%" in delayedResult.message
     assert "[[mat-drevo|3]]" in delayedResult.message
@@ -162,7 +162,7 @@ def test_richnessProduction():
     entities = TEST_ENTITIES
     state = createTestInitState()
     team = state.teamStates[entities.teams["tym-zluti"]]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
     tile = state.map.tiles[27]
     sendArmyTo(entities, state, state.map.armies[3], tile.entity, equipment=8)
 
@@ -185,7 +185,7 @@ def test_richnessProduction():
     assert team.resources == {
         entities.work: 70,
         entities.obyvatel: 98,
-        entities.productions["pro-drevo"]: Decimal("23.6"),
+        entities.resources["pro-drevo"]: Decimal("23.6"),
     }
     assert "+80%" in delayedResult.message
     assert "[[pro-drevo|3.6]]" in delayedResult.message
@@ -197,7 +197,7 @@ def test_featureMissing():
     state = createTestInitState()
     team = state.teamStates[entities.teams["tym-zluti"]]
     tile = state.map.tiles[27]
-    team.resources[entities.productions["pro-drevo"]] = Decimal(20)
+    team.resources[entities.resources["pro-drevo"]] = Decimal(20)
 
     args = VyrobaArgs(
         vyroba=entities.vyrobas["vyr-drevoProdLes"],

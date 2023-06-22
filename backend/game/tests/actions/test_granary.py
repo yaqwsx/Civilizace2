@@ -38,9 +38,9 @@ def test_successBulk():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities.productions["pro-maso"]: 2,
-        entities.productions["pro-dobytek"]: 1,
-        entities.productions["pro-bobule"]: 5,
+        entities.resources["pro-maso"]: 2,
+        entities.resources["pro-dobytek"]: 1,
+        entities.resources["pro-bobule"]: 5,
     }
     team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
 
@@ -65,12 +65,12 @@ def test_failInsufficient():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities.productions["pro-maso"]: 2,
-        entities.productions["pro-dobytek"]: 1,
-        entities.productions["pro-bobule"]: 5,
+        entities.resources["pro-maso"]: 2,
+        entities.resources["pro-dobytek"]: 1,
+        entities.resources["pro-bobule"]: 5,
     }
     team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
-    productions[entities.productions["pro-dobytek"]] = 3
+    productions[entities.resources["pro-dobytek"]] = 3
 
     action = GranaryAction.makeAction(
         state=state,
@@ -88,9 +88,9 @@ def test_failWrong():
     state = createTestInitState()
     team = state.teamStates[teamId]
     productions = {
-        entities.productions["pro-maso"]: 2,
+        entities.resources["pro-maso"]: 2,
         entities.resources["mat-dobytek"]: 1,
-        entities.productions["pro-bobule"]: 5,
+        entities.resources["pro-bobule"]: 5,
     }
     team.resources = {prod: Decimal(amount) for prod, amount in productions.items()}
 

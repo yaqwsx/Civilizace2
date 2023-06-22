@@ -23,9 +23,9 @@ def test_payResources():
     teamState.resources = {
         entities.work: Decimal(100),
         entities.obyvatel: Decimal(100),
-        entities.productions["pro-bobule"]: Decimal(10),
-        entities.productions["pro-drevo"]: Decimal(10),
-        entities.productions["pro-kuze"]: Decimal(1),
+        entities.resources["pro-bobule"]: Decimal(10),
+        entities.resources["pro-drevo"]: Decimal(10),
+        entities.resources["pro-kuze"]: Decimal(1),
     }
 
     result = action._payResources({entities.work: 10})
@@ -33,9 +33,9 @@ def test_payResources():
     assert teamState.resources == {
         entities.work: 90,
         entities.obyvatel: 100,
-        entities.productions["pro-bobule"]: 10,
-        entities.productions["pro-drevo"]: 10,
-        entities.productions["pro-kuze"]: 1,
+        entities.resources["pro-bobule"]: 10,
+        entities.resources["pro-drevo"]: 10,
+        entities.resources["pro-kuze"]: 1,
     }
     assert teamState.population == 100
 
@@ -44,22 +44,22 @@ def test_payResources():
     assert teamState.resources == {
         entities.work: 90,
         entities.obyvatel: 90,
-        entities.productions["pro-bobule"]: 10,
-        entities.productions["pro-drevo"]: 10,
-        entities.productions["pro-kuze"]: 1,
+        entities.resources["pro-bobule"]: 10,
+        entities.resources["pro-drevo"]: 10,
+        entities.resources["pro-kuze"]: 1,
     }
     assert teamState.population == 100
 
     result = action._payResources(
-        {entities.productions["pro-bobule"]: 2, entities.productions["pro-drevo"]: 2}
+        {entities.resources["pro-bobule"]: 2, entities.resources["pro-drevo"]: 2}
     )
     assert result == {}
     assert teamState.resources == {
         entities.work: 90,
         entities.obyvatel: 90,
-        entities.productions["pro-bobule"]: 8,
-        entities.productions["pro-drevo"]: 8,
-        entities.productions["pro-kuze"]: 1,
+        entities.resources["pro-bobule"]: 8,
+        entities.resources["pro-drevo"]: 8,
+        entities.resources["pro-kuze"]: 1,
     }
     assert teamState.population == 100
     assert teamState.resources.get(entities.obyvatel, Decimal(0)) == 90
@@ -77,16 +77,16 @@ def test_payResources():
     assert teamState.resources == {
         entities.work: 90,
         entities.obyvatel: 90,
-        entities.productions["pro-bobule"]: 8,
-        entities.productions["pro-drevo"]: 8,
-        entities.productions["pro-kuze"]: 1,
+        entities.resources["pro-bobule"]: 8,
+        entities.resources["pro-drevo"]: 8,
+        entities.resources["pro-kuze"]: 1,
     }
     assert teamState.population == 100
 
     result = action._payResources(
         {
             entities.resources["mat-bobule"]: 2,
-            entities.productions["pro-drevo"]: 2,
+            entities.resources["pro-drevo"]: 2,
             entities.obyvatel: 5,
             entities.work: 20,
         }
@@ -95,18 +95,18 @@ def test_payResources():
     assert teamState.resources == {
         entities.work: 70,
         entities.obyvatel: 85,
-        entities.productions["pro-bobule"]: 8,
-        entities.productions["pro-drevo"]: 6,
-        entities.productions["pro-kuze"]: 1,
+        entities.resources["pro-bobule"]: 8,
+        entities.resources["pro-drevo"]: 6,
+        entities.resources["pro-kuze"]: 1,
     }
     assert teamState.population == 100
     assert teamState.resources.get(entities.obyvatel, Decimal(0)) == 85
 
     with pytest.raises(ActionFailed) as einfo:
-        action._payResources({entities.productions["pro-bobule"]: 10})
+        action._payResources({entities.resources["pro-bobule"]: 10})
 
     with pytest.raises(ActionFailed) as einfo:
-        action._payResources({entities.productions["pro-keramika"]: 10})
+        action._payResources({entities.resources["pro-keramika"]: 10})
 
     with pytest.raises(ActionFailed) as einfo:
         action._payResources({entities.work: 100})
@@ -139,18 +139,18 @@ def test_receiveResources():
     assert teamState.resources == {entities.resources["mat-kuze"]: 2}
     assert withdraw == {}
 
-    withdraw = action._receiveResources({entities.productions["pro-kuze"]: 3})
+    withdraw = action._receiveResources({entities.resources["pro-kuze"]: 3})
     assert teamState.resources == {
-        entities.productions["pro-kuze"]: 3,
+        entities.resources["pro-kuze"]: 3,
         entities.resources["mat-kuze"]: 2,
     }
     assert withdraw == {}
 
     withdraw = action._receiveResources(
-        {entities.productions["pro-kuze"]: 10, entities.resources["mat-kuze"]: 10}
+        {entities.resources["pro-kuze"]: 10, entities.resources["mat-kuze"]: 10}
     )
     assert teamState.resources == {
-        entities.productions["pro-kuze"]: 13,
+        entities.resources["pro-kuze"]: 13,
         entities.resources["mat-kuze"]: 10,
     }
     assert withdraw == {}
