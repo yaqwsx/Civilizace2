@@ -1,11 +1,13 @@
 from argparse import ArgumentParser
-from typing import Iterable, Optional
+from decimal import Decimal
+from typing import Iterable, Optional, Tuple
+
+from django.conf import settings
 from django.core.management import BaseCommand
 
 from core.management.commands.pullentities import setFilename
-from game.entities import Resource, Entities, EntityBase, EntityWithCost, Vyroba
+from game.entities import Entities, EntityBase, EntityWithCost, Resource, Vyroba
 from game.entityParser import EntityParser
-from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -38,10 +40,14 @@ class Command(BaseCommand):
     def entity_to_str(self, entity: EntityBase) -> str:
         return f"'{entity.name}'" if not self.show_id else f"'{entity.id}'"
 
+    def res_amount_to_str(self, res_with_amount: Tuple[Resource, Decimal]) -> str:
+        resource, amount = res_with_amount
+        return f"{amount}x {self.entity_to_str(resource)}"
+
     def prettyprint_cost(self, entity: EntityWithCost) -> str:
         return f"{entity.points} points" + "".join(
-            f", {amount}x {self.entity_to_str(resource)}"
-            for resource, amount in entity.cost.items()
+            ", " + self.res_amount_to_str(res_amount)
+            for res_amount in entity.cost.items()
         )
 
     def print_entity_usage_in(
@@ -51,10 +57,7 @@ class Command(BaseCommand):
             if resource in entity.cost:
                 reward_str = ""
                 if isinstance(entity, Vyroba):
-                    reward_res, reward_amount = entity.reward
-                    reward_str = (
-                        f" => {reward_amount}x {self.entity_to_str(reward_res)}"
-                    )
+                    reward_str = f" => {self.res_amount_to_str(entity.reward)}"
                 print(
                     f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"
                 )
@@ -110,7 +113,9 @@ class Command(BaseCommand):
         print("MATERIAL usage in BUILDING UPGRADE cost:")
         self.print_entity_usage_in(entities.building_upgrades.values(), material)
         for prod in productions:
-            print(f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING UPGRADE cost:")
+            print(
+                f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING UPGRADE cost:"
+            )
             self.print_entity_usage_in(entities.building_upgrades.values(), prod)
 
         print()
