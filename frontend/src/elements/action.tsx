@@ -29,8 +29,8 @@ import { Link, Navigate } from "react-router-dom";
 import useSWR, { useSWRConfig } from "swr";
 import { useElementSize } from "usehooks-ts";
 import { useDebounceDeep } from "../utils/react";
-import { useTeamSpecialResources } from "./team_view";
 import { PrintStickers } from "./printing";
+import { useTeamSpecialResources } from "./team_view";
 
 export const activeActionIdAtom = atomWithHash<number | null>(
     "activeAction",
@@ -860,9 +860,13 @@ export function ActionFinishPhase(props: {
     onFinish: () => void;
 }) {
     const [canQuit, setCanQuit] = useState(false);
-    const setActiveAction = useSetAtom(activeActionIdAtom);
+    const [activeAction, setActiveAction] = useAtom(activeActionIdAtom);
+    const setFinishedAction = useSetAtom(finishedActionIdAtom);
 
     useEffect(() => {
+        if (!_.isNil(activeAction)) {
+            setFinishedAction(activeAction);
+        }
         setActiveAction(RESET);
         if (!props.response?.stickers || props.response.stickers.length == 0) {
             setCanQuit(true);
