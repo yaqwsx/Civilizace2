@@ -1,6 +1,17 @@
 from collections import Counter
+from decimal import Decimal
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, Optional, TypeVar, Union, overload
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from pydantic import BaseModel
 
@@ -10,6 +21,7 @@ T = TypeVar("T")
 U = TypeVar("U")
 TEntity = TypeVar("TEntity", bound=Entity)
 TModel = TypeVar("TModel", bound=BaseModel)
+TNumber = TypeVar("TNumber", int, Decimal)
 
 
 class FileCache:
@@ -58,3 +70,13 @@ def get_by_entity_id(
 ) -> Union[T, Optional[U]]:
     entity: TEntity = EntityBase(id=entity_id, name="")  # type: ignore used only for eq
     return mapping.get(entity, default)
+
+
+def sum_dict(amounts: Iterable[Tuple[T, TNumber]]) -> dict[T, TNumber]:
+    result: dict[T, TNumber] = {}
+    for key, amount in amounts:
+        if key in result:
+            result[key] += amount
+        else:
+            result[key] = amount
+    return result

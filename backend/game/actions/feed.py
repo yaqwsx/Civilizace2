@@ -8,6 +8,7 @@ from typing_extensions import override
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.entities import Entities, Resource, TeamEntity
 from game.state import GameState
+from game.util import sum_dict
 
 
 class FeedRequirements(BaseModel):
@@ -24,11 +25,14 @@ def computeFeedRequirements(
     tokensRequired = ceil(teamState.population / 20)
     foodPerCaste = ceil(tokensRequired / (2 * state.world.casteCount))
 
-    automated = [
-        (production.produces, amount)
-        for production, amount in teamState.granary.items()
-        if production.produces is not None
-    ]
+    automated = sorted(
+        sum_dict(
+            (production.produces, amount)
+            for production, amount in teamState.granary.items()
+            if production.produces is not None
+        ).items(),
+        key=lambda res: (res[0].tradable, res[0].name),
+    )
     automatedCount = floor(sum(amount for production, amount in automated))
 
     return FeedRequirements(
@@ -104,11 +108,11 @@ class FeedAction(TeamInteractionActionBase):
         )
 
         self._receiveResources(
-            {
-                resource.produces: amount
+            sum_dict(
+                (resource.produces, amount)
                 for resource, amount in self.teamState.resources.items()
                 if resource.produces is not None
-            }
+            )
         )
 
         self.teamState.turn = self.state.world.turn
