@@ -66,44 +66,7 @@ class BuildAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        scheduled = self._scheduleAction(
-            BuildCompletedAction, self.args, self.travelTime()
-        )
-        self._info += f"Stavba začala. Za {ceil(scheduled.delay_s / 60)} minut bude budova dokončena"
-
-
-class BuildCompletedAction(TeamActionBase, NoInitActionBase):
-    @property
-    @override
-    def args(self) -> BuildArgs:
-        assert isinstance(self._generalArgs, BuildArgs)
-        return self._generalArgs
-
-    @property
-    @override
-    def description(self) -> str:
-        return f"Dokončení stavby budovy {self.args.building.name} na poli {self.args.tile.name} ({self.args.team.name})"
-
-    @override
-    def _commitImpl(self) -> None:
         tileState = self.args.tileState(self.state)
 
-        if (
-            self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
-            != self.args.team
-        ):
-            # TODO: Check if this condition should stay (else add notification to the current team)
-            self._warnings += f"Pole [[{self.args.tile.id}]] není v držení týmu [[{self.args.team.id}]]."
-        elif self.args.building in tileState.buildings:
-            self._warnings += f"Budova [[{self.args.building.id}]] na poli [[{self.args.tile.id}]] už existuje."
-        else:
-            tileState.buildings.add(self.args.building)
-            self._info += f"Budova [[{self.args.building.id}]] postavena na poli [[{self.args.tile.id}]]."
-
-        msgBuilder = MessageBuilder()
-        if not self._warnings.empty:
-            msgBuilder += f"Stavba budovy [[{self.args.building.id}]] na poli [[{self.args.tile.id}]] se nezdařila:"
-            msgBuilder += self._warnings
-
-        msgBuilder += self._info
-        self._addNotification(self.args.team, msgBuilder.message)
+        tileState.buildings.add(self.args.building)
+        self._info += f"Budova [[{self.args.building.id}]] postavena na poli [[{self.args.tile.id}]]."
