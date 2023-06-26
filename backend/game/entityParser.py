@@ -952,6 +952,22 @@ def check_unique_vyroba_rewards(
             err_handler.error(f"There are multiple same rewards in vyroba {vyroba}")
 
 
+def check_generic_resources(entities: Entities, *, err_handler: ErrorHandler) -> None:
+    for resource in entities.values():
+        if not isinstance(resource, Resource):
+            continue
+        has_generic_id = resource.id[:3] in ["mge", "pge"]
+        if not resource.isGeneric and has_generic_id:
+            err_handler.error(f"Non-generic resource {resource} has generic id")
+
+        if not resource.isGeneric:
+            continue
+        if not has_generic_id:
+            err_handler.error(f"Generic resource {resource} has non-generic id")
+        if resource.nontradable:
+            err_handler.error(f"Generic resource {resource} has to be tradable")
+
+
 def checkMap(entities: Entities, *, err_handler: ErrorHandler) -> None:
     if len(entities.tiles) != MAP_SIZE:
         err_handler.error(
@@ -1188,6 +1204,7 @@ class EntityParser:
         with err_handler.add_context("final checks"):
             check_teams_have_different_home_tiles(entities, err_handler=err_handler)
             check_unique_vyroba_rewards(entities, err_handler=err_handler)
+            check_generic_resources(entities, err_handler=err_handler)
             checkUnreachableByTech(entities, err_handler=err_handler)
             checkMap(entities, err_handler=err_handler)
             checkUsersHaveLogins(entities, err_handler=err_handler)

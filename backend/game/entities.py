@@ -70,6 +70,7 @@ class Die(EntityBase):
 class Resource(EntityBase):
     produces: Optional[Resource] = None
     nontradable: bool = False
+    isGeneric: bool = False
 
     @property
     def tradable(self) -> bool:
@@ -78,10 +79,6 @@ class Resource(EntityBase):
     @property
     def isTradableProduction(self) -> bool:
         return self.tradable and self.produces is not None
-
-    @property
-    def isGeneric(self) -> bool:
-        return self.id.startswith("pge-") or self.id.startswith("mge-")
 
     @property
     def isWithdrawable(self) -> bool:
