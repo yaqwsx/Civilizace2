@@ -303,8 +303,7 @@ class TeamViewSet(viewsets.ViewSet):
                     for announcement in self.unreadAnnouncements(request.user, team)
                 ],
                 "armies": [
-                    self.serializeArmy(army, None)
-                    for army in stateInfo.state.map.getTeamArmies(stateInfo.teamEntity)
+                    self.serializeArmy(army, None) for army in teamState.armies
                 ],
                 **({"orginfo": orgInfo} if request.user.is_org else {}),
             }
@@ -334,7 +333,7 @@ class TeamViewSet(viewsets.ViewSet):
         return Response(
             {
                 a.index: self.serializeArmy(a, reachableTiles)
-                for a in stateInfo.state.map.getTeamArmies(stateInfo.teamEntity)
+                for a in stateInfo.teamState.armies
             }
         )
 

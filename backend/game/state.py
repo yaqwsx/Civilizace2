@@ -70,8 +70,8 @@ class ArmyGoal(enum.Enum):
 
 
 class Army(StateModel):
-    team: TeamEntity  # duplicates: items in TeamEntity.armies
-    index: int
+    team: TeamEntity  # TBA: duplicates TeamState.armies
+    index: int        # TBA: duplicates TeamState.armies
     name: str
     level: int
     equipment: int = 0  # number of weapons the army currently carries
@@ -106,6 +106,32 @@ class Army(StateModel):
         if self.mode != ArmyMode.Occupying:
             return None
         return self.tile
+
+    def occupyTile(self, tile: MapTileEntity):
+        assert self.equipment > 0, "Nevyzbrojená armáda nemůže obsazovat pole"
+        assert self.mode != ArmyMode.Occupying
+        # TBA: Consider how to express the distance in this context
+        # assert self.getRawDistance(army.team, tile.entity) != None
+
+        self.mode = ArmyMode.Occupying
+        self.boost = -1
+        self.tile = tile
+        self.goal = None
+
+    def retreat(self) -> int:
+        """
+        Retriet the army and return its equipment
+        """
+        result = self.equipment
+        if self.tile == None:
+            return 0
+
+        self.mode = ArmyMode.Idle
+        self.equipment = 0
+        self.boost = -1
+        self.tile = None
+        self.goal = None
+        return result
 
 
 class MapTile(StateModel):  # Game state element
@@ -154,7 +180,6 @@ class MapTile(StateModel):  # Game state element
 class MapState(StateModel):
     size: int = MAP_SIZE
     tiles: dict[int, MapTile]
-    armies: list[Army]
 
     def getTileById(self, id: str) -> Optional[MapTile]:
         tiles = [tile for tile in self.tiles.values() if tile.id == id]
@@ -204,71 +229,32 @@ class MapState(StateModel):
         indexes = [(index + i) % self.size for i in TILE_DISTANCES_RELATIVE]
         return [self.tiles[i] for i in indexes]
 
-    def getTeamArmies(self, team: TeamEntity) -> list[Army]:
-        return [army for army in self.armies if army.team == team]
-
-    def getOccupyingArmy(self, tile: MapTileEntity) -> Optional[Army]:
-        for army in self.armies:
-            if army.tile == tile and army.mode == ArmyMode.Occupying:
-                return army
+    def getOccupyingArmy(
+            self, tile: MapTileEntity, teams: Iterable[TeamEntity]
+    ) -> Optional[Army]:
+        for team in teams:
+            for army in team.armies:
+                if army.tile == tile and army.mode == ArmyMode.Occupying:
+                    return army
         return None
 
     def getOccupyingTeam(
         self, tile: MapTileEntity, teams: Iterable[TeamEntity]
     ) -> Optional[TeamEntity]:
-        for army in self.armies:
-            if army.tile == tile and army.mode == ArmyMode.Occupying:
-                return army.team
+        for team in teams:
+            for army in team.armies:
+                if army.tile == tile and army.mode == ArmyMode.Occupying:
+                    return team
 
         return next(filter(lambda team: team.homeTile == tile, teams), None)
 
-    def retreatArmy(self, army: Army) -> int:
-        result = army.equipment
-        assert army.tile is not None
-        tile = self.getTileById(army.tile.id)
-        if tile == None:
-            return 0
-
-        army.mode = ArmyMode.Idle
-        army.equipment = 0
-        army.boost = -1
-        army.tile = None
-        army.goal = None
-        return result
-
-    def occupyTile(self, army: Army, tile: MapTile):
-        assert self.getOccupyingArmy(tile.entity) == None
-        assert army.equipment > 0, "Nevyzbrojená armáda nemůže obsazovat pole"
-        assert army.mode != ArmyMode.Occupying
-        assert self.getRawDistance(army.team, tile.entity) != None
-
-        army.mode = ArmyMode.Occupying
-        army.boost = -1
-        army.tile = tile.entity
-        army.goal = None
-
     @staticmethod
     def create_initial(entities: Entities) -> MapState:
-        armies = []
-        teams = entities.teams.values()
-        armies.extend(
-            Army(team=team, index=i, name="A", level=3) for i, team in enumerate(teams)
-        )
-        armies.extend(
-            Army(team=team, index=i + 8, name="B", level=2)
-            for i, team in enumerate(teams)
-        )
-        armies.extend(
-            Army(team=team, index=i + 16, name="C", level=1)
-            for i, team in enumerate(teams)
-        )
-
         return MapState(
             tiles={
                 tile.index: MapTile(entity=tile, richnessTokens=tile.richness)
                 for tile in entities.tiles.values()
-            },
-            armies=armies,
+            }
         )
 
 
@@ -288,6 +274,7 @@ class TeamState(StateModel):
     granary: dict[Resource, int] = {}
     employees: dict[Vyroba, int] = {}
     population: Decimal
+    armies: list[Army] = []
 
     def collectStickerEntitySet(self) -> set[Entity]:
         stickers = set()
@@ -356,6 +343,11 @@ class TeamState(StateModel):
                 entities.work: Decimal(100),
             },
             population=Decimal(100),
+            armies=[
+                Army(team=team, index=0, name="A", level=3),
+                Army(team=team, index=1, name="B", level=2),
+                Army(team=team, index=2, name="C", level=1)
+            ]
         )
 
 

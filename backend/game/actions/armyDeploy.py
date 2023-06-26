@@ -11,6 +11,7 @@ from game.actions.actionBase import (
     TeamActionBase,
     TeamInteractionActionBase,
     TileActionArgs,
+    ArmyActionMixin
 )
 from game.actions.common import ActionFailed
 from game.entities import Resource, TeamEntity
@@ -25,7 +26,7 @@ class ArmyDeployArgs(TeamActionArgs, TileActionArgs):
     friendlyTeam: Optional[TeamEntity]
 
 
-class ArmyDeployAction(TeamInteractionActionBase):
+class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
     @property
     @override
     def args(self) -> ArmyDeployArgs:
@@ -46,13 +47,6 @@ class ArmyDeployAction(TeamInteractionActionBase):
         self._ensureStrong(self.args.equipment > 0, f"Nelze vyslat nevybavenou armádu")
         return {self.entities.zbrane: self.args.equipment}
 
-    @property
-    def army(self) -> Army:
-        self._ensureStrong(
-            self.args.armyIndex in range(0, len(self.state.map.armies)),
-            f"Neznámá armáda (index: {self.args.armyIndex})",
-        )
-        return self.state.map.armies[self.args.armyIndex]
 
     def travelTime(self) -> Decimal:
         return self.state.map.getActualDistance(
@@ -140,22 +134,22 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
     @override
     def _commitImpl(self) -> None:
         army = self.army
-        defender = self.state.map.getOccupyingArmy(self.args.tile)
+        defender = self.state.map.getOccupyingArmy(self.args.tile, self.state.teamStates)
 
         if defender == None:
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
-                equipment = self.state.map.retreatArmy(army)
+                equipment = army.retreat()
                 self._info += f"Pole {self.args.tile.name} je prázdné, armáda {army.name} se vrátila zpět"
                 self._returnWeaponsInfo(equipment)
                 return
             else:
-                self.state.map.occupyTile(army, self.args.tileState(self.state))
+                army.occupyTile(self.args.tile)
                 self._info += f"Armáda {army.name} obsadila pole {self.args.tile.name}"
                 return
 
         if defender.team == army.team:
             if self.args.goal == ArmyGoal.Eliminate:
-                equipment = self.state.map.retreatArmy(army)
+                equipment = army.retreat()
                 self._info += f"Pole {self.args.tile.name} už bylo obsazeno vaší armádou {defender.name}. \
                     Armáda {army.name} se vrátila domů."
                 self._returnWeaponsInfo(equipment)
@@ -167,9 +161,9 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
             if self.args.goal == ArmyGoal.Replace:
                 army.boost = defender.boost
 
-            equipment = self.state.map.retreatArmy(provider)
+            equipment = provider.retreat()
             if self.args.goal == ArmyGoal.Replace:
-                self.state.map.occupyTile(receiver, self.args.tileState(self.state))
+                receiver.occupyTile(receiver,self.args.tile)
 
             if self.args.goal == ArmyGoal.Replace:
                 self._info += f"Armáda {army.name} nahradila předchozí armádu.\
@@ -186,7 +180,7 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
             and self.args.friendlyTeam == defender.team
         ):
             transfered = self.transferEquipment(army, defender)
-            equipment = self.state.map.retreatArmy(army)
+            equipment = army.retreat()
 
             self._info += f"Armáda {army.name} posílila armádu týmu [[{self.args.friendlyTeam}]] o {transfered} zbraní."
             self._returnWeaponsInfo(equipment)
@@ -199,7 +193,7 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
             return
 
         if self.args.goal == ArmyGoal.Supply:
-            equipment = self.state.map.retreatArmy(army)
+            equipment = army.retreat()
             self._warnings += f"Pole {self.args.tile.name} je obsazeno nepřátelksou armádou. Vaše armáda {army.name} se vrátila domů."
             self._returnWeaponsInfo(equipment)
             return
@@ -216,10 +210,11 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
         # resolve
         if defender.strength >= attacker.strength:
             self._warnings += f"Armáda {army.name} neuspěla v dobývání pole {self.args.tile.name} a vrátila se domů."
-            self._returnWeaponsInfo(self.state.map.retreatArmy(army))
+            equipment = army.retreat()
+            self._returnWeaponsInfo(equipment)
 
             if defender.equipment == 0:
-                self.state.map.retreatArmy(defender)
+                defender.retreat()
                 self._addNotification(
                     defender.team,
                     f"Armáda {defender.name} ubránila pole {self.args.tile.name}, ale utrpěla vysoké ztráty a vrátila se domů.",
@@ -231,7 +226,7 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
                 )
             return
 
-        defenderReward = self.state.map.retreatArmy(defender)
+        defenderReward = defender.retreat()
         self._addNotification(
             defender.team,
             f"Armáda {defender.name} byla poražena na poli {self.args.tile.name} a vrátila se domů."
@@ -241,16 +236,16 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
         )
 
         if army.equipment == 0:
-            self.state.map.retreatArmy(army)
+            army.retreat()
             self._info += f"Armáda {army.name} dobyla pole {self.args.tile.name}. Nezbyly jí ale žádné zbraně, tak se vrátila domů."
             return
 
         if self.args.goal == ArmyGoal.Eliminate:
-            equipment = self.state.map.retreatArmy(attacker)
+            equipment = attacker.retreat()
             self._info += f"Armáda {army.name} vyčistila pole {self.args.tile.name} a vrátila se domů"
             self._returnWeaponsInfo(equipment)
             return
 
-        self.state.map.occupyTile(attacker, self.args.tileState(self.state))
+        attacker.occupyTile(self.args.tile)
         self._info += f"Armáda {army.name} obsadila pole {self.args.tile.name}. Její aktuální síla je {army.strength}"
         return

@@ -17,8 +17,8 @@ def test_cost():
     tiles = state.map.tiles
     armies[10].equipment = 5
     armies[18].equipment = 5
-    state.map.occupyTile(armies[10], tiles[26])
-    state.map.occupyTile(armies[18], tiles[18])
+    armies[10].occupyTile(tiles[26].entity)
+    armies[18].occupyTile(tiles[18].entity)
 
     teams = list(entities.teams.values())
 
@@ -169,7 +169,7 @@ def test_occupyNobody():
     result = sendArmyTo(entities, state, army, tile, equipment=8, boost=2)
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(entities.tiles["map-tile04"]) == army
+    assert state.map.getOccupyingArmy(entities.tiles["map-tile04"], state.teamStates) == army
     exp = Army(
         index=armyIndex,
         team=team,
@@ -197,7 +197,7 @@ def test_replaceNobody():
     )
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(tile.entity) == army
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == army
     exp = Army(
         index=armyIndex,
         team=team,
@@ -225,7 +225,7 @@ def test_eliminateNobody():
     )
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(tile.entity) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
     exp = Army(
         index=armyIndex,
         team=team,
@@ -253,7 +253,7 @@ def test_supplyNobody():
     )
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(tile.entity) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
     exp = Army(
         index=armyIndex,
         team=team,
@@ -295,7 +295,7 @@ def test_occupySelf():
     assert "|14]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[18]
     exp = Army(
         index=2,
         team=team.team,
@@ -345,7 +345,7 @@ def test_replaceSelf():
     assert "|4]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[2]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[2]
     exp = Army(
         index=2,
         team=team.team,
@@ -394,7 +394,7 @@ def test_eliminateSelf():
     assert "|15]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[18]
     exp = Army(
         index=2,
         team=team.team,
@@ -444,7 +444,7 @@ def test_supplySelf():
     assert "|13]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[18]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[18]
     exp = Army(
         index=2,
         team=team.team,
@@ -491,7 +491,7 @@ def test_occupyWin():
     assert "23" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[2]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[2]
     exp = Army(
         index=2,
         team=team.team,
@@ -540,7 +540,7 @@ def test_replaceWin():
     assert "23" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[2]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[2]
     exp = Army(
         index=2,
         team=team.team,
@@ -589,7 +589,7 @@ def test_eliminateWin():
     assert "20" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
     exp = Army(
         index=2,
         team=team.team,
@@ -636,7 +636,7 @@ def test_supplyRetreat():
     assert "|20]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[1]
     exp = Army(
         index=2,
         team=team.team,
@@ -683,7 +683,7 @@ def test_occupyLose():
     assert "|2]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[1]
     exp = Army(
         index=2,
         team=team.team,
@@ -732,7 +732,7 @@ def test_replaceLose():
     assert "|2]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[1]
     exp = Army(
         index=2,
         team=team.team,
@@ -781,7 +781,7 @@ def test_eliminateLose():
     assert "|2]]" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[1]
     exp = Army(
         index=2,
         team=team.team,
@@ -830,7 +830,7 @@ def test_winReturnWeapons():
     assert "15" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[2]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[2]
     exp = Army(
         index=2,
         team=team.team,
@@ -869,7 +869,7 @@ def test_retreatArmy():
     action = ArmyRetreatAction.makeAction(args=args, entities=entities, state=state)
     result = action.commitThrows(throws=0, dots=0)
 
-    assert map.getOccupyingArmy(tile) == None
+    assert map.getOccupyingArmy(tile, state.teamStates) == None
 
     exp = Army(
         index=2,
@@ -920,7 +920,7 @@ def test_supplyFriend():
     )
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity) == state.map.armies[1]
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == state.map.armies[1]
     exp = Army(
         index=2,
         team=team.team,

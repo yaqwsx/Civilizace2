@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase, ArmyActionMixin
 from game.entities import Resource
 from game.state import Army, ArmyMode
 
@@ -11,7 +11,7 @@ class ArmyUpgradeArgs(TeamActionArgs):
     armyIndex: int
 
 
-class ArmyUpgradeAction(TeamInteractionActionBase):
+class ArmyUpgradeAction(TeamInteractionActionBase, ArmyActionMixin):
     @property
     @override
     def args(self) -> ArmyUpgradeArgs:
@@ -27,10 +27,6 @@ class ArmyUpgradeAction(TeamInteractionActionBase):
     def cost(self) -> dict[Resource, Decimal]:
         army = self.state.map.armies[self.args.armyIndex]
         return self.state.world.armyUpgradeCosts[army.level + 1]
-
-    @property
-    def army(self) -> Army:
-        return self.state.map.armies[self.args.armyIndex]
 
     @override
     def _initiateCheck(self) -> None:

@@ -14,7 +14,7 @@ from game.actions.common import (
     printResourceListForMarkdown,
 )
 from game.entities import Entities, MapTileEntity, Resource, TeamEntity
-from game.state import GameState, MapTile, TeamState
+from game.state import GameState, MapTile, TeamState, Army
 
 
 class ActionArgs(BaseModel):
@@ -187,6 +187,15 @@ class TeamActionBase(ActionCommonBase):
         if not instantWithdraw:
             assert withdrawing == {}
         return withdrawing
+
+class ArmyActionMixin:
+    @property
+    def army(self) -> Army:
+        self._ensureStrong(
+            self.args.armyIndex in range(0, len(self.teamState.armies)),
+            f"Neznámá armáda (index: {self.args.armyIndex})",
+        )
+        return self.teamState.armies[self.args.armyIndex]
 
 
 class TeamInteractionActionBase(TeamActionBase):

@@ -1,6 +1,6 @@
 from typing_extensions import override
 
-from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase, ArmyActionMixin
 from game.state import Army, ArmyMode
 
 
@@ -8,7 +8,7 @@ class ArmyRetreatArgs(TeamActionArgs):
     armyIndex: int
 
 
-class ArmyRetreatAction(TeamInteractionActionBase):
+class ArmyRetreatAction(TeamInteractionActionBase, ArmyActionMixin):
     @property
     @override
     def args(self) -> ArmyRetreatArgs:
@@ -19,14 +19,6 @@ class ArmyRetreatAction(TeamInteractionActionBase):
     @override
     def description(self) -> str:
         return f"Stažení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
-
-    @property
-    def army(self) -> Army:
-        self._ensureStrong(
-            self.args.armyIndex in range(0, len(self.state.map.armies)),
-            f"Neznámá armáda (index: {self.args.armyIndex})",
-        )
-        return self.state.map.armies[self.args.armyIndex]
 
     @override
     def _initiateCheck(self) -> None:
@@ -45,7 +37,7 @@ class ArmyRetreatAction(TeamInteractionActionBase):
         army = self.army
         orig_tile = army.tile
         assert orig_tile is not None
-        equipment = self.state.map.retreatArmy(army)
+        equipment = army.retreat()
 
         self._info += f"Armáda {army.name} se stáhla z pole {orig_tile.name}."
         self._info += f"Vydejte týmu [[{self.entities.zbrane}|{equipment}]]."
