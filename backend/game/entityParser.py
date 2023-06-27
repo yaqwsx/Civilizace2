@@ -845,7 +845,7 @@ def createProduction(
             resource.icon = "UNKNOWN_ICON_a.svg"
         icon = resource.icon[: -len(mat_icon_suff)] + pro_icon_suff
 
-    return Resource(id=id, name=prod_name, produces=resource, icon=icon)  # type: ignore
+    return Resource(id=id, name=prod_name, produces=resource, nontradable=resource.nontradable, isGeneric=resource.isGeneric, icon=icon)  # type: ignore
 
 
 def with_productions(
