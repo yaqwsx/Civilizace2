@@ -4,12 +4,12 @@ import enum
 import inspect
 import itertools
 from decimal import Decimal
-from typing import Any, Callable, Iterable, Mapping, Optional, Type, Union
+from typing import Any, Iterable, Mapping, Optional, Type
 
 from pydantic import BaseModel
 
-from game.actions.common import MessageBuilder
 from game.entities import (
+    BASE_ARMY_STRENGTH,
     MAP_SIZE,
     TECHNOLOGY_START,
     TILE_DISTANCES_RELATIVE,
@@ -71,7 +71,7 @@ class ArmyGoal(enum.Enum):
 
 class Army(StateModel):
     team: TeamEntity  # TBA: duplicates TeamState.armies
-    index: int        # TBA: duplicates TeamState.armies
+    index: int  # TBA: duplicates TeamState.armies
     name: str
     level: int
     equipment: int = 0  # number of weapons the army currently carries
@@ -230,19 +230,19 @@ class MapState(StateModel):
         return [self.tiles[i] for i in indexes]
 
     def getOccupyingArmy(
-            self, tile: MapTileEntity, teams: Iterable[TeamEntity]
+        self, tile: MapTileEntity, teams: Mapping[TeamEntity, TeamState]
     ) -> Optional[Army]:
-        for team in teams:
+        for team in teams.values():
             for army in team.armies:
                 if army.tile == tile and army.mode == ArmyMode.Occupying:
                     return army
         return None
 
     def getOccupyingTeam(
-        self, tile: MapTileEntity, teams: Iterable[TeamEntity]
+        self, tile: MapTileEntity, teams: Mapping[TeamEntity, TeamState]
     ) -> Optional[TeamEntity]:
-        for team in teams:
-            for army in team.armies:
+        for team, team_state in teams.items():
+            for army in team_state.armies:
                 if army.tile == tile and army.mode == ArmyMode.Occupying:
                     return team
 
@@ -346,8 +346,8 @@ class TeamState(StateModel):
             armies=[
                 Army(team=team, index=0, name="A", level=3),
                 Army(team=team, index=1, name="B", level=2),
-                Army(team=team, index=2, name="C", level=1)
-            ]
+                Army(team=team, index=2, name="C", level=1),
+            ],
         )
 
 
