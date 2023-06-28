@@ -21,7 +21,7 @@ class AcquireTeamAttributeAction(TeamInteractionActionBase):
     @property
     @override
     def description(self) -> str:
-        return f"Získání týmové vlastnosti {self.args.attribute} týmem {self.args.team.name}"
+        return f"Získání týmové vlastnosti {self.args.attribute.name} týmem {self.args.team.name}"
 
     @override
     def cost(self) -> dict[Resource, Decimal]:
