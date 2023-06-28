@@ -11,7 +11,7 @@ from game.actions.actionBase import (
     TeamActionBase,
     TeamInteractionActionBase,
     TileActionArgs,
-    ArmyActionMixin
+    ArmyActionMixin,
 )
 from game.actions.common import ActionFailed
 from game.entities import Resource, TeamEntity
@@ -46,7 +46,6 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
         )
         self._ensureStrong(self.args.equipment > 0, f"Nelze vyslat nevybavenou armádu")
         return {self.entities.zbrane: self.args.equipment}
-
 
     def travelTime(self) -> Decimal:
         return self.state.map.getActualDistance(
@@ -126,7 +125,9 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase, ArmyActionMixin):
     @override
     def _commitImpl(self) -> None:
         army = self.army
-        defender = self.state.map.getOccupyingArmy(self.args.tile, self.state.teamStates)
+        defender = self.state.map.getOccupyingArmy(
+            self.args.tile, self.state.teamStates
+        )
 
         if defender == None:
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:

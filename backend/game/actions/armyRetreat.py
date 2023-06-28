@@ -1,6 +1,10 @@
 from typing_extensions import override
 
-from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase, ArmyActionMixin
+from game.actions.actionBase import (
+    ArmyActionMixin,
+    TeamActionArgs,
+    TeamInteractionActionBase,
+)
 from game.state import Army, ArmyMode
 
 
