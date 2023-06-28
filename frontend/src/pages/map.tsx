@@ -61,7 +61,6 @@ export function MapMenu() {
 
 export enum MapActionType {
     feeding,
-    automateFeeding,
     army,
     building,
     buildingUpgrade,
@@ -76,7 +75,6 @@ const urlMapActionAtom = atomWithHash<MapActionType | null>("mapAction", null);
 function MapActionColorClassNames(action: MapActionType): string {
     switch (action) {
         case MapActionType.feeding:
-        case MapActionType.automateFeeding:
             return "bg-green-600 hover:bg-green-700";
         case MapActionType.army:
             return "bg-orange-600 hover:bg-orange-700";
@@ -100,8 +98,6 @@ function MapActionName(action: MapActionType): string {
     switch (action) {
         case MapActionType.feeding:
             return "Krmení";
-        case MapActionType.automateFeeding:
-            return "Automatizovat krmení";
         case MapActionType.army:
             return "Armáda";
         case MapActionType.building:
@@ -129,8 +125,6 @@ function MapActionAgenda(props: {
     switch (props.action) {
         case MapActionType.feeding:
             return <FeedingAgenda team={props.team} />;
-        case MapActionType.automateFeeding:
-            return <AutomateFeedingAgenda team={props.team} />;
         case MapActionType.army:
             return <ArmyManipulation team={props.team} />;
         case MapActionType.building:
@@ -924,75 +918,6 @@ export function FeedingAgenda(props: { team: Team }) {
                     feeding={feeding}
                     updateResource={updateResource}
                 />
-            }
-            onBack={() => {}}
-            onFinish={() => {
-                setAction(RESET);
-            }}
-        />
-    );
-}
-
-export function AutomateFeedingAgenda(props: { team: Team }) {
-    const [productions, setProductions] = useState<Record<string, number>>({});
-    const { data: resources, error: rError } = useTeamResources(props.team);
-    const { data: availableProductions, error: pError } = useTeamProductions(
-        props.team
-    );
-    const setAction = useSetAtom(urlMapActionAtom);
-
-    if (!resources || !availableProductions) {
-        return (
-            <LoadingOrError
-                error={rError || pError}
-                message="Něco se nepovedlo"
-            />
-        );
-    }
-
-    // TODO
-    const automatizable = Object.values(resources).filter(
-        (res) => Number(availableProductions[res.id]) > 0
-    );
-
-    const updateResource = (res: ResourceTeamEntity, v: number) => {
-        setProductions(
-            produce(productions, (orig) => {
-                orig[res.id] = _.clamp(v, 0, _.floor(Number(res.available)));
-            })
-        );
-    };
-
-    return (
-        <PerformAction
-            actionId="GranaryAction"
-            actionName={`Automatizace krmení ${props.team.name}`}
-            actionArgs={{
-                team: props.team.id,
-                productions,
-            }}
-            argsValid={(a) => Object.keys(a.productions).length > 0}
-            extraPreview={
-                <>
-                    {Object.keys(automatizable).length > 0
-                        ? automatizable.map((a) => {
-                              <FormRow
-                                  key={a.id}
-                                  label={
-                                      <>
-                                          <EntityTag id={a.id} /> (max{" "}
-                                          {resources[a.id].available})
-                                      </>
-                                  }
-                              >
-                                  <SpinboxInput
-                                      value={productions[a.id] ?? 0}
-                                      onChange={(v) => updateResource(a, v)}
-                                  />
-                              </FormRow>;
-                          })
-                        : "Tým nemá žádné produkce jídla či luxusu. Není možné automatizovat."}
-                </>
             }
             onBack={() => {}}
             onFinish={() => {

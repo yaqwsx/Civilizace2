@@ -18,7 +18,6 @@ from core.models import Team, User
 from core.models.announcement import Announcement
 from core.serializers.announcement import team_serialize_announcement
 from core.serializers.team import TeamSerializer
-from game.actions.feed import computeFeedRequirements
 from game.entities import Entities, EntityId, TeamEntity, Vyroba
 from game.gameGlue import serializeEntity, stateSerialize
 from game.models import DbState, DbSticker, DbTask, DbTaskAssignment, DbTaskManager
@@ -291,20 +290,18 @@ class TeamViewSet(viewsets.ViewSet):
                 "researching": [serializeEntity(x) for x in teamState.researching],
                 "productions": [(r.id, a) for r, a in teamState.productions.items()],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
-                "granary": [(r.id, a) for r, a in teamState.granary.items()],
                 "employees": [(e.id, a) for e, a in teamState.employees.items()],
-                "feeding": stateSerialize(
-                    computeFeedRequirements(
-                        stateInfo.state, entities, stateInfo.teamEntity
-                    )
-                ),
+                # TODO: Add feeding info
+                # "feeding": stateSerialize(
+                #     computeFeedRequirements(
+                #         stateInfo.state, entities, stateInfo.teamEntity
+                #     )
+                # ),
                 "announcements": [
                     team_serialize_announcement(announcement, read=False)
                     for announcement in self.unreadAnnouncements(request.user, team)
                 ],
-                "armies": [
-                    self.serializeArmy(army, None) for army in teamState.armies
-                ],
+                "armies": [self.serializeArmy(army, None) for army in teamState.armies],
                 **({"orginfo": orgInfo} if request.user.is_org else {}),
             }
         )
@@ -369,11 +366,12 @@ class TeamViewSet(viewsets.ViewSet):
         stateInfo = TeamStateInfo.get_latest(pk)
 
         return Response(
-            stateSerialize(
-                computeFeedRequirements(
-                    stateInfo.state, stateInfo.entities, stateInfo.teamEntity
-                )
-            )
+            # TODO: Add feeding info
+            # stateSerialize(
+            #     computeFeedRequirements(
+            #         stateInfo.state, stateInfo.entities, stateInfo.teamEntity
+            #     )
+            # )
         )
 
     @action(detail=True)

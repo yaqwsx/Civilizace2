@@ -181,7 +181,6 @@ export interface TeamState {
     attributes: TeamAttributeId[];
 
     resources: Record<ResourceId, Decimal>;
-    granary: Record<ResourceId, number>;
     employees: Record<VyrobaId, number>;
     population: Decimal;
 }
@@ -290,7 +289,6 @@ export interface TeamDashboard {
     researching: TechEntity[];
     productions: [ResourceId, Decimal][];
     storage: [ResourceId, Decimal][];
-    granary: [ResourceId, number][];
     employees: [VyrobaId, number][];
     feeding: FeedingRequirements;
     announcements: TeamAnnouncement[];

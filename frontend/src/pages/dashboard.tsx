@@ -365,44 +365,9 @@ function TeamOverview() {
                     color={team.color}
                     icon={faWheatAwn}
                 >
-                    {data.granary.length ? (
-                        <>
-                            Maximálně bonusů: {data.feeding.casteCount}
-                            <br />
-                            Potřeba žetonů, aby nikdo neumřel:{" "}
-                            {data.feeding.tokensRequired}
-                            <br />
-                            Potřeba žetonů pro spokojenost kasty:{" "}
-                            {data.feeding.tokensPerCaste}
-                            <ul className="list-disc text-left">
-                                {data.granary.map(([prod, amount]) => {
-                                    let missing =
-                                        amount - data.feeding.tokensPerCaste;
-                                    return (
-                                        <li key={prod}>
-                                            <EntityTag
-                                                id={prod}
-                                                quantity={amount}
-                                            />{" "}
-                                            (
-                                            {missing < 0 ? (
-                                                <span className="text-red-500">
-                                                    {missing}
-                                                </span>
-                                            ) : (
-                                                <span className="text-green-500">
-                                                    +{missing}
-                                                </span>
-                                            )}
-                                            )
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </>
-                    ) : (
-                        <span>Zatím nezásobujete centrum</span>
-                    )}
+                    <h2 className="font-bold text-red-500">
+                        TODO: info o krmení
+                    </h2>
                 </Card>
                 <Card
                     label="Specializovaní obyvatelé"

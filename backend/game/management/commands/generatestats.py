@@ -55,9 +55,6 @@ def teamStat(team: TeamEntity, states: list[GameState], entities: Entities):
             for resource, amount in tState.resources.items():
                 if resource.isTradableProduction:
                     prod += amount
-            for resource, amount in tState.granary.items():
-                if resource.isTradableProduction:
-                    prod += amount
             prodSum += prod
             stat.append(
                 {

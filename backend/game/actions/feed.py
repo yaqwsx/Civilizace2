@@ -1,50 +1,12 @@
 from decimal import Decimal
-from math import ceil, floor
-from typing import Tuple
-
-from pydantic import BaseModel
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
-from game.entities import Entities, Resource, TeamEntity
-from game.state import GameState
 from game.util import sum_dict
 
 
-class FeedRequirements(BaseModel):
-    tokensRequired: int
-    tokensPerCaste: int
-    casteCount: int
-    automated: list[Tuple[Resource, int]]  # sorted in preferred display order
-
-
-def computeFeedRequirements(
-    state: GameState, entities: Entities, team: TeamEntity
-) -> FeedRequirements:
-    teamState = state.teamStates[team]
-    tokensRequired = ceil(teamState.population / 20)
-    foodPerCaste = ceil(tokensRequired / (2 * state.world.casteCount))
-
-    automated = sorted(
-        sum_dict(
-            (production.produces, amount)
-            for production, amount in teamState.granary.items()
-            if production.produces is not None
-        ).items(),
-        key=lambda res: (res[0].tradable, res[0].name),
-    )
-    automatedCount = floor(sum(amount for production, amount in automated))
-
-    return FeedRequirements(
-        tokensRequired=max(tokensRequired - automatedCount, 0),
-        tokensPerCaste=foodPerCaste,
-        casteCount=state.world.casteCount,
-        automated=automated,
-    )
-
-
 class FeedArgs(TeamActionArgs):
-    materials: dict[Resource, int]
+    pass
 
 
 class FeedAction(TeamInteractionActionBase):
@@ -60,17 +22,14 @@ class FeedAction(TeamInteractionActionBase):
         return f"Krmení obyvatelstva ({self.args.team.name})"
 
     @override
-    def cost(self) -> dict[Resource, int]:
-        return self.args.materials
-
-    @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
-            self.teamState.turn < self.state.world.turn, "V tomto kole už jste krmili."
+            self.teamState.turn < self.state.world.turn, "V tomto kole jste už krmili."
         )
 
     @override
     def _commitSuccessImpl(self) -> None:
+        raise NotImplementedError()
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
 
         paid = sum(self.args.materials.values())
