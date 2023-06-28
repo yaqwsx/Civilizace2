@@ -117,10 +117,13 @@ function ActionView(props: { action: Action }) {
     const [expanded, setExpanded] = useState(false);
 
     console.log("Action log:", action);
-    let author = action.interactions[0].author;
-    let entryDate = new Date(
-        action.interactions[action.interactions.length - 1].created
-    );
+    const author = action.interactions[0]?.author;
+    const entryDate =
+        action.interactions.length > 0
+            ? new Date(
+                  action.interactions[action.interactions.length - 1].created
+              )
+            : undefined;
 
     return (
         <div className="my-4 w-full cursor-pointer rounded bg-white py-2 px-4">
@@ -128,7 +131,7 @@ function ActionView(props: { action: Action }) {
                 {expanded ? "▾" : "▸"} {action.id}: {action.description}{" "}
                 <span className="text-sm font-normal text-gray-500">
                     ({action.actionType} {author && <>, zadal {author}</>},{" "}
-                    {entryDate.toLocaleString("cs-CZ", {
+                    {entryDate?.toLocaleString("cs-CZ", {
                         weekday: "long",
                         hour: "2-digit",
                         minute: "2-digit",
