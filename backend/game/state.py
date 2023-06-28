@@ -91,7 +91,7 @@ class Army(StateModel):
 
     @property
     def isMarching(self) -> bool:
-        return self.tile == None
+        return self.tile is None
 
     @property
     def isBoosted(self) -> bool:
@@ -112,7 +112,7 @@ class Army(StateModel):
         assert self.equipment > 0, "Nevyzbrojená armáda nemůže obsazovat pole"
         assert self.mode != ArmyMode.Occupying
         # TBA: Consider how to express the distance in this context
-        # assert self.getRawDistance(army.team, tile.entity) != None
+        # assert self.getRawDistance(army.team, tile.entity) is not None
 
         self.mode = ArmyMode.Occupying
         self.boost = -1
@@ -124,7 +124,7 @@ class Army(StateModel):
         Retriet the army and return its equipment
         """
         result = self.equipment
-        if self.tile == None:
+        if self.tile is None:
             return 0
 
         self.mode = ArmyMode.Idle

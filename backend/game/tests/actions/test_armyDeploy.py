@@ -225,7 +225,7 @@ def test_eliminateNobody():
     )
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) is None
     exp = Army(
         index=armyIndex,
         team=team,
@@ -253,7 +253,7 @@ def test_supplyNobody():
     )
 
     tile = state.map.tiles[4]
-    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) is None
     exp = Army(
         index=armyIndex,
         team=team,
@@ -589,7 +589,7 @@ def test_eliminateWin():
     assert "20" in result.message
 
     tile = state.map.tiles[18]
-    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) == None
+    assert state.map.getOccupyingArmy(tile.entity, state.teamStates) is None
     exp = Army(
         index=2,
         team=team.team,
@@ -869,7 +869,7 @@ def test_retreatArmy():
     action = ArmyRetreatAction.makeAction(args=args, entities=entities, state=state)
     result = action.commitThrows(throws=0, dots=0)
 
-    assert map.getOccupyingArmy(tile, state.teamStates) == None
+    assert map.getOccupyingArmy(tile, state.teamStates) is None
 
     exp = Army(
         index=2,

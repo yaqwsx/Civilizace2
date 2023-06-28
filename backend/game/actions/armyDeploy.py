@@ -132,7 +132,7 @@ class ArmyArrivalAction(NoInitActionBase):
             self.args.tile, self.state.teamStates
         )
 
-        if defender == None:
+        if defender is None:
             if self.args.goal != ArmyGoal.Occupy and self.args.goal != ArmyGoal.Replace:
                 equipment = army.retreat()
                 self._info += f"Pole {self.args.tile.name} je prázdné, armáda {army.name} se vrátila zpět"
