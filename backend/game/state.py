@@ -4,6 +4,7 @@ import enum
 import inspect
 import itertools
 from decimal import Decimal
+from math import ceil
 from typing import Any, Iterable, Mapping, Optional, Type
 
 from pydantic import BaseModel
@@ -210,7 +211,7 @@ class MapState(StateModel):
         team: TeamEntity,
         tile: MapTileEntity,
         teamStates: dict[TeamEntity, TeamState],
-    ) -> Decimal:
+    ) -> int:
         relativeIndex = self._getRelativeIndex(team, tile)
         assert (
             relativeIndex in TILE_DISTANCES_RELATIVE
@@ -222,7 +223,7 @@ class MapState(StateModel):
         multiplier = Decimal(1)
         if self.getOccupyingTeam(tile, teamStates) == team:
             multiplier -= Decimal(0.5)
-        return distance * multiplier
+        return ceil(distance * multiplier)
 
     def getReachableTiles(self, team: TeamEntity) -> list[MapTile]:
         index = self.getHomeOfTeam(team).index

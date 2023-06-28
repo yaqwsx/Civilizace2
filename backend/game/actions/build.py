@@ -1,16 +1,12 @@
 from decimal import Decimal
-from math import ceil
 
 from typing_extensions import override
 
 from game.actions.actionBase import (
-    NoInitActionBase,
     TeamActionArgs,
-    TeamActionBase,
     TeamInteractionActionBase,
     TileActionArgs,
 )
-from game.actions.common import MessageBuilder
 from game.entities import Building, Resource
 
 
@@ -39,10 +35,8 @@ class BuildAction(TeamInteractionActionBase):
         return self.args.building.points
 
     def travelTime(self) -> int:
-        return ceil(
-            self.state.map.getActualDistance(
-                self.args.team, self.args.tile, self.state.teamStates
-            )
+        return self.state.map.getActualDistance(
+            self.args.team, self.args.tile, self.state.teamStates
         )
 
     @override

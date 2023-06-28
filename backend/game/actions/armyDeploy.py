@@ -47,7 +47,7 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
         self._ensureStrong(self.args.equipment > 0, f"Nelze vyslat nevybavenou armádu")
         return {self.entities.zbrane: self.args.equipment}
 
-    def travelTime(self) -> Decimal:
+    def travelTime(self) -> int:
         return self.state.map.getActualDistance(
             self.army.team, self.args.tile, self.state.teamStates
         )
@@ -96,8 +96,9 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
                 f"Na pole {self.args.tile.name} se blíží cizí armáda. Dorazí za {floor(self.travelTime()/60)} minut",
             )
 
-    def armyArrival(self, delay_s: int) -> ScheduledAction:
-        return ScheduledAction(ArmyArrivalAction, args=self.args, delay_s=delay_s)
+        self._scheduleAction(
+            ArmyArrivalAction, args=self.args, delay_s=self.travelTime()
+        )
 
 
 class ArmyArrivalAction(NoInitActionBase, TeamActionBase, ArmyActionMixin):

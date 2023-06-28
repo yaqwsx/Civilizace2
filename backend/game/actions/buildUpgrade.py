@@ -39,10 +39,8 @@ class BuildUpgradeAction(TeamInteractionActionBase):
         return self.args.upgrade.points
 
     def travelTime(self) -> int:
-        return ceil(
-            self.state.map.getActualDistance(
-                self.args.team, self.args.tile, self.state.teamStates
-            )
+        return self.state.map.getActualDistance(
+            self.args.team, self.args.tile, self.state.teamStates
         )
 
     @override
