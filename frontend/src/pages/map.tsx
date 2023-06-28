@@ -13,7 +13,7 @@ import {
 } from "../elements";
 import { PerformAction, PerformNoInitAction } from "../elements/action";
 import { ArmyGoalSelect } from "../elements/army";
-import { EntityTag, useEntities } from "../elements/entities";
+import { EntityTag } from "../elements/entities";
 import {
     BuildingTeamSelect,
     BuildingUpgradeTeamSelect,
@@ -33,9 +33,7 @@ import {
     useTeamBuildingUpgrades,
     useTeamBuildings,
     useTeamEmployees,
-    useTeamFeeding,
     useTeamProductions,
-    useTeamResources,
     useTeamTeamAttributes,
     useTeamVyrobas,
 } from "../elements/team_view";
@@ -45,9 +43,7 @@ import {
     BuildingTeamEntity,
     BuildingUpgradeTeamEntity,
     MapTileTeamEntity,
-    ResourceEntity,
     ResourceId,
-    ResourceTeamEntity,
     Team,
     TeamArmy,
     TeamAttributeTeamEntity,
@@ -791,118 +787,8 @@ function ArmyUpgradeForm(props: {
     );
 }
 
-function FeedingForm(props: {
-    team: Team;
-    feeding: Record<string, number>;
-    updateResource: (resId: string, value: number) => void;
-}) {
-    const { data: feedReq, error: fError } = useTeamFeeding(props.team);
-    const { data: entities, error: eError } = useEntities<ResourceEntity>();
-    if (!feedReq || !entities) {
-        return (
-            <LoadingOrError
-                error={fError || eError}
-                message="Něco se nepovedlo"
-            />
-        );
-    }
-
-    const automatedResIds = feedReq.automated.map(([rId]) => rId);
-    const automatedRes: [ResourceEntity, number][] = feedReq.automated.map(
-        ([rId, amount]) => [entities[rId], amount]
-    );
-    const remaingRes = Object.values(entities)
-        .filter(
-            (e) => e.id.startsWith("mat-") && !automatedResIds.includes(e.id)
-        )
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-    const missing =
-        feedReq.tokensRequired -
-        Object.values(props.feeding).reduce((a, b) => a + b, 0);
-
-    return (
-        <>
-            <h1>Krmení týmu {props.team.name}</h1>
-            <FormRow label="Parametry krmení">
-                <span className="mx-3">Kast: {feedReq.casteCount}, </span>
-                <span className="mx-3">
-                    Vyžadováno žetonů: {feedReq.tokensRequired}{" "}
-                    {missing > 0 && (
-                        <span className="font-bold text-red-500">
-                            (chybí {missing})
-                        </span>
-                    )}
-                    ,{" "}
-                </span>
-                <span className="mx-3">
-                    Žetonů na kastu: {feedReq.tokensPerCaste}
-                </span>
-            </FormRow>
-            <div>
-                {automatedRes.map(([r, recommended]) => (
-                    <FormRow
-                        key={r.id}
-                        label={
-                            <>
-                                <EntityTag id={r.id} />
-                                <br />
-                                <span className="text-sm">
-                                    (doporučeno {recommended}
-                                </span>
-                                )
-                            </>
-                        }
-                    >
-                        <SpinboxInput
-                            value={_.get(props.feeding, r.id, 0)}
-                            onChange={(v) => props.updateResource(r.id, v)}
-                        />
-                    </FormRow>
-                ))}
-                {remaingRes.map((r) => (
-                    <FormRow
-                        key={r.id}
-                        label={
-                            <>
-                                <EntityTag id={r.id} />
-                            </>
-                        }
-                    >
-                        <SpinboxInput
-                            value={_.get(props.feeding, r.id, 0)}
-                            onChange={(v) => props.updateResource(r.id, v)}
-                        />
-                    </FormRow>
-                ))}
-            </div>
-
-            {missing > 0 && (
-                <ErrorMessage>
-                    Nemáš dost žetonů, aby nikdo neumřel (chybí {missing}).
-                    Opravdu takovou akci chceš zadat?
-                    <div style={{ fontSize: "8px" }}>
-                        (a Maara si myslí, že je tě třeba ještě varovat extra a
-                        oranžový rámeček dole nestačí)
-                    </div>
-                </ErrorMessage>
-            )}
-        </>
-    );
-}
-
 export function FeedingAgenda(props: { team: Team }) {
-    const [feeding, setFeeding] = useState<Record<string, number>>({});
     const setAction = useSetAtom(urlMapActionAtom);
-
-    let updateResource = (rId: string, v: number) => {
-        if (v < 0) v = 0;
-        setFeeding(
-            produce(feeding, (orig) => {
-                orig[rId] = v;
-            })
-        );
-    };
 
     return (
         <PerformAction
@@ -910,15 +796,7 @@ export function FeedingAgenda(props: { team: Team }) {
             actionName={`Krmení týmu ${props.team.name}`}
             actionArgs={{
                 team: props.team.id,
-                materials: feeding,
             }}
-            extraPreview={
-                <FeedingForm
-                    team={props.team}
-                    feeding={feeding}
-                    updateResource={updateResource}
-                />
-            }
             onBack={() => {}}
             onFinish={() => {
                 setAction(RESET);

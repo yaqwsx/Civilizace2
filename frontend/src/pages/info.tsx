@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "react-toastify";
 import useSWR from "swr";
@@ -150,12 +150,9 @@ function AutoFeedDialog() {
 }
 
 function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
-    const actionArgs = useMemo(() => {
-        return { team: props.teamId, materials: {} };
-    }, [props.teamId]);
     const { previewResponse, error } = useActionPreview({
         actionId: "FeedAction",
-        actionArgs,
+        actionArgs: { team: props.teamId },
         argsValid: () => true,
     });
     const [submitting, setSubmitting] = useState(false);
@@ -170,7 +167,7 @@ function AutoFeedDialogImpl(props: { teamId: string; onClose: () => void }) {
             axiosService
                 .post<ActionResponse>("/game/actions/team/initiate/", {
                     action: "FeedAction",
-                    args: actionArgs,
+                    args: { team: props.teamId },
                 })
                 .then((data) => {
                     toast.success("Akce provedena");
