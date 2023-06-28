@@ -40,25 +40,27 @@ class GodModeAction(NoInitActionBase):
             ):
                 self.state.world = newState.world
                 self._info += "Upravuji stav světa"
-        if newState.map.armies != originalState.map.armies:
+        if newState.map != originalState.map:
             if self._ensure(
-                originalState.world == currentState.world,
-                "Stavy armád se liší, nemůžu aplikovat změny",
-            ):
-                self.state.map.armies = newState.map.armies
-                self._info += "Upravuji stav armád"
-        if newState.map.tiles != originalState.map.tiles:
-            if self._ensure(
-                originalState.world == currentState.world,
+                originalState.map == currentState.map,
                 "Stavy políček se liší, nemůžu aplikovat změny",
             ):
-                self.state.map.tiles = newState.map.tiles
+                self.state.map = newState.map
                 self._info += "Upravuji stav mapy"
-        for t in currentState.teamStates.keys():
+        teams = set(currentState.teamStates.keys())
+        self._ensureStrong(
+            set(originalState.teamStates.keys()) == teams,
+            "Seznam týmů se změnil, nemůžu aplikovat změny.",
+        )
+        self._ensureStrong(
+            set(originalState.teamStates.keys()) == teams,
+            "Nelze měnit seznam týmů.",
+        )
+        for t in teams:
             if newState.teamStates[t] != originalState.teamStates[t]:
                 if self._ensure(
                     originalState.teamStates[t] == currentState.teamStates[t],
-                    f"Stavy týmu {t} se liší. Nemůžu aplikovat změny.",
+                    f"Stavy týmu {t} se liší, nemůžu aplikovat změny.",
                 ):
                     self.state.teamStates[t] = newState.teamStates[t]
                     self._info += f"Upravuji stav týmu {t.name}"
