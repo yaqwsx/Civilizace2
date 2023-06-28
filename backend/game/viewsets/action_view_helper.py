@@ -153,6 +153,7 @@ class ActionViewHelper:
                     newRichness=new.richnessTokens,
                 )
 
+        return  # TODO: redo map diff (broken by moving armies)
         for old, new in zip_longest(prev.map.armies, post.map.armies):
             if old is None:
                 DbMapDiff.objects.create(

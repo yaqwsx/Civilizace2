@@ -18,7 +18,7 @@ class ArmyRetreatAction(TeamInteractionActionBase, ArmyActionMixin):
     @property
     @override
     def description(self) -> str:
-        return f"Stažení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
+        return f"Stažení armády {self.army.name} ({self.args.team.name})"
 
     @override
     def _initiateCheck(self) -> None:

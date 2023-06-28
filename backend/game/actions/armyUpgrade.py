@@ -21,12 +21,11 @@ class ArmyUpgradeAction(TeamInteractionActionBase, ArmyActionMixin):
     @property
     @override
     def description(self) -> str:
-        return f"Vylepšení armády {self.state.map.armies[self.args.armyIndex]} ({self.args.team.name})"
+        return f"Vylepšení armády {self.army.name} ({self.args.team.name})"
 
     @override
     def cost(self) -> dict[Resource, Decimal]:
-        army = self.state.map.armies[self.args.armyIndex]
-        return self.state.world.armyUpgradeCosts[army.level + 1]
+        return self.state.world.armyUpgradeCosts[self.army.level + 1]
 
     @override
     def _initiateCheck(self) -> None:

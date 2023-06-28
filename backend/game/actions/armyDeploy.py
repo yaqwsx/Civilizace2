@@ -101,7 +101,7 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
         return ScheduledAction(ArmyArrivalAction, args=self.args, delay_s=delay_s)
 
 
-class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
+class ArmyArrivalAction(NoInitActionBase, TeamActionBase, ArmyActionMixin):
     @property
     @override
     def args(self) -> ArmyDeployArgs:
@@ -112,14 +112,6 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
     @override
     def description(self) -> str:
         return f"Příchod armády {self.army.name} na pole {self.args.tile.name} ({self.args.team.name})"
-
-    @property
-    def army(self) -> Army:
-        self._ensureStrong(
-            self.args.armyIndex in range(0, len(self.state.map.armies)),
-            f"Neznámá armáda (index: {self.args.armyIndex})",
-        )
-        return self.state.map.armies[self.args.armyIndex]
 
     @staticmethod
     def transferEquipment(provider: Army, receiver: Army) -> int:
@@ -163,7 +155,7 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase):
 
             equipment = provider.retreat()
             if self.args.goal == ArmyGoal.Replace:
-                receiver.occupyTile(receiver,self.args.tile)
+                receiver.occupyTile(self.args.tile)
 
             if self.args.goal == ArmyGoal.Replace:
                 self._info += f"Armáda {army.name} nahradila předchozí armádu.\
