@@ -17,8 +17,9 @@ class GodModeAction(NoInitActionBase):
     @property
     @override
     def args(self) -> GodModeArgs:
-        assert isinstance(self._generalArgs, GodModeArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, GodModeArgs)
+        return args
 
     @property
     @override

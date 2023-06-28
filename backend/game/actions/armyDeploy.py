@@ -1,4 +1,3 @@
-from decimal import Decimal
 from math import floor
 from typing import Optional
 
@@ -6,19 +5,15 @@ from typing_extensions import override
 
 from game.actions.actionBase import (
     NoInitActionBase,
-    ScheduledAction,
     TeamActionArgs,
-    TeamActionBase,
     TeamInteractionActionBase,
-    TileActionArgs,
-    ArmyActionMixin,
 )
-from game.actions.common import ActionFailed
-from game.entities import Resource, TeamEntity
+from game.entities import MapTileEntity, Resource, TeamEntity
 from game.state import Army, ArmyGoal, ArmyMode
 
 
-class ArmyDeployArgs(TeamActionArgs, TileActionArgs):
+class ArmyDeployArgs(TeamActionArgs):
+    tile: MapTileEntity
     armyIndex: int
     goal: ArmyGoal
     equipment: int
@@ -26,48 +21,50 @@ class ArmyDeployArgs(TeamActionArgs, TileActionArgs):
     friendlyTeam: Optional[TeamEntity]
 
 
-class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
+class ArmyDeployAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> ArmyDeployArgs:
-        assert isinstance(self._generalArgs, ArmyDeployArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, ArmyDeployArgs)
+        return args
 
     @property
     @override
     def description(self) -> str:
-        return f"Vyslání armády {self.army.name} na pole {self.args.tile.name} ({self.args.team.name})"
+        return f"Vyslání armády {self.army_state().name} na pole {self.args.tile.name} ({self.args.team.name})"
 
     @override
     def cost(self) -> dict[Resource, int]:
+        army = self.army_state()
         self._ensureStrong(
-            self.army.capacity >= self.args.equipment,
-            f"Kapacita armády je {self.army.capacity}",
+            army.capacity >= self.args.equipment,
+            f"Kapacita armády je {army.capacity}",
         )
         self._ensureStrong(self.args.equipment > 0, f"Nelze vyslat nevybavenou armádu")
         return {self.entities.zbrane: self.args.equipment}
 
     def travelTime(self) -> int:
         return self.state.map.getActualDistance(
-            self.army.team, self.args.tile, self.state.teamStates
+            self.args.team, self.args.tile, self.state.teamStates
         )
 
     @override
-    def _commitSuccessImpl(self) -> None:
-        army = self.army
+    def _initiateCheck(self) -> None:
+        army = self.army_state()
+
         self._ensureStrong(
             army.team == self.args.team, f"Nelze vyslat armádu cizího týmu."
         )
         self._ensureStrong(
             self.args.tile != self.state.map.getHomeOfTeam(self.args.team).entity,
-            f"Nelze útočit na vlastní domovské pole.",
+            f"Nelze pochodovat na vlastní domovské pole.",
         )
 
-        if army.mode != ArmyMode.Idle:
-            assert army.tile is not None, f"Army {army} is in inconsistent state"
-            raise ActionFailed(
-                f"Armáda {army.name} už je vyslána na pole {army.tile.name}."
-            )
+        self._ensureStrong(
+            army.mode == ArmyMode.Idle,
+            f"Armáda {army.name} už je vyslána na pole {army.tile.name if army.tile is not None else ''}.",
+        )
 
         self._ensureStrong(
             self.args.equipment >= 1,
@@ -77,6 +74,10 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
             self.args.equipment <= army.capacity,
             f"Armáda neunese {self.args.equipment} zbraní. Maximální možná výzbroj je {army.capacity}.",
         )
+
+    @override
+    def _commitSuccessImpl(self) -> None:
+        army = self.army_state()
 
         army.tile = self.args.tile
         army.equipment = self.args.equipment
@@ -101,17 +102,18 @@ class ArmyDeployAction(TeamInteractionActionBase, ArmyActionMixin):
         )
 
 
-class ArmyArrivalAction(NoInitActionBase, TeamActionBase, ArmyActionMixin):
+class ArmyArrivalAction(NoInitActionBase):
     @property
     @override
     def args(self) -> ArmyDeployArgs:
-        assert isinstance(self._generalArgs, ArmyDeployArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, ArmyDeployArgs)
+        return args
 
     @property
     @override
     def description(self) -> str:
-        return f"Příchod armády {self.army.name} na pole {self.args.tile.name} ({self.args.team.name})"
+        return f"Příchod armády {self.army_state().name} na pole {self.args.tile.name} ({self.args.team.name})"
 
     @staticmethod
     def transferEquipment(provider: Army, receiver: Army) -> int:
@@ -125,7 +127,7 @@ class ArmyArrivalAction(NoInitActionBase, TeamActionBase, ArmyActionMixin):
 
     @override
     def _commitImpl(self) -> None:
-        army = self.army
+        army = self.army_state()
         defender = self.state.map.getOccupyingArmy(
             self.args.tile, self.state.teamStates
         )

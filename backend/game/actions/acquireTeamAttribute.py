@@ -14,8 +14,9 @@ class AcquireTeamAttributeAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> AcquireTeamAttributeArgs:
-        assert isinstance(self._generalArgs, AcquireTeamAttributeArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, AcquireTeamAttributeArgs)
+        return args
 
     @property
     @override
@@ -33,11 +34,11 @@ class AcquireTeamAttributeAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
-            self.args.attribute not in self.teamState.attributes,
+            self.args.attribute not in self.team_state().attributes,
             f"Tým {self.args.team.name} už má vlastnost {self.args.attribute.name}",
         )
 
     @override
     def _commitSuccessImpl(self) -> None:
-        self.teamState.attributes.add(self.args.attribute)
+        self.team_state().attributes.add(self.args.attribute)
         self._info += f"Tým [[{self.args.team.id}]] obdržel vlastnost [[{self.args.attribute.id}]]."

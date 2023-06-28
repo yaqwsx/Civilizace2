@@ -1,32 +1,29 @@
 from typing_extensions import override
 
-from game.actions.actionBase import (
-    ArmyActionMixin,
-    TeamActionArgs,
-    TeamInteractionActionBase,
-)
-from game.state import Army, ArmyMode
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.state import ArmyMode
 
 
 class ArmyRetreatArgs(TeamActionArgs):
     armyIndex: int
 
 
-class ArmyRetreatAction(TeamInteractionActionBase, ArmyActionMixin):
+class ArmyRetreatAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> ArmyRetreatArgs:
-        assert isinstance(self._generalArgs, ArmyRetreatArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, ArmyRetreatArgs)
+        return args
 
     @property
     @override
     def description(self) -> str:
-        return f"Stažení armády {self.army.name} ({self.args.team.name})"
+        return f"Stažení armády {self.army_state().name} ({self.args.team.name})"
 
     @override
     def _initiateCheck(self) -> None:
-        army = self.army
+        army = self.army_state()
         self._ensureStrong(
             army.team == self.args.team, f"Armáda nepatří týmu {self.args.team.name}"
         )
@@ -38,7 +35,7 @@ class ArmyRetreatAction(TeamInteractionActionBase, ArmyActionMixin):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        army = self.army
+        army = self.army_state()
         orig_tile = army.tile
         assert orig_tile is not None
         equipment = army.retreat()

@@ -2,15 +2,12 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from game.actions.actionBase import (
-    TeamActionArgs,
-    TeamInteractionActionBase,
-    TileActionArgs,
-)
-from game.entities import Building, Resource
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
+from game.entities import Building, MapTileEntity, Resource
 
 
-class BuildArgs(TeamActionArgs, TileActionArgs):
+class BuildArgs(TeamActionArgs):
+    tile: MapTileEntity
     building: Building
 
 
@@ -18,8 +15,9 @@ class BuildAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> BuildArgs:
-        assert isinstance(self._generalArgs, BuildArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, BuildArgs)
+        return args
 
     @property
     @override
@@ -41,7 +39,7 @@ class BuildAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        tileState = self.args.tileState(self.state)
+        tileState = self.tile_state()
 
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
@@ -54,13 +52,11 @@ class BuildAction(TeamInteractionActionBase):
         )
         for feature in self.args.building.requiredTileFeatures:
             self._ensure(
-                feature in self.args.tileState(self.state).features,
+                feature in tileState.features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",
             )
 
     @override
     def _commitSuccessImpl(self) -> None:
-        tileState = self.args.tileState(self.state)
-
-        tileState.buildings.add(self.args.building)
+        self.tile_state().buildings.add(self.args.building)
         self._info += f"Budova [[{self.args.building.id}]] postavena na poli [[{self.args.tile.id}]]."

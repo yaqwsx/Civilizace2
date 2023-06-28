@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from game.actions.actionBase import NoInitActionBase, TeamActionArgs, TeamActionBase
+from game.actions.actionBase import NoInitActionBase, TeamActionArgs
 from game.actions.common import printResourceListForMarkdown
 from game.entities import Resource
 
@@ -11,12 +11,13 @@ class AddResourcesArgs(TeamActionArgs):
     resources: dict[Resource, Decimal]
 
 
-class AddResourcesAction(TeamActionBase, NoInitActionBase):
+class AddResourcesAction(NoInitActionBase):
     @property
     @override
     def args(self) -> AddResourcesArgs:
-        assert isinstance(self._generalArgs, AddResourcesArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, AddResourcesArgs)
+        return args
 
     @property
     @override
@@ -25,7 +26,7 @@ class AddResourcesAction(TeamActionBase, NoInitActionBase):
 
     @override
     def _commitImpl(self) -> None:
-        teamState = self.teamState
+        teamState = self.team_state()
         self._ensure(
             any(value != 0 for value in self.args.resources.values()),
             "Nejsou vybrány žádné zdroje",

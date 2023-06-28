@@ -1,21 +1,16 @@
 from decimal import Decimal
 from math import ceil, floor
-from typing import NamedTuple
 
 from typing_extensions import override
 
-from game import state
-from game.actions.actionBase import (
-    TeamActionArgs,
-    TeamInteractionActionBase,
-    TileActionArgs,
-)
+from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
 from game.actions.common import printResourceListForMarkdown
-from game.entities import Resource, Vyroba
+from game.entities import MapTileEntity, Resource, Vyroba
 from game.util import sum_dict
 
 
-class VyrobaArgs(TeamActionArgs, TileActionArgs):
+class VyrobaArgs(TeamActionArgs):
+    tile: MapTileEntity
     vyroba: Vyroba
     count: int
 
@@ -32,8 +27,9 @@ class VyrobaAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> VyrobaArgs:
-        assert isinstance(self._generalArgs, VyrobaArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, VyrobaArgs)
+        return args
 
     @property
     @override
@@ -53,6 +49,7 @@ class VyrobaAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        tileState = self.tile_state()
         self._ensureStrong(self.args.count > 0, f"Počet výrob musí být kladný")
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
@@ -61,7 +58,7 @@ class VyrobaAction(TeamInteractionActionBase):
         )
         for feature in self.args.vyroba.requiredTileFeatures:
             self._ensure(
-                feature in self.args.tileState(self.state).features,
+                feature in tileState.features,
                 f"Na poli {self.args.tile.name} chybí {feature.name}",
             )
 
@@ -75,7 +72,7 @@ class VyrobaAction(TeamInteractionActionBase):
     @override
     def _commitSuccessImpl(self) -> None:
         self._info += f"Zadání výroby bylo úspěšné."
-        bonus = self.args.tileState(self.state).richnessTokens / Decimal(10)
+        bonus = self.tile_state().richnessTokens / Decimal(10)
         reward = computeVyrobaReward(self.args.vyroba, self.args.count, bonus=bonus)
 
         instantReward = self._receiveResources(reward, instantWithdraw=True)
@@ -94,6 +91,7 @@ class VyrobaAction(TeamInteractionActionBase):
             self._info += f"Bonus za úrodnost výroby: {ceil(100 * bonus):+}%"
 
         if self.revertible():
-            self.teamState.employees.setdefault(self.args.vyroba, 0)
-            self.teamState.employees[self.args.vyroba] += self.args.count
+            teamState = self.team_state()
+            teamState.employees.setdefault(self.args.vyroba, 0)
+            teamState.employees[self.args.vyroba] += self.args.count
             self._info += f"Tým dostal v systému zaměstnance {self.args.count}× [[{self.args.vyroba.id}]]"

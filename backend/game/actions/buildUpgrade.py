@@ -6,15 +6,14 @@ from typing_extensions import override
 from game.actions.actionBase import (
     NoInitActionBase,
     TeamActionArgs,
-    TeamActionBase,
     TeamInteractionActionBase,
-    TileActionArgs,
 )
 from game.actions.common import MessageBuilder
-from game.entities import BuildingUpgrade, Resource
+from game.entities import BuildingUpgrade, MapTileEntity, Resource
 
 
-class BuildUpgradeArgs(TeamActionArgs, TileActionArgs):
+class BuildUpgradeArgs(TeamActionArgs):
+    tile: MapTileEntity
     upgrade: BuildingUpgrade
 
 
@@ -22,8 +21,9 @@ class BuildUpgradeAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> BuildUpgradeArgs:
-        assert isinstance(self._generalArgs, BuildUpgradeArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, BuildUpgradeArgs)
+        return args
 
     @property
     @override
@@ -45,7 +45,7 @@ class BuildUpgradeAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
-        tileState = self.args.tileState(self.state)
+        tileState = self.tile_state()
 
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
@@ -69,12 +69,13 @@ class BuildUpgradeAction(TeamInteractionActionBase):
         self._info += f"Stavba vylepšení začala. Za {ceil(scheduled.delay_s / 60)} minut bude vylepšení dokončeno"
 
 
-class BuildUpgradeCompletedAction(TeamActionBase, NoInitActionBase):
+class BuildUpgradeCompletedAction(NoInitActionBase):
     @property
     @override
     def args(self) -> BuildUpgradeArgs:
-        assert isinstance(self._generalArgs, BuildUpgradeArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, BuildUpgradeArgs)
+        return args
 
     @property
     @override
@@ -83,7 +84,7 @@ class BuildUpgradeCompletedAction(TeamActionBase, NoInitActionBase):
 
     @override
     def _commitImpl(self) -> None:
-        tileState = self.args.tileState(self.state)
+        tileState = self.tile_state()
 
         if (
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)

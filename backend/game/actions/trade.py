@@ -16,8 +16,9 @@ class TradeAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> TradeArgs:
-        assert isinstance(self._generalArgs, TradeArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, TradeArgs)
+        return args
 
     @property
     @override
@@ -37,7 +38,7 @@ class TradeAction(TeamInteractionActionBase):
         self._ensure(len(self.args.resources) > 0, "Není vybráno co obchodovat")
 
         with self._errors.startList("Obchod nelze provést") as err:
-            teamState = self.teamState
+            teamState = self.team_state()
             for resource, amount in self.args.resources.items():
                 if not resource.isTradableProduction:
                     err(f"Nelze obchodovat [[{resource.id}]]")
@@ -56,7 +57,6 @@ class TradeAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        teamState = self.teamState
         receivingTeamState = self.state.teamStates[self.args.receiver]
 
         self._payResources(self.args.resources)

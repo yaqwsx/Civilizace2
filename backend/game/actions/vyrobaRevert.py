@@ -16,8 +16,9 @@ class VyrobaRevertAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> VyrobaRevertArgs:
-        assert isinstance(self._generalArgs, VyrobaRevertArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, VyrobaRevertArgs)
+        return args
 
     @property
     @override
@@ -37,7 +38,7 @@ class VyrobaRevertAction(TeamInteractionActionBase):
         self._ensureStrong(
             self.args.count > 0, f"Počet výrob na vrácení musí být kladný"
         )
-        teamState = self.teamState
+        teamState = self.team_state()
         self._ensureStrong(
             self.args.vyroba in teamState.employees,
             f"Tým nemá [[{self.args.vyroba.id}]]",
@@ -49,9 +50,10 @@ class VyrobaRevertAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
-        self.teamState.employees.setdefault(self.args.vyroba, 0)
-        self.teamState.employees[self.args.vyroba] -= self.args.count
-        assert self.teamState.employees[self.args.vyroba] >= 0
+        teamState = self.team_state()
+        teamState.employees.setdefault(self.args.vyroba, 0)
+        teamState.employees[self.args.vyroba] -= self.args.count
+        assert teamState.employees[self.args.vyroba] >= 0
         self._info += f"Obyvatelé přestali být specializovaní: {self.args.count}× [[{self.args.vyroba.id}]]"
 
         return_obyvatel_count = self.getReturnObyvatelCount()

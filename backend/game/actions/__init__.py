@@ -8,7 +8,6 @@ from game.actions.actionBase import (
     ActionCommonBase,
     NoInitActionBase,
     TeamActionArgs,
-    TeamActionBase,
     TeamInteractionActionBase,
 )
 
@@ -26,8 +25,10 @@ def checkGameAction(action: Type[ActionCommonBase], args: Type[ActionArgs]) -> N
     assert issubclass(action, ActionCommonBase)
     assert issubclass(args, ActionArgs)
 
-    if issubclass(action, TeamActionBase):
-        assert issubclass(args, TeamActionArgs)
+    if issubclass(action, TeamInteractionActionBase):
+        assert issubclass(
+            args, TeamActionArgs
+        ), f"Interaction action {action.__name__} has to have TeamActionArgs"
     assert not (
         issubclass(action, TeamInteractionActionBase)
         and issubclass(action, NoInitActionBase)
@@ -50,7 +51,6 @@ def loadActions() -> dict[str, GameAction]:
             if item in (
                 ActionCommonBase,
                 NoInitActionBase,
-                TeamActionBase,
                 TeamInteractionActionBase,
                 TeamActionArgs,
             ):

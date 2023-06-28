@@ -13,8 +13,9 @@ class NextTurnAction(NoInitActionBase):
     @property
     @override
     def args(self) -> NextTurnArgs:
-        assert isinstance(self._generalArgs, NextTurnArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, NextTurnArgs)
+        return args
 
     @property
     @override

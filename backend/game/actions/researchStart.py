@@ -16,8 +16,9 @@ class ResearchStartAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> ResearchArgs:
-        assert isinstance(self._generalArgs, ResearchArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, ResearchArgs)
+        return args
 
     @property
     @override
@@ -34,12 +35,13 @@ class ResearchStartAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        teamState = self.team_state()
         self._ensureStrong(
-            self.args.tech not in self.teamState.techs,
+            self.args.tech not in teamState.techs,
             f"Technologie [[{self.args.tech.id}]] je již vyzkoumána",
         )
         self._ensureStrong(
-            self.args.tech not in self.teamState.researching,
+            self.args.tech not in teamState.researching,
             f"Výzkum technologie [[{self.args.tech.id}]] již probíhá",
         )
 
@@ -50,5 +52,5 @@ class ResearchStartAction(TeamInteractionActionBase):
         else:
             self._info += f"Zadejte týmu úkol {self.args.task}"
 
-        self.teamState.researching.add(self.args.tech)
+        self.team_state().researching.add(self.args.tech)
         self._info += f"Výzkum technologie [[{self.args.tech.id}]] začal."

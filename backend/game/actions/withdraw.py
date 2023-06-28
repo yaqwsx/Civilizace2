@@ -15,8 +15,9 @@ class WithdrawAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> WithdrawArgs:
-        assert isinstance(self._generalArgs, WithdrawArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, WithdrawArgs)
+        return args
 
     @property
     @override
@@ -31,6 +32,7 @@ class WithdrawAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         self._ensure(len(self.args.resources) > 0, "Nejsou vybrány žádné materiály")
+        teamState = self.team_state()
 
         for resource, amount in self.args.resources.items():
             if amount == 0:
@@ -40,7 +42,7 @@ class WithdrawAction(TeamInteractionActionBase):
                 amount >= 0,
                 f"Nelze vybrat záporný počet materiálů: {amount}× [[{resource.id}]]",
             )
-            available = self.teamState.resources.get(resource, Decimal(0))
+            available = teamState.resources.get(resource, Decimal(0))
             self._ensure(
                 amount <= available,
                 f"Tým nemá dostatek [[{resource.id}]] (dostupné: {available}, požadováno: {amount})",

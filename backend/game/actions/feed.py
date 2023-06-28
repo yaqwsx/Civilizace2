@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from typing_extensions import override
 
 from game.actions.actionBase import TeamActionArgs, TeamInteractionActionBase
@@ -13,8 +14,9 @@ class FeedAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> FeedArgs:
-        assert isinstance(self._generalArgs, FeedArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, FeedArgs)
+        return args
 
     @property
     @override
@@ -24,13 +26,15 @@ class FeedAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         self._ensureStrong(
-            self.teamState.turn < self.state.world.turn, "V tomto kole jste už krmili."
+            self.team_state().turn < self.state.world.turn,
+            "V tomto kole jste už krmili.",
         )
 
     @override
     def _commitSuccessImpl(self) -> None:
         raise NotImplementedError()
         req = computeFeedRequirements(self.state, self.entities, self.args.team)
+        teamState = self.team_state()
 
         paid = sum(self.args.materials.values())
 
@@ -39,7 +43,7 @@ class FeedAction(TeamInteractionActionBase):
             newborns += 10
         else:
             starved = (req.tokensRequired - paid) * 5
-            self.teamState.kill_obyvatels(starved, self.entities)
+            teamState.kill_obyvatels(starved, self.entities)
             self._warnings += f"Chybí {req.tokensRequired - paid} jednotek jídla, uhynulo vám {starved} obyvatel."
 
         automated = {prod: amount for prod, amount in req.automated}
@@ -51,27 +55,27 @@ class FeedAction(TeamInteractionActionBase):
             if amount >= req.tokensPerCaste:
                 saturated.add(resource)
 
-        self.teamState.add_newborns(newborns, self.entities)
+        teamState.add_newborns(newborns, self.entities)
 
         self._info += (
             f"Krmení úspěšně provedeno. Narodilo se vám {newborns} nových obyvatel."
         )
         self._info += f"Můžete si vzít jeden PUNTÍK NA KOSTKU"
 
-        if self.entities.work not in self.teamState.resources:
-            self.teamState.resources[self.entities.work] = Decimal(0)
+        if self.entities.work not in teamState.resources:
+            teamState.resources[self.entities.work] = Decimal(0)
 
-        self.teamState.resources[self.entities.work] //= 2
-        self.teamState.resources[self.entities.withdraw_capacity] = Decimal(
+        teamState.resources[self.entities.work] //= 2
+        teamState.resources[self.entities.withdraw_capacity] = Decimal(
             self.state.world.withdrawCapacity
         )
 
         self._receiveResources(
             sum_dict(
                 (resource.produces, amount)
-                for resource, amount in self.teamState.resources.items()
+                for resource, amount in teamState.resources.items()
                 if resource.produces is not None
             )
         )
 
-        self.teamState.turn = self.state.world.turn
+        teamState.turn = self.state.world.turn

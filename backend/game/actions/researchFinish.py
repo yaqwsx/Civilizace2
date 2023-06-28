@@ -12,8 +12,9 @@ class ResearchFinishAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> ResearchFinishArgs:
-        assert isinstance(self._generalArgs, ResearchFinishArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, ResearchFinishArgs)
+        return args
 
     @property
     @override
@@ -22,18 +23,20 @@ class ResearchFinishAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        teamState = self.team_state()
         self._ensureStrong(
-            self.args.tech not in self.teamState.techs,
+            self.args.tech not in teamState.techs,
             f"Technologie [[{self.args.tech.id}]] je již vyzkoumána.",
         )
         self._ensureStrong(
-            self.args.tech in self.teamState.researching,
+            self.args.tech in teamState.researching,
             f"Výzkum technologie [[{self.args.tech.id}]] aktuálně neprobíhá, takže ji nelze dokončit.",
         )
 
     @override
     def _commitSuccessImpl(self) -> None:
-        self.teamState.researching.remove(self.args.tech)
-        self.teamState.techs.add(self.args.tech)
+        teamState = self.team_state()
+        teamState.researching.remove(self.args.tech)
+        teamState.techs.add(self.args.tech)
         self._info += f"Výzkum technologie [[{self.args.tech.id}]] byl dokončen."
         self._info += f"Vydejte týmu puntík na kostku"

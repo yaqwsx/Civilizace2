@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from decimal import Decimal
 from math import ceil
-from typing import Mapping, NamedTuple, Type, TypeVar, Union
+from typing import Mapping, NamedTuple, Protocol, Type, TypeVar, Union
 
 from pydantic import BaseModel, PrivateAttr
 from typing_extensions import override
@@ -14,7 +14,7 @@ from game.actions.common import (
     printResourceListForMarkdown,
 )
 from game.entities import Entities, MapTileEntity, Resource, TeamEntity
-from game.state import GameState, MapTile, TeamState, Army
+from game.state import Army, GameState, MapTile, TeamState
 
 
 class ActionArgs(BaseModel):
@@ -25,16 +25,67 @@ class TeamActionArgs(ActionArgs):
     team: TeamEntity
 
 
-class TileActionArgs(ActionArgs):
-    tile: MapTileEntity
+class _TeamArgsProtocol(Protocol):
+    @property
+    def team(self) -> TeamEntity:
+        ...
 
-    def tileState(self, state: GameState) -> MapTile:
-        tileState = state.map.getTileById(self.tile.id)
-        assert tileState is not None, f"Invalid tile in args: {self.tile}"
-        return tileState
+
+class _TileArgsProtocol(Protocol):
+    @property
+    def tile(self) -> MapTileEntity:
+        ...
+
+
+class _ArmyArgsProtocol(_TeamArgsProtocol, Protocol):
+    @property
+    def armyIndex(self) -> int:
+        ...
+
+
+# class TileActionArgs(ActionArgs):
+#     tile: MapTileEntity
+
+#     def tile_valid(self, state: GameState) -> bool:
+#         return state.map.getTileById(self.tile.id) is not None
+
+#     def tileState(self, state: GameState) -> MapTile:
+#         tileState = state.map.getTileById(self.tile.id)
+#         assert tileState is not None, "Tile is not valid"
+#         return tileState
+
+# class TeamArmyActionArgs(TeamActionArgs):
+#     armyIndex: int
+
+#     def army_valid(self, state: GameState) -> bool:
+#         team_state = self.team_state(state)
+#         return self.armyIndex in range(0, len(team_state.armies))
+
+#     def army(self, state: GameState) -> Army:
+#         team_state = self.team_state(state)
+#         assert self.armyIndex in range(0, len(team_state.armies)), "Invalid army"
+#         return team_state.armies[self.armyIndex]
 
 
 TAction = TypeVar("TAction", bound="ActionCommonBase")
+_TArgs = TypeVar("_TArgs", covariant=True)
+
+
+class ActionProtocol(Protocol[_TArgs]):
+    @property
+    def args(self) -> _TArgs:
+        ...
+
+    @property
+    def state(self) -> GameState:
+        ...
+
+    @property
+    def entities(self) -> Entities:
+        ...
+
+    def _ensureStrong(self, condition: bool, message: str) -> None:
+        ...
 
 
 class ActionCommonBase(BaseModel, metaclass=ABCMeta):
@@ -147,32 +198,26 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
             scheduledActions=self._scheduled_actions,
         )
 
+    # Mixins
 
-class TeamActionBase(ActionCommonBase):
-    """Represents action which has Args subtype of `TeamActionArgs`."""
-
-    @property
-    @abstractmethod
-    @override
-    def args(self) -> TeamActionArgs:
-        assert isinstance(args := super().args, TeamActionArgs)
-        return args
-
-    @property
-    def teamState(self) -> TeamState:
-        assert isinstance(args := self.args, TeamActionArgs)
-        return self.state.teamStates[args.team]
-
-    # Private API
+    def team_state(self: ActionProtocol[TeamActionArgs]) -> TeamState:
+        assert (
+            self.args.team in self.state.teamStates
+        ), f"No team state for {self.args.team}"
+        return self.state.teamStates[self.args.team]
 
     def _receiveResources(
-        self,
+        self: ActionProtocol[TeamActionArgs],
         resources: Mapping[Resource, Union[Decimal, int]],
         *,
         instantWithdraw: bool = False,
         excludeWork: bool = False,
     ) -> dict[Resource, Decimal]:
-        team = self.teamState
+        # missing type intersection (Self & Action[TeamActionArgs]) to call team_state
+        assert (
+            self.args.team in self.state.teamStates
+        ), f"No team state for {self.args.team}"
+        team: TeamState = self.state.teamStates[self.args.team]
         withdrawing: dict[Resource, Decimal] = {}
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
@@ -188,20 +233,25 @@ class TeamActionBase(ActionCommonBase):
             assert withdrawing == {}
         return withdrawing
 
-class ArmyActionMixin:
-    @property
-    def army(self) -> Army:
+    def tile_state(self: ActionProtocol[_TileArgsProtocol]) -> MapTile:
+        tile_state = self.state.map.getTileById(self.args.tile.id)
+        assert tile_state is not None, f"No tile state for {self.args.tile}"
+        return tile_state
+
+    def army_state(self: ActionProtocol[_ArmyArgsProtocol]) -> Army:
+        assert (
+            self.args.team in self.state.teamStates
+        ), f"No team state for {self.args.team}"
+        team_state = self.state.teamStates[self.args.team]
         self._ensureStrong(
-            self.args.armyIndex in range(0, len(self.teamState.armies)),
-            f"Neznámá armáda (index: {self.args.armyIndex})",
+            self.args.armyIndex in range(0, len(team_state.armies)),
+            f"Invalid army {self.args.armyIndex} for team {self.args.team.name}",
         )
-        return self.teamState.armies[self.args.armyIndex]
+        return team_state.armies[self.args.armyIndex]
 
 
-class TeamInteractionActionBase(TeamActionBase):
-    """Represents `TeamActionBase` which is a team interaction
-    (has initiate phase).
-    """
+class TeamInteractionActionBase(ActionCommonBase):
+    """Represents Action which is a team interaction (has initiate phase)."""
 
     # The following fields are persistent
 
@@ -217,6 +267,7 @@ class TeamInteractionActionBase(TeamActionBase):
         Returns: informace pro orgy o výběru materiálů.
         """
         assert not isinstance(self, NoInitActionBase)
+        assert isinstance(self.args, TeamActionArgs)
 
         self._initiateCheck()
         self._ensureValid()
@@ -275,6 +326,7 @@ class TeamInteractionActionBase(TeamActionBase):
         Používá se v dry-run a případně u godmode.
         """
         assert not isinstance(self, NoInitActionBase)
+        assert isinstance(self.args, TeamActionArgs)
         self._clearMessageBuilders()
 
         self._initiateCheck()
@@ -285,6 +337,14 @@ class TeamInteractionActionBase(TeamActionBase):
         return self._generateActionResult()
 
     # Methods to be implemented/overriden by concrete actions
+
+    @property
+    @abstractmethod
+    @override
+    def args(self) -> TeamActionArgs:
+        args = super().args
+        assert isinstance(args, TeamActionArgs)
+        return args
 
     def cost(self) -> Union[dict[Resource, Decimal], dict[Resource, int]]:
         return {}
@@ -300,7 +360,7 @@ class TeamInteractionActionBase(TeamActionBase):
         """
         Řekne, kolik práce stojí jeden hod
         """
-        return self.teamState.throwCost
+        return self.team_state().throwCost
 
     @abstractmethod
     def _commitSuccessImpl(self) -> None:
@@ -323,7 +383,7 @@ class TeamInteractionActionBase(TeamActionBase):
         Performs throw, constructs a message in info and returns whether it was
         successful or not.
         """
-        tState = self.teamState
+        tState = self.team_state()
         pointsCost = self.pointsCost()
         workConsumed = throws * self.throwCost()
         workAvailable = tState.resources.get(self.entities.work, Decimal(0))
@@ -348,7 +408,7 @@ class TeamInteractionActionBase(TeamActionBase):
     def _payResources(
         self, resources: Mapping[Resource, Union[Decimal, int]]
     ) -> dict[Resource, Decimal]:
-        teamState = self.teamState
+        teamState = self.team_state()
         tokens = {}
         missing = {}
         for resource, amount in resources.items():

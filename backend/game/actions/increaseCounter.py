@@ -25,8 +25,9 @@ class IncreaseCounterAction(TeamInteractionActionBase):
     @property
     @override
     def args(self) -> IncreaseCounterArgs:
-        assert isinstance(self._generalArgs, IncreaseCounterArgs)
-        return self._generalArgs
+        args = super().args
+        assert isinstance(args, IncreaseCounterArgs)
+        return args
 
     @property
     @override
@@ -58,17 +59,14 @@ class IncreaseCounterAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
+        teamState = self.team_state()
         self._trace += "Zahájen commit"
-        self.teamState.redCounter += self.args.red
-        self._info += (
-            f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
-        )
-        self._trace += (
-            f"Týmu bylo zvýšeno červené počítadlo na {self.teamState.redCounter}"
-        )
+        teamState.redCounter += self.args.red
+        self._info += f"Týmu bylo zvýšeno červené počítadlo na {teamState.redCounter}"
+        self._trace += f"Týmu bylo zvýšeno červené počítadlo na {teamState.redCounter}"
 
         if self.args.resource is not None:
-            self.teamState.blueCounter += 1
+            teamState.blueCounter += 1
             self._info += (
-                f"Týmu bylo zvýšeno modré počítadlo na {self.teamState.blueCounter}"
+                f"Týmu bylo zvýšeno modré počítadlo na {teamState.blueCounter}"
             )
