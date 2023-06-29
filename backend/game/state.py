@@ -6,6 +6,7 @@ import itertools
 from decimal import Decimal
 from math import ceil
 from typing import Any, Iterable, Mapping, Optional, Type
+from typing_extensions import override
 
 from pydantic import BaseModel
 
@@ -42,6 +43,7 @@ class StateModel(BaseModel):
         return super().validate(value)
 
     # Workaround for using pydantic model with properties with setters
+    @override
     def __setattr__(self, name: str, value: Any):
         try:
             super().__setattr__(name, value)

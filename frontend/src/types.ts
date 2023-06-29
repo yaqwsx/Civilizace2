@@ -78,6 +78,7 @@ export interface TeamAttributeEntity extends EntityWithCost {
 
 export interface TechEntity extends EntityWithCost {
     unlocks: EntityWithCost[];
+    requiresTask: boolean;
 }
 
 // Team Entity Info
@@ -114,6 +115,7 @@ export interface TaskAssignment {
     techId: TechId;
     assignedAt: Date;
     finishedAt?: Date;
+    abandoned: boolean;
 }
 
 export interface TeamTask {

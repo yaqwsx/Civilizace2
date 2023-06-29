@@ -104,6 +104,7 @@ class EntityWithCost(EntityBase):
 @dataclass(init=False, repr=False, eq=False)
 class Tech(EntityWithCost):
     unlocks: list[EntityWithCost] = []
+    requiresTask: bool
     flavor: str = ""
 
     @property

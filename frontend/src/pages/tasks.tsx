@@ -23,6 +23,7 @@ import { Task, TechEntity } from "../types";
 import axiosService, { fetcher } from "../utils/axios";
 import { objectMap } from "../utils/functional";
 import { useHideMenu } from "./atoms";
+import { sortTechs } from "./techs";
 
 export function TasksMenu() {
     return null;
@@ -216,10 +217,6 @@ function DeleteDialog(props: {
             </Row>
         </Dialog>
     );
-}
-
-function sortTechs(techs: TechEntity[]) {
-    return techs;
 }
 
 function TaskEdit() {

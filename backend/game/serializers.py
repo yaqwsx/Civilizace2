@@ -14,7 +14,7 @@ from game.models import (
 class DbTaskAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = DbTaskAssignment
-        fields = ["team", "techId", "assignedAt", "finishedAt"]
+        fields = ["team", "techId", "assignedAt", "finishedAt", "abandoned"]
 
 
 class DbTaskSerializer(serializers.ModelSerializer):

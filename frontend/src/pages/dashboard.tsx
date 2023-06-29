@@ -40,7 +40,12 @@ import {
 } from "../elements/team_view";
 import { TurnCountdownSticker } from "../elements/turns";
 import { RootState } from "../store";
-import { Sticker as StickerT, Team, TeamAnnouncement } from "../types";
+import {
+    Sticker as StickerT,
+    Team,
+    TeamAnnouncement,
+    TechStatus,
+} from "../types";
 import axiosService from "../utils/axios";
 import { useHideMenu } from "./atoms";
 import { ArmyDescription } from "./map";
@@ -439,7 +444,7 @@ function TeamTasks() {
 
     const researchingTechs = sortTechs(
         Object.values(techs).filter(
-            (t) => t.status === "researching" && t?.assignedTask
+            (t) => t.status === TechStatus.Researching && t?.assignedTask
         )
     );
 

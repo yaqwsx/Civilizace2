@@ -47,6 +47,16 @@ class ResearchStartAction(TeamInteractionActionBase):
 
     @override
     def _commitSuccessImpl(self) -> None:
+        if not self.args.tech.requiresTask:
+            if self.args.task is not None:
+                self._warnings += (
+                    "**Pozor:** k výzkumu této technologie se nezadává úkol."
+                )
+
+            self.team_state().techs.add(self.args.tech)
+            self._info += f"Malá technologie [[{self.args.tech.id}]] byla vyzkoumána."
+            return
+
         if self.args.task is None:
             self._warnings += "**Pozor:** k výzkumu nebyl vybrán úkol."
         else:
