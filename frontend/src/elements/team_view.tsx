@@ -75,7 +75,7 @@ export function useTeamSpecialResources(teamId: string | undefined) {
 
 export function changeTeamTask(
     team: Team,
-    newTask: { tech: TechId; newTask?: string }
+    newTask: { tech: TechId; newTask: string | null }
 ) {
     return axiosService.post<{}>(`/game/teams/${team.id}/changetask/`, newTask);
 }

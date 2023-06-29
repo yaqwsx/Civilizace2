@@ -442,7 +442,7 @@ function ChangeTaskDialog(props: {
         setSubmitting(true);
         changeTeamTask(props.team, {
             tech: props.tech.id,
-            newTask: selectedTask?.id,
+            newTask: selectedTask?.id ?? null,
         })
             .then(() => {
                 setSubmitting(false);
