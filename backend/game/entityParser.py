@@ -775,21 +775,35 @@ def add_tech_unlocks(
 
     unlocks_tech = unlock_args.get("unlocks-tech")
     if unlocks_tech is not None:
-        tech.unlocks += parseField(
+        tech_unlocks = parseField(
             list[Tech],
             unlocks_tech,
             entities=entities,
             err_handler=err_handler,
         )
+        if len(set(tech_unlocks).intersection(tech.unlocks)) > 0:
+            err_handler.warn(
+                f"Tech {tech!r} already unlocks {set(tech_unlocks).difference(tech.unlocks)}"
+            )
+        tech.unlocks += tech_unlocks
 
     unlocks_other = unlock_args.get("unlocks-other")
     if unlocks_other is not None:
-        tech.unlocks += parseField(
+        other_unlocks = parseField(
             list[EntityWithCost],
             unlocks_other,
             entities=entities,
             err_handler=err_handler,
         )
+        if any(isinstance(e, Tech) for e in other_unlocks):
+            err_handler.warn(
+                f"Don't use 'unlocks-other' for Techs ({tech!r}: {[e for e in other_unlocks if isinstance(e, Tech)]})."
+            )
+        if len(set(other_unlocks).intersection(tech.unlocks)) > 0:
+            err_handler.warn(
+                f"Tech {tech!r} already unlocks {set(other_unlocks).difference(tech.unlocks)}"
+            )
+        tech.unlocks += other_unlocks
 
 
 def add_hardcoded_values(
@@ -863,20 +877,14 @@ def with_productions(
             yield production
 
 
-def synchronizeUnlocks(entities: dict[str, Entity]) -> None:
-    for entity in entities.values():
-        if isinstance(entity, EntityWithCost):
-            for tech in entity.unlockedBy:
-                assert (
-                    entity not in tech.unlocks
-                ), f"Duplicate info about {tech.id!r} unlocking {entity.id!r}"
-                tech.unlocks.append(entity)
-            entity.unlockedBy.clear()
-
-    for tech in entities.values():
-        if isinstance(tech, Tech):
-            for entity in tech.unlocks:
-                entity.unlockedBy.append(tech)
+def update_unlocked_by(
+    unlocked_by: Mapping[Vyroba, list[Tech]], *, err_handler: ErrorHandler
+):
+    for vyroba, techs in unlocked_by.items():
+        for tech in techs:
+            if vyroba in tech.unlocks:
+                err_handler.error(f"Tech {tech} already unlocks {vyroba}")
+            tech.unlocks.append(vyroba)
 
 
 def synchronizeUpgrades(entities: dict[str, Entity]) -> None:
@@ -905,31 +913,27 @@ def checkGuaranteedIds(
 
 def checkUnreachableByTech(entities: Entities, *, err_handler: ErrorHandler):
     tech_start = entities.techs[TECHNOLOGY_START]
-    if len(tech_start.unlockedBy) > 0:
+    if any(tech_start in tech.unlocks for tech in entities.techs.values()):
         err_handler.warn(f"Tech {tech_start} has unlocking edge, but is START")
 
-    visited_entities: set[EntityWithCost] = set([tech_start]).union(
+    visited: set[EntityWithCost] = set([tech_start]).union(
         e for group in entities.team_groups.values() for e in group.unlocks
     )
+    new_techs: set[Tech] = set(t for t in visited if isinstance(t, Tech))
 
-    changed = True
-    while changed:
-        changed = False
-        for entity in entities.values():
-            if not isinstance(entity, EntityWithCost):
-                continue
-            if entity in visited_entities:
-                continue
-            if not visited_entities.isdisjoint(entity.unlockedBy):
-                visited_entities.add(entity)
-                changed = True
-    # Building upgrades are always reachable from their building
+    while len(new_techs) > 0:
+        last_techs = new_techs
+        new_techs = set()
+        for tech in last_techs:
+            new_entities = set(tech.unlocks).difference(visited)
+            visited.update(new_entities)
+            new_techs.update(t for t in new_entities if isinstance(t, Tech))
+
     unreachable = [
-        entity.id
+        entity
         for entity in entities.values()
         if isinstance(entity, EntityWithCost)
-        if not isinstance(entity, BuildingUpgrade)
-        if entity not in visited_entities
+        if entity not in visited
     ]
     if len(unreachable) > 0:
         err_handler.warn(f"There are unreachable entities with cost: {unreachable}")
@@ -1143,15 +1147,34 @@ class EntityParser:
                 )
             )
         with err_handler.add_context("vyrobas"):
+            vyroba_args = [
+                {name: args[name] for name in args if name != "unlockedBy"}
+                for args in data["vyrobas"]
+            ]
             add_entities(
                 parseSheet(
                     Vyroba,
-                    data["vyrobas"],
+                    vyroba_args,
                     allowed_prefixes=["vyr"],
                     entities=entities_map,
                     err_handler=err_handler,
                 )
             )
+            vyrobas_unlocked_by = {
+                parseField(
+                    Vyroba,
+                    args.get("id", ""),
+                    entities=entities_map,
+                    err_handler=err_handler,
+                ): parseField(
+                    list[Tech],
+                    args.get("unlockedBy", ""),
+                    entities=entities_map,
+                    err_handler=err_handler,
+                )
+                for args in data["vyrobas"]
+                if "unlockedBy" in args
+            }
 
         with err_handler.add_context("teamGroups"):
             add_entities(
@@ -1193,11 +1216,11 @@ class EntityParser:
                 add_tech_unlocks(
                     tech, unlock_args, entities=entities_map, err_handler=err_handler
                 )
+            update_unlocked_by(vyrobas_unlocked_by, err_handler=err_handler)
 
         checkGuaranteedIds(entities_map, err_handler=err_handler)
         add_hardcoded_values(entities_map, err_handler=err_handler)
 
-        synchronizeUnlocks(entities_map)
         synchronizeUpgrades(entities_map)
 
         entities = Entities(entities_map.values())

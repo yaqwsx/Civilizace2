@@ -99,8 +99,6 @@ class NaturalResource(TileFeature):
 class EntityWithCost(EntityBase):
     cost: dict[Resource, Decimal] = {}
     points: int
-    # duplicates: Tech.unlocks
-    unlockedBy: list[Tech] = []
 
 
 @dataclass(init=False, repr=False, eq=False)

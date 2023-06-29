@@ -56,7 +56,6 @@ export interface TeamGroupEntity extends EntityBase {}
 export interface EntityWithCost extends EntityBase {
     cost: Record<ResourceId, Decimal>;
     points: number;
-    unlockedBy: TechId[];
 }
 
 export interface VyrobaEntity extends EntityWithCost {

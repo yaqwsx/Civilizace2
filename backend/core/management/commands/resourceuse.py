@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 
 from core.management.commands.pullentities import setFilename
-from game.entities import Entities, EntityBase, EntityWithCost, Resource, Vyroba
+from game.entities import Entities, EntityBase, EntityWithCost, Resource, Tech, Vyroba
 from game.entityParser import EntityParser
 
 
@@ -33,9 +33,7 @@ class Command(BaseCommand):
                 f"Entity exists but is a {type(entities[material])}, not {Resource}"
             )
         else:
-            raise RuntimeError(
-                f"Entity doesn't exist exists. Make sure to use full valid id"
-            )
+            raise RuntimeError(f"Entity doesn't exist. Make sure to use full valid id")
 
     def entity_to_str(self, entity: EntityBase) -> str:
         return f"'{entity.name}'" if not self.show_id else f"'{entity.id}'"
@@ -50,10 +48,19 @@ class Command(BaseCommand):
             for res_amount in entity.cost.items()
         )
 
+    def unlocked_by(self, entity: EntityWithCost, entities: Entities) -> list[Tech]:
+        return sorted(
+            (t for t in entities.techs.values() if entity in t.unlocks),
+            key=lambda t: t.id,
+        )
+
     def print_entity_usage_in(
-        self, entities: Iterable[EntityWithCost], resource: Resource
+        self,
+        usage_entities: Iterable[EntityWithCost],
+        resource: Resource,
+        entities: Entities,
     ) -> None:
-        for entity in entities:
+        for entity in usage_entities:
             if resource in entity.cost:
                 reward_str = ""
                 if isinstance(entity, Vyroba):
@@ -64,7 +71,7 @@ class Command(BaseCommand):
                     f"  {entity.cost[resource]}x in {self.entity_to_str(entity)}: {self.prettyprint_cost(entity)}{reward_str}"
                 )
                 print(
-                    f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in entity.unlockedBy)}"
+                    f"    Unlocked by: {', '.join(map(self.entity_to_str, self.unlocked_by(entity, entities)))}"
                 )
 
     def print_resource_usage(self, entities: Entities, material: Resource):
@@ -92,33 +99,37 @@ class Command(BaseCommand):
 
         print()
         print("MATERIAL usage in TECH cost:")
-        self.print_entity_usage_in(entities.techs.values(), material)
+        self.print_entity_usage_in(entities.techs.values(), material, entities)
         for prod in productions:
             print(f"PRODUCITON {self.entity_to_str(prod)} usage in TECH cost:")
-            self.print_entity_usage_in(entities.techs.values(), prod)
+            self.print_entity_usage_in(entities.techs.values(), prod, entities)
 
         print()
         print("MATERIAL usage in VYROBA cost:")
-        self.print_entity_usage_in(entities.vyrobas.values(), material)
+        self.print_entity_usage_in(entities.vyrobas.values(), material, entities)
         for prod in productions:
             print(f"PRODUCITON {self.entity_to_str(prod)} usage in VYROBA cost:")
-            self.print_entity_usage_in(entities.vyrobas.values(), prod)
+            self.print_entity_usage_in(entities.vyrobas.values(), prod, entities)
 
         print()
         print("MATERIAL usage in BUILDING cost:")
-        self.print_entity_usage_in(entities.buildings.values(), material)
+        self.print_entity_usage_in(entities.buildings.values(), material, entities)
         for prod in productions:
             print(f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING cost:")
-            self.print_entity_usage_in(entities.buildings.values(), prod)
+            self.print_entity_usage_in(entities.buildings.values(), prod, entities)
 
         print()
         print("MATERIAL usage in BUILDING UPGRADE cost:")
-        self.print_entity_usage_in(entities.building_upgrades.values(), material)
+        self.print_entity_usage_in(
+            entities.building_upgrades.values(), material, entities
+        )
         for prod in productions:
             print(
                 f"PRODUCITON {self.entity_to_str(prod)} usage in BUILDING UPGRADE cost:"
             )
-            self.print_entity_usage_in(entities.building_upgrades.values(), prod)
+            self.print_entity_usage_in(
+                entities.building_upgrades.values(), prod, entities
+            )
 
         print()
         print("MATERIAL created by:")
@@ -129,7 +140,7 @@ class Command(BaseCommand):
                     f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                 )
                 print(
-                    f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                    f"    Unlocked by: {', '.join(map(self.entity_to_str, self.unlocked_by(vyroba, entities)))}"
                 )
         print()
         print("MATERIAL additionally created by:")
@@ -140,7 +151,7 @@ class Command(BaseCommand):
                         f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                     )
                     print(
-                        f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                        f"    Unlocked by: {', '.join(map(self.entity_to_str, self.unlocked_by(vyroba, entities)))}"
                     )
 
         for prod in productions:
@@ -152,7 +163,7 @@ class Command(BaseCommand):
                         f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                     )
                     print(
-                        f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                        f"    Unlocked by: {', '.join(map(self.entity_to_str, self.unlocked_by(vyroba, entities)))}"
                     )
             print(f"PRODUCTION {self.entity_to_str(prod)} additionally created by:")
             for vyroba in entities.vyrobas.values():
@@ -162,5 +173,5 @@ class Command(BaseCommand):
                             f"  {reward_amount}x from {self.entity_to_str(vyroba)}: {self.prettyprint_cost(vyroba)}"
                         )
                         print(
-                            f"    Unlocked by: {', '.join(self.entity_to_str(tech) for tech in vyroba.unlockedBy)}"
+                            f"    Unlocked by: {', '.join(map(self.entity_to_str, self.unlocked_by(vyroba, entities)))}"
                         )
