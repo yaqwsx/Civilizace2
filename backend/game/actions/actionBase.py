@@ -43,30 +43,6 @@ class _ArmyArgsProtocol(_TeamArgsProtocol, Protocol):
         ...
 
 
-# class TileActionArgs(ActionArgs):
-#     tile: MapTileEntity
-
-#     def tile_valid(self, state: GameState) -> bool:
-#         return state.map.getTileById(self.tile.id) is not None
-
-#     def tileState(self, state: GameState) -> MapTile:
-#         tileState = state.map.getTileById(self.tile.id)
-#         assert tileState is not None, "Tile is not valid"
-#         return tileState
-
-# class TeamArmyActionArgs(TeamActionArgs):
-#     armyIndex: int
-
-#     def army_valid(self, state: GameState) -> bool:
-#         team_state = self.team_state(state)
-#         return self.armyIndex in range(0, len(team_state.armies))
-
-#     def army(self, state: GameState) -> Army:
-#         team_state = self.team_state(state)
-#         assert self.armyIndex in range(0, len(team_state.armies)), "Invalid army"
-#         return team_state.armies[self.armyIndex]
-
-
 TAction = TypeVar("TAction", bound="ActionCommonBase")
 _TArgs = TypeVar("_TArgs", covariant=True)
 
@@ -74,17 +50,6 @@ _TArgs = TypeVar("_TArgs", covariant=True)
 class ActionProtocol(Protocol[_TArgs]):
     @property
     def args(self) -> _TArgs:
-        ...
-
-    @property
-    def state(self) -> GameState:
-        ...
-
-    @property
-    def entities(self) -> Entities:
-        ...
-
-    def _ensureStrong(self, condition: bool, message: str) -> None:
         ...
 
 
@@ -200,24 +165,22 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
 
     # Mixins
 
-    def team_state(self: ActionProtocol[TeamActionArgs]) -> TeamState:
+    def team_state(self: ActionProtocol[_TeamArgsProtocol]) -> TeamState:
+        assert isinstance(self, ActionCommonBase)  # for type inference
         assert (
             self.args.team in self.state.teamStates
         ), f"No team state for {self.args.team}"
         return self.state.teamStates[self.args.team]
 
     def _receiveResources(
-        self: ActionProtocol[TeamActionArgs],
+        self: ActionProtocol[_TeamArgsProtocol],
         resources: Mapping[Resource, Union[Decimal, int]],
         *,
         instantWithdraw: bool = False,
         excludeWork: bool = False,
     ) -> dict[Resource, Decimal]:
-        # missing type intersection (Self & Action[TeamActionArgs]) to call team_state
-        assert (
-            self.args.team in self.state.teamStates
-        ), f"No team state for {self.args.team}"
-        team: TeamState = self.state.teamStates[self.args.team]
+        assert isinstance(self, ActionCommonBase)  # for type inference
+        team = self.team_state()
         withdrawing: dict[Resource, Decimal] = {}
         for resource, amount in resources.items():
             if excludeWork and resource == self.entities.work:
@@ -234,15 +197,14 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
         return withdrawing
 
     def tile_state(self: ActionProtocol[_TileArgsProtocol]) -> MapTile:
+        assert isinstance(self, ActionCommonBase)  # for type inference
         tile_state = self.state.map.getTileById(self.args.tile.id)
         assert tile_state is not None, f"No tile state for {self.args.tile}"
         return tile_state
 
     def army_state(self: ActionProtocol[_ArmyArgsProtocol]) -> Army:
-        assert (
-            self.args.team in self.state.teamStates
-        ), f"No team state for {self.args.team}"
-        team_state = self.state.teamStates[self.args.team]
+        assert isinstance(self, ActionCommonBase)  # for type inference
+        team_state = self.team_state()
         self._ensureStrong(
             self.args.armyIndex in range(0, len(team_state.armies)),
             f"Invalid army {self.args.armyIndex} for team {self.args.team.name}",
