@@ -4,3 +4,4 @@ djangorestframework-simplejwt==5.1.*
 gspread==5.*
 django-extensions==3.1.*
 django-cors-headers>=3.10.*
+boolean.py>=4.0.*

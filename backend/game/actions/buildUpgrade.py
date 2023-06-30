@@ -47,6 +47,7 @@ class BuildUpgradeAction(TeamInteractionActionBase):
     def _initiateCheck(self) -> None:
         tileState = self.tile_state()
 
+        self._ensure_strong_entity_available(self.args.upgrade)
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)
             == self.args.team,

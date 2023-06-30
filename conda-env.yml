@@ -29,3 +29,4 @@ dependencies:
     - django-ipware==4.0.2
     - Flask==2.1.2
     - python-escpos==2.2.0
+    - boolean.py>=4.0

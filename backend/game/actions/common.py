@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import contextlib
 from decimal import Decimal
-from typing import Any, Callable, Generator, Mapping, Union
+from typing import Any, Callable, Generator, Iterable, Mapping, Union
 
+import boolean
 from pydantic import BaseModel
 
-from game.entities import Entity, Resource
+from game.entities import Entity, EntityWithCost, Resource
+from game.util import requirements_str
 
 
 class ActionFailed(Exception):
@@ -90,3 +92,28 @@ def printResourceListForMarkdown(
         for resource, amount in resources.items():
             addLine(f"[[{resource.id}|{roundFunction(Decimal(amount))}]]")
     return message.message
+
+
+def print_missing_requirements(
+    entity: EntityWithCost, owned_entities: Iterable[EntityWithCost]
+) -> str:
+    if entity.requirements is None:
+        return "Nemá požadavky"
+
+    owned_ids = set(e.id for e in owned_entities)
+    missing_req: boolean.Expression = entity.requirements.subs(
+        {
+            symbol: entity.requirements.TRUE
+            for symbol in entity.requirements.get_symbols()
+            if symbol.obj in owned_ids
+        },
+        simplify=True,
+    )  # type: ignore
+
+    if missing_req == missing_req.FALSE:
+        return "Nelze splnit"
+
+    if missing_req == missing_req.TRUE:
+        return "Splněno"
+
+    return requirements_str(missing_req, lambda id: f"[[{id}]]")

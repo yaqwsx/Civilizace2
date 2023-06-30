@@ -44,6 +44,7 @@ class ResearchStartAction(TeamInteractionActionBase):
             self.args.tech not in teamState.researching,
             f"Výzkum technologie [[{self.args.tech.id}]] již probíhá",
         )
+        self._ensure_strong_entity_available(self.args.tech)
 
     @override
     def _commitSuccessImpl(self) -> None:

@@ -3,6 +3,7 @@ import typing
 from decimal import Decimal
 from typing import Any, Iterable, Optional, Type
 
+import boolean
 from pydantic import BaseModel
 from pydantic.fields import (
     MAPPING_LIKE_SHAPES,
@@ -234,6 +235,8 @@ def _shallow_entity(e: Any) -> Any:
         return set(map(_shallow_entity, e))
     if isinstance(e, dict):
         return {_shallow_entity(k): _shallow_entity(v) for k, v in e.items()}
+    if isinstance(e, boolean.Expression):
+        return str(e.simplify())
     assert isinstance(e, str | int | Decimal | type(None))
     if isinstance(e, Decimal):
         return str(e)

@@ -8,6 +8,7 @@ from enum import Enum
 from functools import cached_property
 from typing import Any, Iterable, Optional, Tuple, Type, Union
 
+import boolean
 from frozendict import frozendict
 from pydantic import BaseModel
 
@@ -44,6 +45,9 @@ GUARANTEED_IDS: dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
 
 class EntityBase(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True
+
     id: EntityId
     name: str
     icon: Optional[str] = None
@@ -99,6 +103,17 @@ class NaturalResource(TileFeature):
 class EntityWithCost(EntityBase):
     cost: dict[Resource, Decimal] = {}
     points: int
+    requirements: Optional[boolean.Expression] = None
+
+    def requirements_met(self, owned_entities: Iterable[EntityWithCost]) -> bool:
+        if self.requirements is None:
+            return True
+        owned_entities_set = set(entity.id for entity in owned_entities)
+        entity_id_map: dict[str, bool] = {
+            entity_id: entity_id in owned_entities_set
+            for entity_id in self.requirements.objects
+        }
+        return self.requirements(**entity_id_map)  # type: ignore
 
 
 @dataclass(init=False, repr=False, eq=False)

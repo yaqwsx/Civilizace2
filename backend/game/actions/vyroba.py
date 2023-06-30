@@ -50,6 +50,8 @@ class VyrobaAction(TeamInteractionActionBase):
     @override
     def _initiateCheck(self) -> None:
         tileState = self.tile_state()
+
+        self._ensure_strong_entity_available(self.args.vyroba)
         self._ensureStrong(self.args.count > 0, f"Počet výrob musí být kladný")
         self._ensureStrong(
             self.state.map.getOccupyingTeam(self.args.tile, self.state.teamStates)

@@ -11,9 +11,10 @@ from typing_extensions import override
 from game.actions.common import (
     ActionFailed,
     MessageBuilder,
+    print_missing_requirements,
     printResourceListForMarkdown,
 )
-from game.entities import Entities, MapTileEntity, Resource, TeamEntity
+from game.entities import Entities, EntityWithCost, MapTileEntity, Resource, TeamEntity
 from game.state import Army, GameState, MapTile, TeamState
 
 
@@ -195,6 +196,35 @@ class ActionCommonBase(BaseModel, metaclass=ABCMeta):
         if not instantWithdraw:
             assert withdrawing == {}
         return withdrawing
+
+    def _ensure_entity_available(
+        self: ActionProtocol[_TeamArgsProtocol], entity: EntityWithCost
+    ) -> bool:
+        """
+        Checks if the EntityWithCost is unlocked and its requirements are met.
+        """
+        assert isinstance(self, ActionCommonBase)  # for type inference
+        team_state = self.team_state()
+
+        if entity not in team_state.unlocked_all():
+            self._errors += f"Tým nemá technologii potřebnou pro [[{entity.id}]]"
+            return False
+        owned = team_state.get_owned_all(self.state.map)
+        if not entity.requirements_met(owned):
+            self._errors += f"Chybějící požadavky pro [[{entity.id}]]: {print_missing_requirements(entity, owned)}"
+            return False
+        return True
+
+    def _ensure_strong_entity_available(
+        self: ActionProtocol[_TeamArgsProtocol], entity: EntityWithCost
+    ) -> None:
+        """
+        Checks if the EntityWithCost's unlockedBy and requirements are met.
+        If not, raises ActionFailed.
+        """
+        assert isinstance(self, ActionCommonBase)  # for type inference
+        if not self._ensure_entity_available(entity):
+            raise ActionFailed(self._errors)
 
     def tile_state(self: ActionProtocol[_TileArgsProtocol]) -> MapTile:
         assert isinstance(self, ActionCommonBase)  # for type inference

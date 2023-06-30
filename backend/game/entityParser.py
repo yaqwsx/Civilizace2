@@ -22,6 +22,7 @@ from typing import (
     Union,
 )
 
+import boolean
 import pydantic
 from frozendict import frozendict
 from pydantic import ValidationError
@@ -532,6 +533,8 @@ def parseField(
                 f"Entity {arg!r} is not {cls!r}, instead is {type(entity)!r}"
             )
         return entity
+    if issubclass(cls, boolean.Expression):
+        return boolean.BooleanAlgebra(allowed_in_token=("-", "_")).parse(arg)
     raise NotImplementedError(f"Parsing {cls!r} is not implemented")
 
 
@@ -946,6 +949,27 @@ def check_teams_have_different_home_tiles(
         err_handler.error("There are multiple teams with the same home tile")
 
 
+def check_requirements_symbols_are_entity_ids(
+    entities: Entities, *, err_handler: ErrorHandler
+) -> None:
+    for entity in entities.values():
+        if not isinstance(entity, EntityWithCost):
+            continue
+        if entity.requirements is None:
+            continue
+        for req_id in entity.requirements.objects:
+            assert isinstance(req_id, str), f"Requirement literal {req_id!r} is not str"
+            required_entity = entities.get(req_id)
+            if required_entity is None:
+                err_handler.error(
+                    f"Requirement {req_id!r} of {entity!r} is not known entity id"
+                )
+            if not isinstance(required_entity, EntityWithCost):
+                err_handler.error(
+                    f"Requirement {required_entity} (type: {type(required_entity)}) of {entity!r} is not EntityWithCost"
+                )
+
+
 def check_unique_vyroba_rewards(
     entities: Entities, *, err_handler: ErrorHandler
 ) -> None:
@@ -1228,9 +1252,10 @@ class EntityParser:
             check_teams_have_different_home_tiles(entities, err_handler=err_handler)
             check_unique_vyroba_rewards(entities, err_handler=err_handler)
             check_generic_resources(entities, err_handler=err_handler)
-            checkUnreachableByTech(entities, err_handler=err_handler)
+            check_requirements_symbols_are_entity_ids(entities, err_handler=err_handler)
             checkMap(entities, err_handler=err_handler)
             checkUsersHaveLogins(entities, err_handler=err_handler)
+            checkUnreachableByTech(entities, err_handler=err_handler)
 
         err_handler.check_success("Entities", result_reporter=result_reporter)
         assert err_handler.success()

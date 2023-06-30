@@ -6,9 +6,9 @@ import itertools
 from decimal import Decimal
 from math import ceil
 from typing import Any, Iterable, Mapping, Optional, Type
-from typing_extensions import override
 
 from pydantic import BaseModel
+from typing_extensions import override
 
 from game.entities import (
     BASE_ARMY_STRENGTH,
@@ -320,6 +320,9 @@ class TeamState(StateModel):
             (e for tech in self.techs for e in tech.unlocks),
         )
 
+    def unlocked_all(self) -> set[EntityWithCost]:
+        return set(self._unlocked())
+
     def unlocked_techs(self) -> set[Tech]:
         return set(e for e in self._unlocked() if isinstance(e, Tech))
 
@@ -334,6 +337,42 @@ class TeamState(StateModel):
 
     def unlocked_building_upgrades(self) -> set[BuildingUpgrade]:
         return set(e for e in self._unlocked() if isinstance(e, BuildingUpgrade))
+
+    def owned_tiles(self) -> set[MapTileEntity]:
+        return set(
+            army.tile
+            for army in self.armies
+            if army.tile is not None
+            if army.mode == ArmyMode.Occupying
+        ).union([self.team.homeTile])
+
+    def owned_buildings(self, map_state: MapState) -> set[Building]:
+        owned_tiles = self.owned_tiles()
+        buildings: set[Building] = set()
+        for tile_state in map_state.tiles.values():
+            if tile_state.entity not in owned_tiles:
+                continue
+            buildings.update(tile_state.buildings)
+        return buildings
+
+    def owned_building_upgrades(self, map_state: MapState) -> set[BuildingUpgrade]:
+        owned_tiles = self.owned_tiles()
+        building_upgrades: set[BuildingUpgrade] = set()
+        for tile_state in map_state.tiles.values():
+            if tile_state.entity not in owned_tiles:
+                continue
+            building_upgrades.update(tile_state.building_upgrades)
+        return building_upgrades
+
+    def get_owned_all(
+        self, map_state: MapState
+    ) -> set[Tech | TeamAttribute | Building | BuildingUpgrade]:
+        owned: set[Tech | TeamAttribute | Building | BuildingUpgrade] = set()
+        owned.update(self.techs)
+        owned.update(self.attributes)
+        owned.update(self.owned_buildings(map_state))
+        owned.update(self.owned_building_upgrades(map_state))
+        return owned
 
     @staticmethod
     def create_initial(team: TeamEntity, entities: Entities) -> TeamState:

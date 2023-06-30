@@ -33,8 +33,11 @@ class AcquireTeamAttributeAction(TeamInteractionActionBase):
 
     @override
     def _initiateCheck(self) -> None:
+        team_state = self.team_state()
+
+        self._ensure_strong_entity_available(self.args.attribute)
         self._ensureStrong(
-            self.args.attribute not in self.team_state().attributes,
+            self.args.attribute not in team_state.attributes,
             f"Tým {self.args.team.name} už má vlastnost {self.args.attribute.name}",
         )
 

@@ -13,6 +13,7 @@ from typing import (
     overload,
 )
 
+import boolean
 from pydantic import BaseModel
 
 from game.entities import Entity, EntityBase, EntityId
@@ -51,6 +52,17 @@ class FileCache:
 
 def unique(values: Iterable[Any]) -> bool:
     return all(count <= 1 for count in Counter(values).values())
+
+
+def requirements_str(
+    requirements: boolean.Expression, fn: Callable[[EntityId], str]
+) -> str:
+    Symbol: Type[boolean.Symbol] = requirements.Symbol  # type: ignore
+    return str(
+        requirements.subs(
+            {symbol: Symbol(fn(symbol.obj)) for symbol in requirements.symbols}
+        )
+    )
 
 
 @overload
