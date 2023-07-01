@@ -40,6 +40,6 @@ class Command(BaseCommand):
                 f"Team {team!r} doesn't exist - available teams are {[team.pk for team in  Team.objects.all()]}"
             )
 
-        img = makeSticker(entities[entity], teamModel, stickerType)
+        img = makeSticker(entities[entity], teamModel, stickerType, entities=entities)
         img.save(output)
         print(f"Height: {int(img.height / 180 * 25.4)}")

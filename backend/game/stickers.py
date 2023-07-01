@@ -10,6 +10,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
+import boolean
 import qrcode
 from django.conf import settings
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -20,6 +21,7 @@ from game.entities import (
     RESOURCE_WORK,
     Building,
     BuildingUpgrade,
+    Entities,
     Entity,
     Resource,
     TeamAttribute,
@@ -27,7 +29,7 @@ from game.entities import (
     Vyroba,
 )
 from game.models import DbEntities, DbSticker, StickerType
-from game.util import FileCache
+from game.util import FileCache, requirements_str
 
 FONT_NORMAL = ImageFont.truetype(
     os.path.join(settings.DATA_PATH, "fonts", "Roboto-Regular.ttf"), 20
@@ -165,17 +167,19 @@ class StickerBuilder:
         return self.drawInt.textbbox(xy=(0, 0), text=text, font=font)
 
 
-def makeSticker(e: Entity, t: Team, stype: StickerType) -> Image.Image:
+def makeSticker(
+    e: Entity, t: Team, stype: StickerType, *, entities: Entities
+) -> Image.Image:
     if isinstance(e, Tech):
-        return makeTechSticker(e, t, stype)
+        return makeTechSticker(e, t, stype, entities=entities)
     if isinstance(e, Vyroba):
-        return makeVyrobaSticker(e, t, stype)
+        return makeVyrobaSticker(e, t, stype, entities=entities)
     if isinstance(e, Building):
-        return makeBuildingSticker(e, t, stype)
+        return makeBuildingSticker(e, t, stype, entities=entities)
     if isinstance(e, BuildingUpgrade):
-        return makeBuildingUpgradeSticker(e, t, stype)
+        return makeBuildingUpgradeSticker(e, t, stype, entities=entities)
     if isinstance(e, TeamAttribute):
-        return makeTeamAttributeSticker(e, t, stype)
+        return makeTeamAttributeSticker(e, t, stype, entities=entities)
     assert False, f"There is no recipe for making {type(e)} stickers"
 
 
@@ -245,12 +249,20 @@ def sortedCost(cost: Mapping[Resource, Decimal]) -> list[Tuple[Resource, Decimal
 
 def resourceName(resource):
     n = resource.name.replace(" ", " ")
-    if resource.isTradableProduction:
+    if isinstance(resource, Resource) and resource.isTradableProduction:
         return underline(n)
     return n
 
 
-def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
+def print_requirements(requirements: boolean.Expression, entities: Entities) -> str:
+    return requirements_str(
+        requirements, lambda id: resourceName(entities[id]) if id in entities else id
+    )
+
+
+def makeTechSticker(
+    e: Tech, team: Team, stype: StickerType, *, entities: Entities
+) -> Image.Image:
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, team, b, first=stype == StickerType.techFirst)
 
@@ -292,11 +304,15 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
                 costText = ", ".join(
                     [f"{a}× {resourceName(r)}" for r, a in sortedCost(t.cost)]
                 )
-                diceText = f"Kostka: {t.points}"
                 b.addText(f"• {t.name}: ", FONT_BOLD)
                 with b.withOffset(b.offset + bulletWidth):
-                    b.addText(diceText, FONT_NORMAL)
-                    b.addText(costText, FONT_NORMAL)
+                    if t.requirements is not None:
+                        b.addText(
+                            f"Vyžaduje: {print_requirements(t.requirements, entities)}",
+                            FONT_NORMAL,
+                        )
+                    b.addText(f"Kostka: {t.points}", FONT_NORMAL)
+                    b.addText(f"Cena: {costText}", FONT_NORMAL)
 
     if e.icon is not None:
         icon = os.path.splitext(e.icon)[0] + "-lg.png"
@@ -310,16 +326,26 @@ def makeTechSticker(e: Tech, team: Team, stype: StickerType) -> Image.Image:
     return b.getImage(mm2Pt(95))
 
 
-def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image:
+def makeBuildingSticker(
+    e: Building, t: Team, stype: StickerType, *, entities: Entities
+) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, t, b)
 
-    featureText = ", ".join([f.name for f in e.requiredTileFeatures])
+    if e.requirements is not None:
+        b.addBulletLine(
+            "Vyžaduje: ",
+            print_requirements(e.requirements, entities),
+            FONT_NORMAL,
+            FONT_BOLD,
+        )
+    featureText = ", ".join(f.name for f in e.requiredTileFeatures)
     if len(featureText) > 0:
-        b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, FONT_BOLD)
-    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
+        b.addBulletLine("Vyžaduje na poli: ", featureText, FONT_NORMAL, FONT_BOLD)
+    b.skip(5)
+    b.addBulletLine("Kostka: ", str(e.points), FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
         for r, a in sortedCost(e.cost):
@@ -344,15 +370,23 @@ def makeBuildingSticker(e: Building, t: Team, stype: StickerType) -> Image.Image
 
 
 def makeBuildingUpgradeSticker(
-    e: BuildingUpgrade, t: Team, stype: StickerType
+    e: BuildingUpgrade, t: Team, stype: StickerType, *, entities: Entities
 ) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, t, b)
 
-    b.addBulletLine("Budova: ", f"{e.building.name}", FONT_NORMAL, FONT_BOLD)
-    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
+    b.addBulletLine("Budova: ", e.building.name, FONT_NORMAL, FONT_BOLD)
+    if e.requirements is not None:
+        b.addBulletLine(
+            "Vyžaduje: ",
+            print_requirements(e.requirements, entities),
+            FONT_NORMAL,
+            FONT_BOLD,
+        )
+    b.skip(5)
+    b.addBulletLine("Kostka: ", str(e.points), FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
         for r, a in sortedCost(e.cost):
@@ -373,14 +407,22 @@ def makeBuildingUpgradeSticker(
 
 
 def makeTeamAttributeSticker(
-    e: TeamAttribute, t: Team, stype: StickerType
+    e: TeamAttribute, t: Team, stype: StickerType, *, entities: Entities
 ) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
     makeStickerHeader(e, t, b)
 
-    b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
+    if e.requirements is not None:
+        b.addBulletLine(
+            "Vyžaduje: ",
+            print_requirements(e.requirements, entities),
+            FONT_NORMAL,
+            FONT_BOLD,
+        )
+    b.skip(5)
+    b.addBulletLine("Kostka: ", str(e.points), FONT_NORMAL, FONT_BOLD)
     b.addText("Cena:", FONT_BOLD)
     with b.withOffset(10):
         for r, a in sortedCost(e.cost):
@@ -399,7 +441,9 @@ def makeTeamAttributeSticker(
     return b.getImage()
 
 
-def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
+def makeVyrobaSticker(
+    e: Vyroba, t: Team, stype: StickerType, *, entities: Entities
+) -> Image.Image:
     assert stype == StickerType.regular
 
     b = getDefaultStickerBuilder()
@@ -408,9 +452,18 @@ def makeVyrobaSticker(e: Vyroba, t: Team, stype: StickerType) -> Image.Image:
     if len(e.flavor) > 0:
         b.addText(e.flavor, FONT_NORMAL)
 
-    featureText = ", ".join([f.name for f in e.requiredTileFeatures])
+    if e.requirements is not None:
+        b.addBulletLine(
+            "Vyžaduje: ",
+            print_requirements(e.requirements, entities),
+            FONT_NORMAL,
+            FONT_BOLD,
+        )
+    featureText = ", ".join(f.name for f in e.requiredTileFeatures)
     if len(featureText) > 0:
-        b.addBulletLine("Vyžaduje: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD)
+        b.addBulletLine(
+            "Vyžaduje na poli: ", featureText, FONT_NORMAL, bulletFont=FONT_BOLD
+        )
     b.skip(5)
     b.addBulletLine("Kostka: ", f"{e.points}", FONT_NORMAL, FONT_BOLD)
     b.addText("Vstupy:", FONT_BOLD)
@@ -453,7 +506,10 @@ def getStickerFile(stickerModel: DbSticker) -> Path:
 
     def render(path):
         s = makeSticker(
-            entities[stickerModel.entityId], stickerModel.team, stickerModel.type
+            entities[stickerModel.entityId],
+            stickerModel.team,
+            stickerModel.type,
+            entities=entities,
         )
         s.save(path)
 
@@ -466,9 +522,17 @@ if __name__ == "__main__":
     team_zeleni = Team.objects.model(id="tea-zeleni", name="Zelení", color="green")
 
     vyroba = makeSticker(
-        TEST_ENTITIES["vyr-drevo1Pro"], team_zeleni, StickerType.regular
+        TEST_ENTITIES["vyr-drevo1Pro"],
+        team_zeleni,
+        StickerType.regular,
+        entities=TEST_ENTITIES,
     )
     # vyroba.show()
-    tech = makeSticker(TEST_ENTITIES["tec-start"], team_zeleni, StickerType.regular)
+    tech = makeSticker(
+        TEST_ENTITIES["tec-start"],
+        team_zeleni,
+        StickerType.regular,
+        entities=TEST_ENTITIES,
+    )
     tech.show()
     tech.save("test.png")

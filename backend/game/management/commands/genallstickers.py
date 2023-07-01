@@ -42,9 +42,9 @@ class Command(BaseCommand):
                 StickerType.techSmall,
                 StickerType.techFirst,
             ]:
-                img = makeSticker(t, dbTeam, stickerType)
+                img = makeSticker(t, dbTeam, stickerType, entities=entities)
                 img.save(str(outputdir / f"{t.id}-{stickerType}.png"))
         for e in entities.values():
             if isinstance(e, (Vyroba, Building, BuildingUpgrade)):
-                img = makeSticker(e, dbTeam, StickerType.regular)
+                img = makeSticker(e, dbTeam, StickerType.regular, entities=entities)
                 img.save(str(outputdir / f"{e.id}.png"))

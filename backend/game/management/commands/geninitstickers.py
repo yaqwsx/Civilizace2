@@ -30,5 +30,7 @@ class Command(BaseCommand):
 
         for team in Team.objects.all():
             for s in stickers:
-                img = makeSticker(entities[s], team, StickerType.regular)
+                img = makeSticker(
+                    entities[s], team, StickerType.regular, entities=entities
+                )
                 img.save(str(outputdir / f"{team.id}_{s}.png"))
