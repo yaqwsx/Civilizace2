@@ -72,6 +72,8 @@ ALIASES: list[Tuple[str, Callable[[Mapping[EntityId, Entity]], list[str]]]] = [
     ),
 ]
 
+RowNum = int
+
 
 def str_to_bool(value: str) -> bool:
     """Convert a string representation of truth to true (1) or false (0).
@@ -159,9 +161,10 @@ class ErrorHandler:
     def pop_context(self, expected_context: Optional[str] = None) -> None:
         assert len(self.context_list) > 0
         old_context = self.context_list.pop()
-        assert (
-            old_context == expected_context
-        ), f"Expected context {expected_context!r} but got {old_context!r} {self.context_str}"
+        if expected_context is not None:
+            assert (
+                old_context == expected_context
+            ), f"Expected context {expected_context!r} but got {old_context!r} {self.context_str}"
 
     def warn(self, warn_str: str) -> None:
         self.warn_msgs.append(warn_str)
@@ -741,17 +744,18 @@ def parseSheet(
     allowed_prefixes: list[str],
     entities: Mapping[EntityId, Entity],
     err_handler: ErrorHandler,
-) -> Iterable[TEntity]:
-    return iter(
-        parseEntity(
-            entity_type,
-            args,
-            allowed_prefixes=allowed_prefixes,
-            entities=entities,
-            err_handler=err_handler,
-        )
-        for args in data
-    )
+) -> Iterable[Tuple[TEntity, RowNum]]:
+    FIRST_ROW = 2
+    for row, args in enumerate(data, FIRST_ROW):
+        with err_handler.add_context(str(row)):
+            entity = parseEntity(
+                entity_type,
+                args,
+                allowed_prefixes=allowed_prefixes,
+                entities=entities,
+                err_handler=err_handler,
+            )
+        yield entity, row
 
 
 def add_tech_unlocks(
@@ -866,18 +870,19 @@ def createProduction(
 
 
 def with_productions(
-    resources: Iterable[Resource],
+    resources: Iterable[Tuple[Resource, RowNum]],
     res_prod_names: Mapping[EntityId, str],
     *,
     err_handler: ErrorHandler,
-) -> Iterable[Resource]:
-    for resource in resources:
-        yield resource
-        production = createProduction(
-            resource, res_prod_names.get(resource.id), err_handler=err_handler
-        )
+) -> Iterable[Tuple[Resource, RowNum]]:
+    for resource, row in resources:
+        yield resource, row
+        with err_handler.add_context(str(row)):
+            production = createProduction(
+                resource, res_prod_names.get(resource.id), err_handler=err_handler
+            )
         if production is not None:
-            yield production
+            yield production, row
 
 
 def update_unlocked_by(
@@ -1045,6 +1050,16 @@ def checkUsersHaveLogins(entities: Entities, *, err_handler: ErrorHandler) -> No
             err_handler.error(f"User {user!r} cannot have blank password")
 
 
+def find_entity_rows(
+    entity_id: str, data: Mapping[str, list[dict[str, str]]]
+) -> Iterable[Tuple[str, RowNum]]:
+    FIRST_ROW = 2
+    for sheet, sheet_data in data.items():
+        for rownum, rowdata in enumerate(sheet_data, FIRST_ROW):
+            if rowdata.get("id") == entity_id:
+                yield sheet, rownum
+
+
 class EntityParser:
     @staticmethod
     def parse_entities(
@@ -1060,12 +1075,20 @@ class EntityParser:
 
         entities_map: dict[EntityId, Entity] = {}
 
-        def add_entities(new_entities: Iterable[Entity]) -> None:
-            for e in new_entities:
-                if e.id in entities_map:
-                    err_handler.error(f"Entity {e!r} is already in entities")
-                    continue
-                entities_map[e.id] = e
+        def add_entities(new_entities: Iterable[Tuple[Entity, RowNum]]) -> None:
+            for entity, row in new_entities:
+                with err_handler.add_context(f"{row}"):
+                    if entity.id in entities_map:
+                        print(list(find_entity_rows(entity.id, data)))
+                        other_entities = ", ".join(
+                            f"{sheet}:{row}"
+                            for sheet, row in find_entity_rows(entity.id, data)
+                        )
+                        err_handler.error(
+                            f"Entity {entity!r} is already in entities (entities with id {entity.id!r} found at [{other_entities}])"
+                        )
+                        continue
+                    entities_map[entity.id] = entity
 
         with err_handler.add_context("dice"):
             add_entities(
