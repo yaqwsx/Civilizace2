@@ -1079,7 +1079,6 @@ class EntityParser:
             for entity, row in new_entities:
                 with err_handler.add_context(f"{row}"):
                     if entity.id in entities_map:
-                        print(list(find_entity_rows(entity.id, data)))
                         other_entities = ", ".join(
                             f"{sheet}:{row}"
                             for sheet, row in find_entity_rows(entity.id, data)
