@@ -8,6 +8,8 @@ import {
     EntityBase,
     MapTileEntity,
     MapTileTeamEntity,
+    ResourceEntity,
+    ResourceTeamEntity,
     Team,
     TeamAttributeEntity,
     TeamAttributeTeamEntity,
@@ -76,7 +78,7 @@ function EntitySelect<TEntity extends EntityBase>(props: {
         );
     }
     return (
-        <EntitySelectForm
+        <EntitySelectForm<TEntity>
             emptyLabel={props.emptyLabel}
             value={props.value}
             entities={Object.values(data)}
@@ -113,7 +115,7 @@ function TeamEntitySelect<TEntity extends EntityBase>(props: {
         );
     }
     return (
-        <EntitySelectForm
+        <EntitySelectForm<TEntity>
             emptyLabel={props.emptyLabel}
             value={props.value}
             entities={Object.values(data)}
@@ -125,6 +127,7 @@ function TeamEntitySelect<TEntity extends EntityBase>(props: {
         />
     );
 }
+
 export function TileSelect(props: {
     value?: MapTileEntity;
     onChange: (value?: MapTileEntity) => void;
@@ -290,6 +293,67 @@ export function TeamAttributeTeamSelect(props: {
             entityType="team_attributes"
             emptyLabel="Žádná vlastnost"
             {...props}
+        />
+    );
+}
+
+export function ResourceSelect(props: {
+    value?: ResourceEntity;
+    onChange: (value?: ResourceEntity) => void;
+    filter?: (value: ResourceEntity) => boolean;
+    sortBy?: _.Many<_.ListIteratee<ResourceEntity>>;
+    className?: string;
+}) {
+    return (
+        <EntitySelect<ResourceEntity>
+            entityType="resources"
+            emptyLabel="Žádný zdroj"
+            {...props}
+        />
+    );
+}
+
+export function ResourceTeamSelect(props: {
+    team: Team;
+    value?: ResourceTeamEntity;
+    onChange: (value?: ResourceTeamEntity) => void;
+    filter?: (value: ResourceTeamEntity) => boolean;
+    sortBy?: _.Many<_.ListIteratee<ResourceTeamEntity>>;
+    className?: string;
+}) {
+    const { data: allData, error: allError } =
+        useEntities<ResourceEntity>("resources");
+    const { data: teamData, error: teamError } =
+        useTeamEntities<ResourceTeamEntity>("resources", props.team);
+    if (!allData) {
+        return (
+            <LoadingOrError
+                error={allError}
+                message="Nemůžu načíst entity (resources)"
+            />
+        );
+    }
+    if (!teamData) {
+        return (
+            <LoadingOrError
+                error={teamError}
+                message="Nemůžu načíst týmové entity (resources)"
+            />
+        );
+    }
+    return (
+        <EntitySelectForm<ResourceTeamEntity>
+            emptyLabel={"Žádný zdroj"}
+            value={props.value}
+            entities={Object.entries(allData).map(([name, res]) => ({
+                available: teamData[name]?.available ?? 0,
+                ...res,
+            }))}
+            onChange={props.onChange}
+            filter={props.filter}
+            sortBy={props.sortBy}
+            display={(e) => `${e.name} (dostupné: ${e.available})`}
+            className={props.className}
         />
     );
 }
