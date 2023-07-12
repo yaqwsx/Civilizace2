@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { RootState } from "../store";
 import { EntityTag } from "./entities";
+import { Decimal } from "../types";
 
 export const classNames = (...args: Argument[]) =>
     overrideTailwindClasses(classNamesOriginal(...args));
@@ -141,6 +142,81 @@ export function SpinboxInput(props: SpinboxInputType) {
                 type="number"
                 disabled={props.disabled}
                 onChange={handleChange}
+                value={props.value ?? ""}
+                className="numberinput mx-3 flex-1"
+            />
+            <button className={buttonClassName} onClick={() => incValue(1)}>
+                ↑
+            </button>
+            <button className={buttonClassName} onClick={() => incValue(5)}>
+                ↑↑
+            </button>
+        </div>
+    );
+}
+
+export function DecimalSpinboxInput(props: {
+    value: Decimal | undefined;
+    onChange: (value: Decimal | undefined) => void;
+    className?: string;
+    disabled?: boolean;
+}) {
+    const incValue = (amount: number) => {
+        if (typeof props.value == "undefined") {
+            props.onChange(amount);
+        } else if (typeof props.value == "number") {
+            props.onChange(props.value + amount);
+        } else {
+            const [integer, decimal] = _.split(props.value, ".", 2);
+            props.onChange(
+                String((Number(integer) ?? 0) + amount) + "." + decimal
+            );
+        }
+    };
+
+    const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (/^\d*(\.\d*)?$/.test(event.target.value)) {
+            props.onChange(
+                event.target.value === ""
+                    ? undefined
+                    : event.target.value === "."
+                    ? "0."
+                    : event.target.value
+            );
+        }
+    };
+
+    const buttonClassName = classNames(
+        "inline-block",
+        "shadow",
+        "text-center",
+        "bg-purple-500",
+        "hover:bg-purple-400",
+        "focus:shadow-outline",
+        "focus:outline-none",
+        "text-white",
+        "font-bold",
+        "py-2",
+        "px-4",
+        "rounded",
+        "flex-none",
+        "mx-1",
+        "text-xs"
+    );
+
+    return (
+        <div className={classNames("flex w-full flex-wrap", props.className)}>
+            <button className={buttonClassName} onClick={() => incValue(-5)}>
+                ↓↓
+            </button>
+            <button className={buttonClassName} onClick={() => incValue(-1)}>
+                ↓
+            </button>
+            <input
+                type="text"
+                onChange={handleChange}
+                placeholder="Decimal"
+                disabled={props.disabled}
                 value={props.value ?? ""}
                 className="numberinput mx-3 flex-1"
             />

@@ -9,6 +9,7 @@ import useSWRImmutable from "swr/immutable";
 import {
     Button,
     ComponentError,
+    DecimalSpinboxInput,
     FormRow,
     InlineSpinner,
     LoadingOrError,
@@ -120,22 +121,9 @@ function GetArgForm(props: ArgFormProps) {
     switch (props.serverInfo.type.toLowerCase()) {
         case "decimal":
             return (p: ArgumentFormProps) => (
-                <input
-                    type="text"
-                    onChange={(e) => {
-                        if (/^\d*(\.\d*)?$/.test(e.target.value)) {
-                            p.onChange(
-                                e.target.value === ""
-                                    ? undefined
-                                    : e.target.value === "."
-                                    ? "0."
-                                    : e.target.value
-                            );
-                        }
-                    }}
+                <DecimalSpinboxInput
+                    onChange={p.onChange}
                     value={p.value ?? ""}
-                    placeholder="Decimal"
-                    className="flex w-full flex-wrap"
                 />
             );
         case "int":
