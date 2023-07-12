@@ -6,6 +6,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import {
     Button,
+    DecimalSpinboxInput,
     Dialog,
     FormRow,
     LoadingOrError,
@@ -17,6 +18,7 @@ import { EntityTag } from "../elements/entities";
 import {
     BuildingTeamSelect,
     BuildingUpgradeTeamSelect,
+    ResourceTeamSelect,
     TeamAttributeSelect,
     TileTeamSelect,
     VyrobaTeamSelect,
@@ -34,6 +36,7 @@ import {
     useTeamBuildings,
     useTeamEmployees,
     useTeamProductions,
+    useTeamResources,
     useTeamTeamAttributes,
     useTeamVyrobas,
 } from "../elements/team_view";
@@ -42,8 +45,10 @@ import {
     ArmyMode,
     BuildingTeamEntity,
     BuildingUpgradeTeamEntity,
+    Decimal,
     MapTileTeamEntity,
     ResourceId,
+    ResourceTeamEntity,
     Team,
     TeamArmy,
     TeamAttributeTeamEntity,
@@ -63,10 +68,13 @@ export enum MapActionType {
     addAttribute,
     revertVyroba,
     trade,
-    addCulture,
+    setResource,
 }
 
 const urlMapActionAtom = atomWithHash<MapActionType | null>("mapAction", null);
+
+const urlShowTradableAtom = atomWithHash<boolean>("tradable", false);
+const urlOwnedOnlyAtom = atomWithHash<boolean>("owned", false);
 
 function MapActionColorClassNames(action: MapActionType): string {
     switch (action) {
@@ -82,7 +90,7 @@ function MapActionColorClassNames(action: MapActionType): string {
             return "bg-red-500 hover:bg-red-600";
         case MapActionType.trade:
             return "bg-yellow-500 hover:bg-yellow-600";
-        case MapActionType.addCulture:
+        case MapActionType.setResource:
             return "bg-blue-500 hover:bg-blue-600";
         default:
             const exhaustiveCheck: never = action;
@@ -106,8 +114,8 @@ function MapActionName(action: MapActionType): string {
             return "Vrátit výrobu";
         case MapActionType.trade:
             return "Obchodovat";
-        case MapActionType.addCulture:
-            return "Přidat kulturu";
+        case MapActionType.setResource:
+            return "Zadat zdroj";
         default:
             const exhaustiveCheck: never = action;
             return String(action); // For invalid Enum value
@@ -133,8 +141,8 @@ function MapActionAgenda(props: {
             return <RevertVyrobaAgenda team={props.team} />;
         case MapActionType.trade:
             return <TradeAgenda team={props.team} />;
-        case MapActionType.addCulture:
-            return <CultureAgenda team={props.team} />;
+        case MapActionType.setResource:
+            return <SetResourceAgenda team={props.team} />;
         default:
             const exhaustiveCheck: never = props.action;
             return <></>; // For invalid Enum value
@@ -192,25 +200,105 @@ export function MapAgenda() {
     );
 }
 
-export function CultureAgenda(props: { team: Team }) {
-    const [culture, setCulture] = useState(0);
+export function SetResourceAgenda(props: { team: Team }) {
     const setAction = useSetAtom(urlMapActionAtom);
+    const [resource, setResource] = useState<ResourceTeamEntity>();
+    const [amount, setAmount] = useState<Decimal>();
+    const { data: resources, error } = useTeamResources(props.team);
+
+    const [ownedOnly, setOwnedOnly] = useAtom(urlOwnedOnlyAtom);
+    const [showTradable, setShowTradable] = useAtom(urlShowTradableAtom);
+
+    useEffect(() => {
+        if (_.isNil(resources) || _.isNil(resource)) {
+            return;
+        }
+        setAmount(resource.available ?? 0);
+    }, [props.team, resource, _.isNil(resources)]);
+
+    if (_.isNil(resources)) {
+        return (
+            <LoadingOrError
+                error={error}
+                message="Nemůžu načíst týmové zdroje"
+            />
+        );
+    }
 
     return (
         <PerformNoInitAction
-            actionId="AddCultureAction"
-            actionName={`Udělit kulturu týmu ${props.team.name}`}
+            actionId="SetResourceAction"
+            actionName={`Zadat zdroj ${resource?.name ?? ""} týmu ${
+                props.team.name
+            }`}
             actionArgs={{
                 team: props.team.id,
-                culture,
+                resource: resource?.id,
+                old_amount: resource?.available,
+                new_amount: amount,
             }}
-            onFinish={() => setAction(RESET)}
+            argsValid={(args) =>
+                !_.isNil(args.resource) && Number(args.new_amount) >= 0
+            }
+            onFinish={() => {
+                setAction(RESET);
+            }}
             onBack={() => {}}
             extraPreview={
                 <>
-                    <FormRow label="Kolik přidat kultury?">
-                        <SpinboxInput value={culture} onChange={setCulture} />
+                    <div className="mb-6 flex items-center justify-center">
+                        <div className="field mx-10">
+                            <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                                Pouze vlastněné:
+                            </label>
+                            <input
+                                className="checkboxinput"
+                                type="checkbox"
+                                checked={ownedOnly}
+                                onChange={(e) =>
+                                    setOwnedOnly(e.target.checked || RESET)
+                                }
+                            />
+                        </div>
+                        <div className="field mx-10">
+                            <label className="mb-1 block py-1 pr-4 font-bold text-gray-500 md:mb-0 md:text-right">
+                                Zobrazit vše:
+                            </label>
+                            <input
+                                className="checkboxinput"
+                                type="checkbox"
+                                checked={showTradable}
+                                onChange={(e) =>
+                                    setShowTradable(e.target.checked || RESET)
+                                }
+                            />
+                        </div>
+                    </div>
+                    <FormRow label="Zdroj:">
+                        <ResourceTeamSelect
+                            team={props.team}
+                            value={resource}
+                            onChange={setResource}
+                            filter={(r) =>
+                                (showTradable || r.nontradable) &&
+                                (!ownedOnly || Number(r.available) > 0)
+                            }
+                            sortBy={[
+                                (r) => !r.nontradable,
+                                (r) => Number(r.available) == 0,
+                            ]}
+                        />
                     </FormRow>
+                    {resource ? (
+                        <FormRow
+                            label={`Množství (původní: ${resource.available}):`}
+                        >
+                            <DecimalSpinboxInput
+                                value={amount}
+                                onChange={setAmount}
+                            />
+                        </FormRow>
+                    ) : null}
                 </>
             }
         />

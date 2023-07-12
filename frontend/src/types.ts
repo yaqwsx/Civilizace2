@@ -43,6 +43,8 @@ export interface DieEntity extends EntityBase {
 
 export interface ResourceEntity extends EntityBase {
     produces?: ResourceId;
+    nontradable: boolean;
+    isGeneric: boolean;
 }
 
 export interface MapTileEntity extends EntityBase {
