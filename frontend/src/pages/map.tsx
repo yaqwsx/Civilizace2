@@ -209,6 +209,14 @@ export function SetResourceAgenda(props: { team: Team }) {
     const [ownedOnly, setOwnedOnly] = useAtom(urlOwnedOnlyAtom);
     const [showTradable, setShowTradable] = useAtom(urlShowTradableAtom);
 
+    const [entity, setEntity] = useAtom(urlReaderEntityAtom);
+    useEffect(() => {
+        if (resources && entity) {
+            setResource(resources[entity]);
+            setEntity(RESET);
+        }
+    }, [entity, resources]);
+
     useEffect(() => {
         if (_.isNil(resources) || _.isNil(resource)) {
             return;

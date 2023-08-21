@@ -99,6 +99,17 @@ export function getNavigatePage(items: string[]) {
             args.push(`entity=${item}`);
             args.push(`mapAction=${MapActionType.addAttribute}`);
             setPage("map");
+        } else if (
+            item.startsWith("res-") ||
+            item.startsWith("mat-") ||
+            item.startsWith("pro-") ||
+            item.startsWith("mge-") ||
+            item.startsWith("pge-")
+        ) {
+            args.push(`entity=${item}`);
+            args.push(`mapAction=${MapActionType.setResource}`);
+            args.push("tradable=true");
+            setPage("map");
         }
     });
     return { page, args };
