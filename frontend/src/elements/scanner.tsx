@@ -4,6 +4,7 @@ import { MapActionType } from "../pages/map";
 import onScan from "onscan.js";
 import { createContext, useContext, useEffect, useState } from "react";
 import { stringAtomWithHash } from "../utils/atoms";
+import _ from "lodash";
 
 export const urlReaderEntityAtom = stringAtomWithHash("entity");
 
@@ -66,30 +67,38 @@ export function useScanner(callback: (words: string[]) => void) {
 }
 
 export function getNavigatePage(items: string[]) {
-    let page;
+    let page: string | undefined;
     const args: string[] = [];
+
+    const setPage = (value: string) => {
+        if (!_.isNil(page)) {
+            console.warn("Multiple main pages from page navigation");
+        }
+        page = value;
+    };
+
     items.forEach((item) => {
         if (item.startsWith("tym-")) {
             args.push(`team=${item}`);
         } else if (item.startsWith("vyr-")) {
             args.push(`entity=${item}`);
             args.push("vyrobaAction=vyroba");
-            page = "vyrobas";
+            setPage("vyrobas");
         } else if (item.startsWith("tec-")) {
             args.push(`entity=${item}`);
-            page = "techs";
+            setPage("techs");
         } else if (item.startsWith("bui-")) {
             args.push(`entity=${item}`);
             args.push(`mapAction=${MapActionType.building}`);
-            page = "map";
+            setPage("map");
         } else if (item.startsWith("bup-")) {
             args.push(`entity=${item}`);
             args.push(`mapAction=${MapActionType.buildingUpgrade}`);
-            page = "map";
+            setPage("map");
         } else if (item.startsWith("att-")) {
             args.push(`entity=${item}`);
             args.push(`mapAction=${MapActionType.addAttribute}`);
-            page = "map";
+            setPage("map");
         }
     });
     return { page, args };
