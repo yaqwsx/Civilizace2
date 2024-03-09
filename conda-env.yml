@@ -8,25 +8,24 @@ dependencies:
   - nodejs=16.13.1
   - pip
   - pip:
-    - mypy
-    - autopep8
-    - pylint
-    - Django==4.0.*
-    - djangorestframework==3.13.*
-    - djangorestframework-simplejwt==5.1.*
-    - gspread==5.*
-    - django-extensions==3.1.*
-    - django-cors-headers>=3.10.*
-    - pytest==7.1.*
-    - pytest-django==4.5.*
-    - pydantic==1.9.*
-    - frozendict==2.3.*
-    - types-frozendict
-    - django-enumfield==3.0.*
-    - psycopg2==2.9.5
-    - Pillow==9.1.1
-    - qrcode==7.3.1
-    - django-ipware==4.0.2
-    - Flask==2.1.2
-    - python-escpos==2.2.0
-    - boolean.py>=4.0
+    - autopep8==2.0.*
+    - mypy==1.9.*
+    - pylint==3.1.*
+
+    - boolean.py==4.0.*
+    - django==5.0.*
+    - django-cors-headers==4.3.*
+    - django-enumfield==3.*
+    - django-extensions==3.2.*
+    - django-ipware==6.0.*
+    - djangorestframework==3.14.*
+    - djangorestframework-simplejwt==5.3.*
+    - flask==3.0.*
+    - frozendict==2.4.*
+    - gspread==6.0.*
+    - pillow==10.2.*
+    - pydantic==1.* # Breaking change in 2.*
+    - pytest==8.1.*
+    - pytest-django==4.8.*
+    - python-escpos==3.1.*
+    - qrcode==7.4.*

@@ -1,7 +1,17 @@
-Django==4.0.*
-djangorestframework==3.13.*
-djangorestframework-simplejwt==5.1.*
-gspread==5.*
-django-extensions==3.1.*
-django-cors-headers>=3.10.*
-boolean.py>=4.0.*
+boolean.py==4.0.*
+django==5.0.*
+django-cors-headers==4.3.*
+django-enumfield==3.*
+django-extensions==3.2.*
+django-ipware==6.0.*
+djangorestframework==3.14.*
+djangorestframework-simplejwt==5.3.*
+flask==3.0.*
+frozendict==2.4.*
+gspread==6.0.*
+pillow==10.2.*
+pydantic==1.* # Breaking change in 2.*
+pytest==8.1.*
+pytest-django==4.8.*
+python-escpos==3.1.*
+qrcode==7.4.*

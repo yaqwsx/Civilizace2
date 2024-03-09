@@ -5,7 +5,7 @@ from typing import Iterable, Optional, Tuple
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from core.management.commands.pullentities import setFilename
+from core.management.commands.pullentities import ENTITY_SETS, setFilename
 from game.entities import Entities, EntityBase, EntityWithCost, Resource, Tech, Vyroba
 from game.entityParser import EntityParser
 
@@ -16,12 +16,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser: ArgumentParser):
         parser.add_argument("material", type=str, help="Resource id to show usage for")
-        parser.add_argument("--set", "-s", type=str, default=None, help="Entities set")
+        parser.add_argument("--set", "-s", type=str, default="GAME", choices=list(ENTITY_SETS), help="Entities set")
         parser.add_argument("--id", action="store_true", help="Show entity ids")
 
-    def handle(self, material: str, set: Optional[str], id: bool, *args, **kwargs):
+    def handle(self, material: str, set: str, id: bool, *args, **kwargs):
+        assert set in ENTITY_SETS
         self.show_id = id
-        set = "GAME" if set is None else set
         targetFile = settings.ENTITY_PATH / setFilename(set)
         entities = EntityParser.load(targetFile)
 

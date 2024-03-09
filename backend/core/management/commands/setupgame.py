@@ -28,7 +28,7 @@ from game.state import GameState, WorldState
 from game.viewsets.action_view_helper import ActionViewHelper
 from game.viewsets.stickers import Sticker
 
-from .pullentities import setFilename
+from .pullentities import ENTITY_SETS, setFilename
 
 
 class Command(BaseCommand):
@@ -39,10 +39,11 @@ class Command(BaseCommand):
 
     @override
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument("set", type=str)
+        parser.add_argument("set", type=str, choices=list(ENTITY_SETS), help="Entities set")
 
     @override
     def handle(self, set: str, *args, **options) -> None:
+        assert set in ENTITY_SETS
         targetFile = settings.ENTITY_PATH / setFilename(set)
         entities = EntityParser.load(targetFile)
 
