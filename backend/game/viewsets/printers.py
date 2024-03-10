@@ -34,7 +34,7 @@ class PrinterViewSet(viewsets.ViewSet):
         deserializer.is_valid(raise_exception=True)
         data = deserializer.validated_data
 
-        clientIp, _ = get_client_ip(request)
+        clientIp, _ = get_client_ip(request._request)
         if clientIp is None:
             raise NoIPError()
         Printer.objects.update_or_create(

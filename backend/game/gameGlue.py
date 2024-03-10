@@ -29,7 +29,7 @@ class UnexpectedValueType(Exception):
         **kwargs,
     ):
         super().__init__(
-            f"Unexpected value type '{type(value)}' for {expectedType} (allowed types: {', '.join(allowedTypes)})",
+            f"Unexpected value type '{type(value)}' for {expectedType} (allowed types: {', '.join(str(allowedTypes))})",
             *args,
             **kwargs,
         )
@@ -43,8 +43,8 @@ def stateSerialize(model: BaseModel) -> dict[str, Any]:
     Turn the model into a dictionary representation
     """
     return {
-        field.name: _serialize_any(getattr(model, field.name))
-        for field in model.__fields__.values()
+        name: _serialize_any(getattr(model, name))
+        for name in model.__fields__.keys()
     }
 
 
@@ -60,9 +60,7 @@ def _serialize_any(what: Any):
     if isinstance(what, list):
         return [_serialize_any(x) for x in what]
     if isinstance(what, set):
-        items = [_serialize_any(x) for x in what]
-        items.sort()
-        return items
+        return [_serialize_any(x) for x in sorted(what)]
     if isinstance(what, tuple):
         return tuple(_serialize_any(x) for x in what)
     if isinstance(what, dict):

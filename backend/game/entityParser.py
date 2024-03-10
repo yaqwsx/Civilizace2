@@ -23,9 +23,9 @@ from typing import (
 )
 
 import boolean
-import pydantic
 from frozendict import frozendict
 from pydantic import ValidationError
+from pydantic.fields import ModelField
 
 from game import entities
 from game.entities import (
@@ -578,7 +578,7 @@ def parseFieldArgs(
     return parsed_args
 
 
-def get_field_type(field: pydantic.fields.ModelField) -> Type:
+def get_field_type(field: ModelField) -> Type:
     def is_type(value: Any) -> bool:
         return isinstance(value, type) or typing.get_origin(value) is not None
 
