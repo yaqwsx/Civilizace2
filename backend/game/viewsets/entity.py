@@ -7,8 +7,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from game.entities import Entities, Entity, EntityId
-from game.gameGlue import serializeEntity
 from game.models import DbEntities
+from game.serializers import Serializer
 
 
 class EntityViewSet(viewsets.ViewSet):
@@ -58,5 +58,8 @@ class EntityViewSet(viewsets.ViewSet):
     ) -> Response:
         entities = DbEntities.objects.get_revision()[1]
         return Response(
-            {e.id: serializeEntity(e) for e in entitySelector(entities).values()}
+            {
+                e.id: Serializer().serialize_entity(e)
+                for e in entitySelector(entities).values()
+            }
         )

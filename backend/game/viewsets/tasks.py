@@ -3,7 +3,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 
 from game.models import DbTask, DbTaskAssignment
-from game.serializers import DbTaskSerializer
+from game.model_serializers import DbTaskSerializer
 from game.viewsets.permissions import IsOrg
 
 

@@ -4,7 +4,7 @@ import typing
 from enum import Enum
 from typing import Any, Type, TypedDict
 
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -38,7 +38,7 @@ class ActionViewSet(viewsets.ViewSet):
         args: dict[str, ActionViewSet.ArgTypeInfo]
 
     @staticmethod
-    def type_info(outer_type: Type[Any]) -> TypeInfo:
+    def type_info(outer_type: Any) -> TypeInfo:
         if (origin_type := typing.get_origin(outer_type)) is not None:
             return {
                 "type": origin_type.__name__,
@@ -60,12 +60,12 @@ class ActionViewSet(viewsets.ViewSet):
         assert False, f"Not expected type {outer_type!r} (check if it's a ForwardRef)"
 
     @staticmethod
-    def field_info(field: ModelField) -> ArgTypeInfo:
+    def field_info(field: FieldInfo) -> ArgTypeInfo:
         info: ActionViewSet.ArgTypeInfo = {
-            "required": bool(field.required),
-            **ActionViewSet.type_info(field.outer_type_),
+            "required": bool(field.is_required()),
+            **ActionViewSet.type_info(field.annotation),
         }
-        if not field.required:
+        if not field.is_required():
             info["default"] = field.get_default()
         return info
 
@@ -77,7 +77,7 @@ class ActionViewSet(viewsets.ViewSet):
 
         args = {
             name: ActionViewSet.field_info(field)
-            for name, field in action.argument.__fields__.items()
+            for name, field in action.argument.model_fields.items()
         }
 
         return {

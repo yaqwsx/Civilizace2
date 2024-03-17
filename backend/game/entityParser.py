@@ -25,7 +25,7 @@ from typing import (
 import boolean
 from frozendict import frozendict
 from pydantic import ValidationError
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
 
 from game import entities
 from game.entities import (
@@ -178,8 +178,7 @@ class ErrorHandler:
             self.check_max_errs_reached()
 
     # Ignores `self.max_errs`
-    def validation_error(self, error: ValidationError) -> ParserError:
-        model_name = error.model.__name__
+    def validation_error(self, error: ValidationError, model_name: str) -> ParserError:
         errors = error.errors()
         summary_str = f"Total {len(errors)} validation errors for {model_name}"
         self.error(summary_str, ignore_max_errs=True)
@@ -578,11 +577,11 @@ def parseFieldArgs(
     return parsed_args
 
 
-def get_field_type(field: ModelField) -> Type:
+def get_field_type(field: FieldInfo) -> Type:
     def is_type(value: Any) -> bool:
         return isinstance(value, type) or typing.get_origin(value) is not None
 
-    outer_type = field.outer_type_
+    outer_type: Any = field.annotation
     if is_type(outer_type):
         return outer_type
     if isinstance(outer_type, ForwardRef):
@@ -607,19 +606,19 @@ def parseModel(
     delims: Delims = Delims(),
     err_handler: ErrorHandler,
 ) -> TModel:
-    unknown_fields = tuple(name for name in args if name not in cls.__fields__)
+    unknown_fields = tuple(name for name in args if name not in cls.model_fields)
     if len(unknown_fields) > 0:
         err_handler.warn(
-            f"There are unknown fields for {cls!r}: {unknown_fields} (expected one of {list(cls.__fields__)})"
+            f"There are unknown fields for {cls!r}: {unknown_fields} (expected one of {list(cls.model_fields)})"
         )
 
     arg_types = {
-        name: (get_field_type(field), field.required == True)
-        for name, field in cls.__fields__.items()
+        name: (get_field_type(field), field.is_required())
+        for name, field in cls.model_fields.items()
     }
     try:
-        return cls.validate(
-            parseFieldArgs(
+        return cls(
+            **parseFieldArgs(
                 arg_types,
                 args,
                 delims=delims,
@@ -628,7 +627,7 @@ def parseModel(
             )
         )
     except ValidationError as e:
-        new_e: ParserError = err_handler.validation_error(e)
+        new_e: ParserError = err_handler.validation_error(e, cls.__name__)
         raise new_e from e
     except (ParserError, ValueError) as e:
         reason = e.reason if isinstance(e, ParserError) else str(e)

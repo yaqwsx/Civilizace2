@@ -4,7 +4,7 @@ from typing_extensions import override
 
 from game.actions.actionBase import ActionArgs, NoInitActionBase
 from game.actions.common import ActionFailed, MessageBuilder
-from game.gameGlue import stateDeserialize, stateSerialize
+from game.serializers import Deserializer, Serializer
 from game.state import GameState
 
 
@@ -28,8 +28,8 @@ class GodModeAction(NoInitActionBase):
 
     @override
     def _commitImpl(self) -> None:
-        currentState = stateDeserialize(
-            GameState, stateSerialize(self.state), self.entities
+        currentState = Deserializer(self.entities).deserialize(
+            GameState, Serializer().serialize(self.state)
         )
         originalState = self.args.original
         newState = self.args.new
@@ -68,8 +68,8 @@ class GodModeAction(NoInitActionBase):
 
         self._ensureValid()
         try:
-            x = stateSerialize(self.state)
-            stateDeserialize(GameState, x, self.entities)
+            x = Serializer().serialize(self.state)
+            _ = Deserializer(self.entities).deserialize(GameState, x)
         except Exception as e:
             tb = traceback.format_exc()
             raise ActionFailed(

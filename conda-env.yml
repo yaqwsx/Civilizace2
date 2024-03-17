@@ -24,7 +24,7 @@ dependencies:
     - frozendict==2.4.*
     - gspread==6.0.*
     - pillow==10.2.*
-    - pydantic==1.* # Breaking change in 2.*
+    - pydantic==2.*
     - pytest==8.1.*
     - pytest-django==4.8.*
     - python-escpos==3.1.*

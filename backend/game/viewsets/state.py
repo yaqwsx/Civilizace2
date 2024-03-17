@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from game.gameGlue import stateSerialize
 from game.models import DbState
+from game.serializers import Serializer
 from game.viewsets.permissions import IsOrg
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,4 +15,4 @@ class StateViewSet(viewsets.ViewSet):
     def latest(self, request: Request) -> Response:
         state = DbState.get_latest()
         ir = state.toIr()
-        return Response(stateSerialize(ir))
+        return Response(Serializer().serialize(ir))
