@@ -1,7 +1,7 @@
 import json
 
 from core.management.commands.addarmies import addArmies
-from game.gameGlue import stateDeserialize, stateSerialize
+from game.serializers import Deserializer, Serializer
 from game.state import GameState
 from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 
@@ -17,13 +17,13 @@ def test_stateEq():
 
 def test_serialize():
     x = createTestInitState()
-    s = stateSerialize(x)
-    y = stateDeserialize(GameState, s, TEST_ENTITIES)
+    s = Serializer().serialize(x)
+    y = Deserializer(TEST_ENTITIES).deserialize(GameState, s)
     assert x == y
 
     sRepr = json.dumps(s)
     jRepr = json.loads(sRepr)
-    z = stateDeserialize(GameState, jRepr, TEST_ENTITIES)
+    z = Deserializer(TEST_ENTITIES).deserialize(GameState, jRepr)
     assert x == z
 
 

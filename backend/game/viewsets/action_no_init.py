@@ -12,8 +12,8 @@ from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionResult, NoInitActionBase
 from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import Entities
-from game.gameGlue import stateSerialize
 from game.models import DbAction, DbEntities, DbState, GameTime, InteractionType
+from game.serializers import Serializer
 from game.state import GameState
 from game.viewsets.action_view_helper import ActionViewHelper, UnexpectedActionTypeError
 from game.viewsets.permissions import IsOrg
@@ -136,7 +136,7 @@ class NoInitActionViewSet(viewsets.ViewSet):
             dbAction = DbAction.objects.create(
                 actionType=data["action"],
                 entitiesRevision=entityRevision,
-                args=stateSerialize(action.args),
+                args=Serializer().serialize(action.args),
             )
             ActionViewHelper.dbStoreInteraction(
                 dbAction, dbState, InteractionType.commit, request.user, state, action

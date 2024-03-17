@@ -23,7 +23,6 @@ from game.actions.actionBase import (
 )
 from game.actions.common import ActionFailed, MessageBuilder
 from game.entities import Entities, Entity, TeamEntity, Tech
-from game.gameGlue import stateDeserialize, stateSerialize
 from game.models import (
     DbAction,
     DbEntities,
@@ -38,7 +37,8 @@ from game.models import (
     InteractionType,
     StickerType,
 )
-from game.serializers import DbActionSerializer
+from game.model_serializers import DbActionSerializer
+from game.serializers import Deserializer, Serializer
 from game.state import GameState
 from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import Sticker
@@ -70,7 +70,7 @@ class ActionViewHelper:
     ) -> ActionCommonBase:
         Action = GAME_ACTIONS[actionType]
         try:
-            argsObj = stateDeserialize(Action.argument, args, entities)
+            argsObj = Deserializer(entities).deserialize(Action.argument, args)
         except KeyError as e:
             raise UnexpectedStateError(f"Invalid args to action (KeyError: {e})") from e
         return Action.action.makeAction(state=state, entities=entities, args=argsObj)
@@ -102,7 +102,7 @@ class ActionViewHelper:
             phase=interaction_type,
             action=db_action,
             author=user,
-            actionObject=stateSerialize(action),
+            actionObject=Serializer().serialize(action),
             trace=action._trace.message,
             new_state=new_dbstate,
         )
@@ -215,7 +215,7 @@ class ActionViewHelper:
         dbAction = DbAction.objects.create(
             actionType=scheduled.actionName,
             entitiesRevision=source.entitiesRevision,
-            args=stateSerialize(scheduled.args),
+            args=Serializer().serialize(scheduled.args),
         )
         return DbScheduledAction.objects.create(
             action=dbAction,

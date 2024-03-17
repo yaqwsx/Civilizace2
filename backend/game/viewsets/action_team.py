@@ -17,7 +17,6 @@ from game.actions.common import ActionFailed, MessageBuilder
 from game.actions.researchFinish import ResearchFinishAction
 from game.actions.researchStart import ResearchStartAction
 from game.entities import Entities, TeamEntity
-from game.gameGlue import stateSerialize
 from game.models import (
     DbAction,
     DbEntities,
@@ -28,6 +27,7 @@ from game.models import (
     GameTime,
     InteractionType,
 )
+from game.serializers import Serializer
 from game.state import GameState
 from game.viewsets.action_view_helper import (
     ActionViewHelper,
@@ -238,7 +238,7 @@ class TeamActionViewSet(viewsets.ViewSet):
             dbAction = DbAction.objects.create(
                 actionType=data["action"],
                 entitiesRevision=entityRevision,
-                args=stateSerialize(action.args),
+                args=Serializer().serialize(action.args),
             )
             ActionViewHelper.dbStoreInteraction(
                 dbAction, dbState, InteractionType.initiate, request.user, state, action

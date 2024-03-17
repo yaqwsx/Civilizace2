@@ -19,9 +19,9 @@ from core.models.announcement import Announcement
 from core.serializers.announcement import team_serialize_announcement
 from core.serializers.team import TeamSerializer
 from game.entities import Entities, EntityId, TeamEntity, Vyroba
-from game.gameGlue import serializeEntity, stateSerialize
 from game.models import DbState, DbSticker, DbTask, DbTaskAssignment, DbTaskManager
-from game.serializers import DbTaskSerializer, PlayerDbTaskSerializer
+from game.model_serializers import DbTaskSerializer, PlayerDbTaskSerializer
+from game.serializers import Serializer
 from game.state import Army, GameState, MapTile, TeamState
 from game.viewsets.permissions import IsOrg
 from game.viewsets.stickers import DbStickerSerializer
@@ -105,9 +105,9 @@ class TeamViewSet(viewsets.ViewSet):
             "tile": a.tile.id if a.tile is not None else None,
             "mode": a.mode.name,
             "goal": a.goal.name if a.goal is not None else None,
-            "reachableTiles": [t.id for t in reachableTiles]
-            if reachableTiles is not None
-            else None,
+            "reachableTiles": (
+                [t.id for t in reachableTiles] if reachableTiles is not None else None
+            ),
         }
 
     @action(detail=True)
@@ -118,7 +118,9 @@ class TeamViewSet(viewsets.ViewSet):
         assert all(amount >= 0 for amount in resources.values())
         return Response(
             {
-                res.id: serializeEntity(res, {"available": resources[res]})
+                res.id: Serializer().serialize_entity_with_extra(
+                    res, {"available": resources[res]}
+                )
                 for res in resources.keys()
                 if resources[res] > 0
             }
@@ -139,7 +141,9 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                v.id: serializeEntity(v, {"allowedTiles": allowed_tiles(v)})
+                v.id: Serializer().serialize_entity_with_extra(
+                    v, {"allowedTiles": allowed_tiles(v)}
+                )
                 for v in stateInfo.teamState.unlocked_vyrobas()
             }
         )
@@ -149,7 +153,10 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
         return Response(
-            {b.id: serializeEntity(b) for b in teamState.unlocked_buildings()}
+            {
+                b.id: Serializer().serialize_entity(b)
+                for b in teamState.unlocked_buildings()
+            }
         )
 
     @action(detail=True)
@@ -157,7 +164,10 @@ class TeamViewSet(viewsets.ViewSet):
         self.validateAccess(request.user, pk)
         teamState = TeamStateInfo.get_latest(pk).teamState
         return Response(
-            {u.id: serializeEntity(u) for u in teamState.unlocked_building_upgrades()}
+            {
+                u.id: Serializer().serialize_entity(u)
+                for u in teamState.unlocked_building_upgrades()
+            }
         )
 
     @action(detail=True)
@@ -167,7 +177,9 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                a.id: serializeEntity(a, {"owned": a in teamState.attributes})
+                a.id: Serializer().serialize_entity_with_extra(
+                    a, {"owned": a in teamState.attributes}
+                )
                 for a in teamState.unlocked_attributes()
             }
         )
@@ -211,7 +223,9 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                tech.id: serializeEntity(tech, tech_extra_fields(tech))
+                tech.id: Serializer().serialize_entity_with_extra(
+                    tech, tech_extra_fields(tech)
+                )
                 for tech in teamTechs
             }
         )
@@ -287,7 +301,9 @@ class TeamViewSet(viewsets.ViewSet):
                 "specialres": stateInfo.getTeamSpecialResources(),
                 "worldTurn": stateInfo.state.world.turn,
                 "teamTurn": teamState.turn,
-                "researching": [serializeEntity(x) for x in teamState.researching],
+                "researching": [
+                    Serializer().serialize_entity(x) for x in teamState.researching
+                ],
                 "productions": [(r.id, a) for r, a in teamState.productions.items()],
                 "storage": [(r.id, a) for r, a in teamState.storage.items()],
                 "employees": [(e.id, a) for e, a in teamState.employees.items()],
@@ -382,7 +398,7 @@ class TeamViewSet(viewsets.ViewSet):
 
         return Response(
             {
-                tile.entity.id: serializeEntity(
+                tile.entity.id: Serializer().serialize_entity_with_extra(
                     tile.entity,
                     {
                         "is_home": tile.entity == stateInfo.teamEntity.homeTile,

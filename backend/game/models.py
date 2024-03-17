@@ -17,7 +17,7 @@ from game.actions import GAME_ACTIONS
 from game.actions.actionBase import ActionArgs, ActionCommonBase
 from game.entities import Entities, Entity
 from game.entityParser import EntityParser, ErrorHandler
-from game.gameGlue import stateDeserialize, stateSerialize
+from game.serializers import Deserializer, Serializer
 from game.state import GameState, MapState, TeamState, WorldState
 
 
@@ -166,7 +166,7 @@ class DbAction(models.Model):
 
     def getArgumentsIr(self, entities: Entities) -> ActionArgs:
         ActionTypeInfo = GAME_ACTIONS[self.actionType]
-        return stateDeserialize(ActionTypeInfo.argument, self.args, entities)
+        return Deserializer(entities).deserialize(ActionTypeInfo.argument, self.args)
 
 
 class DbScheduledAction(models.Model):
@@ -230,7 +230,9 @@ class DbInteraction(models.Model):
 
     def getActionIr(self, entities: Entities, state: GameState) -> ActionCommonBase:
         ActionTypeInfo = GAME_ACTIONS[self.action.actionType]
-        action = stateDeserialize(ActionTypeInfo.action, self.actionObject, entities)
+        action = Deserializer(entities).deserialize(
+            ActionTypeInfo.action, self.actionObject
+        )
         action._generalArgs = self.action.getArgumentsIr(entities)
         action._state = state
         action._entities = entities
@@ -242,7 +244,7 @@ class DbTeamState(models.Model):
     data = JSONField()
 
     def toIr(self, entities) -> TeamState:
-        return stateDeserialize(TeamState, self.data, entities)
+        return Deserializer(entities).deserialize(TeamState, self.data)
 
 
 class DbMapState(models.Model):
@@ -250,7 +252,7 @@ class DbMapState(models.Model):
     data = JSONField()
 
     def toIr(self, entities) -> MapState:
-        return stateDeserialize(MapState, self.data, entities)
+        return Deserializer(entities).deserialize(MapState, self.data)
 
 
 class DbWorldState(models.Model):
@@ -258,7 +260,7 @@ class DbWorldState(models.Model):
     data = JSONField()
 
     def toIr(self, entities) -> WorldState:
-        return stateDeserialize(WorldState, self.data, entities)
+        return Deserializer(entities).deserialize(WorldState, self.data)
 
 
 class DbStateManager(models.Manager):
@@ -266,13 +268,13 @@ class DbStateManager(models.Manager):
     def create_from(self, ir: GameState, *, source: Optional[DbState]) -> DbState:
         ir.normalize()
 
-        sMap = stateSerialize(ir.map)
+        sMap = Serializer().serialize(ir.map)
         if source is not None and sMap == source.mapState.data:
             mapState = source.mapState
         else:
             mapState = DbMapState.objects.create(data=sMap)
 
-        sWorld = stateSerialize(ir.world)
+        sWorld = Serializer().serialize(ir.world)
         if source is not None and sWorld == source.worldState.data:
             worldState = source.worldState
         else:
@@ -285,7 +287,7 @@ class DbStateManager(models.Manager):
             )
         for team, teamState in ir.teamStates.items():
             dbTeam = Team.objects.get(id=team.id)
-            sTeamState = stateSerialize(teamState)
+            sTeamState = Serializer().serialize(teamState)
             if (
                 source is not None
                 and sTeamState

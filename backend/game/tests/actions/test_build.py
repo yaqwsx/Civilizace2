@@ -1,6 +1,6 @@
 import pytest
 
-from game.actions.build import BuildAction, BuildArgs, BuildCompletedAction
+from game.actions.build import BuildAction, BuildArgs
 from game.actions.common import ActionFailed
 from game.tests.actions.common import TEST_ENTITIES, createTestInitState
 
@@ -52,13 +52,6 @@ def test_failStartExisting():
         args=BuildArgs(building=building, team=team, tile=tile.entity),
     )
     start.commitThrows(throws=1, dots=100)
-
-    finish = BuildCompletedAction.makeAction(
-        state=state,
-        entities=entities,
-        args=BuildArgs(building=building, team=team, tile=tile.entity),
-    )
-    finish.commit()
 
     with pytest.raises(ActionFailed) as einfo:
         start.commitThrows(throws=0, dots=0)

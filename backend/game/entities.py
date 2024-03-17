@@ -10,7 +10,7 @@ from typing import Any, Iterable, Optional, Tuple, Type, Union
 
 import boolean
 from frozendict import frozendict
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 EntityId = str
 
@@ -45,8 +45,7 @@ GUARANTEED_IDS: dict[EntityId, Type[Entity]]  # Defined after Entity is defined
 
 
 class EntityBase(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: EntityId
     name: str
@@ -230,8 +229,8 @@ Entity = Union[
     TeamGroup,
 ]
 
-EntityWithCost.update_forward_refs()
-Building.update_forward_refs()
+EntityWithCost.model_rebuild()
+Building.model_rebuild()
 
 
 GUARANTEED_IDS = {

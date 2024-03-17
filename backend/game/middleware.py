@@ -2,7 +2,6 @@ import json
 from math import floor
 import sys
 from game.actions.nextTurn import NextTurnAction
-from game.gameGlue import stateSerialize
 from game.models import (
     DbAction,
     DbEntities,
@@ -12,6 +11,7 @@ from game.models import (
     GameTime,
     InteractionType,
 )
+from game.serializers import Serializer
 from django.utils import timezone
 from django.db import transaction
 
@@ -72,12 +72,17 @@ def makeNextTurnAction():
     dbAction = DbAction.objects.create(
         actionType=NextTurnAction.__name__,
         entitiesRevision=entityRevision,
-        args=stateSerialize(action.args),
+        args=Serializer().serialize(action.args),
     )
 
     action.commit()
     ActionViewHelper.dbStoreInteraction(
-        dbAction, dbState, InteractionType.commit, user=None, new_state=state, action=action
+        dbAction,
+        dbState,
+        InteractionType.commit,
+        user=None,
+        new_state=state,
+        action=action,
     )
 
     ActionViewHelper._markMapDiff(prevState, state)
