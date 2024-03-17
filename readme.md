@@ -1,3 +1,6 @@
+![Backend: Build & Test Badge](https://github.com/Ondraceq/civilizace3/actions/workflows/backend-build-test.yml/badge.svg)
+![Backend: Coverage Badge](https://img.shields.io/badge/Backend:_Coverage-0-red.svg)
+
 # Civilizační informační systém
 
 Tento repozitář obsahuje vše relevantní k informačnímu systému pohánějící
