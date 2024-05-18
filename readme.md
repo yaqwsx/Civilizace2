@@ -1,5 +1,5 @@
-![Backend: Build & Test Badge](https://github.com/yaqwsx/Civilizace2/actions/workflows/backend-build-test.yml/badge.svg)
-![Backend: Coverage Badge](https://img.shields.io/badge/Backend:_Coverage-0-red.svg)
+[![Backend: Build & Test Badge](https://github.com/yaqwsx/Civilizace2/actions/workflows/backend-build-test.yml/badge.svg)](https://github.com/yaqwsx/Civilizace2/actions/workflows/backend-build-test.yml)
+[![Backend: Coverage Badge](https://img.shields.io/badge/Backend:_Coverage-0-red.svg)](https://github.com/yaqwsx/Civilizace2/actions/workflows/update-readme-badges.yml)
 
 # Civilizační informační systém
 
